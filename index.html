@@ -5759,6 +5759,111 @@ function carregarBibliotecasPDF(){
   return _promessaLibsPDF;
 }
 
+// Gera o PDF do painel visível como TEXTO DE VERDADE (selecionável), não um "print".
+// Tabelas viram tabelas reais (autoTable); cartões, listas e pares rótulo/valor viram texto.
+async function exportarPDFTexto(info, nome){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation:"portrait", unit:"mm", format:"a4" });
+  const margL = 12, margR = 12, pageW = 210, pageH = 297, limiteY = pageH - 14;
+  const contentW = pageW - margL - margR;
+  let y;
+  const nova = (primeira) => { if (!primeira) doc.addPage(); cabecalhoPDF(doc, info.nome); y = 30; };
+  nova(true);
+  const garante = h => { if (y + h > limiteY) nova(false); };
+  // Remove emojis e símbolos que a fonte padrão do PDF não desenha (viram lixo tipo "Ø=ÜÊ")
+  const semSimbolos = t => t.replace(/[←-⯿︀-️]|[\u{1F000}-\u{1FFFF}]/gu, "");
+  const limpar = v => semSimbolos(String(v == null ? "" : v)).replace(/\s+/g, " ").trim();
+  const valDe = c => {
+    if (!c) return "";
+    if (c.tagName === "SELECT"){ const o = c.options[c.selectedIndex]; return limpar(o ? o.text : c.value); }
+    return limpar(c.value);
+  };
+  const labelDe = c => {
+    let t = "";
+    if (c.id){ const l = info.el.querySelector('label[for="' + c.id + '"]'); if (l) t = limpar(l.textContent); }
+    if (!t){ const lp = c.closest("label"); if (lp) t = limpar(lp.textContent.replace(valDe(c), "")); }
+    return t.replace(/:\s*$/, "");
+  };
+  function escreve(t, o){
+    o = o || {}; if (!t) return;
+    doc.setFont("helvetica", o.bold ? "bold" : "normal");
+    doc.setFontSize(o.size || 10);
+    const cor = o.cor || [30,30,30]; doc.setTextColor(cor[0], cor[1], cor[2]);
+    const lh = (o.size || 10) * 0.42 + (o.gap == null ? 1.6 : o.gap);
+    const linhas = doc.splitTextToSize(t, contentW - (o.indent || 0));
+    for (const ln of linhas){ garante(lh); doc.text(ln, margL + (o.indent || 0), y); y += lh; }
+  }
+  function textoFolha(node){
+    const parts = [];
+    node.childNodes.forEach(cn => {
+      if (cn.nodeType === 3){ const t = limpar(cn.textContent); if (t) parts.push(t); }
+      else if (cn.nodeType === 1){ if (/^(BUTTON|SVG|CANVAS|IMG)$/.test(cn.tagName)) return; const t = limpar(cn.textContent); if (t) parts.push(t); }
+    });
+    return parts.join(" ");
+  }
+  function tabela(tbl){
+    let head = [...tbl.querySelectorAll("thead th")].map(th => limpar(th.textContent));
+    let body = [...tbl.querySelectorAll("tbody tr")].map(tr => [...tr.children].map(td => {
+      const c = td.querySelector("input,select,textarea");
+      return c ? valDe(c) : limpar(td.textContent);
+    }));
+    if (head.length && head[head.length - 1] === ""){ head = head.slice(0, -1); body = body.map(r => r.slice(0, head.length)); }
+    if (!head.length && body.length) head = body.shift();
+    if (!body.length) return;
+    garante(16);
+    try {
+      doc.autoTable({
+        head: head.length ? [head] : undefined, body: body, startY: y,
+        margin: { left: margL, right: margR, top: 28 },
+        styles: { fontSize: 8, cellPadding: 1.6, overflow: "linebreak", textColor: [40,40,40], lineColor: [225,225,225], lineWidth: 0.1 },
+        headStyles: { fillColor: [30,30,30], textColor: [255,255,255], fontStyle: "bold", fontSize: 8 },
+        alternateRowStyles: { fillColor: [246,246,246] },
+        didDrawPage: () => { cabecalhoPDF(doc, info.nome); }
+      });
+      y = doc.lastAutoTable.finalY + 5;
+    } catch(_){ }
+  }
+  const PULAR = ".painel-tools, .msg-admin, .push-box, .desc-form, .desc-controles, .pux-mes-nav, .cot-topo, .sim-acoes";
+  const IGN = /^(BUTTON|CANVAS|SVG|HR|IMG|BR|SCRIPT|STYLE|SELECT)$/;
+  function anda(el){
+    for (const node of Array.from(el.children)){
+      const tag = node.tagName;
+      if (node.matches && node.matches(PULAR)) continue;
+      let cs = null; try { cs = getComputedStyle(node); } catch(_){}
+      if (cs && cs.display === "none" && tag !== "TABLE") continue;
+      if (IGN.test(tag)){
+        if (tag === "SELECT"){ const v = valDe(node); if (v){ const l = labelDe(node); escreve((l ? l + ": " : "") + v, { size: 9.5 }); } }
+        continue;
+      }
+      if (tag === "TABLE"){ tabela(node); continue; }
+      if (/^H[1-4]$/.test(tag)){
+        const sz = tag === "H2" ? 13 : tag === "H3" ? 11.5 : 10.5;
+        y += 2; garante(sz * 0.5 + 2);
+        escreve(limpar(node.textContent), { size: sz, bold: true, cor: tag === "H2" ? [255,100,1] : [30,30,30], gap: 2.4 });
+        continue;
+      }
+      if (tag === "P"){ escreve(limpar(node.textContent), { size: 8.5, cor: [120,120,120], gap: 1.8 }); continue; }
+      if (tag === "INPUT" || tag === "TEXTAREA"){ const v = valDe(node); if (v){ const l = labelDe(node); escreve((l ? l + ": " : "") + v, { size: 9.5 }); } continue; }
+      const filhos = Array.from(node.children);
+      const temBloco = filhos.some(c => /^(DIV|TABLE|UL|OL|SECTION|FORM|H[1-4]|P)$/.test(c.tagName));
+      if (temBloco){ anda(node); continue; }
+      const ctrls = node.querySelectorAll("input,textarea,select");
+      if (ctrls.length){
+        ctrls.forEach(c => { const v = valDe(c); if (v){ const l = labelDe(c) || textoFolha(node); escreve((l ? l + ": " : "") + v, { size: 9.5 }); } });
+      } else {
+        const t = textoFolha(node); if (t) escreve(t, { size: 9.5, gap: 1.7 });
+      }
+    }
+  }
+  anda(info.el);
+  const total = doc.internal.getNumberOfPages();
+  for (let p = 1; p <= total; p++){
+    doc.setPage(p); doc.setFontSize(8); doc.setTextColor(150);
+    doc.text("Página " + p + " de " + total, pageW - 12, pageH - 5, { align: "right" });
+  }
+  doc.save(nome + ".pdf");
+}
+
 function podeVetorizarPDF(){
   try {
     if (window.svg2pdf) return true;
@@ -5776,8 +5881,10 @@ async function exportarPDF(){
       exportarPDFTabela(nome);                              // tabela (autoTable, texto real)
     } else if (info.id === "painelDash" && podeVetorizarPDF()){
       await exportarPDFDashboardVetorial(info, nome);       // dashboard vetorial (texto real + gráficos vetoriais)
+    } else if (info.id === "painelCalendario"){
+      await exportarPDFPainel(info, nome);                  // calendário: imagem (é uma grade visual de dias)
     } else {
-      await exportarPDFPainel(info, nome);                  // demais painéis: captura fiel (imagem)
+      await exportarPDFTexto(info, nome);                   // demais painéis: texto real (selecionável)
     }
   } catch(e){ alert("Não foi possível gerar o PDF. Verifique a conexão e tente novamente."); }
   finally { document.body.style.cursor = ""; }
