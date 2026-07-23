@@ -803,6 +803,9 @@
   .recado-pessoa-email{color:var(--cinza);font-size:.76rem}
   .usr-envio{margin:2px 0 0}
   .usr-envio-lbl{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--txt)}
+  .ativ-area{display:inline-block;font-size:.66rem;font-weight:700;background:var(--verde-claro);color:var(--verde);border-radius:20px;padding:1px 8px;margin-right:2px}
+  #admListaAtiv .hist-item .btn-claro{font-size:.78rem;padding:5px 10px}
+  #admEditorAcesso{margin-top:8px}
   .usr-item{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid var(--borda);border-radius:10px;padding:10px 12px;background:var(--superficie-2)}
   .cli-nome{flex:1 1 auto;min-width:120px;font-weight:600}
   .cli-campo{flex:1 1 auto;min-width:140px;display:flex;flex-direction:column}
@@ -1250,6 +1253,18 @@
       <p class="nota-dash">Edite o nome de exibição (salva sozinho ao sair do campo) ou envie um link de troca de senha para o e-mail do usuário. Para remover, bloquear ou definir uma senha manualmente, use o painel do Firebase no fim da página.</p>
       <div class="usr-lista" id="listaUsuarios"></div>
       <div class="msg-admin" id="msgAdminLista"></div>
+    </div>
+    <div class="grupo">
+      <h2>Acessos aos menus</h2>
+      <p class="nota-dash">Escolha um funcionário para definir quais menus ele pode ver. As alterações valem quando ele recarregar o app. (Você, administrador, vê tudo.)</p>
+      <label class="cot-data-lbl">Funcionário: <select id="admSelAcesso" onchange="renderEditorAcesso()"></select></label>
+      <div id="admEditorAcesso"></div>
+    </div>
+    <div class="grupo">
+      <h2>Atividades por funcionário</h2>
+      <p class="nota-dash">Veja o que cada funcionário fez no app. <b>Desfazer</b> reverte a alteração (quando possível); <b>Excluir</b> remove só o registro do histórico. As mais antigas podem ser trazidas em ⬇️ no menu Histórico.</p>
+      <label class="cot-data-lbl">Funcionário: <select id="admSelAtiv" onchange="renderAtividadesFunc()"></select></label>
+      <div id="admListaAtiv" class="lista-hist"></div>
     </div>
     <div class="grupo">
       <h2>Redefinir senha de um usuário</h2>
@@ -1925,6 +1940,7 @@ function enviarRecado(){
     criadoEm: Date.now(),
     concluida:false, concluidaPor:"", concluidaNome:"", concluidaEm:0
   }).then(()=>{
+    logAtividade({ acao:"enviou", area:"Caixa de entrada", resumo:"Enviou " + (recadoTipoSel==="aviso"?"aviso":"tarefa") + ": " + escAttr(titulo) + (paraTodos?" (para todos)":" (para " + para.length + " pessoa(s))") });
     document.getElementById("recadoTitulo").value="";
     document.getElementById("recadoTexto").value="";
     const rt=document.querySelector('input[name="recadoDest"][value="todos"]'); if(rt){ rt.checked=true; onRecadoDest(); }
@@ -1933,7 +1949,8 @@ function enviarRecado(){
 }
 function concluirRecado(id){
   const r=(recados||[]).find(x=>x.id===id); if(!r) return;
-  colRecados.doc(id).set({ concluida:true, concluidaPor: usuarioAtual||"", concluidaNome: nomeUsuario||usuarioAtual||"", concluidaEm: Date.now() }, {merge:true}).catch(()=>{});
+  colRecados.doc(id).set({ concluida:true, concluidaPor: usuarioAtual||"", concluidaNome: nomeUsuario||usuarioAtual||"", concluidaEm: Date.now() }, {merge:true})
+    .then(()=> logAtividade({ acao:"concluiu", area:"Caixa de entrada", resumo:"Concluiu: " + escAttr(r.titulo||"") })).catch(()=>{});
 }
 function reabrirRecado(id){
   colRecados.doc(id).set({ concluida:false, concluidaPor:"", concluidaNome:"", concluidaEm:0 }, {merge:true}).catch(()=>{});
@@ -1941,7 +1958,7 @@ function reabrirRecado(id){
 function excluirRecado(id){
   const r=(recados||[]).find(x=>x.id===id); if(!r) return;
   if(!(ehAdminAtual() || (r.de||"").toLowerCase()===(usuarioAtual||"").toLowerCase())) return;
-  if(confirmarExclRecado===id){ clearTimeout(timerExclRecado); confirmarExclRecado=null; colRecados.doc(id).delete().catch(()=>{}); return; }
+  if(confirmarExclRecado===id){ clearTimeout(timerExclRecado); confirmarExclRecado=null; colRecados.doc(id).delete().then(()=> logAtividade({ acao:"removeu", area:"Caixa de entrada", resumo:"Excluiu o recado: " + escAttr(r.titulo||"") })).catch(()=>{}); return; }
   confirmarExclRecado=id; renderCaixa();
   timerExclRecado=setTimeout(()=>{ confirmarExclRecado=null; renderCaixa(); },4000);
 }
@@ -2043,6 +2060,95 @@ function alternarAdmin(){
   if (aberto){ renderAdminUsuarios(); renderPerfisAcesso(); }
 }
 
+let admAcessoSel = "", admAtivSel = "";   // seleção atual dos seletores (sobrevive aos re-renders)
+function nomeAdm(e){ return (perfis[e] && perfis[e] !== e) ? (perfis[e] + " (" + e + ")") : e; }
+function popularSelectsAdmin(emails){
+  const naoAdmin = emails.filter(e => !ADMINS.includes(e));
+  const sa = document.getElementById("admSelAcesso");
+  if (sa){ sa.innerHTML = '<option value="">— escolha um funcionário —</option>' + naoAdmin.map(e => '<option value="' + escAttr(e) + '">' + escAttr(nomeAdm(e)) + '</option>').join(""); if (admAcessoSel && naoAdmin.indexOf(admAcessoSel) >= 0) sa.value = admAcessoSel; else admAcessoSel = ""; }
+  const st = document.getElementById("admSelAtiv");
+  if (st){ st.innerHTML = '<option value="">— escolha um funcionário —</option>' + emails.map(e => '<option value="' + escAttr(e) + '">' + escAttr(nomeAdm(e)) + '</option>').join(""); if (admAtivSel && emails.indexOf(admAtivSel) >= 0) st.value = admAtivSel; else admAtivSel = ""; }
+}
+function renderEditorAcesso(){
+  const cont = document.getElementById("admEditorAcesso"); if (!cont) return;
+  const sel = document.getElementById("admSelAcesso");
+  const e = sel ? sel.value : "";
+  admAcessoSel = e;
+  if (!e){ cont.innerHTML = '<p class="nota-dash">Selecione um funcionário acima para editar os acessos aos menus.</p>'; return; }
+  const asp = z => String(z).replace(/'/g, "\\'");
+  const rule = normPerm(permissoesTodos[e]);
+  let modo = ""; if (rule && rule.perfil) modo = "perfil:" + rule.perfil; else if (rule && rule.menus) modo = "manual";
+  let html = '<div class="usr-acesso">';
+  html += '<label class="usr-acesso-lbl">Acesso aos menus: <select onchange="definirAcessoUsuario(\'' + asp(e) + '\', this.value)">';
+  html += '<option value=""' + (modo === "" ? " selected" : "") + '>Vê todos os menus</option>';
+  const pids = Object.keys(perfisAcesso || {});
+  if (pids.length){
+    html += '<optgroup label="Perfis">';
+    pids.forEach(pid => { const val = "perfil:" + pid; html += '<option value="' + val + '"' + (modo === val ? " selected" : "") + '>Perfil: ' + escAttr(perfisAcesso[pid].nome || "(sem nome)") + '</option>'; });
+    html += '</optgroup>';
+  }
+  html += '<option value="manual"' + (modo === "manual" ? " selected" : "") + '>Escolher manualmente</option>';
+  html += '</select></label>';
+  if (modo === "manual"){
+    html += '<div class="usr-perm-grid">';
+    MENUS_APP.forEach(m => { if (m.key === "conta") return; const on = !!(rule.menus && rule.menus[m.key] === true); html += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked' : '') + ' onchange="setPermUsuario(\'' + asp(e) + '\', \'' + m.key + '\', this.checked)"> ' + m.nome + '</label>'; });
+    html += '</div>';
+  } else if (modo.indexOf("perfil:") === 0){
+    const p = perfisAcesso[modo.slice(7)];
+    const nomes = p ? MENUS_APP.filter(m => m.key !== "conta" && p.menus && p.menus[m.key] === true).map(m => m.nome) : [];
+    html += '<div class="usr-perm-info">Vê: ' + (nomes.length ? escAttr(nomes.join(", ")) : "nenhum menu ainda") + '.</div>';
+  }
+  html += '<p class="nota-dash" style="margin:6px 0 0;font-size:.7rem">O administrador vê tudo. Alterações valem quando o usuário recarregar o app.</p></div>';
+  cont.innerHTML = html;
+}
+// ----- Registro de atividades (todas as ações dos usuários) -----
+function logAtividade(o){
+  if (!nuvemPronta) return;
+  const item = {
+    acao: o.acao || "", area: o.area || "",
+    usuario: usuarioAtual || "—", usuarioNome: nomeUsuario || "",
+    quando: firebase.firestore.FieldValue.serverTimestamp(),
+    resumo: o.resumo || "",
+    colecao: o.colecao || null, docId: o.docId || null,
+    tipoUndo: o.tipoUndo || "",
+    antes: (o.antes !== undefined) ? o.antes : null
+  };
+  colHistorico.add(item).catch(()=>{});
+}
+function podeDesfazer(h){
+  if (!h) return false;
+  if (h.colecao && h.docId && /^(criar|editar|excluir)$/.test(h.tipoUndo || "")) return true;
+  if (h.registroId && /^(criou|editou|excluiu)$/.test(h.acao || "")) return true;   // lançamentos (legado)
+  return false;
+}
+let confirmarExclAtiv = null, timerExclAtiv = null;
+function excluirAtividade(idHist){
+  if (!ehAdminAtual() || !nuvemPronta) return;
+  if (confirmarExclAtiv === idHist){ clearTimeout(timerExclAtiv); confirmarExclAtiv = null; colHistorico.doc(idHist).delete().catch(()=>{}); renderAtividadesFunc(); return; }
+  confirmarExclAtiv = idHist; renderAtividadesFunc();
+  timerExclAtiv = setTimeout(()=>{ confirmarExclAtiv = null; renderAtividadesFunc(); }, 4000);
+}
+function renderAtividadesFunc(){
+  const cont = document.getElementById("admListaAtiv"); if (!cont) return;
+  const sel = document.getElementById("admSelAtiv");
+  admAtivSel = sel ? sel.value : "";
+  const e = (admAtivSel || "").toLowerCase();
+  if (!e){ cont.innerHTML = '<p class="nota-dash">Selecione um funcionário para ver as atividades dele.</p>'; return; }
+  const lista = (historico || []).filter(h => String(h.usuario || "").toLowerCase() === e);
+  if (!lista.length){ cont.innerHTML = '<p class="nota-dash">Nenhuma atividade registrada deste funcionário na parte carregada. Traga registros mais antigos em ⬇️ no menu Histórico.</p>'; return; }
+  const rotulo = { criou:"criou", editou:"editou", excluiu:"excluiu", desfez:"desfez", adicionou:"adicionou", removeu:"removeu", alterou:"alterou", enviou:"enviou", concluiu:"concluiu" };
+  cont.innerHTML = lista.map(h => {
+    const quando = h.quando && h.quando.toDate ? fmtDataHora(h.quando.toDate()) : "agora";
+    const acao = rotulo[h.acao] || h.acao || "";
+    const area = h.area ? '<span class="ativ-area">' + escAttr(h.area) + '</span> ' : '';
+    const conf = confirmarExclAtiv === h.id;
+    let botoes = '';
+    if (podeDesfazer(h)) botoes += '<button class="btn-claro" onclick="desfazerHistorico(\'' + h.id + '\')">Desfazer</button>';
+    botoes += '<button class="btn-claro' + (conf ? ' confirmar' : '') + '" onclick="excluirAtividade(\'' + h.id + '\')">' + (conf ? '✓ excluir?' : '🗑 Excluir') + '</button>';
+    return '<div class="hist-item"><span class="resumo">' + area + '<span class="acao-' + (h.acao || "") + '"> ' + escAttr(acao) + ' </span>' + (h.resumo || "") + '</span><span class="quando">' + quando + '</span>' + botoes + '</div>';
+  }).join("");
+}
+
 /* Lista de usuários cadastrados: perfis salvos + quem já aparece no histórico */
 function renderAdminUsuarios(){
   const cont = document.getElementById("listaUsuarios");
@@ -2077,42 +2183,11 @@ function renderAdminUsuarios(){
       ((ehAdmin || permissaoEnvio[e] === true) ? 'checked ' : '') + (ehAdmin ? 'disabled ' : '') +
       'onchange="setPermEnvio(\'' + asp(e) + '\', this.checked)"> Pode enviar avisos/tarefas</label>' +
       (ehAdmin ? ' <span style="font-size:.7rem;color:var(--cinza)">(admin sempre pode)</span>' : '') + '</div>';
-    if (!ehAdmin){
-      const rule = normPerm(permissoesTodos[e]);
-      let modo = ""; if (rule && rule.perfil) modo = "perfil:" + rule.perfil; else if (rule && rule.menus) modo = "manual";
-      html += '<div class="usr-acesso">';
-      html += '<label class="usr-acesso-lbl">Acesso aos menus: <select onchange="definirAcessoUsuario(\'' + asp(e) + '\', this.value)">';
-      html += '<option value=""' + (modo === "" ? " selected" : "") + '>Vê todos os menus</option>';
-      const pids = Object.keys(perfisAcesso || {});
-      if (pids.length){
-        html += '<optgroup label="Perfis">';
-        pids.forEach(pid => {
-          const val = "perfil:" + pid;
-          html += '<option value="' + val + '"' + (modo === val ? " selected" : "") + '>Perfil: ' + escAttr(perfisAcesso[pid].nome || "(sem nome)") + '</option>';
-        });
-        html += '</optgroup>';
-      }
-      html += '<option value="manual"' + (modo === "manual" ? " selected" : "") + '>Escolher manualmente</option>';
-      html += '</select></label>';
-      if (modo === "manual"){
-        html += '<div class="usr-perm-grid">';
-        MENUS_APP.forEach(m => {
-          if (m.key === "conta") return;
-          const on = !!(rule.menus && rule.menus[m.key] === true);
-          html += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked' : '') +
-            ' onchange="setPermUsuario(\'' + asp(e) + '\', \'' + m.key + '\', this.checked)"> ' + m.nome + '</label>';
-        });
-        html += '</div>';
-      } else if (modo.indexOf("perfil:") === 0){
-        const p = perfisAcesso[modo.slice(7)];
-        const nomes = p ? MENUS_APP.filter(m => m.key !== "conta" && p.menus && p.menus[m.key] === true).map(m => m.nome) : [];
-        html += '<div class="usr-perm-info">Vê: ' + (nomes.length ? escAttr(nomes.join(", ")) : "nenhum menu ainda") + '.</div>';
-      }
-      html += '<p class="nota-dash" style="margin:6px 0 0;font-size:.7rem">O administrador vê tudo. Alterações valem quando o usuário recarregar o app.</p>';
-      html += '</div>';
-    }
   });
   cont.innerHTML = html;
+  popularSelectsAdmin(emails);
+  renderEditorAcesso();
+  renderAtividadesFunc();
 }
 const permAbertos = new Set();   // e-mails cujo editor de menus está aberto (para sobreviver a re-desenhos)
 function alternarPermUsuario(email){
@@ -2152,7 +2227,7 @@ function definirAcessoUsuario(email, val){
     .then(()=> avisoAdmin("msgAdminLista", "Acesso de " + email + " atualizado.", "ok"))
     .catch(er => avisoAdmin("msgAdminLista", msgErro(er), "erro"));
   aplicarVisibilidadeMenus();
-  renderAdminUsuarios();
+  renderEditorAcesso();
 }
 // ----- Perfis de acesso (templates de menus, com vínculo ao vivo) -----
 function renderPerfisAcesso(){
@@ -3208,6 +3283,8 @@ function assinarHistorico(){
     todoHistoricoCarregado = snap.size < limiteHistorico;   // veio menos que o limite = acabou
     const p = document.getElementById("painelHistorico");
     if (p && p.classList.contains("aberto")) renderHistorico();
+    const pa = document.getElementById("painelAdmin");
+    if (pa && pa.classList.contains("aberto")) renderAtividadesFunc();
   }, ()=>{});
 }
 
@@ -3279,6 +3356,15 @@ function renderHistorico(){
 function desfazerHistorico(idHist){
   const h = historico.find(x => x.id === idHist);
   if (!h || !nuvemPronta) return;
+  if (h.colecao && h.docId){
+    const ref = db.collection(h.colecao).doc(h.docId);
+    if (h.tipoUndo === "criar"){ ref.delete().catch(()=>{}); }
+    else if (h.tipoUndo === "excluir" || h.tipoUndo === "editar"){ if (h.antes){ const { id, ...d } = h.antes; ref.set(d).catch(()=>{}); } }
+    else { return; }
+    logAtividade({ acao:"desfez", area: h.area, resumo: "Desfez: " + (h.resumo || "") });
+    statusSync("\u2713 Ação desfeita");
+    return;
+  }
   // "excluiu" -> restaura o lançamento; "criou"/"editou" -> se editou, volta ao estado anterior é complexo,
   // então tratamos: criou -> remove; editou -> restaura o snapshot salvo; excluiu -> recria.
   if (h.acao === "criou"){
@@ -4069,7 +4155,7 @@ function salvarPrecoVenda(posto, comb, val){
     atualizadoEm: agora, por: precosVenda.por,
     atualizadoPrazoEm: precosVenda.atualizadoPrazoEm || "", porPrazo: precosVenda.porPrazo || ""
   })
-    .then(() => avisoAdmin("msgPrecosVenda", "Preço à vista de "+comb+" ("+posto+") salvo.", "ok"))
+    .then(() => { logAtividade({ acao:"alterou", area:"Preços de venda", resumo:"Preço à vista de " + escAttr(comb) + " (" + escAttr(posto) + "): R$ " + fmtPrecoComp(v) }); avisoAdmin("msgPrecosVenda", "Preço à vista de "+comb+" ("+posto+") salvo.", "ok"); })
     .catch(e => avisoAdmin("msgPrecosVenda", msgErro(e), "erro"));
 }
 function salvarPrecoPrazo(posto, comb, val){
@@ -4085,7 +4171,7 @@ function salvarPrecoPrazo(posto, comb, val){
     atualizadoEm: precosVenda.atualizadoEm || "", por: precosVenda.por || "",
     atualizadoPrazoEm: agora, porPrazo: precosVenda.porPrazo
   })
-    .then(() => avisoAdmin("msgPrecosVenda", "Preço a prazo de "+comb+" ("+posto+") salvo.", "ok"))
+    .then(() => { logAtividade({ acao:"alterou", area:"Preços de venda", resumo:"Preço a prazo de " + escAttr(comb) + " (" + escAttr(posto) + "): R$ " + fmtPrecoComp(v) }); avisoAdmin("msgPrecosVenda", "Preço a prazo de "+comb+" ("+posto+") salvo.", "ok"); })
     .catch(e => avisoAdmin("msgPrecosVenda", msgErro(e), "erro"));
 }
 function parseNumBR(v){
@@ -4169,6 +4255,7 @@ function adicionarClienteManual(){
   }
   clientes.porPosto[posto].push({ id:"cli_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,6), nome });
   salvarClientes();
+  logAtividade({ acao:"adicionou", area:"Clientes", resumo:"Cadastrou o cliente " + escAttr(nome) + " (" + escAttr(posto) + ")" });
   if (inp) inp.value = "";
   avisoAdmin("msgCliente","Cliente "+nome+" cadastrado.","ok");
   renderClientes();
@@ -4185,8 +4272,10 @@ function confirmarEdicaoCliente(posto, id){
   if (arr.some(x=>x.id!==id && String(x.nome||"").toLowerCase()===nome.toLowerCase())){
     avisoAdmin("msgCliente","Já existe outro cliente com esse nome neste posto.","erro"); return;
   }
+  const nomeAntigo = c.nome;
   c.nome = nome;
   salvarClientes();
+  logAtividade({ acao:"alterou", area:"Clientes", resumo:"Renomeou cliente \u201C" + escAttr(nomeAntigo) + "\u201D para \u201C" + escAttr(nome) + "\u201D (" + escAttr(posto) + ")" });
   editandoCliente = null; confirmarCliente = null;
   avisoAdmin("msgCliente","Nome atualizado.","ok");
   renderClientes();
@@ -4194,9 +4283,11 @@ function confirmarEdicaoCliente(posto, id){
 function removerCliente(posto, id){
   if (confirmarCliente === id){
     clearTimeout(timerCliente); confirmarCliente = null; editandoCliente = null;
+    const cRem = (clientes.porPosto && Array.isArray(clientes.porPosto[posto])) ? clientes.porPosto[posto].find(x=>x.id===id) : null;
     if (clientes.porPosto && Array.isArray(clientes.porPosto[posto]))
       clientes.porPosto[posto] = clientes.porPosto[posto].filter(x=>x.id!==id);
     salvarClientes();
+    if (cRem) logAtividade({ acao:"removeu", area:"Clientes", resumo:"Removeu o cliente " + escAttr(cRem.nome || "") + " (" + escAttr(posto) + ")" });
     renderClientes();
     return;
   }
@@ -4256,6 +4347,7 @@ function lancarDesconto(){
     motivo, por: usuarioAtual || "", criadoEm: Date.now()
   }).then(() => {
     registrarClienteDoLancamento(posto, cliente);
+    logAtividade({ acao:"criou", area:"Descontos", colecao:"descontos", docId:id, tipoUndo:"criar", resumo:"Lançou desconto de " + escAttr(cliente || "cliente") + " (" + escAttr(comb || "") + ") R$ " + fmtBR(total,2) });
     avisoAdmin("msgDesconto", "Desconto lançado: R$ " + fmtBR(total,2) + " (" + fmtLitros(volume) + " L).", "ok");
     limparFormDesconto();
   }).catch(e => avisoAdmin("msgDesconto", msgErro(e), "erro"));
@@ -4268,7 +4360,10 @@ function limparFormDesconto(){
 }
 function removerDesconto(id){
   if (!id) return;
-  colDescontos.doc(id).delete().catch(()=>{});
+  const d = (descontos || []).find(x => x.id === id);
+  colDescontos.doc(id).delete().then(() => {
+    if (d) logAtividade({ acao:"excluiu", area:"Descontos", colecao:"descontos", docId:id, tipoUndo:"excluir", antes:d, resumo:"Excluiu desconto de " + escAttr(d.cliente || "cliente") + " (" + escAttr(d.combustivel || "") + ") R$ " + fmtBR(+d.desconto || 0, 2) });
+  }).catch(()=>{});
 }
 function renderDescontos(){
   const cons = document.getElementById("descConsolidado");
