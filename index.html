@@ -781,6 +781,28 @@
   .pres.off{color:var(--cinza)}
   .pres.off .dot{background:var(--cinza)}
   .pres-resumo{display:flex;align-items:center;gap:8px;margin:0 0 12px;padding:10px 12px;border:1px solid var(--borda);border-radius:10px;background:var(--superficie-2);font-size:.85rem}
+  .rec-card{border:1px solid var(--borda);border-radius:12px;padding:12px 14px;background:var(--superficie-2);margin-bottom:10px}
+  .rec-card.feito{opacity:.72}
+  .rec-topo{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+  .rec-tag{font-size:.72rem;font-weight:700;border-radius:20px;padding:2px 9px}
+  .rec-tag.tarefa{background:rgba(34,197,94,.15);color:#18a558}
+  .rec-tag.aviso{background:var(--verde-claro);color:var(--verde)}
+  .rec-quando{font-size:.72rem;color:var(--cinza);margin-left:auto}
+  .rec-titulo{font-weight:700;font-size:1rem;color:var(--txt)}
+  .rec-texto{font-size:.9rem;color:var(--txt);margin-top:4px;white-space:pre-wrap}
+  .rec-meta{font-size:.74rem;color:var(--cinza);margin-top:6px}
+  .rec-feito{font-size:.76rem;color:#18a558;margin-top:6px;font-weight:600}
+  .rec-acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .rec-acoes .btn-verde,.rec-acoes .btn-claro{font-size:.8rem;padding:7px 12px}
+  .recado-form{display:flex;flex-direction:column;gap:10px;max-width:560px}
+  .recado-form input,.recado-form textarea{border:1px solid var(--borda);border-radius:8px;padding:10px;font-size:.95rem;background:var(--superficie);color:var(--txt);font-family:inherit}
+  .recado-tipos,.recado-dest{display:flex;gap:16px;flex-wrap:wrap;font-size:.9rem}
+  .recado-tipos label,.recado-dest label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+  .recado-pessoas{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow:auto;border:1px solid var(--borda);border-radius:8px;padding:8px}
+  .recado-pessoa{display:flex;align-items:center;gap:8px;font-size:.88rem}
+  .recado-pessoa-email{color:var(--cinza);font-size:.76rem}
+  .usr-envio{margin:2px 0 0}
+  .usr-envio-lbl{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--txt)}
   .usr-item{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid var(--borda);border-radius:10px;padding:10px 12px;background:var(--superficie-2)}
   .cli-nome{flex:1 1 auto;min-width:120px;font-weight:600}
   .cli-campo{flex:1 1 auto;min-width:140px;display:flex;flex-direction:column}
@@ -1013,6 +1035,7 @@
     <button class="btn-claro" id="btnPuxadas" onclick="alternarPuxadas()"><span class="mi">🧾</span><span class="mt">Puxadas</span></button>
     <button class="btn-claro" id="btnCotacoes" onclick="alternarCotacoes()"><span class="mi">💲</span><span class="mt">Cotações do Dia</span></button>
     <button class="btn-claro" id="btnCalendario" onclick="alternarCalendario()"><span class="mi">📅</span><span class="mt">Calendário</span></button>
+    <button class="btn-claro" id="btnCaixa" onclick="alternarCaixa()"><span class="mi">📥</span><span class="mt">Caixa de entrada</span><span class="menu-badge" id="badgeCaixa" style="display:none">0</span></button>
     <button class="btn-claro" id="btnConta" onclick="alternarConta()"><span class="mi">👤</span><span class="mt">Minha conta</span></button>
     <button class="btn-claro" id="btnConfig" onclick="alternarConfig()"><span class="mi">⚙</span><span class="mt">Configurações</span></button>
     <button class="btn-claro" id="btnUsuarios" style="display:none" onclick="alternarAdmin()"><span class="mi">👥</span><span class="mt">Painel Administrativo</span></button>
@@ -1242,6 +1265,37 @@
     </div>
   </div>
 
+  <div class="config" id="painelCaixa">
+    <div class="grupo" id="grupoEnviarRecado" style="display:none">
+      <h2>Enviar aviso ou tarefa</h2>
+      <p class="nota-dash">Envie um <b>aviso</b> (informação) ou uma <b>tarefa</b> (algo a cumprir) para a equipe. Nas tarefas, quando alguém marca como concluída, ela sai da lista de pendentes de todos.</p>
+      <div class="recado-form">
+        <div class="recado-tipos">
+          <label><input type="radio" name="recadoTipo" value="tarefa" checked onchange="onRecadoTipo()"> ✅ Tarefa</label>
+          <label><input type="radio" name="recadoTipo" value="aviso" onchange="onRecadoTipo()"> 📣 Aviso</label>
+        </div>
+        <input id="recadoTitulo" maxlength="80" placeholder="Título (ex.: Trocar o filtro da bomba 3)">
+        <textarea id="recadoTexto" maxlength="500" rows="3" placeholder="Descrição (opcional)"></textarea>
+        <div class="recado-dest">
+          <label><input type="radio" name="recadoDest" value="todos" checked onchange="onRecadoDest()"> Enviar para todos</label>
+          <label><input type="radio" name="recadoDest" value="alguns" onchange="onRecadoDest()"> Escolher pessoas</label>
+        </div>
+        <div id="recadoPessoas" class="recado-pessoas" style="display:none"></div>
+        <button class="btn-verde" onclick="enviarRecado()">Enviar</button>
+      </div>
+      <div class="msg-admin" id="msgRecado"></div>
+    </div>
+    <div class="grupo">
+      <h2>Pendentes <span id="recadoBadgeTit" class="pv-sync-tit"></span></h2>
+      <div id="recadoPendentes"></div>
+    </div>
+    <div class="grupo">
+      <h2>Concluídos</h2>
+      <button class="btn-claro" id="btnToggleRecadoFeitos" onclick="alternarRecadoFeitos()">Mostrar concluídos</button>
+      <div id="recadoFeitos" style="display:none;margin-top:10px"></div>
+    </div>
+  </div>
+
   <div class="config" id="painelConta">
     <div class="grupo">
       <h2>Seu nome de usuário</h2>
@@ -1399,6 +1453,8 @@ const docConfig = db.collection("config").doc("geral");
 const colHistorico = db.collection("historico");
 const colPerfis = db.collection("perfis");   // nome amigável por usuário (id do doc = e-mail)
 const colPresenca = db.collection("presenca"); // "sinal de vida" de cada usuário logado (id do doc = e-mail)
+const colRecados = db.collection("recados");   // caixa de entrada: avisos e tarefas internas
+const docPermEnvio = db.collection("config").doc("permissoesEnvio"); // quem pode enviar avisos/tarefas
 const docPermissoes = db.collection("config").doc("permissoes"); // {porUsuario:{email:{menuKey:bool}}} — quais menus cada usuário vê
 const docPerfisAcesso = db.collection("config").doc("perfisAcesso"); // {perfis:{id:{nome,menus:{key:true}}}} — perfis de acesso a menus
 const docCotacoes = db.collection("config").doc("cotacoesDia");   // cotações do dia por distribuidora
@@ -1425,6 +1481,10 @@ let escutaPresenca = null;
 let heartbeatTimer = null;
 let presencaVisWired = false;
 const ONLINE_MS = 150000;              // online se visto nos últimos 2,5 min
+let recados = [];                      // avisos/tarefas da caixa de entrada
+let escutaRecados = null;
+let permissaoEnvio = {};               // emailLower -> true (pode enviar avisos/tarefas)
+let escutaPermEnvio = null;
 let permissoesTodos = {};              // {emailLower:{menuKey:bool} | {perfil:id} | {menus:{...}}} sincronizado da nuvem
 let escutaPermissoes = null;
 let perfisAcesso = {};                 // {id:{nome,menus:{key:true}}} sincronizado da nuvem
@@ -1782,8 +1842,158 @@ function aoMudarLogin(usuario){
     if (escutaClientes){ escutaClientes(); escutaClientes = null; }
     if (escutaPresenca){ escutaPresenca(); escutaPresenca = null; }
     if (heartbeatTimer){ clearInterval(heartbeatTimer); heartbeatTimer = null; }
+    if (escutaRecados){ escutaRecados(); escutaRecados = null; }
+    if (escutaPermEnvio){ escutaPermEnvio(); escutaPermEnvio = null; }
     nuvemPronta = false;
   }
+}
+
+/* ---------- Caixa de entrada (avisos e tarefas) ---------- */
+function podeEnviarRecadosDe(email){
+  email = (email||"").toLowerCase();
+  if ((typeof ADMINS!=="undefined") && ADMINS.includes(email)) return true;
+  return !!(permissaoEnvio && permissaoEnvio[email] === true);
+}
+function podeEnviarRecados(){ return podeEnviarRecadosDe(usuarioAtual); }
+function setPermEnvio(email, on){
+  email = (email||"").toLowerCase();
+  if (!permissaoEnvio) permissaoEnvio = {};
+  if (on) permissaoEnvio[email] = true; else delete permissaoEnvio[email];
+  docPermEnvio.set({ porUsuario: permissaoEnvio }).catch(()=>{});
+}
+function recadoVisivelParaMim(r){
+  const u = (usuarioAtual||"").toLowerCase();
+  if (ehAdminAtual()) return true;
+  if ((r.de||"").toLowerCase() === u) return true;
+  if (r.paraTodos) return true;
+  return Array.isArray(r.para) && r.para.map(x=>String(x).toLowerCase()).includes(u);
+}
+function recadosVisiveis(){ return (recados||[]).filter(recadoVisivelParaMim); }
+function atualizarBadgeCaixa(){
+  const n = recadosVisiveis().filter(r => !r.concluida).length;
+  const b = document.getElementById("badgeCaixa");
+  if (b){ b.textContent = n; b.style.display = n ? "" : "none"; }
+}
+function alternarCaixa(){
+  const aberto = abrirPainelExclusivo("painelCaixa");
+  const b = document.getElementById("btnCaixa");
+  if (b) b.classList.toggle("ativo", aberto);
+  if (aberto) renderCaixa();
+}
+function todosUsuariosConhecidos(){
+  const set = {};
+  Object.keys(perfisDocs||{}).forEach(e => set[e]=true);
+  Object.keys(presencaMap||{}).forEach(e => set[e]=true);
+  (typeof ADMINS!=="undefined"?ADMINS:[]).forEach(e => set[(e||"").toLowerCase()]=true);
+  (historico||[]).forEach(h => { const e=String(h.usuario||"").trim().toLowerCase(); if(e && e.indexOf("@")>0) set[e]=true; });
+  return Object.keys(set).sort();
+}
+function nomeUsuarioDe(email){ email=(email||"").toLowerCase(); return (perfis&&perfis[email]) ? perfis[email] : email; }
+let recadoTipoSel = "tarefa", recadoDestSel = "todos", recadoMostrarFeitos = false;
+let confirmarExclRecado = null, timerExclRecado = null;
+function onRecadoTipo(){ const el=document.querySelector('input[name="recadoTipo"]:checked'); recadoTipoSel = el?el.value:"tarefa"; }
+function onRecadoDest(){
+  const el=document.querySelector('input[name="recadoDest"]:checked'); recadoDestSel = el?el.value:"todos";
+  const box=document.getElementById("recadoPessoas");
+  if (box) box.style.display = (recadoDestSel==="alguns") ? "" : "none";
+  if (recadoDestSel==="alguns") renderPessoasRecado();
+}
+function renderPessoasRecado(){
+  const box=document.getElementById("recadoPessoas"); if(!box) return;
+  const eu=(usuarioAtual||"").toLowerCase();
+  const emails=todosUsuariosConhecidos().filter(e=>e!==eu);
+  if(!emails.length){ box.innerHTML='<p class="nota-dash">Ainda não há outros usuários cadastrados.</p>'; return; }
+  box.innerHTML = emails.map(e=>'<label class="recado-pessoa"><input type="checkbox" value="'+escAttr(e)+'"> '+escAttr(nomeUsuarioDe(e))+' <span class="recado-pessoa-email">'+escAttr(e)+'</span></label>').join("");
+}
+function enviarRecado(){
+  if (!podeEnviarRecados()){ avisoAdmin("msgRecado","Você não tem permissão para enviar.","erro"); return; }
+  const titulo=(document.getElementById("recadoTitulo").value||"").trim();
+  const texto=(document.getElementById("recadoTexto").value||"").trim();
+  if(!titulo){ avisoAdmin("msgRecado","Escreva um título.","erro"); return; }
+  const paraTodos = recadoDestSel!=="alguns";
+  let para=[];
+  if(!paraTodos){
+    para=[...document.querySelectorAll('#recadoPessoas input:checked')].map(c=>c.value.toLowerCase());
+    if(!para.length){ avisoAdmin("msgRecado","Escolha pelo menos uma pessoa (ou envie para todos).","erro"); return; }
+  }
+  const id="rec_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,6);
+  colRecados.doc(id).set({
+    tipo: recadoTipoSel==="aviso"?"aviso":"tarefa",
+    titulo, texto,
+    de: usuarioAtual||"", deNome: nomeUsuario||usuarioAtual||"",
+    paraTodos, para,
+    criadoEm: Date.now(),
+    concluida:false, concluidaPor:"", concluidaNome:"", concluidaEm:0
+  }).then(()=>{
+    document.getElementById("recadoTitulo").value="";
+    document.getElementById("recadoTexto").value="";
+    const rt=document.querySelector('input[name="recadoDest"][value="todos"]'); if(rt){ rt.checked=true; onRecadoDest(); }
+    avisoAdmin("msgRecado","Enviado!","ok");
+  }).catch(e=>avisoAdmin("msgRecado", msgErro(e), "erro"));
+}
+function concluirRecado(id){
+  const r=(recados||[]).find(x=>x.id===id); if(!r) return;
+  colRecados.doc(id).set({ concluida:true, concluidaPor: usuarioAtual||"", concluidaNome: nomeUsuario||usuarioAtual||"", concluidaEm: Date.now() }, {merge:true}).catch(()=>{});
+}
+function reabrirRecado(id){
+  colRecados.doc(id).set({ concluida:false, concluidaPor:"", concluidaNome:"", concluidaEm:0 }, {merge:true}).catch(()=>{});
+}
+function excluirRecado(id){
+  const r=(recados||[]).find(x=>x.id===id); if(!r) return;
+  if(!(ehAdminAtual() || (r.de||"").toLowerCase()===(usuarioAtual||"").toLowerCase())) return;
+  if(confirmarExclRecado===id){ clearTimeout(timerExclRecado); confirmarExclRecado=null; colRecados.doc(id).delete().catch(()=>{}); return; }
+  confirmarExclRecado=id; renderCaixa();
+  timerExclRecado=setTimeout(()=>{ confirmarExclRecado=null; renderCaixa(); },4000);
+}
+function alternarRecadoFeitos(){
+  recadoMostrarFeitos=!recadoMostrarFeitos;
+  const box=document.getElementById("recadoFeitos");
+  const btn=document.getElementById("btnToggleRecadoFeitos");
+  if(box) box.style.display = recadoMostrarFeitos?"":"none";
+  if(btn) btn.textContent = recadoMostrarFeitos?"Ocultar concluídos":"Mostrar concluídos";
+  renderCaixa();
+}
+function recadoCardHtml(r, feito){
+  const tipoTag = r.tipo==="aviso" ? '<span class="rec-tag aviso">📣 Aviso</span>' : '<span class="rec-tag tarefa">✅ Tarefa</span>';
+  const quando = fmtPresencaHa(r.criadoEm);
+  const dest = r.paraTodos ? "para todos" : ("para " + (Array.isArray(r.para)?r.para.map(nomeUsuarioDe).join(", "):""));
+  const podeExcluir = ehAdminAtual() || (r.de||"").toLowerCase()===(usuarioAtual||"").toLowerCase();
+  const confExcl = confirmarExclRecado===r.id;
+  let acoes = "";
+  if (feito){
+    acoes += '<button class="btn-claro" onclick="reabrirRecado(\'' + escAspas(r.id) + '\')">↩︎ Reabrir</button>';
+  } else {
+    acoes += '<button class="btn-verde" onclick="concluirRecado(\'' + escAspas(r.id) + '\')">✓ Marcar como concluída</button>';
+  }
+  if (podeExcluir) acoes += '<button class="btn-claro' + (confExcl?' confirmar':'') + '" onclick="excluirRecado(\'' + escAspas(r.id) + '\')">' + (confExcl?'✓ confirmar?':'🗑') + '</button>';
+  const rodapeFeito = feito ? ('<div class="rec-feito">✓ Concluída por ' + escAttr(r.concluidaNome||r.concluidaPor||"") + ' ' + escAttr(fmtPresencaHa(r.concluidaEm)) + '</div>') : '';
+  return '<div class="rec-card' + (feito?' feito':'') + '">' +
+    '<div class="rec-topo">' + tipoTag + '<span class="rec-quando">' + escAttr(quando) + '</span></div>' +
+    '<div class="rec-titulo">' + escAttr(r.titulo||"") + '</div>' +
+    (r.texto ? '<div class="rec-texto">' + escAttr(r.texto) + '</div>' : '') +
+    '<div class="rec-meta">De ' + escAttr(r.deNome||r.de||"") + ' · ' + escAttr(dest) + '</div>' +
+    rodapeFeito +
+    '<div class="rec-acoes">' + acoes + '</div>' +
+    '</div>';
+}
+function renderCaixa(){
+  const grpEnviar=document.getElementById("grupoEnviarRecado");
+  if(grpEnviar) grpEnviar.style.display = podeEnviarRecados() ? "" : "none";
+  if(podeEnviarRecados() && recadoDestSel==="alguns") renderPessoasRecado();
+  const visiveis=recadosVisiveis();
+  const pend=visiveis.filter(r=>!r.concluida);
+  const feitos=visiveis.filter(r=>r.concluida);
+  const cp=document.getElementById("recadoPendentes");
+  if(cp){
+    cp.innerHTML = pend.length ? pend.map(r=>recadoCardHtml(r,false)).join("") : '<p class="nota-dash">Nenhum aviso ou tarefa pendente. 🎉</p>';
+  }
+  const tit=document.getElementById("recadoBadgeTit");
+  if(tit) tit.textContent = pend.length ? ("("+pend.length+")") : "";
+  const cf=document.getElementById("recadoFeitos");
+  if(cf && recadoMostrarFeitos){
+    cf.innerHTML = feitos.length ? feitos.map(r=>recadoCardHtml(r,true)).join("") : '<p class="nota-dash">Nada concluído ainda.</p>';
+  }
+  atualizarBadgeCaixa();
 }
 
 /* ---------- Presença: quem está online ---------- */
@@ -1863,6 +2073,10 @@ function renderAdminUsuarios(){
       '<button class="btn-claro" title="Envia um e-mail para o usuário escolher uma senha nova" ' +
       'onclick="enviarResetUsuario(\'' + asp(e) + '\')">🔑 Trocar senha</button>' +
       '</div>';
+    html += '<div class="usr-envio"><label class="usr-envio-lbl"><input type="checkbox" ' +
+      ((ehAdmin || permissaoEnvio[e] === true) ? 'checked ' : '') + (ehAdmin ? 'disabled ' : '') +
+      'onchange="setPermEnvio(\'' + asp(e) + '\', this.checked)"> Pode enviar avisos/tarefas</label>' +
+      (ehAdmin ? ' <span style="font-size:.7rem;color:var(--cinza)">(admin sempre pode)</span>' : '') + '</div>';
     if (!ehAdmin){
       const rule = normPerm(permissoesTodos[e]);
       let modo = ""; if (rule && rule.perfil) modo = "perfil:" + rule.perfil; else if (rule && rule.menus) modo = "manual";
@@ -2424,6 +2638,27 @@ function iniciarSync(){
     if (pAdm && pAdm.classList.contains("aberto")) renderAdminUsuarios();
   }, ()=>{});
 
+  // Caixa de entrada (avisos e tarefas internas)
+  escutaRecados = colRecados.onSnapshot(snap => {
+    const arr = [];
+    snap.forEach(doc => arr.push(Object.assign({ id: doc.id }, doc.data() || {})));
+    arr.sort((a,b) => (b.criadoEm || 0) - (a.criadoEm || 0));
+    recados = arr;
+    atualizarBadgeCaixa();
+    const pcx = document.getElementById("painelCaixa");
+    if (pcx && pcx.classList.contains("aberto")) renderCaixa();
+  }, ()=>{});
+
+  // Quem pode enviar avisos/tarefas
+  escutaPermEnvio = docPermEnvio.onSnapshot(snap => {
+    const d = snap.exists ? (snap.data() || {}) : {};
+    permissaoEnvio = (d && d.porUsuario) ? d.porUsuario : {};
+    const pcx = document.getElementById("painelCaixa");
+    if (pcx && pcx.classList.contains("aberto")) renderCaixa();
+    const pAdm = document.getElementById("painelAdmin");
+    if (pAdm && pAdm.classList.contains("aberto")) renderAdminUsuarios();
+  }, ()=>{});
+
   // Permissões de menus por usuário
   escutaPermissoes = docPermissoes.onSnapshot(snap => {
     const d = snap.exists ? (snap.data() || {}) : {};
@@ -2735,7 +2970,7 @@ function excluir(i){
 
 /* ================== Salvar / Carregar / Exportar ================== */
 // Painéis que ocupam a página; só um fica aberto por vez
-const PAINEIS = ["painelRegistros","painelDash","painelHistorico","painelSimular","painelDescontos","painelComparativo","painelPuxadas","painelCotacoes","painelAvisos","painelCalendario","painelConta","painelConfig","painelAdmin"];
+const PAINEIS = ["painelRegistros","painelDash","painelHistorico","painelSimular","painelDescontos","painelComparativo","painelPuxadas","painelCotacoes","painelAvisos","painelCalendario","painelCaixa","painelConta","painelConfig","painelAdmin"];
 function fecharTodosPaineis(exceto){
   PAINEIS.forEach(id => {
     const el = document.getElementById(id);
@@ -2770,6 +3005,8 @@ function fecharTodosPaineis(exceto){
   if (bsh) bsh.classList.toggle("ativo", document.getElementById("painelAvisos").classList.contains("aberto"));
   const bcal = document.getElementById("btnCalendario");
   if (bcal) bcal.classList.toggle("ativo", document.getElementById("painelCalendario").classList.contains("aberto"));
+  const bcx = document.getElementById("btnCaixa");
+  if (bcx) bcx.classList.toggle("ativo", document.getElementById("painelCaixa").classList.contains("aberto"));
 }
 
 /* ===== Menu lateral: abrir/fechar no celular ===== */
@@ -2807,6 +3044,7 @@ const MENUS_APP = [
   {key:"cotacoes",    btn:"btnCotacoes",    pan:"painelCotacoes",    emp:"transp", nome:"Cotações do Dia"},
   {key:"puxadas",     btn:"btnPuxadas",     pan:"painelPuxadas",     emp:"transp", nome:"Puxadas"},
   {key:"calendario",  btn:"btnCalendario",  pan:"painelCalendario",  emp:"ambos",  nome:"Calendário"},
+  {key:"caixa",       btn:"btnCaixa",       pan:"painelCaixa",       emp:"ambos",  nome:"Caixa de entrada"},
   {key:"conta",       btn:"btnConta",       pan:"painelConta",       emp:"ambos",  nome:"Minha conta"},
   {key:"config",      btn:"btnConfig",      pan:"painelConfig",      emp:"ambos",  nome:"Configurações"}
 ];
@@ -2819,7 +3057,7 @@ function normPerm(v){
   return { menus: v };   // legado: mapa plano menuKey->bool
 }
 function menuPermitidoDe(email, key){
-  if (key === "conta") return true;
+  if (key === "conta" || key === "caixa") return true;
   email = (email || "").toLowerCase();
   if ((typeof ADMINS !== "undefined") && ADMINS.includes(email)) return true;
   const rule = normPerm(permissoesTodos[email]);
@@ -2832,7 +3070,7 @@ function menuPermitidoDe(email, key){
   return !!(rule.menus && rule.menus[key] === true);
 }
 function menuPermitido(key){
-  if (key === "conta") return true;   // Minha conta: todos sempre veem
+  if (key === "conta" || key === "caixa") return true;   // Minha conta e Caixa de entrada: todos sempre veem
   if (ehAdminAtual()) return true;
   return menuPermitidoDe(usuarioAtual, key);
 }
