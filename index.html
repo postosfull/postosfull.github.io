@@ -809,6 +809,8 @@
   #admListaAtiv .hist-item .btn-claro{font-size:.78rem;padding:5px 10px}
   #admEditorAcesso{margin-top:8px}
   #editorPerfil{margin-top:8px}
+  .perfil-sub{font-size:.8rem;font-weight:700;color:var(--txt);margin:12px 0 4px}
+  .perfil-sub:first-of-type{margin-top:6px}
   #offlineInfo{margin-top:8px}
   .off-info{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border:1px solid var(--borda);border-radius:10px;padding:10px 12px;background:var(--superficie-2);font-size:.9rem}
   .off-abs{color:var(--cinza);font-size:.8rem}
@@ -2297,13 +2299,17 @@ function renderEditorPerfil(){
   let h = '<div class="perfil-item"><div class="perfil-top">' +
     '<input class="perfil-nome" maxlength="30" value="' + escAttr(p.nome || "") + '" placeholder="Nome do perfil" onchange="renomearPerfilAcesso(\'' + id + '\', this.value)">' +
     '<button class="btn-claro perfil-x" onclick="removerPerfilAcesso(\'' + id + '\')">✕ excluir</button></div>';
-  h += '<div class="usr-perm-grid">';
+  h += '<div class="perfil-sub">Menus que este perfil vê:</div><div class="usr-perm-grid">';
   MENUS_APP.forEach(m => {
     if (m.key === "conta") return;
     const on = !!(p.menus && p.menus[m.key] === true);
     h += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked' : '') +
       ' onchange="setMenuPerfil(\'' + id + '\', \'' + m.key + '\', this.checked)"> ' + m.nome + '</label>';
   });
+  h += '</div>';
+  const origensAvi = [["ct","Posto Full - Teresina"],["cc","Posto Full - Caxias"],["cd","Posto Full - Dutra"],["cx","Full Transportadora"],["cg","Outros"]];
+  h += '<div class="perfil-sub">\ud83d\udd14 Notificações que este perfil vê:</div><div class="usr-perm-grid">';
+  origensAvi.forEach(o => { const on = !(p.avisos && p.avisos[o[0]] === false); h += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked' : '') + ' onchange="setAvisoPerfil(\'' + id + '\', \'' + o[0] + '\', this.checked)"> ' + o[1] + '</label>'; });
   h += '</div></div>';
   cont.innerHTML = h;
 }
@@ -2324,6 +2330,14 @@ function setMenuPerfil(id, key, on){
   if (on) perfisAcesso[id].menus[key] = true; else delete perfisAcesso[id].menus[key];
   docPerfisAcesso.set({ perfis: perfisAcesso })
     .then(()=> aplicarVisibilidadeMenus())
+    .catch(e => avisoAdmin("msgPerfis", msgErro(e), "erro"));
+}
+function setAvisoPerfil(id, origem, on){
+  if (!perfisAcesso[id]) return;
+  if (!perfisAcesso[id].avisos) perfisAcesso[id].avisos = {};
+  perfisAcesso[id].avisos[origem] = !!on;
+  docPerfisAcesso.set({ perfis: perfisAcesso })
+    .then(()=> refrescarAvisosCalendario())
     .catch(e => avisoAdmin("msgPerfis", msgErro(e), "erro"));
 }
 function renomearPerfilAcesso(id, val){
@@ -2795,6 +2809,7 @@ function iniciarSync(){
     permissoesTodos = norm;
     aplicarVisibilidadeMenus();
     garantirPainelPermitido();
+    refrescarAvisosCalendario();
     // Não re-desenha a lista de usuários aqui: o clique já atualiza a caixa e re-desenhar
     // fecharia o editor aberto. (A lista é montada ao abrir o painel, já com o estado atual.)
   }, ()=>{});
@@ -2807,6 +2822,7 @@ function iniciarSync(){
     garantirPainelPermitido();
     const pa = document.getElementById("painelAdmin");
     if (pa && pa.classList.contains("aberto")) renderPerfisAcesso();
+    refrescarAvisosCalendario();
   }, ()=>{});
 
   // Configurações compartilhadas
@@ -3737,11 +3753,24 @@ function diasAte(iso){
   const dif = Math.round((d2 - d1) / 86400000);
   return isFinite(dif) ? dif : 9999;
 }
+function avisoOrigemPermitida(origem){
+  if (typeof ehAdminAtual === "function" && ehAdminAtual()) return true;
+  const rule = (typeof normPerm === "function") ? normPerm(permissoesTodos[(usuarioAtual||"").toLowerCase()]) : null;
+  if (!rule || !rule.perfil) return true;                 // sem perfil = vê todas as notificações
+  const p = perfisAcesso[rule.perfil];
+  if (!p || !p.avisos) return true;                       // perfil sem restrição de notificações = vê todas
+  return p.avisos[origemClasseCal(origem)] !== false;     // marcado (ou ausente) = permitido; desmarcado = escondido
+}
+function refrescarAvisosCalendario(){
+  if (typeof atualizarBadgeAvisos === "function") atualizarBadgeAvisos();
+  const pa = document.getElementById("painelAvisos"); if (pa && pa.classList.contains("aberto") && typeof renderAvisos === "function") renderAvisos();
+  const pc = document.getElementById("painelCalendario"); if (pc && pc.classList.contains("aberto") && typeof renderCalendario === "function") renderCalendario();
+}
 function avisosVisiveis(){
   if (!avisosDia || !Array.isArray(avisosDia.eventos)) return [];
   // mostra vencidos de até 14 dias atrás + tudo que vem pela frente
   return avisosDia.eventos
-    .filter(e => e && e.data && e.titulo && diasAte(e.data) >= -14)
+    .filter(e => e && e.data && e.titulo && diasAte(e.data) >= -14 && avisoOrigemPermitida(e.origem))
     .slice()
     .sort((a,b) => a.data < b.data ? -1 : a.data > b.data ? 1 : 0);
 }
@@ -3874,7 +3903,7 @@ function renderCalendario(){
   const cont = document.getElementById("conteudoCalendario");
   if (!cont) return;
   const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
-  const todosEventos = (avisosDia && Array.isArray(avisosDia.eventos)) ? avisosDia.eventos.filter(e => e && e.data && e.titulo) : [];
+  const todosEventos = (avisosDia && Array.isArray(avisosDia.eventos)) ? avisosDia.eventos.filter(e => e && e.data && e.titulo && avisoOrigemPermitida(e.origem)) : [];
   const eventos = todosEventos.filter(e => calFiltro[origemClasseCal(e.origem)]);
   const porDia = {};
   eventos.forEach(e => { (porDia[e.data] = porDia[e.data] || []).push(e); });
