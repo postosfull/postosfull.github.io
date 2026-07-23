@@ -806,6 +806,11 @@
   .ativ-area{display:inline-block;font-size:.66rem;font-weight:700;background:var(--verde-claro);color:var(--verde);border-radius:20px;padding:1px 8px;margin-right:2px}
   #admListaAtiv .hist-item .btn-claro{font-size:.78rem;padding:5px 10px}
   #admEditorAcesso{margin-top:8px}
+  #editorPerfil{margin-top:8px}
+  #offlineInfo{margin-top:8px}
+  .off-info{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border:1px solid var(--borda);border-radius:10px;padding:10px 12px;background:var(--superficie-2);font-size:.9rem}
+  .off-abs{color:var(--cinza);font-size:.8rem}
+  .off-email{color:var(--cinza);font-size:.74rem;margin-left:auto}
   .usr-item{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid var(--borda);border-radius:10px;padding:10px 12px;background:var(--superficie-2)}
   .cli-nome{flex:1 1 auto;min-width:120px;font-weight:600}
   .cli-campo{flex:1 1 auto;min-width:140px;display:flex;flex-direction:column}
@@ -1241,7 +1246,8 @@
     <div class="grupo">
       <h2>Perfis de acesso</h2>
       <p class="nota-dash">Crie perfis (ex.: "Caixa", "Gerente") marcando os menus que cada um pode ver. Depois, na lista de usuários abaixo, associe cada pessoa a um perfil — ou escolha os menus manualmente. Se você mudar os menus de um perfil, todos os usuários daquele perfil mudam junto.</p>
-      <div class="perfis-lista" id="listaPerfis"></div>
+      <label class="cot-data-lbl">Perfil: <select id="admSelPerfil" onchange="renderEditorPerfil()"></select></label>
+      <div id="editorPerfil"></div>
       <div class="add-linha">
         <input id="novoPerfilNome" maxlength="30" placeholder="Nome do novo perfil" onkeydown="if(event.key==='Enter')criarPerfilAcesso()">
         <button class="btn-verde" onclick="criarPerfilAcesso()">Criar perfil</button>
@@ -1252,6 +1258,10 @@
       <h2>Usuários cadastrados</h2>
       <p class="nota-dash">Edite o nome de exibição (salva sozinho ao sair do campo) ou envie um link de troca de senha para o e-mail do usuário. Para remover, bloquear ou definir uma senha manualmente, use o painel do Firebase no fim da página.</p>
       <div class="usr-lista" id="listaUsuarios"></div>
+      <h3 class="pv-sub">Usuários offline</h3>
+      <p class="nota-dash pv-sub-nota">Escolha um funcionário para ver quando ele acessou o app pela última vez.</p>
+      <label class="cot-data-lbl">Ver último acesso de: <select id="admSelOffline" onchange="renderOfflineInfo()"></select></label>
+      <div id="offlineInfo"></div>
       <div class="msg-admin" id="msgAdminLista"></div>
     </div>
     <div class="grupo">
@@ -2060,7 +2070,7 @@ function alternarAdmin(){
   if (aberto){ renderAdminUsuarios(); renderPerfisAcesso(); }
 }
 
-let admAcessoSel = "", admAtivSel = "";   // seleção atual dos seletores (sobrevive aos re-renders)
+let admAcessoSel = "", admAtivSel = "", admPerfilSel = "", admOfflineSel = "";   // seleção dos seletores do Painel Admin (sobrevive aos re-renders)
 function nomeAdm(e){ return (perfis[e] && perfis[e] !== e) ? (perfis[e] + " (" + e + ")") : e; }
 function popularSelectsAdmin(emails){
   const naoAdmin = emails.filter(e => !ADMINS.includes(e));
@@ -2168,10 +2178,10 @@ function renderAdminUsuarios(){
   const asp = s => String(s).replace(/'/g,"\\'");
   const attr = s => String(s).replace(/"/g,'&quot;');
   const online = emails.filter(usuarioOnline);
+  const offline = emails.filter(e => !usuarioOnline(e));
   let html = '<div class="pres-resumo"><span class="pres on"><span class="dot"></span></span><span><b>' + online.length + '</b> ' + (online.length === 1 ? 'usuário online agora' : 'usuários online agora') + (online.length ? ' — ' + escAttr(online.map(e => perfis[e] || e).join(", ")) : '') + '</span></div>';
-  emails.forEach(e => {
+  online.forEach(e => {
     const ehAdmin = ADMINS.includes(e);
-    const idSafe = e.replace(/[^a-z0-9]/gi,'_');
     html += '<div class="usr-item"><span class="usr-email">' + e +
       (ehAdmin ? ' <span class="usr-tag">admin</span>' : '') + presencaHtml(e) + '</span>' +
       '<input maxlength="40" value="' + attr(mapa[e] || '') + '" placeholder="Sem nome definido" ' +
@@ -2184,10 +2194,26 @@ function renderAdminUsuarios(){
       'onchange="setPermEnvio(\'' + asp(e) + '\', this.checked)"> Pode enviar avisos/tarefas</label>' +
       (ehAdmin ? ' <span style="font-size:.7rem;color:var(--cinza)">(admin sempre pode)</span>' : '') + '</div>';
   });
+  if (!online.length) html += '<p class="nota-dash">Ninguém online agora.</p>';
   cont.innerHTML = html;
+  // Caixa dos usuários OFFLINE (só mostra o último acesso)
+  const so = document.getElementById("admSelOffline");
+  if (so){ so.innerHTML = '<option value="">— escolha um funcionário —</option>' + offline.map(e => '<option value="' + escAttr(e) + '">' + escAttr(nomeAdm(e)) + '</option>').join(""); if (admOfflineSel && offline.indexOf(admOfflineSel) >= 0) so.value = admOfflineSel; else admOfflineSel = ""; }
+  renderOfflineInfo();
   popularSelectsAdmin(emails);
   renderEditorAcesso();
   renderAtividadesFunc();
+}
+function renderOfflineInfo(){
+  const cont = document.getElementById("offlineInfo"); if (!cont) return;
+  const sel = document.getElementById("admSelOffline");
+  admOfflineSel = sel ? sel.value : "";
+  const e = admOfflineSel;
+  if (!e){ cont.innerHTML = '<p class="nota-dash">Escolha um funcionário acima para ver o último acesso dele.</p>'; return; }
+  const nome = (perfis[e] && perfis[e] !== e) ? perfis[e] : e;
+  const t = presencaMap[e] || 0;
+  if (!t){ cont.innerHTML = '<div class="off-info"><span class="pres off"><span class="dot"></span></span> <b>' + escAttr(nome) + '</b> — nunca acessou o app. <span class="off-email">' + escAttr(e) + '</span></div>'; return; }
+  cont.innerHTML = '<div class="off-info"><span class="pres off"><span class="dot"></span></span> <b>' + escAttr(nome) + '</b> — último acesso <b>' + escAttr(fmtPresencaHa(t)) + '</b> <span class="off-abs">(' + escAttr(fmtDataHora(new Date(t))) + ')</span> <span class="off-email">' + escAttr(e) + '</span></div>';
 }
 const permAbertos = new Set();   // e-mails cujo editor de menus está aberto (para sobreviver a re-desenhos)
 function alternarPermUsuario(email){
@@ -2231,28 +2257,38 @@ function definirAcessoUsuario(email, val){
 }
 // ----- Perfis de acesso (templates de menus, com vínculo ao vivo) -----
 function renderPerfisAcesso(){
-  const cont = document.getElementById("listaPerfis");
-  if (!cont) return;
+  const sel = document.getElementById("admSelPerfil");
+  if (!sel) return;
   const ids = Object.keys(perfisAcesso || {});
-  if (!ids.length){
-    cont.innerHTML = '<p class="nota-dash">Nenhum perfil ainda. Crie um abaixo (ex.: "Caixa", "Gerente") e marque os menus que ele pode ver.</p>';
+  sel.innerHTML = ids.length
+    ? ('<option value="">— escolha um perfil —</option>' + ids.map(id => '<option value="' + id + '">' + escAttr(perfisAcesso[id].nome || "(sem nome)") + '</option>').join(""))
+    : '<option value="">— nenhum perfil criado —</option>';
+  if (admPerfilSel && ids.indexOf(admPerfilSel) >= 0) sel.value = admPerfilSel; else admPerfilSel = "";
+  renderEditorPerfil();
+}
+function renderEditorPerfil(){
+  const cont = document.getElementById("editorPerfil"); if (!cont) return;
+  const sel = document.getElementById("admSelPerfil");
+  const id = sel ? sel.value : "";
+  admPerfilSel = id;
+  if (!id || !perfisAcesso[id]){
+    cont.innerHTML = Object.keys(perfisAcesso || {}).length
+      ? '<p class="nota-dash">Escolha um perfil acima para editar os menus dele, ou crie um novo abaixo.</p>'
+      : '<p class="nota-dash">Nenhum perfil ainda. Crie um abaixo (ex.: "Caixa", "Gerente") e marque os menus que ele pode ver.</p>';
     return;
   }
-  let h = '';
-  ids.forEach(id => {
-    const p = perfisAcesso[id] || { nome:"", menus:{} };
-    h += '<div class="perfil-item"><div class="perfil-top">' +
-      '<input class="perfil-nome" maxlength="30" value="' + escAttr(p.nome || "") + '" placeholder="Nome do perfil" onchange="renomearPerfilAcesso(\'' + id + '\', this.value)">' +
-      '<button class="btn-claro perfil-x" onclick="removerPerfilAcesso(\'' + id + '\')">✕ excluir</button></div>';
-    h += '<div class="usr-perm-grid">';
-    MENUS_APP.forEach(m => {
-      if (m.key === "conta") return;
-      const on = !!(p.menus && p.menus[m.key] === true);
-      h += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked' : '') +
-        ' onchange="setMenuPerfil(\'' + id + '\', \'' + m.key + '\', this.checked)"> ' + m.nome + '</label>';
-    });
-    h += '</div></div>';
+  const p = perfisAcesso[id] || { nome:"", menus:{} };
+  let h = '<div class="perfil-item"><div class="perfil-top">' +
+    '<input class="perfil-nome" maxlength="30" value="' + escAttr(p.nome || "") + '" placeholder="Nome do perfil" onchange="renomearPerfilAcesso(\'' + id + '\', this.value)">' +
+    '<button class="btn-claro perfil-x" onclick="removerPerfilAcesso(\'' + id + '\')">✕ excluir</button></div>';
+  h += '<div class="usr-perm-grid">';
+  MENUS_APP.forEach(m => {
+    if (m.key === "conta") return;
+    const on = !!(p.menus && p.menus[m.key] === true);
+    h += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked' : '') +
+      ' onchange="setMenuPerfil(\'' + id + '\', \'' + m.key + '\', this.checked)"> ' + m.nome + '</label>';
   });
+  h += '</div></div>';
   cont.innerHTML = h;
 }
 function criarPerfilAcesso(){
@@ -2261,6 +2297,7 @@ function criarPerfilAcesso(){
   if (!nome){ avisoAdmin("msgPerfis", "Dê um nome ao perfil (ex.: Caixa).", "erro"); return; }
   const id = novoId();
   perfisAcesso[id] = { nome, menus: {} };
+  admPerfilSel = id;
   docPerfisAcesso.set({ perfis: perfisAcesso })
     .then(()=>{ if (inp) inp.value = ""; avisoAdmin("msgPerfis", 'Perfil "' + nome + '" criado. Agora marque os menus dele.', "ok"); renderPerfisAcesso(); renderAdminUsuarios(); })
     .catch(e => avisoAdmin("msgPerfis", msgErro(e), "erro"));
@@ -2277,7 +2314,7 @@ function renomearPerfilAcesso(id, val){
   if (!perfisAcesso[id]) return;
   perfisAcesso[id].nome = String(val || "").trim();
   docPerfisAcesso.set({ perfis: perfisAcesso })
-    .then(()=> renderAdminUsuarios())
+    .then(()=>{ renderPerfisAcesso(); renderAdminUsuarios(); })
     .catch(e => avisoAdmin("msgPerfis", msgErro(e), "erro"));
 }
 let confirmarExclPerfil = null;
