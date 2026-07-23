@@ -819,6 +819,7 @@
   .cal-ev-btn{border:1px solid var(--borda);background:var(--superficie);border-radius:7px;padding:3px 7px;font-size:.85rem;cursor:pointer;margin-left:4px}
   .cal-ev-btn.confirmar{border-color:#e11d48;color:#e11d48;font-weight:700}
   .cal-ev-obs{display:block;font-size:.72rem;color:var(--cinza);font-weight:400;margin-top:1px}
+  .cal-ev-av{font-size:.68rem;color:var(--cinza);font-weight:600;white-space:nowrap}
   .perfil-sub:first-of-type{margin-top:6px}
   #offlineInfo{margin-top:8px}
   .off-info{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border:1px solid var(--borda);border-radius:10px;padding:10px 12px;background:var(--superficie-2);font-size:.9rem}
@@ -1542,7 +1543,7 @@ let escutaPermEventos = null;
 let calFormAberto = false;             // form de novo/editar evento aberto?
 let editandoEvento = null;             // id do evento em edição
 let confirmarExclEvento = null, timerExclEvento = null;
-let evForm = { id:null, titulo:"", data:"", origem:"Outros", obs:"", repTipo:"nenhum", repAte:"" };
+let evForm = { id:null, titulo:"", data:"", origem:"Outros", obs:"", repTipo:"nenhum", repAte:"", avisarDias:7 };
 let permissoesTodos = {};              // {emailLower:{menuKey:bool} | {perfil:id} | {menus:{...}}} sincronizado da nuvem
 let escutaPermissoes = null;
 let perfisAcesso = {};                 // {id:{nome,menus:{key:true}}} sincronizado da nuvem
@@ -3871,10 +3872,14 @@ function fonteEventos(){
   const g = (avisosDia && Array.isArray(avisosDia.eventos)) ? avisosDia.eventos : [];
   return g.concat(ocorrenciasEventos());
 }
+function avisarDiasEvento(e){
+  const d = e && e.avisarDias;
+  return (typeof d === "number" && isFinite(d) && d >= 0) ? d : 7;   // padrão: começa a avisar 7 dias antes
+}
 function avisosVisiveis(){
-  // mostra vencidos de até 14 dias atrás + tudo que vem pela frente
+  // mostra vencidos de até 14 dias atrás + os que já entraram na janela de antecedência de cada evento
   return fonteEventos()
-    .filter(e => e && e.data && e.titulo && diasAte(e.data) >= -14 && avisoOrigemPermitida(e.origem))
+    .filter(e => e && e.data && e.titulo && diasAte(e.data) >= -14 && diasAte(e.data) <= avisarDiasEvento(e) && avisoOrigemPermitida(e.origem))
     .slice()
     .sort((a,b) => a.data < b.data ? -1 : a.data > b.data ? 1 : 0);
 }
@@ -3885,7 +3890,7 @@ function chaveAviso(e){
 }
 function avisoConcluido(e){ return !!(avisosStatus && avisosStatus.concluidos && avisosStatus.concluidos[chaveAviso(e)]); }
 function atualizarBadgeAvisos(){
-  const n = avisosVisiveis().filter(e => !avisoConcluido(e) && diasAte(e.data) <= 7).length;  // pendentes: vencidos + próximos 7 dias
+  const n = avisosVisiveis().filter(e => !avisoConcluido(e)).length;  // pendentes: vencidos + os que já entraram na janela de antecedência de cada evento
   const b = document.getElementById("badgeAvisos");
   if (b){ b.textContent = n; b.style.display = n ? "" : "none"; }
   const sh = document.getElementById("badgeSinoHeader");
@@ -3919,7 +3924,7 @@ function renderAvisos(){
     html += '<p class="cot-quem">🔄 Atualizado em ' + fmtDataHora(new Date(avisosDia.atualizadoEm)) + '</p>';
   }
   if (!pend.length && !feitos.length){
-    cont.innerHTML = html + '<p class="nota-dash">Nenhum aviso por enquanto. Os eventos registrados nas agendas dos postos aparecem aqui após a sincronização.</p>';
+    cont.innerHTML = html + '<p class="nota-dash">Nenhum aviso por enquanto. Os eventos do Calendário aparecem aqui quando a data vai chegando (conforme a antecedência escolhida em cada um).</p>';
     return;
   }
   if (!pend.length){
@@ -4013,7 +4018,7 @@ function ocorrenciasEventos(){
     if (!ev || !ev.data || !ev.titulo) return;
     const rep = (ev.repete && ev.repete.tipo) || "nenhum";
     const ate = (ev.repete && ev.repete.ate) ? new Date(String(ev.repete.ate)+"T00:00:00") : null;
-    const base = { titulo: ev.titulo, origem: ev.origem||"", obs: ev.obs||"", _id: ev.id, _rep: rep };
+    const base = { titulo: ev.titulo, origem: ev.origem||"", obs: ev.obs||"", _id: ev.id, _rep: rep, avisarDias: (typeof ev.avisarDias === "number" ? ev.avisarDias : 7) };
     const d0 = new Date(String(ev.data)+"T00:00:00");
     if (isNaN(d0.getTime())) return;
     const add = dt => { if (dt < ini || dt > fim) return; if (ate && dt > ate) return; out.push(Object.assign({ data: _isoDe(dt) }, base)); };
@@ -4058,17 +4063,18 @@ function _lerFormEvento(){
   if (document.getElementById("evTitulo")){
     evForm.titulo = g("evTitulo"); evForm.data = g("evData"); evForm.origem = g("evOrigem");
     evForm.obs = g("evObs"); evForm.repTipo = g("evRep"); evForm.repAte = g("evRepAte");
+    const av = parseInt(g("evAvisar"), 10); evForm.avisarDias = isNaN(av) ? 7 : av;
   }
 }
 function novoEventoCal(){
   editandoEvento = null; calFormAberto = true;
-  evForm = { id:null, titulo:"", data: (calDiaSel || hojeISO()), origem:"Outros", obs:"", repTipo:"nenhum", repAte:"" };
+  evForm = { id:null, titulo:"", data: (calDiaSel || hojeISO()), origem:"Outros", obs:"", repTipo:"nenhum", repAte:"", avisarDias:7 };
   renderCalendario();
 }
 function editarEventoCal(id){
   const ev = (eventos||[]).find(x => x.id === id); if (!ev) return;
   editandoEvento = id; calFormAberto = true;
-  evForm = { id:id, titulo: ev.titulo||"", data: ev.data||hojeISO(), origem: ev.origem||"Outros", obs: ev.obs||"", repTipo: (ev.repete&&ev.repete.tipo)||"nenhum", repAte: (ev.repete&&ev.repete.ate)||"" };
+  evForm = { id:id, titulo: ev.titulo||"", data: ev.data||hojeISO(), origem: ev.origem||"Outros", obs: ev.obs||"", repTipo: (ev.repete&&ev.repete.tipo)||"nenhum", repAte: (ev.repete&&ev.repete.ate)||"", avisarDias: (typeof ev.avisarDias === "number" ? ev.avisarDias : 7) };
   renderCalendario();
 }
 function cancelarEventoCal(){ calFormAberto = false; editandoEvento = null; renderCalendario(); }
@@ -4082,7 +4088,8 @@ function salvarEventoCal(){
   const repTipo = evForm.repTipo || "nenhum";
   const repete = { tipo: repTipo };
   if (repTipo !== "nenhum" && (evForm.repAte||"").trim()) repete.ate = evForm.repAte.trim();
-  const dados = { titulo, data, origem: evForm.origem||"Outros", obs: (evForm.obs||"").trim(), repete,
+  const avDias = (typeof evForm.avisarDias === "number" && evForm.avisarDias >= 0) ? evForm.avisarDias : 7;
+  const dados = { titulo, data, origem: evForm.origem||"Outros", obs: (evForm.obs||"").trim(), repete, avisarDias: avDias,
     atualizadoEm: Date.now(), atualizadoPor: usuarioAtual||"" };
   if (editandoEvento){
     const antes = (eventos||[]).find(x => x.id === editandoEvento) || null;
@@ -4142,6 +4149,10 @@ function renderFormEvento(){
   h += '<label class="ev-lbl">Unidade<select id="evOrigem">'+opt+'</select></label>';
   h += '<label class="ev-lbl">Repetir<select id="evRep" onchange="var r=document.getElementById(\'evRepAteRow\'); if(r) r.style.display=(this.value===\'nenhum\'?\'none\':\'flex\')">'+ro+'</select></label>';
   h += '<label class="ev-lbl" id="evRepAteRow" style="display:'+(evForm.repTipo==="nenhum"?'none':'flex')+'">Repetir até (opcional)<input id="evRepAte" type="date" value="'+esc(evForm.repAte)+'"></label>';
+  const avOpts = [[0,"No dia"],[1,"1 dia antes"],[2,"2 dias antes"],[3,"3 dias antes"],[5,"5 dias antes"],[7,"7 dias antes (padr\u00e3o)"],[10,"10 dias antes"],[15,"15 dias antes"],[30,"30 dias antes"]];
+  const avAtual = (typeof evForm.avisarDias === "number") ? evForm.avisarDias : 7;
+  if (!avOpts.some(o => o[0] === avAtual)){ avOpts.push([avAtual, avAtual + " dia(s) antes"]); avOpts.sort((a,b)=>a[0]-b[0]); }
+  h += '<label class="ev-lbl">\ud83d\udd14 Avisar com anteced\u00eancia<select id="evAvisar">' + avOpts.map(o => '<option value="'+o[0]+'"'+(avAtual===o[0]?' selected':'')+'>'+o[1]+'</option>').join("") + '</select></label>';
   h += '<label class="ev-lbl">Observação (opcional)<input id="evObs" maxlength="120" value="'+esc(evForm.obs)+'" placeholder="Detalhes"></label>';
   h += '<div class="ev-form-acoes"><button class="btn-verde" onclick="salvarEventoCal()">Salvar evento</button><button class="btn-claro" onclick="cancelarEventoCal()">Cancelar</button></div>';
   h += '<div id="msgEventoCal" style="margin-top:8px;font-size:.82rem"></div></div>';
@@ -4239,10 +4250,11 @@ function renderCalendario(){
           '<button class="cal-ev-btn' + (conf ? ' confirmar' : '') + '" title="Excluir" onclick="excluirEventoCal(\'' + e._id + '\')">' + (conf ? '✓?' : '🗑') + '</button>';
       }
       const repIco = (e._rep && e._rep !== "nenhum") ? ' 🔁' : '';
+      const avIco = (typeof e.avisarDias === "number" && e.avisarDias !== 7) ? ' <span class="cal-ev-av">🔔 ' + e.avisarDias + 'd</span>' : '';
       html += '<div class="avi-item' + (e.data === hoje ? ' hoje' : '') + '">' +
         '<span class="avi-data">' + (e.data === hoje ? 'HOJE' : fmtDataCurta(e.data).slice(0,5)) + '</span>' +
         '<i class="cal-dot ' + origemClasseCal(e.origem) + '"></i>' +
-        '<span class="avi-tit">' + esc(e.titulo) + repIco + (e.obs ? '<span class="cal-ev-obs">' + esc(e.obs) + '</span>' : '') + '</span>' +
+        '<span class="avi-tit">' + esc(e.titulo) + repIco + avIco + (e.obs ? '<span class="cal-ev-obs">' + esc(e.obs) + '</span>' : '') + '</span>' +
         (e.origem ? '<span class="avi-origem">' + esc(e.origem) + '</span>' : '') + botoes + '</div>';
     });
     html += '</div>';
