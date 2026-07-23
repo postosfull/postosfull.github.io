@@ -774,6 +774,13 @@
   .cal-sub{font-size:.8rem;font-weight:600;color:var(--cinza);margin-bottom:8px}
   /* Lista de usuários (painel Usuários) */
   .usr-lista{display:flex;flex-direction:column;gap:8px}
+  .pres{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;font-weight:700;margin-left:6px;vertical-align:middle}
+  .pres .dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:0 0 auto}
+  .pres.on{color:#18a558}
+  .pres.on .dot{background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.20)}
+  .pres.off{color:var(--cinza)}
+  .pres.off .dot{background:var(--cinza)}
+  .pres-resumo{display:flex;align-items:center;gap:8px;margin:0 0 12px;padding:10px 12px;border:1px solid var(--borda);border-radius:10px;background:var(--superficie-2);font-size:.85rem}
   .usr-item{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid var(--borda);border-radius:10px;padding:10px 12px;background:var(--superficie-2)}
   .cli-nome{flex:1 1 auto;min-width:120px;font-weight:600}
   .cli-campo{flex:1 1 auto;min-width:140px;display:flex;flex-direction:column}
@@ -1391,6 +1398,7 @@ const colLancamentos = db.collection("lancamentos");
 const docConfig = db.collection("config").doc("geral");
 const colHistorico = db.collection("historico");
 const colPerfis = db.collection("perfis");   // nome amigável por usuário (id do doc = e-mail)
+const colPresenca = db.collection("presenca"); // "sinal de vida" de cada usuário logado (id do doc = e-mail)
 const docPermissoes = db.collection("config").doc("permissoes"); // {porUsuario:{email:{menuKey:bool}}} — quais menus cada usuário vê
 const docPerfisAcesso = db.collection("config").doc("perfisAcesso"); // {perfis:{id:{nome,menus:{key:true}}}} — perfis de acesso a menus
 const docCotacoes = db.collection("config").doc("cotacoesDia");   // cotações do dia por distribuidora
@@ -1412,6 +1420,11 @@ let escutaHistorico = null;
 let limiteHistorico = 200;              // quantas alterações carregar da nuvem
 let todoHistoricoCarregado = false;     // true quando não há mais registros antigos
 let escutaPerfis = null;
+let presencaMap = {};                  // emailLower -> timestamp (ms) do último sinal de vida
+let escutaPresenca = null;
+let heartbeatTimer = null;
+let presencaVisWired = false;
+const ONLINE_MS = 150000;              // online se visto nos últimos 2,5 min
 let permissoesTodos = {};              // {emailLower:{menuKey:bool} | {perfil:id} | {menus:{...}}} sincronizado da nuvem
 let escutaPermissoes = null;
 let perfisAcesso = {};                 // {id:{nome,menus:{key:true}}} sincronizado da nuvem
@@ -1746,6 +1759,7 @@ function aoMudarLogin(usuario){
     const ehAdmin = ADMINS.includes((usuario.email||"").toLowerCase());
     document.getElementById("btnUsuarios").style.display = ehAdmin ? "" : "none";
     iniciarSync();
+    iniciarPresenca();
     render();
     aplicarVisibilidadeMenus();
     abrirPainelInicial();
@@ -1766,8 +1780,49 @@ function aoMudarLogin(usuario){
     if (escutaDescontos){ escutaDescontos(); escutaDescontos = null; }
     if (escutaPrecosVenda){ escutaPrecosVenda(); escutaPrecosVenda = null; }
     if (escutaClientes){ escutaClientes(); escutaClientes = null; }
+    if (escutaPresenca){ escutaPresenca(); escutaPresenca = null; }
+    if (heartbeatTimer){ clearInterval(heartbeatTimer); heartbeatTimer = null; }
     nuvemPronta = false;
   }
+}
+
+/* ---------- Presença: quem está online ---------- */
+function baterPresenca(){
+  if (!usuarioAtual) return;
+  colPresenca.doc(usuarioAtual.toLowerCase()).set({ email: usuarioAtual, nome: nomeUsuario || "", ultimoVisto: Date.now() }, { merge:true }).catch(()=>{});
+}
+function iniciarPresenca(){
+  baterPresenca();
+  if (heartbeatTimer) clearInterval(heartbeatTimer);
+  heartbeatTimer = setInterval(() => {
+    if (document.visibilityState !== "hidden") baterPresenca();
+    const pAdm = document.getElementById("painelAdmin");
+    if (pAdm && pAdm.classList.contains("aberto")) renderAdminUsuarios();
+  }, 45000);
+  if (!presencaVisWired){
+    presencaVisWired = true;
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") baterPresenca(); });
+  }
+}
+function fmtPresencaHa(ms){
+  if (!ms) return "nunca entrou";
+  const s = Math.floor((Date.now() - ms) / 1000);
+  if (s < 60) return "agora mesmo";
+  const min = Math.floor(s / 60);
+  if (min < 60) return "há " + min + " min";
+  const h = Math.floor(min / 60);
+  if (h < 24) return "há " + h + "h";
+  const d = Math.floor(h / 24);
+  return "há " + d + (d === 1 ? " dia" : " dias");
+}
+function usuarioOnline(email){
+  const t = presencaMap[email] || 0;
+  return !!(t && (Date.now() - t) < ONLINE_MS);
+}
+function presencaHtml(email){
+  const t = presencaMap[email] || 0;
+  if (usuarioOnline(email)) return ' <span class="pres on"><span class="dot"></span>online agora</span>';
+  return ' <span class="pres off"><span class="dot"></span>' + (t ? ("visto " + fmtPresencaHa(t)) : "nunca entrou") + '</span>';
 }
 
 /* ---------- Painel de administração ---------- */
@@ -1788,6 +1843,7 @@ function renderAdminUsuarios(){
     const e = String(h.usuario || "").trim().toLowerCase();
     if (e && e.indexOf("@") > 0 && !(e in mapa)) mapa[e] = perfis[e] || "";
   });
+  Object.keys(presencaMap || {}).forEach(e => { if (!(e in mapa)) mapa[e] = perfis[e] || ""; });
   const emails = Object.keys(mapa).sort();
   if (!emails.length){
     cont.innerHTML = '<p class="nota-dash">Os usuários aparecem aqui ao serem criados por este painel, ao salvarem o próprio nome ou ao fazerem a primeira alteração no app.</p>';
@@ -1795,12 +1851,13 @@ function renderAdminUsuarios(){
   }
   const asp = s => String(s).replace(/'/g,"\\'");
   const attr = s => String(s).replace(/"/g,'&quot;');
-  let html = '';
+  const online = emails.filter(usuarioOnline);
+  let html = '<div class="pres-resumo"><span class="pres on"><span class="dot"></span></span><span><b>' + online.length + '</b> ' + (online.length === 1 ? 'usuário online agora' : 'usuários online agora') + (online.length ? ' — ' + escAttr(online.map(e => perfis[e] || e).join(", ")) : '') + '</span></div>';
   emails.forEach(e => {
     const ehAdmin = ADMINS.includes(e);
     const idSafe = e.replace(/[^a-z0-9]/gi,'_');
     html += '<div class="usr-item"><span class="usr-email">' + e +
-      (ehAdmin ? ' <span class="usr-tag">admin</span>' : '') + '</span>' +
+      (ehAdmin ? ' <span class="usr-tag">admin</span>' : '') + presencaHtml(e) + '</span>' +
       '<input maxlength="40" value="' + attr(mapa[e] || '') + '" placeholder="Sem nome definido" ' +
       'onchange="salvarNomeUsuario(\'' + asp(e) + '\', this.value)">' +
       '<button class="btn-claro" title="Envia um e-mail para o usuário escolher uma senha nova" ' +
@@ -2356,6 +2413,15 @@ function iniciarSync(){
     if (cn2 && document.activeElement !== cn2) cn2.value = nomeUsuario;
     const ph = document.getElementById("painelHistorico");
     if (ph && ph.classList.contains("aberto")) renderHistorico();
+  }, ()=>{});
+
+  // Presença — quem está online (sinal de vida a cada ~1 min; online = visto há < 2,5 min)
+  escutaPresenca = colPresenca.onSnapshot(snap => {
+    const m = {};
+    snap.forEach(doc => { const d = doc.data() || {}; m[doc.id.toLowerCase()] = d.ultimoVisto || 0; });
+    presencaMap = m;
+    const pAdm = document.getElementById("painelAdmin");
+    if (pAdm && pAdm.classList.contains("aberto")) renderAdminUsuarios();
   }, ()=>{});
 
   // Permissões de menus por usuário
