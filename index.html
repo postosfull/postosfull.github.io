@@ -5534,7 +5534,7 @@ async function capturarPainelCanvas(el){
 
 // Mede a base de cada cartão numa cópia offscreen (mesmas expansões da captura),
 // para sabermos onde estão as divisas entre gráficos.
-function medirDivisasCartoes(painelEl){
+function medirQuebrasPainel(painelEl){
   const clone = painelEl.cloneNode(true);
   clone.style.cssText = "position:absolute;left:-99999px;top:0;width:1000px;max-width:none;display:block;";
   clone.querySelectorAll(".dash-duplo").forEach(d => { d.style.display = "block"; });
@@ -5542,40 +5542,55 @@ function medirDivisasCartoes(painelEl){
   clone.querySelectorAll(".grafico-dash").forEach(g => { g.style.overflow = "visible"; g.style.width = "auto"; g.style.maxWidth = "none"; });
   document.body.appendChild(clone);
   const t0 = clone.getBoundingClientRect().top;
-  const bottoms = [...clone.querySelectorAll(".dash-card")].map(c => c.getBoundingClientRect().bottom - t0);
+  const rect = el => { const r = el.getBoundingClientRect(); return { top: r.top - t0, bot: r.bottom - t0 }; };
+  // Elementos que NÃO podem ser cortados no meio (gráficos e imagens)
+  const atom = [...clone.querySelectorAll("svg, canvas, img")].map(rect).filter(a => a.bot > a.top + 1);
+  // Lugares seguros para quebrar a página: base de blocos inteiros e de linhas de tabela
+  const seletor = ".dash-card, .bloco-comb, .grupo, .rec-card, .usr-item, tr, .cot-linha, .pux-item, .desc-item, p, h2, h3, h4";
+  const cand = [...clone.querySelectorAll(seletor)].map(el => rect(el).bot);
   const alturaCSS = clone.scrollHeight;
   document.body.removeChild(clone);
-  return { bottoms, alturaCSS };
+  return { atom, cand, alturaCSS };
 }
 
-// Captura o painel e o divide em páginas quebrando SÓ nas divisas dos cartões,
-// para nenhum gráfico sair partido entre uma página e outra.
+// Captura o painel e o divide em páginas SEM cortar gráficos, imagens ou linhas de
+// tabela no meio — quebra sempre na base de um bloco inteiro que ainda cabe.
 async function montarPaginasPainel(painelEl){
-  const { bottoms, alturaCSS } = medirDivisasCartoes(painelEl);
+  const { atom, cand, alturaCSS } = medirQuebrasPainel(painelEl);
   const fonte = await capturarPainelCanvas(painelEl);
   const imgW = 194, areaUtil = 259;                 // mm (A4 retrato com margens)
   const pxPorMm = fonte.width / imgW;
   const pageHpxMax = areaUtil * pxPorMm;
   const ratio = alturaCSS > 0 ? fonte.height / alturaCSS : 2;
-  // Pontos de quebra possíveis (px do canvas): base de cada cartão + fim total
-  const cortes = [...new Set(bottoms.map(b => Math.round(b * ratio)).concat([fonte.height]))]
-                   .filter(c => c > 0).sort((a,b) => a - b);
+  const atomPx = atom.map(a => ({ top: a.top * ratio, bot: a.bot * ratio }));
+  const dentroAtom = y => atomPx.some(a => a.top < y - 0.5 && a.bot > y + 0.5);
+  const candPx = [...new Set(cand.map(c => Math.round(c * ratio)))]
+                   .filter(c => c > 0 && c <= fonte.height && !dentroAtom(c))
+                   .sort((a,b) => a - b);
   const paginas = [];
   let inicio = 0, guarda = 0;
-  while (inicio < fonte.height - 1 && guarda++ < 300){
+  while (inicio < fonte.height - 1 && guarda++ < 400){
     let fim = inicio + pageHpxMax;
-    if (fim >= fonte.height) fim = fonte.height;
-    else {
-      const cand = cortes.filter(c => c > inicio && c <= fim);
-      if (cand.length) fim = cand[cand.length - 1];   // maior divisa que ainda cabe
+    if (fim >= fonte.height){
+      fim = fonte.height;
+    } else {
+      // se a quebra cairia dentro de um gráfico/imagem, sobe até o topo dele
+      const corta = atomPx.find(a => a.top < fim - 0.5 && a.bot > fim + 0.5);
+      const teto = corta ? corta.top : fim;
+      const cs = candPx.filter(c => c > inicio + 12 && c <= teto);
+      if (cs.length) fim = cs[cs.length - 1];              // maior base de bloco que ainda cabe
+      else if (corta && corta.top > inicio + 12) fim = corta.top;  // ao menos não corta o gráfico
+      else fim = teto;                                     // bloco maior que a página: corte inevitável
+      if (fim <= inicio) fim = Math.min(inicio + pageHpxMax, fonte.height);
     }
     const sh = Math.round(fim - inicio);
+    if (sh <= 0) break;
     const fatia = document.createElement("canvas");
     fatia.width = fonte.width; fatia.height = sh;
     const fx = fatia.getContext("2d");
     fx.fillStyle = "#fff"; fx.fillRect(0, 0, fatia.width, sh);
     fx.drawImage(fonte, 0, inicio, fonte.width, sh, 0, 0, fonte.width, sh);
-    paginas.push({ dataUrl: fatia.toDataURL("image/jpeg", 0.85), hMm: sh / pxPorMm });
+    paginas.push({ dataUrl: fatia.toDataURL("image/jpeg", 0.9), hMm: sh / pxPorMm });
     inicio = fim;
   }
   return paginas;
@@ -5738,12 +5753,18 @@ function carregarBibliotecasPDF(){
     await Promise.all([
       carregar("https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"),
       carregar("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"),
-      carregar("https://cdn.jsdelivr.net/npm/svg2pdf.js@2.2.3/dist/svg2pdf.umd.min.js")
+      carregar("./svg2pdf.umd.min.js")
     ]);
   })().catch(e => { _promessaLibsPDF = null; throw e; });  // se falhar (ex.: offline), permite tentar de novo
   return _promessaLibsPDF;
 }
 
+function podeVetorizarPDF(){
+  try {
+    if (window.svg2pdf) return true;
+    return !!(window.jspdf && window.jspdf.jsPDF && typeof (new window.jspdf.jsPDF()).svg === "function");
+  } catch(_){ return false; }
+}
 async function exportarPDF(){
   const info = painelVisivelInfo();
   const nome = pedirNomeArquivo(nomeArquivoPadrao(info));
@@ -5753,7 +5774,7 @@ async function exportarPDF(){
     await carregarBibliotecasPDF();
     if (info.id === "painelRegistros"){
       exportarPDFTabela(nome);                              // tabela (autoTable, texto real)
-    } else if (info.id === "painelDash" && window.svg2pdf){
+    } else if (info.id === "painelDash" && podeVetorizarPDF()){
       await exportarPDFDashboardVetorial(info, nome);       // dashboard vetorial (texto real + gráficos vetoriais)
     } else {
       await exportarPDFPainel(info, nome);                  // demais painéis: captura fiel (imagem)
