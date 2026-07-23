@@ -664,6 +664,8 @@
   .pv-sync-vazio{font-size:.82rem;color:var(--cinza)}
   .pv-sub{margin:16px 0 2px;font-size:.98rem;font-weight:700;color:var(--txt);border-top:1px solid var(--borda);padding-top:12px}
   .pv-sub-nota{margin-top:2px}
+  .desc-mes-filtros{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin:6px 0 10px}
+  .desc-mes-filtros input[type=date],.desc-mes-filtros select{border:1px solid var(--borda);border-radius:8px;padding:7px 9px;font-size:.9rem;background:var(--superficie);color:var(--txt)}
   .conta-senha{display:flex;flex-direction:column;gap:8px;max-width:340px;margin-bottom:8px}
   .conta-senha input{border:1px solid var(--borda);border-radius:8px;padding:10px;font-size:.95rem;background:var(--superficie);color:var(--txt)}
   .conta-alt{margin-top:6px}
@@ -1134,6 +1136,16 @@
       <div id="descConsolidado"></div>
       <div id="descLista"></div>
     </div>
+    <div class="grupo" id="grupoDescMes">
+      <h2>Consolidado no Mês</h2>
+      <p class="nota-dash">Soma os descontos de um período. Por padrão mostra o mês atual; você pode escolher outras datas e filtrar por um cliente específico (ou ver todos).</p>
+      <div class="desc-mes-filtros">
+        <label class="cot-data-lbl">De: <input type="date" id="descMesIni" onchange="carregarDescontosMes()"></label>
+        <label class="cot-data-lbl">Até: <input type="date" id="descMesFim" onchange="carregarDescontosMes()"></label>
+        <label class="cot-data-lbl">Cliente: <select id="descMesCliente" onchange="renderDescontosMes()"></select></label>
+      </div>
+      <div id="descMesConsolidado"></div>
+    </div>
   </div>
 
   <div class="config" id="painelComparativo">
@@ -1540,6 +1552,9 @@ let escutaPuxadas = null;
 let descontos = [];                    // descontos do dia selecionado
 let escutaDescontos = null;
 let descDataSel = "";
+let descontosMes = [];                 // descontos do período (Consolidado no Mês)
+let escutaDescontosMes = null;
+let descMesIniSel = "", descMesFimSel = "", descMesClienteSel = "";
 let precosVenda = { porPosto: {}, porPostoPrazo: {}, atualizadoEm: "", por: "", atualizadoPrazoEm: "", porPrazo: "" };  // à vista (Petros) + a prazo (manual)
 let escutaPrecosVenda = null;
 let clientes = { porPosto: {} };       // clientes por posto (cadastro do Descontos)
@@ -1863,6 +1878,7 @@ function aoMudarLogin(usuario){
     if (escutaTransportadora){ escutaTransportadora(); escutaTransportadora = null; }
     if (escutaPuxadas){ escutaPuxadas(); escutaPuxadas = null; }
     if (escutaDescontos){ escutaDescontos(); escutaDescontos = null; }
+    if (escutaDescontosMes){ escutaDescontosMes(); escutaDescontosMes = null; }
     if (escutaPrecosVenda){ escutaPrecosVenda(); escutaPrecosVenda = null; }
     if (escutaClientes){ escutaClientes(); escutaClientes = null; }
     if (escutaPresenca){ escutaPresenca(); escutaPresenca = null; }
@@ -4092,6 +4108,8 @@ function alternarDescontos(){
     popularSelectDescCliente();
     calcDescPreview();
     carregarDescontos();
+    inicializarDescMes();
+    carregarDescontosMes();
   }
 }
 function postoTemPodium(posto){ return String(posto||"").toLowerCase().indexOf("teresina") >= 0; }
@@ -4388,6 +4406,65 @@ function lancarDesconto(){
     avisoAdmin("msgDesconto", "Desconto lançado: R$ " + fmtBR(total,2) + " (" + fmtLitros(volume) + " L).", "ok");
     limparFormDesconto();
   }).catch(e => avisoAdmin("msgDesconto", msgErro(e), "erro"));
+}
+function primeiroDiaMesISO(){ const d = new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-01"; }
+function inicializarDescMes(){
+  const iniEl = document.getElementById("descMesIni"), fimEl = document.getElementById("descMesFim");
+  if (iniEl && !iniEl.value) iniEl.value = primeiroDiaMesISO();
+  if (fimEl && !fimEl.value) fimEl.value = hojeISO();
+}
+function carregarDescontosMes(){
+  const iniEl = document.getElementById("descMesIni"), fimEl = document.getElementById("descMesFim");
+  let ini = (iniEl && iniEl.value) || primeiroDiaMesISO();
+  let fim = (fimEl && fimEl.value) || hojeISO();
+  if (ini > fim){ const t = ini; ini = fim; fim = t; }   // corrige se as datas vierem invertidas
+  descMesIniSel = ini; descMesFimSel = fim;
+  if (escutaDescontosMes){ escutaDescontosMes(); escutaDescontosMes = null; }
+  try {
+    escutaDescontosMes = colDescontos.where("data", ">=", ini).where("data", "<=", fim).onSnapshot(snap => {
+      descontosMes = []; snap.forEach(d => descontosMes.push(Object.assign({ id: d.id }, d.data())));
+      popularSelectDescMesCliente();
+      renderDescontosMes();
+    }, () => { renderDescontosMes(); });
+  } catch(e){ renderDescontosMes(); }
+}
+function popularSelectDescMesCliente(){
+  const sel = document.getElementById("descMesCliente"); if (!sel) return;
+  const nomes = [...new Set((descontosMes||[]).map(d => (d.cliente||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"pt-BR"));
+  const atual = sel.value;
+  sel.innerHTML = '<option value="">Todos os clientes</option>' + nomes.map(n => '<option value="'+escAttr(n)+'">'+escAttr(n)+'</option>').join("");
+  if (atual && nomes.indexOf(atual) >= 0) sel.value = atual;
+}
+function renderDescontosMes(){
+  const cont = document.getElementById("descMesConsolidado"); if (!cont) return;
+  const cliente = (document.getElementById("descMesCliente")||{}).value || "";
+  descMesClienteSel = cliente;
+  let itens = (descontosMes||[]).slice();
+  if (cliente) itens = itens.filter(d => (d.cliente||"").trim() === cliente);
+  let totDesc=0, totVol=0; const porPosto={}, porCliente={};
+  itens.forEach(d => {
+    const de=(+d.desconto||0), vo=(+d.volume||0);
+    totDesc+=de; totVol+=vo;
+    const p=d.posto||"(sem posto)"; if(!porPosto[p])porPosto[p]={desc:0,vol:0,n:0}; porPosto[p].desc+=de; porPosto[p].vol+=vo; porPosto[p].n++;
+    const c=(d.cliente||"").trim()||"(sem cliente)"; if(!porCliente[c])porCliente[c]={desc:0,vol:0,n:0}; porCliente[c].desc+=de; porCliente[c].vol+=vo; porCliente[c].n++;
+  });
+  const periodo = fmtData(descMesIniSel) + " a " + fmtData(descMesFimSel);
+  if (!itens.length){ cont.innerHTML = '<p class="nota-dash">Nenhum desconto no período ('+escAttr(periodo)+')'+(cliente?(' para '+escAttr(cliente)):'')+'.</p>'; return; }
+  const medL = totVol>0 ? totDesc/totVol : 0;
+  const bloco = (titulo, mapa) => {
+    const ord = Object.keys(mapa).sort((a,b)=>mapa[b].desc-mapa[a].desc);
+    if (!ord.length) return "";
+    let x = '<div class="dc-posto-tit">'+titulo+'</div><div class="dc-postos">';
+    ord.forEach(k => { x += '<div class="dc-posto"><span class="dc-posto-nome">'+escAttr(k)+'</span><span class="dc-posto-val">R$ '+fmtBR(mapa[k].desc,2)+'</span><span class="dc-posto-sub">'+fmtLitros(mapa[k].vol)+' L \u00b7 '+mapa[k].n+' lan\u00e7.</span></div>'; });
+    return x + '</div>';
+  };
+  let h = '<div class="desc-cons"><div class="dc-tit">\ud83d\udcc5 Consolidado do período — '+escAttr(periodo)+(cliente?(' \u00b7 '+escAttr(cliente)):'')+'</div><div class="dc-grid">' +
+    '<div class="dc-item"><span class="dc-lbl">Desconto total</span><span class="dc-val">R$ '+fmtBR(totDesc,2)+'</span></div>' +
+    '<div class="dc-item"><span class="dc-lbl">Volume total</span><span class="dc-val">'+fmtLitros(totVol)+' L</span></div>' +
+    '<div class="dc-item"><span class="dc-lbl">Desconto médio / litro</span><span class="dc-val">R$ '+fmtBR(medL,4)+'</span></div>' +
+    '<div class="dc-item"><span class="dc-lbl">Lançamentos</span><span class="dc-val">'+itens.length+'</span></div>' +
+    '</div>' + bloco('Por unidade', porPosto) + (cliente ? '' : bloco('Por cliente', porCliente)) + '</div>';
+  cont.innerHTML = h;
 }
 function limparFormDesconto(){
   ["descClienteNovo","descValorL","descDescL","descVolume","descMotivo"].forEach(id => { const el = document.getElementById(id); if (el) el.value = ""; });
