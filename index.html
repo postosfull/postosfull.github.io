@@ -2126,6 +2126,19 @@ function renderEditorAcesso(){
     const nomes = p ? MENUS_APP.filter(m => m.key !== "conta" && p.menus && p.menus[m.key] === true).map(m => m.nome) : [];
     html += '<div class="usr-perm-info">Vê: ' + (nomes.length ? escAttr(nomes.join(", ")) : "nenhum menu ainda") + '.</div>';
   }
+  html += '<div class="perfil-sub">\ud83d\udd14 Notificações deste funcionário:</div>';
+  const rawAvi = (permissoesTodos[e] && permissoesTodos[e].avisos) ? permissoesTodos[e].avisos : null;
+  const modoAvi = rawAvi ? "manual" : "";
+  html += '<label class="usr-acesso-lbl">Notificações: <select onchange="definirModoAvisosUsuario(\'' + asp(e) + '\', this.value)">';
+  html += '<option value=""' + (modoAvi === "" ? " selected" : "") + '>Seguir o perfil</option>';
+  html += '<option value="manual"' + (modoAvi === "manual" ? " selected" : "") + '>Escolher manualmente (exceção)</option>';
+  html += '</select></label>';
+  if (modoAvi === "manual"){
+    const origensAvi = [["ct","Posto Full - Teresina"],["cc","Posto Full - Caxias"],["cd","Posto Full - Dutra"],["cx","Full Transportadora"],["cg","Outros"]];
+    html += '<div class="usr-perm-grid">';
+    origensAvi.forEach(o => { const on = rawAvi[o[0]] !== false; html += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked' : '') + ' onchange="setAvisoUsuario(\'' + asp(e) + '\', \'' + o[0] + '\', this.checked)"> ' + o[1] + '</label>'; });
+    html += '</div><p class="nota-dash" style="margin:4px 0 0;font-size:.7rem">Exce\u00e7\u00e3o s\u00f3 para este funcion\u00e1rio \u2014 ignora o perfil.</p>';
+  }
   html += '<p class="nota-dash" style="margin:6px 0 0;font-size:.7rem">O administrador vê tudo. Alterações valem quando o usuário recarregar o app.</p></div>';
   cont.innerHTML = html;
 }
@@ -2249,7 +2262,8 @@ function setPermUsuario(email, key, marcado){
   if (rule && rule.menus){ menus = Object.assign({}, rule.menus); }
   else { menus = {}; MENUS_APP.forEach(m => { if (m.key !== "conta") menus[m.key] = true; }); }  // base: via tudo
   menus[key] = !!marcado;
-  permissoesTodos[email] = { menus };   // vira modo manual
+  const aviAtual = (permissoesTodos[email] && permissoesTodos[email].avisos) ? permissoesTodos[email].avisos : null;
+  permissoesTodos[email] = aviAtual ? { menus, avisos: aviAtual } : { menus };   // vira modo manual (preserva exceção de notificações)
   docPermissoes.set({ porUsuario: permissoesTodos })
     .then(()=> avisoAdmin("msgAdminLista", "Menus de " + email + " salvos.", "ok"))
     .catch(er => avisoAdmin("msgAdminLista", msgErro(er), "erro"));
@@ -2258,20 +2272,53 @@ function setPermUsuario(email, key, marcado){
 // Define como o usuário acessa os menus: "" (vê tudo), "perfil:<id>" ou "manual"
 function definirAcessoUsuario(email, val){
   email = String(email).toLowerCase();
+  const aviAtual = (permissoesTodos[email] && permissoesTodos[email].avisos) ? permissoesTodos[email].avisos : null;
   if (val === ""){
-    delete permissoesTodos[email];
+    if (aviAtual) permissoesTodos[email] = { avisos: aviAtual }; else delete permissoesTodos[email];
   } else if (val.indexOf("perfil:") === 0){
-    permissoesTodos[email] = { perfil: val.slice(7) };
+    permissoesTodos[email] = aviAtual ? { perfil: val.slice(7), avisos: aviAtual } : { perfil: val.slice(7) };
   } else if (val === "manual"){
     const menus = {};
     MENUS_APP.forEach(m => { if (m.key !== "conta") menus[m.key] = menuPermitidoDe(email, m.key); }); // parte do estado atual
-    permissoesTodos[email] = { menus };
+    permissoesTodos[email] = aviAtual ? { menus, avisos: aviAtual } : { menus };
   }
   docPermissoes.set({ porUsuario: permissoesTodos })
     .then(()=> avisoAdmin("msgAdminLista", "Acesso de " + email + " atualizado.", "ok"))
     .catch(er => avisoAdmin("msgAdminLista", msgErro(er), "erro"));
   aplicarVisibilidadeMenus();
   renderEditorAcesso();
+}
+// Exceção de notificações por usuário (independe do perfil)
+function definirModoAvisosUsuario(email, val){
+  email = String(email).toLowerCase();
+  const cur = permissoesTodos[email] ? Object.assign({}, permissoesTodos[email]) : {};
+  if (val === "manual"){
+    const keys = ["ct","cc","cd","cx","cg"];
+    const r = normPerm(cur);
+    const p = (r && r.perfil) ? perfisAcesso[r.perfil] : null;
+    const base = (p && p.avisos) ? p.avisos : {};
+    const avisos = {}; keys.forEach(k => { avisos[k] = base[k] !== false; });   // começa com o que ele vê hoje
+    cur.avisos = avisos;
+  } else {
+    delete cur.avisos;
+  }
+  const temMenu = cur.perfil || cur.menus || Object.keys(cur).some(k => k !== "avisos");
+  if (!cur.avisos && !temMenu) delete permissoesTodos[email]; else permissoesTodos[email] = cur;
+  docPermissoes.set({ porUsuario: permissoesTodos })
+    .then(()=> avisoAdmin("msgAdminLista", "Notificações de " + email + " atualizadas.", "ok"))
+    .catch(er => avisoAdmin("msgAdminLista", msgErro(er), "erro"));
+  renderEditorAcesso();
+  refrescarAvisosCalendario();
+}
+function setAvisoUsuario(email, origem, on){
+  email = String(email).toLowerCase();
+  const cur = permissoesTodos[email] ? Object.assign({}, permissoesTodos[email]) : {};
+  cur.avisos = Object.assign({}, cur.avisos || {});
+  cur.avisos[origem] = !!on;
+  permissoesTodos[email] = cur;
+  docPermissoes.set({ porUsuario: permissoesTodos })
+    .then(()=> refrescarAvisosCalendario())
+    .catch(er => avisoAdmin("msgAdminLista", msgErro(er), "erro"));
 }
 // ----- Perfis de acesso (templates de menus, com vínculo ao vivo) -----
 function renderPerfisAcesso(){
@@ -3198,7 +3245,11 @@ function normPerm(v){
   if (!v || typeof v !== "object") return null;
   if (v.perfil) return { perfil: v.perfil };
   if (v.menus && typeof v.menus === "object") return { menus: v.menus };
-  return { menus: v };   // legado: mapa plano menuKey->bool
+  // legado (mapa plano menuKey->bool) — mas ignorando a chave "avisos" (exceção de notificações)
+  const chavesMenu = Object.keys(v).filter(k => k !== "avisos");
+  if (!chavesMenu.length) return null;   // só tinha "avisos" = vê todos os menus
+  const flat = {}; chavesMenu.forEach(k => flat[k] = v[k]);
+  return { menus: flat };
 }
 function menuPermitidoDe(email, key){
   if (key === "conta" || key === "caixa") return true;
@@ -3755,11 +3806,17 @@ function diasAte(iso){
 }
 function avisoOrigemPermitida(origem){
   if (typeof ehAdminAtual === "function" && ehAdminAtual()) return true;
-  const rule = (typeof normPerm === "function") ? normPerm(permissoesTodos[(usuarioAtual||"").toLowerCase()]) : null;
-  if (!rule || !rule.perfil) return true;                 // sem perfil = vê todas as notificações
+  const email = (usuarioAtual||"").toLowerCase();
+  const raw = permissoesTodos[email];
+  const key = origemClasseCal(origem);
+  // 1) Exceção manual do usuário tem prioridade
+  if (raw && raw.avisos && Object.prototype.hasOwnProperty.call(raw.avisos, key)) return raw.avisos[key] !== false;
+  // 2) Senão, segue o perfil
+  const rule = (typeof normPerm === "function") ? normPerm(raw) : null;
+  if (!rule || !rule.perfil) return true;                 // sem perfil = vê todas
   const p = perfisAcesso[rule.perfil];
-  if (!p || !p.avisos) return true;                       // perfil sem restrição de notificações = vê todas
-  return p.avisos[origemClasseCal(origem)] !== false;     // marcado (ou ausente) = permitido; desmarcado = escondido
+  if (!p || !p.avisos) return true;                       // perfil sem restrição = vê todas
+  return p.avisos[key] !== false;
 }
 function refrescarAvisosCalendario(){
   if (typeof atualizarBadgeAvisos === "function") atualizarBadgeAvisos();
