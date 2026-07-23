@@ -775,6 +775,9 @@
   /* Lista de usuários (painel Usuários) */
   .usr-lista{display:flex;flex-direction:column;gap:8px}
   .usr-item{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid var(--borda);border-radius:10px;padding:10px 12px;background:var(--superficie-2)}
+  .cli-nome{flex:1 1 auto;min-width:120px;font-weight:600}
+  .cli-campo{flex:1 1 auto;min-width:140px;display:flex;flex-direction:column}
+  .cli-campo input{border:1px solid var(--borda);border-radius:8px;padding:8px;font-size:.9rem;background:var(--superficie);color:var(--txt);width:100%}
   .usr-email{font-size:.83rem;font-weight:600;color:var(--txt);flex:1 1 230px;word-break:break-all}
   .usr-tag{font-size:.66rem;font-weight:700;text-transform:uppercase;color:var(--verde);border:1px solid var(--verde);border-radius:20px;padding:1px 8px}
   .usr-item input{flex:1 1 190px;border:1px solid var(--borda);border-radius:6px;padding:8px;font-size:.85rem;background:var(--superficie);color:var(--txt)}
@@ -1076,7 +1079,8 @@
       </div>
       <div class="desc-form">
         <div class="desc-campo"><label>Posto</label><select id="descPosto" onchange="onDescPostoChange()"></select></div>
-        <div class="desc-campo"><label>Cliente</label><input id="descCliente" maxlength="60" placeholder="Nome do cliente"></div>
+        <div class="desc-campo"><label>Cliente</label><select id="descCliente"></select></div>
+        <div class="desc-campo"><label>Ou novo cliente</label><input id="descClienteNovo" maxlength="60" placeholder="Digite para cadastrar um novo"></div>
         <div class="desc-campo"><label>Combustível</label><select id="descComb" onchange="onDescCombChange()"></select></div>
         <div class="desc-campo"><label>Valor por litro (R$)</label><input id="descValorL" inputmode="decimal" placeholder="6,00" oninput="calcDescPreview()"></div>
         <div class="desc-campo"><label>Desconto por litro (R$)</label><input id="descDescL" inputmode="decimal" placeholder="0,10" oninput="calcDescPreview()"></div>
@@ -1328,6 +1332,17 @@
       <div class="msg-admin" id="msgMotorista"></div>
       <div class="usr-lista" id="listaMotoristas"></div>
     </div>
+    <div class="grupo" id="grupoClientes">
+      <h2>Clientes (Descontos)</h2>
+      <p class="nota-dash">Os clientes são salvos sozinhos quando alguém lança um desconto no menu Descontos. Aqui você pode corrigir o nome ou remover um cliente. Cada posto tem a sua própria lista.</p>
+      <label class="cot-data-lbl">Unidade: <select id="cliPosto" onchange="renderClientes()"></select></label>
+      <div class="admin-form" style="margin-top:10px">
+        <input id="cliNovo" maxlength="60" placeholder="Adicionar cliente manualmente" onkeydown="if(event.key==='Enter')adicionarClienteManual()">
+        <button class="btn-verde" onclick="adicionarClienteManual()">Adicionar cliente</button>
+      </div>
+      <div class="msg-admin" id="msgCliente"></div>
+      <div class="usr-lista" id="listaClientes"></div>
+    </div>
   </div>
 
   <div id="painelRegistros">
@@ -1387,6 +1402,7 @@ const docPrecosVenda = db.collection("config").doc("precosVenda"); // preço de 
 const docTransportadora = db.collection("config").doc("transportadora"); // cadastro de motoristas/caminhões da Full Transportadora
 const colPuxadas = db.collection("puxadas");                      // registro de puxadas da Full Transportadora
 const colDescontos = db.collection("descontos");                  // descontos dados aos clientes (Postos Full)
+const docClientes = db.collection("config").doc("clientes");      // clientes cadastrados por posto (autocompletar do Descontos)
 let usuarioAtual = "";                 // e-mail de quem está logado (para o histórico)
 let nomeUsuario = "";                  // nome amigável do usuário logado
 let perfis = {};                       // mapa e-mail -> nome, sincronizado da nuvem
@@ -1428,6 +1444,8 @@ let escutaDescontos = null;
 let descDataSel = "";
 let precosVenda = { porPosto: {}, porPostoPrazo: {}, atualizadoEm: "", por: "", atualizadoPrazoEm: "", porPrazo: "" };  // à vista (Petros) + a prazo (manual)
 let escutaPrecosVenda = null;
+let clientes = { porPosto: {} };       // clientes por posto (cadastro do Descontos)
+let escutaClientes = null;
 let puxadas = [];                  // [{id, data, motoristaId, motorista, caminhao, distribuidora, valorNotas, valorFrete, fretePorLitro, litros}]
 
 /* ================== Avisos push (Firebase Cloud Messaging) ================== */
@@ -1747,6 +1765,7 @@ function aoMudarLogin(usuario){
     if (escutaPuxadas){ escutaPuxadas(); escutaPuxadas = null; }
     if (escutaDescontos){ escutaDescontos(); escutaDescontos = null; }
     if (escutaPrecosVenda){ escutaPrecosVenda(); escutaPrecosVenda = null; }
+    if (escutaClientes){ escutaClientes(); escutaClientes = null; }
     nuvemPronta = false;
   }
 }
@@ -2089,6 +2108,7 @@ let confirmarRemocao = null;   // {chave, i} aguardando o segundo toque
 
 function renderConfig(){
   renderMotoristas();
+  renderClientes();
   [["posto","chipsPosto"],["distribuidora","chipsDistribuidora"]].forEach(([chave,idChips])=>{
     document.getElementById(idChips).innerHTML = listas[chave].map((v,i)=>{
       const pendente = confirmarRemocao && confirmarRemocao.chave===chave && confirmarRemocao.i===i;
@@ -2422,6 +2442,16 @@ function iniciarSync(){
     if (pdv && pdv.classList.contains("aberto")) autofillValorL();
   }, ()=>{});
 
+  // Clientes cadastrados por posto (autocompletar do Descontos)
+  escutaClientes = docClientes.onSnapshot(snap => {
+    const d = snap.exists ? (snap.data() || {}) : {};
+    clientes = { porPosto: (d && d.porPosto) ? d.porPosto : {} };
+    const pc = document.getElementById("painelConfig");
+    if (pc && pc.classList.contains("aberto")) renderClientes();
+    const pd = document.getElementById("painelDescontos");
+    if (pd && pd.classList.contains("aberto")) popularSelectDescCliente();
+  }, ()=>{});
+
   // Cadastro de motoristas/caminhões (Full Transportadora)
   escutaTransportadora = docTransportadora.onSnapshot(snap => {
     if (!snap.exists){
@@ -2753,6 +2783,7 @@ function aplicarVisibilidadeMenus(){
   });
   const gm = document.getElementById("grupoMotoristas"); if (gm) gm.style.display = ehTransp ? "" : "none";
   const gpv = document.getElementById("grupoPrecosVenda"); if (gpv) gpv.style.display = ehTransp ? "none" : "";
+  const gcl = document.getElementById("grupoClientes"); if (gcl) gcl.style.display = ehTransp ? "none" : "";
 }
 // Abre o primeiro menu (com painel) permitido da empresa atual
 function abrirPrimeiroPermitido(){
@@ -3631,6 +3662,7 @@ function alternarDescontos(){
     if (dt && !dt.value) dt.value = hojeISO();
     popularSelectDescPosto();
     popularSelectDescComb();
+    popularSelectDescCliente();
     calcDescPreview();
     carregarDescontos();
   }
@@ -3667,7 +3699,7 @@ function popularSelectDescComb(){
   sel.innerHTML = '<option value="">—</option>' + combs.map(c => '<option value="'+escAttr(c)+'">'+escAttr(c)+'</option>').join("");
   sel.value = (atual && combs.indexOf(atual) >= 0) ? atual : "";
 }
-function onDescPostoChange(){ popularSelectDescComb(); autofillValorL(); }
+function onDescPostoChange(){ popularSelectDescComb(); popularSelectDescCliente(); autofillValorL(); }
 function onDescCombChange(){ autofillValorL(); }
 function autofillValorL(){
   const posto = (document.getElementById("descPosto")||{}).value || "";
@@ -3780,9 +3812,125 @@ function carregarDescontos(){
     }, () => { renderDescontos(); });
   } catch(e){ renderDescontos(); }
 }
+/* ---------- Clientes do Descontos (por posto) ---------- */
+function clientesDoPosto(posto){
+  const arr = (clientes.porPosto || {})[posto];
+  return Array.isArray(arr) ? arr : [];
+}
+function popularSelectDescCliente(){
+  const sel = document.getElementById("descCliente");
+  if (!sel) return;
+  const posto = (document.getElementById("descPosto")||{}).value || "";
+  const lista = clientesDoPosto(posto).slice().sort((a,b)=>String(a.nome||"").localeCompare(String(b.nome||""),"pt-BR"));
+  const atual = sel.value;
+  sel.innerHTML = '<option value="">— selecione um cliente —</option>' +
+    lista.map(c => '<option value="'+escAttr(c.nome)+'">'+escAttr(c.nome)+'</option>').join("");
+  if (atual && lista.some(c=>c.nome===atual)) sel.value = atual;
+}
+function salvarClientes(){
+  if (!nuvemPronta) return Promise.resolve();
+  return docClientes.set({ porPosto: clientes.porPosto || {}, atualizadoEm: new Date().toISOString(), por: usuarioAtual || "" }).catch(()=>{});
+}
+function registrarClienteDoLancamento(posto, nome){
+  nome = (nome||"").trim();
+  if (!posto || !nome) return;
+  if (!clientes.porPosto) clientes.porPosto = {};
+  if (!Array.isArray(clientes.porPosto[posto])) clientes.porPosto[posto] = [];
+  const existe = clientes.porPosto[posto].some(c => String(c.nome||"").toLowerCase() === nome.toLowerCase());
+  if (existe) return;
+  clientes.porPosto[posto].push({ id:"cli_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,6), nome });
+  salvarClientes();
+  const pd = document.getElementById("painelDescontos");
+  if (pd && pd.classList.contains("aberto")) popularSelectDescCliente();
+}
+function popularSelectCliPosto(){
+  const sel = document.getElementById("cliPosto");
+  if (!sel) return "";
+  const postos = opcoesDe("posto");
+  const atual = sel.value;
+  sel.innerHTML = postos.map(p => '<option value="'+escAttr(p)+'">'+escAttr(p)+'</option>').join("");
+  if (atual && postos.indexOf(atual) >= 0) sel.value = atual;
+  return sel.value || postos[0] || "";
+}
+function adicionarClienteManual(){
+  const posto = (document.getElementById("cliPosto")||{}).value || "";
+  const inp = document.getElementById("cliNovo");
+  const nome = inp ? (inp.value||"").trim() : "";
+  if (!posto){ avisoAdmin("msgCliente","Cadastre um posto antes.","erro"); return; }
+  if (!nome){ avisoAdmin("msgCliente","Digite o nome do cliente.","erro"); return; }
+  if (!clientes.porPosto) clientes.porPosto = {};
+  if (!Array.isArray(clientes.porPosto[posto])) clientes.porPosto[posto] = [];
+  if (clientes.porPosto[posto].some(c => String(c.nome||"").toLowerCase() === nome.toLowerCase())){
+    avisoAdmin("msgCliente","Esse cliente já está cadastrado neste posto.","erro"); return;
+  }
+  clientes.porPosto[posto].push({ id:"cli_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,6), nome });
+  salvarClientes();
+  if (inp) inp.value = "";
+  avisoAdmin("msgCliente","Cliente "+nome+" cadastrado.","ok");
+  renderClientes();
+}
+let editandoCliente = null, confirmarCliente = null, timerCliente = null;
+function editarCliente(id){ editandoCliente = id; confirmarCliente = null; renderClientes(); }
+function cancelarEdicaoCliente(){ editandoCliente = null; confirmarCliente = null; renderClientes(); }
+function confirmarEdicaoCliente(posto, id){
+  const arr = clientesDoPosto(posto);
+  const c = arr.find(x=>x.id===id);
+  if (!c) return;
+  const nome = (document.getElementById("cliE_nome").value||"").trim();
+  if (!nome){ avisoAdmin("msgCliente","O nome não pode ficar vazio.","erro"); return; }
+  if (arr.some(x=>x.id!==id && String(x.nome||"").toLowerCase()===nome.toLowerCase())){
+    avisoAdmin("msgCliente","Já existe outro cliente com esse nome neste posto.","erro"); return;
+  }
+  c.nome = nome;
+  salvarClientes();
+  editandoCliente = null; confirmarCliente = null;
+  avisoAdmin("msgCliente","Nome atualizado.","ok");
+  renderClientes();
+}
+function removerCliente(posto, id){
+  if (confirmarCliente === id){
+    clearTimeout(timerCliente); confirmarCliente = null; editandoCliente = null;
+    if (clientes.porPosto && Array.isArray(clientes.porPosto[posto]))
+      clientes.porPosto[posto] = clientes.porPosto[posto].filter(x=>x.id!==id);
+    salvarClientes();
+    renderClientes();
+    return;
+  }
+  confirmarCliente = id;
+  renderClientes();
+  timerCliente = setTimeout(()=>{ confirmarCliente=null; renderClientes(); }, 4000);
+}
+function renderClientes(){
+  const cont = document.getElementById("listaClientes");
+  if (!cont) return;
+  const posto = popularSelectCliPosto();
+  const lista = clientesDoPosto(posto).slice().sort((a,b)=>String(a.nome||"").localeCompare(String(b.nome||""),"pt-BR"));
+  if (!lista.length){
+    cont.innerHTML = '<p class="nota-dash">Nenhum cliente cadastrado neste posto ainda. Eles aparecem aqui automaticamente conforme os descontos são lançados.</p>';
+    return;
+  }
+  cont.innerHTML = lista.map(c => {
+    const conf = confirmarCliente === c.id;
+    if (editandoCliente === c.id){
+      return '<div class="usr-item editando">' +
+        '<label class="cli-campo" data-lbl="Cliente"><input id="cliE_nome" maxlength="60" value="'+escAttr(c.nome)+'" placeholder="Nome do cliente"></label>' +
+        '<button class="btn-verde" onclick="confirmarEdicaoCliente(\''+escAspas(posto)+'\',\''+c.id+'\')">✓ Salvar</button>' +
+        '<button class="btn-claro" onclick="cancelarEdicaoCliente()">Cancelar</button>' +
+        '<button class="btn-claro'+(conf?' confirmar':'')+'" onclick="removerCliente(\''+escAspas(posto)+'\',\''+c.id+'\')">'+(conf?'✓ confirmar?':'🗑 Remover')+'</button>' +
+        '</div>';
+    }
+    return '<div class="usr-item">' +
+      '<span class="cli-nome">'+escAttr(c.nome)+'</span>' +
+      '<button class="btn-claro" onclick="editarCliente(\''+c.id+'\')">✏️ Editar</button>' +
+      '<button class="btn-claro'+(conf?' confirmar':'')+'" onclick="removerCliente(\''+escAspas(posto)+'\',\''+c.id+'\')">'+(conf?'✓ confirmar?':'🗑 Remover')+'</button>' +
+      '</div>';
+  }).join("");
+}
 function lancarDesconto(){
   const posto   = document.getElementById("descPosto").value || "";
-  const cliente = (document.getElementById("descCliente").value || "").trim();
+  const cliNovoEl = document.getElementById("descClienteNovo");
+  const cliNovo = cliNovoEl ? (cliNovoEl.value || "").trim() : "";
+  const cliente = cliNovo || ((document.getElementById("descCliente").value || "").trim());
   const comb    = document.getElementById("descComb").value || "";
   const valorL  = parsePrecoComp(document.getElementById("descValorL").value || "");
   const descL   = parsePrecoComp(document.getElementById("descDescL").value || "");
@@ -3803,12 +3951,14 @@ function lancarDesconto(){
     valorLitro: valorL, descontoLitro: descL, volume, desconto: total,
     motivo, por: usuarioAtual || "", criadoEm: Date.now()
   }).then(() => {
+    registrarClienteDoLancamento(posto, cliente);
     avisoAdmin("msgDesconto", "Desconto lançado: R$ " + fmtBR(total,2) + " (" + fmtLitros(volume) + " L).", "ok");
     limparFormDesconto();
   }).catch(e => avisoAdmin("msgDesconto", msgErro(e), "erro"));
 }
 function limparFormDesconto(){
-  ["descCliente","descValorL","descDescL","descVolume","descMotivo"].forEach(id => { const el = document.getElementById(id); if (el) el.value = ""; });
+  ["descClienteNovo","descValorL","descDescL","descVolume","descMotivo"].forEach(id => { const el = document.getElementById(id); if (el) el.value = ""; });
+  const selCli = document.getElementById("descCliente"); if (selCli) selCli.value = "";
   const sel = document.getElementById("descComb"); if (sel) sel.value = "";
   calcDescPreview();
 }
