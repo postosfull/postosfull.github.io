@@ -810,6 +810,15 @@
   #admEditorAcesso{margin-top:8px}
   #editorPerfil{margin-top:8px}
   .perfil-sub{font-size:.8rem;font-weight:700;color:var(--txt);margin:12px 0 4px}
+  .cal-gestao{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+  .ev-form{border:1px solid var(--borda);border-radius:12px;padding:12px;margin:2px 0 12px;background:var(--superficie-2)}
+  .ev-form-tit{font-weight:700;margin-bottom:8px}
+  .ev-lbl{display:flex;flex-direction:column;gap:3px;font-size:.82rem;font-weight:600;color:var(--txt);margin-bottom:8px}
+  .ev-lbl input,.ev-lbl select{border:1px solid var(--borda);border-radius:8px;padding:8px 9px;font-size:.9rem;background:var(--superficie);color:var(--txt);font-weight:400}
+  .ev-form-acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+  .cal-ev-btn{border:1px solid var(--borda);background:var(--superficie);border-radius:7px;padding:3px 7px;font-size:.85rem;cursor:pointer;margin-left:4px}
+  .cal-ev-btn.confirmar{border-color:#e11d48;color:#e11d48;font-weight:700}
+  .cal-ev-obs{display:block;font-size:.72rem;color:var(--cinza);font-weight:400;margin-top:1px}
   .perfil-sub:first-of-type{margin-top:6px}
   #offlineInfo{margin-top:8px}
   .off-info{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border:1px solid var(--borda);border-radius:10px;padding:10px 12px;background:var(--superficie-2);font-size:.9rem}
@@ -1206,7 +1215,7 @@
   <div class="config" id="painelCalendario">
     <div class="grupo">
       <h2>Calendário</h2>
-      <p class="nota-dash">Todos os eventos das agendas dos postos e da transportadora, mês a mês. Toque num dia para ver só os eventos dele.</p>
+      <p class="nota-dash">Calendário do app: crie e acompanhe os eventos de cada unidade, mês a mês. Toque num dia para ver só os eventos dele.</p>
       <div id="conteudoCalendario"></div>
     </div>
   </div>
@@ -1506,6 +1515,8 @@ const docTransportadora = db.collection("config").doc("transportadora"); // cada
 const colPuxadas = db.collection("puxadas");                      // registro de puxadas da Full Transportadora
 const colDescontos = db.collection("descontos");                  // descontos dados aos clientes (Postos Full)
 const docClientes = db.collection("config").doc("clientes");      // clientes cadastrados por posto (autocompletar do Descontos)
+const colEventos = db.collection("eventos");                      // eventos do calendário criados no próprio app (substituem a sincronização do Google)
+const docPermEventos = db.collection("config").doc("permissoesEventos"); // quem pode criar/editar eventos do calendário
 let usuarioAtual = "";                 // e-mail de quem está logado (para o histórico)
 let nomeUsuario = "";                  // nome amigável do usuário logado
 let perfis = {};                       // mapa e-mail -> nome, sincronizado da nuvem
@@ -1524,6 +1535,14 @@ let recados = [];                      // avisos/tarefas da caixa de entrada
 let escutaRecados = null;
 let permissaoEnvio = {};               // emailLower -> true (pode enviar avisos/tarefas)
 let escutaPermEnvio = null;
+let eventos = [];                      // eventos do calendário cadastrados no app (coleção "eventos")
+let escutaEventos = null;
+let permissaoEventos = {};             // emailLower -> true (pode criar/editar eventos do calendário)
+let escutaPermEventos = null;
+let calFormAberto = false;             // form de novo/editar evento aberto?
+let editandoEvento = null;             // id do evento em edição
+let confirmarExclEvento = null, timerExclEvento = null;
+let evForm = { id:null, titulo:"", data:"", origem:"Outros", obs:"", repTipo:"nenhum", repAte:"" };
 let permissoesTodos = {};              // {emailLower:{menuKey:bool} | {perfil:id} | {menus:{...}}} sincronizado da nuvem
 let escutaPermissoes = null;
 let perfisAcesso = {};                 // {id:{nome,menus:{key:true}}} sincronizado da nuvem
@@ -1887,6 +1906,8 @@ function aoMudarLogin(usuario){
     if (heartbeatTimer){ clearInterval(heartbeatTimer); heartbeatTimer = null; }
     if (escutaRecados){ escutaRecados(); escutaRecados = null; }
     if (escutaPermEnvio){ escutaPermEnvio(); escutaPermEnvio = null; }
+    if (escutaEventos){ escutaEventos(); escutaEventos = null; }
+    if (escutaPermEventos){ escutaPermEventos(); escutaPermEventos = null; }
     nuvemPronta = false;
   }
 }
@@ -2139,6 +2160,9 @@ function renderEditorAcesso(){
     origensAvi.forEach(o => { const on = rawAvi[o[0]] !== false; html += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked' : '') + ' onchange="setAvisoUsuario(\'' + asp(e) + '\', \'' + o[0] + '\', this.checked)"> ' + o[1] + '</label>'; });
     html += '</div><p class="nota-dash" style="margin:4px 0 0;font-size:.7rem">Exce\u00e7\u00e3o s\u00f3 para este funcion\u00e1rio \u2014 ignora o perfil.</p>';
   }
+  html += '<div class="perfil-sub">\ud83d\udcc5 Calend\u00e1rio:</div>';
+  const ehAdmE = (typeof ADMINS!=="undefined") && ADMINS.includes(e);
+  html += '<label class="usr-envio-lbl"><input type="checkbox" ' + ((ehAdmE || permissaoEventos[e] === true) ? 'checked ' : '') + (ehAdmE ? 'disabled ' : '') + 'onchange="setPermEventos(\'' + asp(e) + '\', this.checked)"> Pode criar e editar eventos do calend\u00e1rio</label>' + (ehAdmE ? ' <span style="font-size:.7rem;color:var(--cinza)">(admin sempre pode)</span>' : '');
   html += '<p class="nota-dash" style="margin:6px 0 0;font-size:.7rem">O administrador vê tudo. Alterações valem quando o usuário recarregar o app.</p></div>';
   cont.innerHTML = html;
 }
@@ -2846,6 +2870,26 @@ function iniciarSync(){
     if (pcx && pcx.classList.contains("aberto")) renderCaixa();
     const pAdm = document.getElementById("painelAdmin");
     if (pAdm && pAdm.classList.contains("aberto")) renderAdminUsuarios();
+  }, ()=>{});
+
+  // Quem pode criar/editar eventos do calendário
+  escutaPermEventos = docPermEventos.onSnapshot(snap => {
+    const d = snap.exists ? (snap.data() || {}) : {};
+    permissaoEventos = (d && d.porUsuario) ? d.porUsuario : {};
+    const pc = document.getElementById("painelCalendario");
+    if (pc && pc.classList.contains("aberto")) renderCalendario();
+    const pAdm = document.getElementById("painelAdmin");
+    if (pAdm && pAdm.classList.contains("aberto")) renderEditorAcesso();
+  }, ()=>{});
+
+  // Eventos do calendário criados no app
+  escutaEventos = colEventos.onSnapshot(snap => {
+    const l = []; snap.forEach(d => l.push(Object.assign({ id: d.id }, d.data()))); eventos = l;
+    atualizarBadgeAvisos();
+    const pc = document.getElementById("painelCalendario");
+    if (pc && pc.classList.contains("aberto")) renderCalendario();
+    const pa = document.getElementById("painelAvisos");
+    if (pa && pa.classList.contains("aberto")) renderAvisos();
   }, ()=>{});
 
   // Permissões de menus por usuário
@@ -3823,10 +3867,13 @@ function refrescarAvisosCalendario(){
   const pa = document.getElementById("painelAvisos"); if (pa && pa.classList.contains("aberto") && typeof renderAvisos === "function") renderAvisos();
   const pc = document.getElementById("painelCalendario"); if (pc && pc.classList.contains("aberto") && typeof renderCalendario === "function") renderCalendario();
 }
+function fonteEventos(){
+  const g = (avisosDia && Array.isArray(avisosDia.eventos)) ? avisosDia.eventos : [];
+  return g.concat(ocorrenciasEventos());
+}
 function avisosVisiveis(){
-  if (!avisosDia || !Array.isArray(avisosDia.eventos)) return [];
   // mostra vencidos de até 14 dias atrás + tudo que vem pela frente
-  return avisosDia.eventos
+  return fonteEventos()
     .filter(e => e && e.data && e.titulo && diasAte(e.data) >= -14 && avisoOrigemPermitida(e.origem))
     .slice()
     .sort((a,b) => a.data < b.data ? -1 : a.data > b.data ? 1 : 0);
@@ -3942,6 +3989,164 @@ function selDiaCal(iso){
   calDiaSel = (calDiaSel === iso) ? null : iso;   // segundo toque no mesmo dia desmarca
   renderCalendario();
 }
+/* ===== Eventos do calendário criados no app (substituem a sincronização do Google) ===== */
+const ORIGENS_EVENTO = ["Posto Full - Teresina","Posto Full - Caxias","Posto Full - Dutra","Full Transportadora","Outros"];
+function podeGerenciarEventosDe(email){
+  email = (email||"").toLowerCase();
+  if ((typeof ADMINS!=="undefined") && ADMINS.includes(email)) return true;
+  return !!(permissaoEventos && permissaoEventos[email] === true);
+}
+function podeGerenciarEventos(){ return podeGerenciarEventosDe(usuarioAtual); }
+function setPermEventos(email, on){
+  email = (email||"").toLowerCase();
+  if (!permissaoEventos) permissaoEventos = {};
+  if (on) permissaoEventos[email] = true; else delete permissaoEventos[email];
+  docPermEventos.set({ porUsuario: permissaoEventos }).catch(()=>{});
+}
+function _isoDe(dt){ return dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0"); }
+function ocorrenciasEventos(){
+  const out = [];
+  const hoje = new Date(hojeISO()+"T00:00:00");
+  const ini = new Date(hoje); ini.setDate(ini.getDate()-120);          // até ~4 meses atrás
+  const fim = new Date(hoje); fim.setMonth(fim.getMonth()+18);          // até 18 meses à frente
+  (eventos||[]).forEach(ev => {
+    if (!ev || !ev.data || !ev.titulo) return;
+    const rep = (ev.repete && ev.repete.tipo) || "nenhum";
+    const ate = (ev.repete && ev.repete.ate) ? new Date(String(ev.repete.ate)+"T00:00:00") : null;
+    const base = { titulo: ev.titulo, origem: ev.origem||"", obs: ev.obs||"", _id: ev.id, _rep: rep };
+    const d0 = new Date(String(ev.data)+"T00:00:00");
+    if (isNaN(d0.getTime())) return;
+    const add = dt => { if (dt < ini || dt > fim) return; if (ate && dt > ate) return; out.push(Object.assign({ data: _isoDe(dt) }, base)); };
+    if (rep === "nenhum"){ out.push(Object.assign({ data: ev.data }, base)); return; }
+    if (rep === "semanal"){
+      let dt = new Date(d0);
+      while (dt < ini) dt.setDate(dt.getDate()+7);
+      while (dt <= fim){ if (ate && dt > ate) break; out.push(Object.assign({ data: _isoDe(dt) }, base)); dt.setDate(dt.getDate()+7); }
+      return;
+    }
+    if (rep === "mensal"){
+      const diaBase = d0.getDate();
+      let cur = new Date(d0.getFullYear(), d0.getMonth(), 1);
+      const limite = new Date(fim.getFullYear(), fim.getMonth()+1, 1);
+      while (cur < limite){
+        const ultimo = new Date(cur.getFullYear(), cur.getMonth()+1, 0).getDate();
+        add(new Date(cur.getFullYear(), cur.getMonth(), Math.min(diaBase, ultimo)));
+        cur.setMonth(cur.getMonth()+1);
+      }
+      return;
+    }
+    if (rep === "anual"){
+      let y = d0.getFullYear();
+      while (new Date(y, d0.getMonth(), 1) <= fim){
+        const ultimo = new Date(y, d0.getMonth()+1, 0).getDate();
+        add(new Date(y, d0.getMonth(), Math.min(d0.getDate(), ultimo)));
+        y++;
+      }
+      return;
+    }
+  });
+  return out;
+}
+function avisoCal(msg, tipo){
+  const el = document.getElementById("msgEventoCal"); if (!el) return;
+  el.textContent = msg;
+  el.style.cssText = "margin-top:8px;font-size:.82rem;font-weight:600;color:" + (tipo==="ok" ? "#18a558" : "#e11d48");
+  clearTimeout(avisoCal._t); avisoCal._t = setTimeout(()=>{ if (el){ el.textContent=""; el.style.cssText="margin-top:8px;font-size:.82rem"; } }, 5000);
+}
+function _lerFormEvento(){
+  const g = id => { const el = document.getElementById(id); return el ? el.value : undefined; };
+  if (document.getElementById("evTitulo")){
+    evForm.titulo = g("evTitulo"); evForm.data = g("evData"); evForm.origem = g("evOrigem");
+    evForm.obs = g("evObs"); evForm.repTipo = g("evRep"); evForm.repAte = g("evRepAte");
+  }
+}
+function novoEventoCal(){
+  editandoEvento = null; calFormAberto = true;
+  evForm = { id:null, titulo:"", data: (calDiaSel || hojeISO()), origem:"Outros", obs:"", repTipo:"nenhum", repAte:"" };
+  renderCalendario();
+}
+function editarEventoCal(id){
+  const ev = (eventos||[]).find(x => x.id === id); if (!ev) return;
+  editandoEvento = id; calFormAberto = true;
+  evForm = { id:id, titulo: ev.titulo||"", data: ev.data||hojeISO(), origem: ev.origem||"Outros", obs: ev.obs||"", repTipo: (ev.repete&&ev.repete.tipo)||"nenhum", repAte: (ev.repete&&ev.repete.ate)||"" };
+  renderCalendario();
+}
+function cancelarEventoCal(){ calFormAberto = false; editandoEvento = null; renderCalendario(); }
+function salvarEventoCal(){
+  if (!podeGerenciarEventos()){ avisoCal("Você não tem permissão para isso.", "erro"); return; }
+  _lerFormEvento();
+  const titulo = (evForm.titulo||"").trim();
+  const data = (evForm.data||"").trim();
+  if (!titulo){ avisoCal("Escreva o nome do evento.", "erro"); return; }
+  if (!data){ avisoCal("Escolha a data do evento.", "erro"); return; }
+  const repTipo = evForm.repTipo || "nenhum";
+  const repete = { tipo: repTipo };
+  if (repTipo !== "nenhum" && (evForm.repAte||"").trim()) repete.ate = evForm.repAte.trim();
+  const dados = { titulo, data, origem: evForm.origem||"Outros", obs: (evForm.obs||"").trim(), repete,
+    atualizadoEm: Date.now(), atualizadoPor: usuarioAtual||"" };
+  if (editandoEvento){
+    const antes = (eventos||[]).find(x => x.id === editandoEvento) || null;
+    const alvo = editandoEvento;
+    colEventos.doc(alvo).set(dados, { merge:true })
+      .then(()=> logAtividade({acao:"editou", area:"Calendário", resumo: titulo+" ("+fmtDataCurta(data)+")", colecao:"eventos", docId:alvo, tipoUndo:"editar", antes: antes}))
+      .catch(er => avisoCal(msgErro(er), "erro"));
+  } else {
+    dados.criadoEm = Date.now(); dados.criadoPor = usuarioAtual||"";
+    colEventos.add(dados)
+      .then(ref => logAtividade({acao:"criou", area:"Calendário", resumo: titulo+" ("+fmtDataCurta(data)+")", colecao:"eventos", docId: ref.id, tipoUndo:"criar"}))
+      .catch(er => avisoCal(msgErro(er), "erro"));
+  }
+  calFormAberto = false; editandoEvento = null;
+  renderCalendario();
+}
+function excluirEventoCal(id){
+  if (!podeGerenciarEventos()) return;
+  if (confirmarExclEvento === id){
+    clearTimeout(timerExclEvento); confirmarExclEvento = null;
+    const antes = (eventos||[]).find(x => x.id === id) || null;
+    colEventos.doc(id).delete()
+      .then(()=> logAtividade({acao:"excluiu", area:"Calendário", resumo:(antes&&antes.titulo)||"evento", colecao:"eventos", docId:id, tipoUndo:"excluir", antes: antes}))
+      .catch(()=>{});
+    renderCalendario(); return;
+  }
+  confirmarExclEvento = id; renderCalendario();
+  timerExclEvento = setTimeout(()=>{ confirmarExclEvento = null; renderCalendario(); }, 4000);
+}
+function importarEventosGoogle(){
+  if (!ehAdminAtual()) return;
+  const evs = (avisosDia && Array.isArray(avisosDia.eventos)) ? avisosDia.eventos.filter(e => e && e.data && e.titulo) : [];
+  if (!evs.length){ avisoCal("Não há eventos do Google para importar.", "erro"); return; }
+  if (importarEventosGoogle._conf !== true){
+    importarEventosGoogle._conf = true;
+    avisoCal("Isto copia " + evs.length + " evento(s) para o app e limpa a lista antiga do Google. Toque de novo para confirmar.", "erro");
+    clearTimeout(importarEventosGoogle._t); importarEventosGoogle._t = setTimeout(()=>{ importarEventosGoogle._conf = false; renderCalendario(); }, 6000);
+    return;
+  }
+  importarEventosGoogle._conf = false;
+  const lote = db.batch();
+  evs.forEach(e => { const ref = colEventos.doc(); lote.set(ref, { titulo:e.titulo, data:e.data, origem:e.origem||"Outros", obs:"", repete:{tipo:"nenhum"}, criadoEm: Date.now(), criadoPor: usuarioAtual||"", importado:true }); });
+  lote.commit()
+    .then(()=> docAvisos.set({ eventos: [], atualizadoEm: Date.now(), migradoParaApp:true }, { merge:true }))
+    .then(()=>{ avisoCal("Pronto! " + evs.length + " evento(s) trazido(s) para o app.", "ok"); logAtividade({acao:"importou", area:"Calendário", resumo: evs.length + " eventos do Google"}); renderCalendario(); })
+    .catch(er => avisoCal(msgErro(er), "erro"));
+}
+function renderFormEvento(){
+  _lerFormEvento();
+  const esc = z => String(z||'').replace(/"/g,'&quot;');
+  const opt = ORIGENS_EVENTO.map(o => '<option value="'+esc(o)+'"'+(evForm.origem===o?' selected':'')+'>'+esc(o)+'</option>').join("");
+  const reps = [["nenhum","Não repete"],["semanal","Toda semana"],["mensal","Todo mês"],["anual","Todo ano"]];
+  const ro = reps.map(r => '<option value="'+r[0]+'"'+(evForm.repTipo===r[0]?' selected':'')+'>'+r[1]+'</option>').join("");
+  let h = '<div class="ev-form"><div class="ev-form-tit">'+(editandoEvento?'✏️ Editar evento':'➕ Novo evento')+'</div>';
+  h += '<label class="ev-lbl">Nome do evento<input id="evTitulo" maxlength="80" value="'+esc(evForm.titulo)+'" placeholder="Ex: Vencimento do boleto"></label>';
+  h += '<label class="ev-lbl">Data<input id="evData" type="date" value="'+esc(evForm.data)+'"></label>';
+  h += '<label class="ev-lbl">Unidade<select id="evOrigem">'+opt+'</select></label>';
+  h += '<label class="ev-lbl">Repetir<select id="evRep" onchange="var r=document.getElementById(\'evRepAteRow\'); if(r) r.style.display=(this.value===\'nenhum\'?\'none\':\'flex\')">'+ro+'</select></label>';
+  h += '<label class="ev-lbl" id="evRepAteRow" style="display:'+(evForm.repTipo==="nenhum"?'none':'flex')+'">Repetir até (opcional)<input id="evRepAte" type="date" value="'+esc(evForm.repAte)+'"></label>';
+  h += '<label class="ev-lbl">Observação (opcional)<input id="evObs" maxlength="120" value="'+esc(evForm.obs)+'" placeholder="Detalhes"></label>';
+  h += '<div class="ev-form-acoes"><button class="btn-verde" onclick="salvarEventoCal()">Salvar evento</button><button class="btn-claro" onclick="cancelarEventoCal()">Cancelar</button></div>';
+  h += '<div id="msgEventoCal" style="margin-top:8px;font-size:.82rem"></div></div>';
+  return h;
+}
 function origemClasseCal(o){
   o = String(o||'').toLowerCase();
   if (o.indexOf('teresina') >= 0) return 'ct';
@@ -3960,7 +4165,7 @@ function renderCalendario(){
   const cont = document.getElementById("conteudoCalendario");
   if (!cont) return;
   const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
-  const todosEventos = (avisosDia && Array.isArray(avisosDia.eventos)) ? avisosDia.eventos.filter(e => e && e.data && e.titulo && avisoOrigemPermitida(e.origem)) : [];
+  const todosEventos = fonteEventos().filter(e => e && e.data && e.titulo && avisoOrigemPermitida(e.origem));
   const eventos = todosEventos.filter(e => calFiltro[origemClasseCal(e.origem)]);
   const porDia = {};
   eventos.forEach(e => { (porDia[e.data] = porDia[e.data] || []).push(e); });
@@ -3982,6 +4187,15 @@ function renderCalendario(){
       'onclick="alternarFiltroCal(\'' + f[0] + '\')"><i class="cal-dot ' + f[0] + '"></i>' + f[1] + '</button>';
   });
   html += '</div>';
+
+  // barra de gestão de eventos (só quem tem permissão)
+  if (podeGerenciarEventos()){
+    html += '<div class="cal-gestao">';
+    if (!calFormAberto) html += '<button class="btn-verde" onclick="novoEventoCal()">➕ Novo evento</button>';
+    if (ehAdminAtual() && avisosDia && Array.isArray(avisosDia.eventos) && avisosDia.eventos.length) html += '<button class="btn-claro" title="Traz para o app os eventos que ainda vieram do Google" onclick="importarEventosGoogle()">⬇️ Importar eventos do Google</button>';
+    html += '</div>';
+    if (calFormAberto) html += renderFormEvento();
+  }
 
   // grade do mês
   const hoje = hojeISO();
@@ -4013,15 +4227,23 @@ function renderCalendario(){
   if (!lista.length){
     html += '<p class="nota-dash">' + (eventos.length
       ? 'Nenhum evento ' + (calDiaSel ? 'neste dia.' : 'neste mês.')
-      : 'Nenhum evento sincronizado ainda. Cadastre nas agendas Google e peça ao Claude: "sincroniza as notificações".') + '</p>';
+      : (podeGerenciarEventos() ? 'Nenhum evento ainda. Toque em ➕ Novo evento para criar o primeiro.' : 'Nenhum evento cadastrado ainda.')) + '</p>';
   } else {
     html += '<div class="avi-lista">';
     lista.forEach(e => {
+      const podeEd = podeGerenciarEventos() && e._id;
+      const conf = confirmarExclEvento === e._id;
+      let botoes = '';
+      if (podeEd){
+        botoes = '<button class="cal-ev-btn" title="Editar" onclick="editarEventoCal(\'' + e._id + '\')">✏️</button>' +
+          '<button class="cal-ev-btn' + (conf ? ' confirmar' : '') + '" title="Excluir" onclick="excluirEventoCal(\'' + e._id + '\')">' + (conf ? '✓?' : '🗑') + '</button>';
+      }
+      const repIco = (e._rep && e._rep !== "nenhum") ? ' 🔁' : '';
       html += '<div class="avi-item' + (e.data === hoje ? ' hoje' : '') + '">' +
         '<span class="avi-data">' + (e.data === hoje ? 'HOJE' : fmtDataCurta(e.data).slice(0,5)) + '</span>' +
         '<i class="cal-dot ' + origemClasseCal(e.origem) + '"></i>' +
-        '<span class="avi-tit">' + esc(e.titulo) + '</span>' +
-        (e.origem ? '<span class="avi-origem">' + esc(e.origem) + '</span>' : '') + '</div>';
+        '<span class="avi-tit">' + esc(e.titulo) + repIco + (e.obs ? '<span class="cal-ev-obs">' + esc(e.obs) + '</span>' : '') + '</span>' +
+        (e.origem ? '<span class="avi-origem">' + esc(e.origem) + '</span>' : '') + botoes + '</div>';
     });
     html += '</div>';
   }
