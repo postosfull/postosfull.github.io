@@ -22,6 +22,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
 <style>
   :root{
     /* Identidade visual Postos Full */
@@ -847,6 +848,20 @@
   .venc-rot.vencido,.venc-data.vencido{color:#e11d48}
   .venc-rot.hoje,.venc-rot.perto{color:#FF6401}
   .venc-acoes{margin-top:2px}
+  .venc-anexo{margin-top:5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .venc-anexo a,.venc-anexo-add{color:#FF6401;font-size:.78rem;font-weight:600;cursor:pointer;text-decoration:none}
+  .venc-anexo-x{border:1px solid var(--borda);background:var(--superficie);border-radius:6px;padding:1px 7px;font-size:.72rem;cursor:pointer;color:var(--cinza)}
+  .venc-anexo-x.confirmar{border-color:#e11d48;color:#e11d48;font-weight:700}
+  .venc-anexo-prog{font-size:.72rem;color:var(--cinza)}
+  .arq-upload{border:1px solid var(--borda);border-radius:12px;padding:12px;margin:8px 0 14px;background:var(--superficie-2)}
+  .arq-up-linha{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+  .arq-up-lbl{display:flex;flex-direction:column;gap:3px;font-size:.78rem;font-weight:600;color:var(--txt)}
+  .arq-up-lbl select{border:1px solid var(--borda);border-radius:8px;padding:7px 9px;font-size:.9rem;background:var(--superficie);color:var(--txt);font-weight:400}
+  .arq-file-btn{display:inline-block;cursor:pointer}
+  .arq-prog{margin-top:8px;font-size:.8rem;color:var(--cinza);font-weight:600}
+  .arq-grupo{margin:10px 0}
+  .arq-grupo-tit{font-weight:700;font-size:.85rem;margin:12px 0 6px;display:flex;align-items:center;gap:6px}
+  .arq-item{display:flex;gap:10px;align-items:center;border:1px solid var(--borda);border-radius:12px;padding:9px 12px;margin:6px 0;background:var(--superficie)}
   .perfil-sub:first-of-type{margin-top:6px}
   #offlineInfo{margin-top:8px}
   .off-info{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border:1px solid var(--borda);border-radius:10px;padding:10px 12px;background:var(--superficie-2);font-size:.9rem}
@@ -1085,6 +1100,7 @@
     <button class="btn-claro" id="btnCotacoes" onclick="alternarCotacoes()"><span class="mi">💲</span><span class="mt">Cotações do Dia</span></button>
     <button class="btn-claro" id="btnCalendario" onclick="alternarCalendario()"><span class="mi">📅</span><span class="mt">Calendário</span></button>
     <button class="btn-claro" id="btnVencimentos" onclick="alternarVencimentos()"><span class="mi">🗂️</span><span class="mt">Vencimentos</span></button>
+    <button class="btn-claro" id="btnArquivos" onclick="alternarArquivos()"><span class="mi">📁</span><span class="mt">Arquivos</span></button>
     <button class="btn-claro" id="btnCaixa" onclick="alternarCaixa()"><span class="mi">📥</span><span class="mt">Caixa de entrada</span><span class="menu-badge" id="badgeCaixa" style="display:none">0</span></button>
     <button class="btn-claro" id="btnConta" onclick="alternarConta()"><span class="mi">👤</span><span class="mt">Minha conta</span></button>
     <button class="btn-claro" id="btnConfig" onclick="alternarConfig()"><span class="mi">⚙</span><span class="mt">Configurações</span></button>
@@ -1254,6 +1270,14 @@
       <h2>Central de Vencimentos</h2>
       <p class="nota-dash">Documentos e licenças da rede com data de vencimento (CNH, licenciamento, seguro, alvarás, licença ambiental, AVCB, certificado digital, ANP…). O app avisa com antecedência — no sino e no calendário — e mostra o que está vencido, perto de vencer ou em dia.</p>
       <div id="conteudoVencimentos"></div>
+    </div>
+  </div>
+
+  <div class="config" id="painelArquivos">
+    <div class="grupo">
+      <h2>Arquivos (Licenças e Contratos)</h2>
+      <p class="nota-dash">Guarde aqui os PDFs de licenças, contratos e outros documentos das empresas, separados por unidade. Escolha a unidade e o tipo antes de enviar o arquivo.</p>
+      <div id="conteudoArquivos"></div>
     </div>
   </div>
 
@@ -1555,6 +1579,7 @@ const docClientes = db.collection("config").doc("clientes");      // clientes ca
 const colEventos = db.collection("eventos");                      // eventos do calendário criados no próprio app (substituem a sincronização do Google)
 const docPermEventos = db.collection("config").doc("permissoesEventos"); // quem pode criar/editar eventos do calendário
 const colDocumentos = db.collection("documentos");                // documentos/licenças com vencimento (Central de Vencimentos)
+const colArquivos = db.collection("arquivos");                    // metadados dos arquivos (licenças/contratos) guardados no Firebase Storage
 let usuarioAtual = "";                 // e-mail de quem está logado (para o histórico)
 let nomeUsuario = "";                  // nome amigável do usuário logado
 let perfis = {};                       // mapa e-mail -> nome, sincronizado da nuvem
@@ -1586,6 +1611,12 @@ let escutaDocumentos = null;
 let docFormAberto = false, editandoDoc = null;
 let confirmarExclDoc = null, timerExclDoc = null;
 let docForm = { id:null, titulo:"", categoria:"Outro", origem:"Outros", vencimento:"", avisarDias:30, numero:"", obs:"" };
+let arquivos = [];                     // arquivos (licenças/contratos) — coleção "arquivos" + Firebase Storage
+let escutaArquivos = null;
+let confirmarExclArq = null, timerExclArq = null;
+let arqUnidadeSel = "Outros", arqTipoSel = "Licença";
+let fbStorage = null;
+let confirmarRemAnexo = null, timerRemAnexo = null;
 const CATEGORIAS_DOC = ["CNH","Licenciamento/IPVA","Seguro","Alvará de funcionamento","Licença ambiental","AVCB (Bombeiros)","Certificado digital","Licença ANP","Alvará sanitário","Contrato","Outro"];
 const ICONE_DOC = {"CNH":"\ud83e\udeaa","Licenciamento/IPVA":"\ud83d\ude97","Seguro":"\ud83d\udee1\ufe0f","Alvará de funcionamento":"\ud83c\udfe2","Licença ambiental":"\ud83c\udf31","AVCB (Bombeiros)":"\ud83e\uddef","Certificado digital":"\ud83d\udd10","Licença ANP":"\u26fd","Alvará sanitário":"\ud83e\ude7a","Contrato":"\ud83d\udcd1","Outro":"\ud83d\udcc4"};
 let permissoesTodos = {};              // {emailLower:{menuKey:bool} | {perfil:id} | {menus:{...}}} sincronizado da nuvem
@@ -1954,6 +1985,7 @@ function aoMudarLogin(usuario){
     if (escutaEventos){ escutaEventos(); escutaEventos = null; }
     if (escutaPermEventos){ escutaPermEventos(); escutaPermEventos = null; }
     if (escutaDocumentos){ escutaDocumentos(); escutaDocumentos = null; }
+    if (escutaArquivos){ escutaArquivos(); escutaArquivos = null; }
     nuvemPronta = false;
   }
 }
@@ -2208,7 +2240,7 @@ function renderEditorAcesso(){
   }
   html += '<div class="perfil-sub">\ud83d\udcc5 Calend\u00e1rio:</div>';
   const ehAdmE = (typeof ADMINS!=="undefined") && ADMINS.includes(e);
-  html += '<label class="usr-envio-lbl"><input type="checkbox" ' + ((ehAdmE || permissaoEventos[e] === true) ? 'checked ' : '') + (ehAdmE ? 'disabled ' : '') + 'onchange="setPermEventos(\'' + asp(e) + '\', this.checked)"> Pode criar e editar eventos e vencimentos</label>' + (ehAdmE ? ' <span style="font-size:.7rem;color:var(--cinza)">(admin sempre pode)</span>' : '');
+  html += '<label class="usr-envio-lbl"><input type="checkbox" ' + ((ehAdmE || permissaoEventos[e] === true) ? 'checked ' : '') + (ehAdmE ? 'disabled ' : '') + 'onchange="setPermEventos(\'' + asp(e) + '\', this.checked)"> Pode criar e editar eventos, vencimentos e arquivos</label>' + (ehAdmE ? ' <span style="font-size:.7rem;color:var(--cinza)">(admin sempre pode)</span>' : '');
   html += '<p class="nota-dash" style="margin:6px 0 0;font-size:.7rem">O administrador vê tudo. Alterações valem quando o usuário recarregar o app.</p></div>';
   cont.innerHTML = html;
 }
@@ -2950,6 +2982,13 @@ function iniciarSync(){
     if (pa && pa.classList.contains("aberto")) renderAvisos();
   }, ()=>{});
 
+  // Arquivos (licenças/contratos) guardados no Storage
+  escutaArquivos = colArquivos.onSnapshot(snap => {
+    const l = []; snap.forEach(d => l.push(Object.assign({ id: d.id }, d.data()))); arquivos = l;
+    const pa = document.getElementById("painelArquivos");
+    if (pa && pa.classList.contains("aberto")) renderArquivos();
+  }, ()=>{});
+
   // Permissões de menus por usuário
   escutaPermissoes = docPermissoes.onSnapshot(snap => {
     const d = snap.exists ? (snap.data() || {}) : {};
@@ -3263,7 +3302,7 @@ function excluir(i){
 
 /* ================== Salvar / Carregar / Exportar ================== */
 // Painéis que ocupam a página; só um fica aberto por vez
-const PAINEIS = ["painelRegistros","painelDash","painelHistorico","painelSimular","painelDescontos","painelComparativo","painelPuxadas","painelCotacoes","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin"];
+const PAINEIS = ["painelRegistros","painelDash","painelHistorico","painelSimular","painelDescontos","painelComparativo","painelPuxadas","painelCotacoes","painelAvisos","painelCalendario","painelVencimentos","painelArquivos","painelCaixa","painelConta","painelConfig","painelAdmin"];
 function fecharTodosPaineis(exceto){
   PAINEIS.forEach(id => {
     const el = document.getElementById(id);
@@ -3300,6 +3339,8 @@ function fecharTodosPaineis(exceto){
   if (bcal) bcal.classList.toggle("ativo", document.getElementById("painelCalendario").classList.contains("aberto"));
   const bven = document.getElementById("btnVencimentos");
   if (bven) bven.classList.toggle("ativo", document.getElementById("painelVencimentos").classList.contains("aberto"));
+  const barq = document.getElementById("btnArquivos");
+  if (barq) barq.classList.toggle("ativo", document.getElementById("painelArquivos").classList.contains("aberto"));
   const bcx = document.getElementById("btnCaixa");
   if (bcx) bcx.classList.toggle("ativo", document.getElementById("painelCaixa").classList.contains("aberto"));
 }
@@ -3340,6 +3381,7 @@ const MENUS_APP = [
   {key:"puxadas",     btn:"btnPuxadas",     pan:"painelPuxadas",     emp:"transp", nome:"Puxadas"},
   {key:"calendario",  btn:"btnCalendario",  pan:"painelCalendario",  emp:"ambos",  nome:"Calendário"},
   {key:"vencimentos", btn:"btnVencimentos", pan:"painelVencimentos", emp:"ambos",  nome:"Vencimentos"},
+  {key:"arquivos",    btn:"btnArquivos",    pan:"painelArquivos",    emp:"ambos",  nome:"Arquivos"},
   {key:"caixa",       btn:"btnCaixa",       pan:"painelCaixa",       emp:"ambos",  nome:"Caixa de entrada"},
   {key:"conta",       btn:"btnConta",       pan:"painelConta",       emp:"ambos",  nome:"Minha conta"},
   {key:"config",      btn:"btnConfig",      pan:"painelConfig",      emp:"ambos",  nome:"Configurações"}
@@ -4284,6 +4326,7 @@ function excluirDoc(id){
   if (confirmarExclDoc === id){
     clearTimeout(timerExclDoc); confirmarExclDoc = null;
     const antes = (documentos||[]).find(x => x.id === id) || null;
+    if (antes && antes.anexoPath) apagarArquivoStorage(antes.anexoPath);
     colDocumentos.doc(id).delete()
       .then(()=> logAtividade({acao:"excluiu", area:"Vencimentos", resumo:(antes&&antes.titulo)||"documento", colecao:"documentos", docId:id, tipoUndo:"excluir", antes: antes}))
       .catch(()=>{});
@@ -4337,6 +4380,7 @@ function linhaDoc(d){
     '<div class="venc-main"><div class="venc-tit">'+esc(d.titulo)+'</div>' +
     '<div class="venc-tags"><span class="venc-cat">'+esc(d.categoria||'Documento')+'</span>' + (d.origem?'<span class="venc-uni"><i class="cal-dot '+origemClasseCal(d.origem)+'"></i>'+esc(d.origem)+'</span>':'') + '</div>' +
     (sub.length?'<div class="venc-sub">'+sub.join(' \u00b7 ')+'</div>':'') +
+    anexoDocHtml(d) +
     '</div>' +
     '<div class="venc-right"><div class="venc-data '+cls+'">'+fmtDataCurta(d.vencimento)+'</div><div class="venc-rot '+cls+'">'+rot+'</div><div class="venc-acoes">'+botoes+'</div></div>' +
     '</div>';
@@ -4378,6 +4422,157 @@ function alternarVencimentos(){
   const b = document.getElementById("btnVencimentos");
   if (b) b.classList.toggle("ativo", aberto);
   if (aberto) renderVencimentos();
+}
+/* ================== Arquivos (Firebase Storage): Anexos + menu Arquivos ================== */
+function storageRef(){
+  if (fbStorage) return fbStorage;
+  try { if (typeof firebase !== "undefined" && typeof firebase.storage === "function"){ fbStorage = firebase.storage(); return fbStorage; } } catch(e){}
+  return null;
+}
+function fmtTamanho(bytes){ bytes = +bytes || 0; if (bytes < 1024) return bytes+" B"; if (bytes < 1048576) return (bytes/1024).toFixed(0)+" KB"; return (bytes/1048576).toFixed(1)+" MB"; }
+function iconeArquivo(ct, nome){ ct=String(ct||"").toLowerCase(); nome=String(nome||"").toLowerCase(); if (ct.indexOf("pdf")>=0 || nome.endsWith(".pdf")) return "\ud83d\udcc4"; if (ct.indexOf("image")>=0 || /\.(png|jpe?g|gif|webp|heic)$/.test(nome)) return "\ud83d\uddbc\ufe0f"; return "\ud83d\udcce"; }
+function subirArquivo(file, pasta, onProgress){
+  return new Promise((resolve, reject) => {
+    const st = storageRef();
+    if (!st){ reject(new Error("Armazenamento de arquivos ainda não está ligado. Peça ao administrador para ativar o Firebase Storage.")); return; }
+    if (!file){ reject(new Error("Nenhum arquivo escolhido.")); return; }
+    if (file.size > 20*1024*1024){ reject(new Error("Arquivo muito grande (máximo 20 MB).")); return; }
+    const safe = (file.name || "arquivo").replace(/[^\w.\-]+/g, "_").slice(-60);
+    const path = pasta + "/" + Date.now() + "_" + safe;
+    try {
+      const ref = st.ref().child(path);
+      const task = ref.put(file, { contentType: file.type || "application/octet-stream" });
+      task.on("state_changed",
+        sn => { if (onProgress && sn.totalBytes) onProgress(Math.round((sn.bytesTransferred/sn.totalBytes)*100)); },
+        err => reject(err),
+        () => task.snapshot.ref.getDownloadURL()
+          .then(url => resolve({ url, path, nome: file.name || safe, tamanho: file.size || 0, contentType: file.type || "" }))
+          .catch(reject)
+      );
+    } catch(e){ reject(e); }
+  });
+}
+function apagarArquivoStorage(path){
+  const st = storageRef(); if (!st || !path) return Promise.resolve();
+  try { return st.ref().child(path).delete().catch(()=>{}); } catch(e){ return Promise.resolve(); }
+}
+// ---- Anexo de PDF em cada documento da Central de Vencimentos ----
+function anexoDocHtml(d){
+  const esc = z => String(z||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  const pode = podeGerenciarEventos();
+  if (d.anexoUrl){
+    let h = '<div class="venc-anexo"><a href="'+encodeURI(d.anexoUrl)+'" target="_blank" rel="noopener">\ud83d\udcce Ver arquivo</a>';
+    if (pode){ const conf = confirmarRemAnexo === d.id; h += '<button class="venc-anexo-x'+(conf?' confirmar':'')+'" onclick="removerAnexoDoc(\''+d.id+'\')" title="Remover anexo">'+(conf?'\u2713 remover?':'remover')+'</button>'; }
+    return h + '</div>';
+  }
+  if (pode && storageRef()){
+    return '<div class="venc-anexo"><label class="venc-anexo-add">\ud83d\udcce Anexar arquivo<input type="file" accept="application/pdf,image/*" style="display:none" onchange="anexarDocArquivo(\''+d.id+'\', this)"></label><span class="venc-anexo-prog" id="anexoProg_'+d.id+'"></span></div>';
+  }
+  return "";
+}
+function anexarDocArquivo(id, input){
+  const file = input && input.files && input.files[0]; if (!file) return;
+  const prog = document.getElementById("anexoProg_"+id);
+  if (prog) prog.textContent = " enviando\u2026 0%";
+  subirArquivo(file, "documentos/"+id, p => { if (prog) prog.textContent = " enviando\u2026 "+p+"%"; })
+    .then(info => colDocumentos.doc(id).set({ anexoUrl: info.url, anexoPath: info.path, anexoNome: info.nome, anexoTamanho: info.tamanho }, { merge:true })
+      .then(()=> logAtividade({acao:"anexou", area:"Vencimentos", resumo: info.nome, colecao:"documentos", docId:id })))
+    .catch(err => { if (prog){ prog.textContent = " erro: " + (err && err.message ? err.message : "não foi possível enviar"); } });
+  try { input.value = ""; } catch(e){}
+}
+function removerAnexoDoc(id){
+  if (!podeGerenciarEventos()) return;
+  if (confirmarRemAnexo === id){
+    clearTimeout(timerRemAnexo); confirmarRemAnexo = null;
+    const d = (documentos||[]).find(x => x.id === id) || null;
+    Promise.resolve(d && d.anexoPath ? apagarArquivoStorage(d.anexoPath) : null).then(()=>
+      colDocumentos.doc(id).set({ anexoUrl:"", anexoPath:"", anexoNome:"", anexoTamanho:0 }, { merge:true }).catch(()=>{})
+    );
+    renderVencimentos(); return;
+  }
+  confirmarRemAnexo = id; renderVencimentos();
+  timerRemAnexo = setTimeout(()=>{ confirmarRemAnexo = null; renderVencimentos(); }, 4000);
+}
+// ---- Menu Arquivos (repositório por unidade) ----
+function aoEscolherArquivo(input){
+  const file = input && input.files && input.files[0]; if (!file) return;
+  arqUnidadeSel = (document.getElementById("arqUnidade")||{}).value || "Outros";
+  arqTipoSel = (document.getElementById("arqTipo")||{}).value || "Outro";
+  const prog = document.getElementById("arqProgresso");
+  const slug = origemClasseCal(arqUnidadeSel);
+  if (prog){ prog.style.color = ""; prog.textContent = "Enviando\u2026 0%"; }
+  subirArquivo(file, "arquivos/"+slug, p => { if (prog) prog.textContent = "Enviando\u2026 "+p+"%"; })
+    .then(info => colArquivos.add({ nome: info.nome, tipo: arqTipoSel, origem: arqUnidadeSel, url: info.url, path: info.path, tamanho: info.tamanho, contentType: info.contentType, criadoEm: Date.now(), criadoPor: usuarioAtual||"" })
+      .then(ref => { if (prog) prog.textContent = "\u2713 Enviado!"; logAtividade({acao:"enviou", area:"Arquivos", resumo: info.nome+" ("+arqUnidadeSel+")", colecao:"arquivos", docId: ref.id }); }))
+    .catch(err => { if (prog){ prog.style.color = "#e11d48"; prog.textContent = "Erro: " + (err && err.message ? err.message : "não foi possível enviar"); } });
+  try { input.value = ""; } catch(e){}
+}
+function excluirArquivo(id){
+  if (!podeGerenciarEventos()) return;
+  if (confirmarExclArq === id){
+    clearTimeout(timerExclArq); confirmarExclArq = null;
+    const a = (arquivos||[]).find(x => x.id === id) || null;
+    Promise.resolve(a && a.path ? apagarArquivoStorage(a.path) : null).then(()=>
+      colArquivos.doc(id).delete().then(()=> logAtividade({acao:"excluiu", area:"Arquivos", resumo:(a&&a.nome)||"arquivo", colecao:"arquivos", docId:id })).catch(()=>{})
+    );
+    renderArquivos(); return;
+  }
+  confirmarExclArq = id; renderArquivos();
+  timerExclArq = setTimeout(()=>{ confirmarExclArq = null; renderArquivos(); }, 4000);
+}
+function linhaArquivo(a){
+  const esc = z => String(z||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  const pode = podeGerenciarEventos();
+  const ic = iconeArquivo(a.contentType, a.nome);
+  const conf = confirmarExclArq === a.id;
+  let botoes = '<a class="cal-ev-btn" href="'+encodeURI(a.url)+'" target="_blank" rel="noopener" title="Abrir">Abrir</a>';
+  if (pode) botoes += '<button class="cal-ev-btn'+(conf?' confirmar':'')+'" title="Excluir" onclick="excluirArquivo(\''+a.id+'\')">'+(conf?'\u2713?':'\ud83d\uddd1')+'</button>';
+  return '<div class="arq-item"><div class="venc-ic">'+ic+'</div>' +
+    '<div class="venc-main"><div class="venc-tit">'+esc(a.nome||'arquivo')+'</div>' +
+    '<div class="venc-tags"><span class="venc-cat">'+esc(a.tipo||'Arquivo')+'</span><span class="venc-sub" style="margin:0">'+fmtTamanho(a.tamanho)+'</span></div></div>' +
+    '<div class="venc-right"><div class="venc-acoes">'+botoes+'</div></div></div>';
+}
+function renderArquivos(){
+  const cont = document.getElementById("conteudoArquivos"); if (!cont) return;
+  const esc = z => String(z||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  const pode = podeGerenciarEventos();
+  const st = storageRef();
+  let html = "";
+  if (!st){
+    html += '<p class="nota-dash" style="color:#e11d48">O armazenamento de arquivos ainda não está ligado neste projeto. Peça ao administrador para ativar o Firebase Storage (o Claude passou o passo a passo).</p>';
+  }
+  if (pode && st){
+    html += '<div class="arq-upload"><div class="arq-up-linha">' +
+      '<label class="arq-up-lbl">Unidade<select id="arqUnidade" onchange="arqUnidadeSel=this.value">' + ORIGENS_EVENTO.map(o=>'<option value="'+escAttr(o)+'"'+(arqUnidadeSel===o?' selected':'')+'>'+escAttr(o)+'</option>').join("") + '</select></label>' +
+      '<label class="arq-up-lbl">Tipo<select id="arqTipo" onchange="arqTipoSel=this.value">' + ["Licença","Contrato","Outro"].map(t=>'<option value="'+t+'"'+(arqTipoSel===t?' selected':'')+'>'+t+'</option>').join("") + '</select></label>' +
+      '</div>' +
+      '<label class="btn-verde arq-file-btn">\ud83d\udcce Enviar arquivo<input type="file" id="arqFile" accept="application/pdf,image/*" style="display:none" onchange="aoEscolherArquivo(this)"></label>' +
+      '<div id="arqProgresso" class="arq-prog"></div>' +
+      '<p class="nota-dash" style="margin:6px 0 0;font-size:.7rem">PDF ou imagem, até 20 MB. Escolha a unidade e o tipo antes de enviar.</p>' +
+      '</div>';
+  }
+  const lista = (arquivos||[]).filter(a => a && a.url && avisoOrigemPermitida(a.origem));
+  if (!lista.length){
+    html += '<p class="nota-dash">' + ((pode && st) ? 'Nenhum arquivo enviado ainda. Escolha a unidade e o tipo e toque em \ud83d\udcce Enviar arquivo.' : 'Nenhum arquivo disponível ainda.') + '</p>';
+    cont.innerHTML = html; return;
+  }
+  const grupos = {};
+  lista.forEach(a => { const o = a.origem || "Outros"; (grupos[o] = grupos[o] || []).push(a); });
+  const ordemUni = ORIGENS_EVENTO.concat(Object.keys(grupos).filter(o => ORIGENS_EVENTO.indexOf(o) < 0));
+  ordemUni.forEach(o => {
+    const arr = (grupos[o] || []).slice().sort((a,b)=> (b.criadoEm||0)-(a.criadoEm||0));
+    if (!arr.length) return;
+    html += '<div class="arq-grupo"><div class="arq-grupo-tit"><i class="cal-dot '+origemClasseCal(o)+'"></i>'+esc(o)+' ('+arr.length+')</div>';
+    arr.forEach(a => { html += linhaArquivo(a); });
+    html += '</div>';
+  });
+  cont.innerHTML = html;
+}
+function alternarArquivos(){
+  const aberto = abrirPainelExclusivo("painelArquivos");
+  const b = document.getElementById("btnArquivos");
+  if (b) b.classList.toggle("ativo", aberto);
+  if (aberto) renderArquivos();
 }
 function origemClasseCal(o){
   o = String(o||'').toLowerCase();
