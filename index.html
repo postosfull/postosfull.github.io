@@ -820,6 +820,33 @@
   .cal-ev-btn.confirmar{border-color:#e11d48;color:#e11d48;font-weight:700}
   .cal-ev-obs{display:block;font-size:.72rem;color:var(--cinza);font-weight:400;margin-top:1px}
   .cal-ev-av{font-size:.68rem;color:var(--cinza);font-weight:600;white-space:nowrap}
+  .venc-resumo{display:flex;gap:10px;margin:10px 0 14px;flex-wrap:wrap}
+  .venc-tile{flex:1;min-width:92px;border:1px solid var(--borda);border-radius:12px;padding:10px 12px;text-align:center;background:var(--superficie-2)}
+  .venc-tile b{display:block;font-size:1.5rem;line-height:1.1}
+  .venc-tile span{font-size:.72rem;color:var(--cinza)}
+  .venc-tile.vermelho b{color:#e11d48}
+  .venc-tile.laranja b{color:#FF6401}
+  .venc-tile.verde b{color:#18a558}
+  .venc-grupo-tit{font-weight:700;font-size:.85rem;margin:14px 0 6px}
+  .venc-grupo-tit.vermelho{color:#e11d48}
+  .venc-grupo-tit.laranja{color:#FF6401}
+  .venc-grupo-tit.verde{color:#18a558}
+  .venc-item{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--borda);border-radius:12px;padding:10px 12px;margin:6px 0;background:var(--superficie)}
+  .venc-item.vencido{border-color:rgba(225,29,72,.35);background:rgba(225,29,72,.06)}
+  .venc-item.hoje,.venc-item.perto{border-color:rgba(255,100,1,.35)}
+  .venc-ic{font-size:1.4rem;line-height:1.3}
+  .venc-main{flex:1;min-width:0}
+  .venc-tit{font-weight:700;font-size:.95rem;word-break:break-word}
+  .venc-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:3px;align-items:center}
+  .venc-cat{background:var(--superficie-2);border:1px solid var(--borda);border-radius:6px;padding:1px 7px;font-size:.72rem;color:var(--txt)}
+  .venc-uni{font-size:.72rem;color:var(--cinza);display:inline-flex;align-items:center;gap:4px}
+  .venc-sub{font-size:.74rem;color:var(--cinza);margin-top:3px;word-break:break-word}
+  .venc-right{text-align:right;white-space:nowrap;display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0}
+  .venc-data{font-weight:700;font-size:.85rem}
+  .venc-rot{font-size:.72rem;color:var(--cinza)}
+  .venc-rot.vencido,.venc-data.vencido{color:#e11d48}
+  .venc-rot.hoje,.venc-rot.perto{color:#FF6401}
+  .venc-acoes{margin-top:2px}
   .perfil-sub:first-of-type{margin-top:6px}
   #offlineInfo{margin-top:8px}
   .off-info{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border:1px solid var(--borda);border-radius:10px;padding:10px 12px;background:var(--superficie-2);font-size:.9rem}
@@ -1057,6 +1084,7 @@
     <button class="btn-claro" id="btnPuxadas" onclick="alternarPuxadas()"><span class="mi">🧾</span><span class="mt">Puxadas</span></button>
     <button class="btn-claro" id="btnCotacoes" onclick="alternarCotacoes()"><span class="mi">💲</span><span class="mt">Cotações do Dia</span></button>
     <button class="btn-claro" id="btnCalendario" onclick="alternarCalendario()"><span class="mi">📅</span><span class="mt">Calendário</span></button>
+    <button class="btn-claro" id="btnVencimentos" onclick="alternarVencimentos()"><span class="mi">🗂️</span><span class="mt">Vencimentos</span></button>
     <button class="btn-claro" id="btnCaixa" onclick="alternarCaixa()"><span class="mi">📥</span><span class="mt">Caixa de entrada</span><span class="menu-badge" id="badgeCaixa" style="display:none">0</span></button>
     <button class="btn-claro" id="btnConta" onclick="alternarConta()"><span class="mi">👤</span><span class="mt">Minha conta</span></button>
     <button class="btn-claro" id="btnConfig" onclick="alternarConfig()"><span class="mi">⚙</span><span class="mt">Configurações</span></button>
@@ -1218,6 +1246,14 @@
       <h2>Calendário</h2>
       <p class="nota-dash">Calendário do app: crie e acompanhe os eventos de cada unidade, mês a mês. Toque num dia para ver só os eventos dele.</p>
       <div id="conteudoCalendario"></div>
+    </div>
+  </div>
+
+  <div class="config" id="painelVencimentos">
+    <div class="grupo">
+      <h2>Central de Vencimentos</h2>
+      <p class="nota-dash">Documentos e licenças da rede com data de vencimento (CNH, licenciamento, seguro, alvarás, licença ambiental, AVCB, certificado digital, ANP…). O app avisa com antecedência — no sino e no calendário — e mostra o que está vencido, perto de vencer ou em dia.</p>
+      <div id="conteudoVencimentos"></div>
     </div>
   </div>
 
@@ -1518,6 +1554,7 @@ const colDescontos = db.collection("descontos");                  // descontos d
 const docClientes = db.collection("config").doc("clientes");      // clientes cadastrados por posto (autocompletar do Descontos)
 const colEventos = db.collection("eventos");                      // eventos do calendário criados no próprio app (substituem a sincronização do Google)
 const docPermEventos = db.collection("config").doc("permissoesEventos"); // quem pode criar/editar eventos do calendário
+const colDocumentos = db.collection("documentos");                // documentos/licenças com vencimento (Central de Vencimentos)
 let usuarioAtual = "";                 // e-mail de quem está logado (para o histórico)
 let nomeUsuario = "";                  // nome amigável do usuário logado
 let perfis = {};                       // mapa e-mail -> nome, sincronizado da nuvem
@@ -1544,6 +1581,13 @@ let calFormAberto = false;             // form de novo/editar evento aberto?
 let editandoEvento = null;             // id do evento em edição
 let confirmarExclEvento = null, timerExclEvento = null;
 let evForm = { id:null, titulo:"", data:"", origem:"Outros", obs:"", repTipo:"nenhum", repAte:"", avisarDias:7 };
+let documentos = [];                   // documentos/licenças com vencimento (coleção "documentos")
+let escutaDocumentos = null;
+let docFormAberto = false, editandoDoc = null;
+let confirmarExclDoc = null, timerExclDoc = null;
+let docForm = { id:null, titulo:"", categoria:"Outro", origem:"Outros", vencimento:"", avisarDias:30, numero:"", obs:"" };
+const CATEGORIAS_DOC = ["CNH","Licenciamento/IPVA","Seguro","Alvará de funcionamento","Licença ambiental","AVCB (Bombeiros)","Certificado digital","Licença ANP","Alvará sanitário","Contrato","Outro"];
+const ICONE_DOC = {"CNH":"\ud83e\udeaa","Licenciamento/IPVA":"\ud83d\ude97","Seguro":"\ud83d\udee1\ufe0f","Alvará de funcionamento":"\ud83c\udfe2","Licença ambiental":"\ud83c\udf31","AVCB (Bombeiros)":"\ud83e\uddef","Certificado digital":"\ud83d\udd10","Licença ANP":"\u26fd","Alvará sanitário":"\ud83e\ude7a","Contrato":"\ud83d\udcd1","Outro":"\ud83d\udcc4"};
 let permissoesTodos = {};              // {emailLower:{menuKey:bool} | {perfil:id} | {menus:{...}}} sincronizado da nuvem
 let escutaPermissoes = null;
 let perfisAcesso = {};                 // {id:{nome,menus:{key:true}}} sincronizado da nuvem
@@ -1909,6 +1953,7 @@ function aoMudarLogin(usuario){
     if (escutaPermEnvio){ escutaPermEnvio(); escutaPermEnvio = null; }
     if (escutaEventos){ escutaEventos(); escutaEventos = null; }
     if (escutaPermEventos){ escutaPermEventos(); escutaPermEventos = null; }
+    if (escutaDocumentos){ escutaDocumentos(); escutaDocumentos = null; }
     nuvemPronta = false;
   }
 }
@@ -2163,7 +2208,7 @@ function renderEditorAcesso(){
   }
   html += '<div class="perfil-sub">\ud83d\udcc5 Calend\u00e1rio:</div>';
   const ehAdmE = (typeof ADMINS!=="undefined") && ADMINS.includes(e);
-  html += '<label class="usr-envio-lbl"><input type="checkbox" ' + ((ehAdmE || permissaoEventos[e] === true) ? 'checked ' : '') + (ehAdmE ? 'disabled ' : '') + 'onchange="setPermEventos(\'' + asp(e) + '\', this.checked)"> Pode criar e editar eventos do calend\u00e1rio</label>' + (ehAdmE ? ' <span style="font-size:.7rem;color:var(--cinza)">(admin sempre pode)</span>' : '');
+  html += '<label class="usr-envio-lbl"><input type="checkbox" ' + ((ehAdmE || permissaoEventos[e] === true) ? 'checked ' : '') + (ehAdmE ? 'disabled ' : '') + 'onchange="setPermEventos(\'' + asp(e) + '\', this.checked)"> Pode criar e editar eventos e vencimentos</label>' + (ehAdmE ? ' <span style="font-size:.7rem;color:var(--cinza)">(admin sempre pode)</span>' : '');
   html += '<p class="nota-dash" style="margin:6px 0 0;font-size:.7rem">O administrador vê tudo. Alterações valem quando o usuário recarregar o app.</p></div>';
   cont.innerHTML = html;
 }
@@ -2893,6 +2938,18 @@ function iniciarSync(){
     if (pa && pa.classList.contains("aberto")) renderAvisos();
   }, ()=>{});
 
+  // Documentos/licenças com vencimento (Central de Vencimentos)
+  escutaDocumentos = colDocumentos.onSnapshot(snap => {
+    const l = []; snap.forEach(d => l.push(Object.assign({ id: d.id }, d.data()))); documentos = l;
+    atualizarBadgeAvisos();
+    const pv = document.getElementById("painelVencimentos");
+    if (pv && pv.classList.contains("aberto")) renderVencimentos();
+    const pc = document.getElementById("painelCalendario");
+    if (pc && pc.classList.contains("aberto")) renderCalendario();
+    const pa = document.getElementById("painelAvisos");
+    if (pa && pa.classList.contains("aberto")) renderAvisos();
+  }, ()=>{});
+
   // Permissões de menus por usuário
   escutaPermissoes = docPermissoes.onSnapshot(snap => {
     const d = snap.exists ? (snap.data() || {}) : {};
@@ -3206,7 +3263,7 @@ function excluir(i){
 
 /* ================== Salvar / Carregar / Exportar ================== */
 // Painéis que ocupam a página; só um fica aberto por vez
-const PAINEIS = ["painelRegistros","painelDash","painelHistorico","painelSimular","painelDescontos","painelComparativo","painelPuxadas","painelCotacoes","painelAvisos","painelCalendario","painelCaixa","painelConta","painelConfig","painelAdmin"];
+const PAINEIS = ["painelRegistros","painelDash","painelHistorico","painelSimular","painelDescontos","painelComparativo","painelPuxadas","painelCotacoes","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin"];
 function fecharTodosPaineis(exceto){
   PAINEIS.forEach(id => {
     const el = document.getElementById(id);
@@ -3241,6 +3298,8 @@ function fecharTodosPaineis(exceto){
   if (bsh) bsh.classList.toggle("ativo", document.getElementById("painelAvisos").classList.contains("aberto"));
   const bcal = document.getElementById("btnCalendario");
   if (bcal) bcal.classList.toggle("ativo", document.getElementById("painelCalendario").classList.contains("aberto"));
+  const bven = document.getElementById("btnVencimentos");
+  if (bven) bven.classList.toggle("ativo", document.getElementById("painelVencimentos").classList.contains("aberto"));
   const bcx = document.getElementById("btnCaixa");
   if (bcx) bcx.classList.toggle("ativo", document.getElementById("painelCaixa").classList.contains("aberto"));
 }
@@ -3280,6 +3339,7 @@ const MENUS_APP = [
   {key:"cotacoes",    btn:"btnCotacoes",    pan:"painelCotacoes",    emp:"transp", nome:"Cotações do Dia"},
   {key:"puxadas",     btn:"btnPuxadas",     pan:"painelPuxadas",     emp:"transp", nome:"Puxadas"},
   {key:"calendario",  btn:"btnCalendario",  pan:"painelCalendario",  emp:"ambos",  nome:"Calendário"},
+  {key:"vencimentos", btn:"btnVencimentos", pan:"painelVencimentos", emp:"ambos",  nome:"Vencimentos"},
   {key:"caixa",       btn:"btnCaixa",       pan:"painelCaixa",       emp:"ambos",  nome:"Caixa de entrada"},
   {key:"conta",       btn:"btnConta",       pan:"painelConta",       emp:"ambos",  nome:"Minha conta"},
   {key:"config",      btn:"btnConfig",      pan:"painelConfig",      emp:"ambos",  nome:"Configurações"}
@@ -3870,7 +3930,7 @@ function refrescarAvisosCalendario(){
 }
 function fonteEventos(){
   const g = (avisosDia && Array.isArray(avisosDia.eventos)) ? avisosDia.eventos : [];
-  return g.concat(ocorrenciasEventos());
+  return g.concat(ocorrenciasEventos()).concat(ocorrenciasDocumentos());
 }
 function avisarDiasEvento(e){
   const d = e && e.avisarDias;
@@ -4157,6 +4217,167 @@ function renderFormEvento(){
   h += '<div class="ev-form-acoes"><button class="btn-verde" onclick="salvarEventoCal()">Salvar evento</button><button class="btn-claro" onclick="cancelarEventoCal()">Cancelar</button></div>';
   h += '<div id="msgEventoCal" style="margin-top:8px;font-size:.82rem"></div></div>';
   return h;
+}
+/* ================== Central de Vencimentos (documentos e licenças) ================== */
+function ocorrenciasDocumentos(){
+  return (documentos||[]).filter(d => d && d.vencimento && d.titulo).map(d => ({
+    data: d.vencimento,
+    titulo: "\ud83d\udcc4 " + d.titulo,
+    origem: d.origem || "",
+    obs: (d.categoria || ""),
+    _docId: d.id,
+    _tipo: "doc",
+    avisarDias: (typeof d.avisarDias === "number" ? d.avisarDias : 30)
+  }));
+}
+function avisoDoc(msg, tipo){
+  const el = document.getElementById("msgDoc"); if (!el) return;
+  el.textContent = msg;
+  el.style.cssText = "margin-top:8px;font-size:.82rem;font-weight:600;color:" + (tipo==="ok" ? "#18a558" : "#e11d48");
+  clearTimeout(avisoDoc._t); avisoDoc._t = setTimeout(()=>{ if (el){ el.textContent=""; el.style.cssText="margin-top:8px;font-size:.82rem"; } }, 5000);
+}
+function _lerFormDoc(){
+  const g = id => { const el = document.getElementById(id); return el ? el.value : undefined; };
+  if (document.getElementById("docTitulo")){
+    docForm.titulo = g("docTitulo"); docForm.categoria = g("docCategoria"); docForm.origem = g("docOrigem");
+    docForm.vencimento = g("docVenc"); const av = parseInt(g("docAvisar"), 10); docForm.avisarDias = isNaN(av) ? 30 : av;
+    docForm.numero = g("docNumero"); docForm.obs = g("docObs");
+  }
+}
+function novoDoc(){
+  editandoDoc = null; docFormAberto = true;
+  docForm = { id:null, titulo:"", categoria:"Outro", origem:"Outros", vencimento:"", avisarDias:30, numero:"", obs:"" };
+  renderVencimentos();
+}
+function editarDoc(id){
+  const d = (documentos||[]).find(x => x.id === id); if (!d) return;
+  editandoDoc = id; docFormAberto = true;
+  docForm = { id:id, titulo:d.titulo||"", categoria:d.categoria||"Outro", origem:d.origem||"Outros", vencimento:d.vencimento||"", avisarDias:(typeof d.avisarDias==="number"?d.avisarDias:30), numero:d.numero||"", obs:d.obs||"" };
+  renderVencimentos();
+}
+function cancelarDoc(){ docFormAberto = false; editandoDoc = null; renderVencimentos(); }
+function salvarDoc(){
+  if (!podeGerenciarEventos()){ avisoDoc("Você não tem permissão para isso.", "erro"); return; }
+  _lerFormDoc();
+  const titulo = (docForm.titulo||"").trim(); const venc = (docForm.vencimento||"").trim();
+  if (!titulo){ avisoDoc("Escreva o nome do documento.", "erro"); return; }
+  if (!venc){ avisoDoc("Escolha a data de vencimento.", "erro"); return; }
+  const avDias = (typeof docForm.avisarDias === "number" && docForm.avisarDias >= 0) ? docForm.avisarDias : 30;
+  const dados = { titulo, categoria: docForm.categoria||"Outro", origem: docForm.origem||"Outros", vencimento: venc,
+    avisarDias: avDias, numero: (docForm.numero||"").trim(), obs: (docForm.obs||"").trim(),
+    atualizadoEm: Date.now(), atualizadoPor: usuarioAtual||"" };
+  if (editandoDoc){
+    const antes = (documentos||[]).find(x => x.id === editandoDoc) || null; const alvo = editandoDoc;
+    colDocumentos.doc(alvo).set(dados, { merge:true })
+      .then(()=> logAtividade({acao:"editou", area:"Vencimentos", resumo: titulo+" (vence "+fmtDataCurta(venc)+")", colecao:"documentos", docId:alvo, tipoUndo:"editar", antes: antes}))
+      .catch(er => avisoDoc(msgErro(er), "erro"));
+  } else {
+    dados.criadoEm = Date.now(); dados.criadoPor = usuarioAtual||"";
+    colDocumentos.add(dados)
+      .then(ref => logAtividade({acao:"criou", area:"Vencimentos", resumo: titulo+" (vence "+fmtDataCurta(venc)+")", colecao:"documentos", docId: ref.id, tipoUndo:"criar"}))
+      .catch(er => avisoDoc(msgErro(er), "erro"));
+  }
+  docFormAberto = false; editandoDoc = null; renderVencimentos();
+}
+function excluirDoc(id){
+  if (!podeGerenciarEventos()) return;
+  if (confirmarExclDoc === id){
+    clearTimeout(timerExclDoc); confirmarExclDoc = null;
+    const antes = (documentos||[]).find(x => x.id === id) || null;
+    colDocumentos.doc(id).delete()
+      .then(()=> logAtividade({acao:"excluiu", area:"Vencimentos", resumo:(antes&&antes.titulo)||"documento", colecao:"documentos", docId:id, tipoUndo:"excluir", antes: antes}))
+      .catch(()=>{});
+    renderVencimentos(); return;
+  }
+  confirmarExclDoc = id; renderVencimentos();
+  timerExclDoc = setTimeout(()=>{ confirmarExclDoc = null; renderVencimentos(); }, 4000);
+}
+function renderFormDoc(){
+  _lerFormDoc();
+  const esc = z => String(z||'').replace(/"/g,'&quot;');
+  const catOpt = CATEGORIAS_DOC.map(c => '<option value="'+esc(c)+'"'+(docForm.categoria===c?' selected':'')+'>'+esc(c)+'</option>').join("");
+  const uniOpt = ORIGENS_EVENTO.map(o => '<option value="'+esc(o)+'"'+(docForm.origem===o?' selected':'')+'>'+esc(o)+'</option>').join("");
+  const avO = [[0,"No dia"],[7,"7 dias antes"],[10,"10 dias antes"],[15,"15 dias antes"],[30,"30 dias antes (padr\u00e3o)"],[45,"45 dias antes"],[60,"60 dias antes"],[90,"90 dias antes"]];
+  const avA = (typeof docForm.avisarDias === "number") ? docForm.avisarDias : 30;
+  if (!avO.some(o => o[0] === avA)){ avO.push([avA, avA + " dia(s) antes"]); avO.sort((a,b)=>a[0]-b[0]); }
+  let h = '<div class="ev-form"><div class="ev-form-tit">'+(editandoDoc?'\u270f\ufe0f Editar documento':'\u2795 Novo documento')+'</div>';
+  h += '<label class="ev-lbl">Nome do documento<input id="docTitulo" maxlength="80" value="'+esc(docForm.titulo)+'" placeholder="Ex: CNH do Jo\u00e3o / Licen\u00e7a ambiental - Teresina"></label>';
+  h += '<label class="ev-lbl">Tipo<select id="docCategoria">'+catOpt+'</select></label>';
+  h += '<label class="ev-lbl">Unidade<select id="docOrigem">'+uniOpt+'</select></label>';
+  h += '<label class="ev-lbl">Vence em<input id="docVenc" type="date" value="'+esc(docForm.vencimento)+'"></label>';
+  h += '<label class="ev-lbl">\ud83d\udd14 Avisar com anteced\u00eancia<select id="docAvisar">'+avO.map(o=>'<option value="'+o[0]+'"'+(avA===o[0]?' selected':'')+'>'+o[1]+'</option>').join("")+'</select></label>';
+  h += '<label class="ev-lbl">N\u00famero (opcional)<input id="docNumero" maxlength="40" value="'+esc(docForm.numero)+'" placeholder="N\u00ba do documento"></label>';
+  h += '<label class="ev-lbl">Observa\u00e7\u00e3o (opcional)<input id="docObs" maxlength="120" value="'+esc(docForm.obs)+'" placeholder="Detalhes"></label>';
+  h += '<div class="ev-form-acoes"><button class="btn-verde" onclick="salvarDoc()">Salvar</button><button class="btn-claro" onclick="cancelarDoc()">Cancelar</button></div>';
+  h += '<div id="msgDoc" style="margin-top:8px;font-size:.82rem"></div></div>';
+  return h;
+}
+function linhaDoc(d){
+  const esc = z => String(z||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  const pode = podeGerenciarEventos();
+  const dd = diasAte(d.vencimento);
+  const av = (typeof d.avisarDias === "number" ? d.avisarDias : 30);
+  let rot, cls;
+  if (dd < 0){ cls='vencido'; const n=Math.abs(dd); rot='VENCIDO h\u00e1 '+n+(n===1?' dia':' dias'); }
+  else if (dd === 0){ cls='hoje'; rot='VENCE HOJE'; }
+  else if (dd === 1){ cls='perto'; rot='vence AMANH\u00c3'; }
+  else { cls=(dd<=av?'perto':''); rot='vence em '+dd+' dias'; }
+  const ic = ICONE_DOC[d.categoria] || '\ud83d\udcc4';
+  const conf = confirmarExclDoc === d.id;
+  let botoes = '';
+  if (pode){
+    botoes = '<button class="cal-ev-btn" title="Editar / Renovar" onclick="editarDoc(\'' + d.id + '\')">\u270f\ufe0f</button>' +
+      '<button class="cal-ev-btn'+(conf?' confirmar':'')+'" title="Excluir" onclick="excluirDoc(\'' + d.id + '\')">'+(conf?'\u2713?':'\ud83d\uddd1')+'</button>';
+  }
+  const sub = [];
+  if (d.numero) sub.push('n\u00ba ' + esc(d.numero));
+  if (d.obs) sub.push(esc(d.obs));
+  return '<div class="venc-item '+cls+'">' +
+    '<div class="venc-ic">'+ic+'</div>' +
+    '<div class="venc-main"><div class="venc-tit">'+esc(d.titulo)+'</div>' +
+    '<div class="venc-tags"><span class="venc-cat">'+esc(d.categoria||'Documento')+'</span>' + (d.origem?'<span class="venc-uni"><i class="cal-dot '+origemClasseCal(d.origem)+'"></i>'+esc(d.origem)+'</span>':'') + '</div>' +
+    (sub.length?'<div class="venc-sub">'+sub.join(' \u00b7 ')+'</div>':'') +
+    '</div>' +
+    '<div class="venc-right"><div class="venc-data '+cls+'">'+fmtDataCurta(d.vencimento)+'</div><div class="venc-rot '+cls+'">'+rot+'</div><div class="venc-acoes">'+botoes+'</div></div>' +
+    '</div>';
+}
+function renderVencimentos(){
+  const cont = document.getElementById("conteudoVencimentos"); if (!cont) return;
+  const pode = podeGerenciarEventos();
+  let html = "";
+  if (pode){
+    html += '<div class="cal-gestao">';
+    if (!docFormAberto) html += '<button class="btn-verde" onclick="novoDoc()">\u2795 Novo documento</button>';
+    html += '</div>';
+    if (docFormAberto) html += renderFormDoc();
+  }
+  const lista = (documentos||[]).filter(d => d && d.titulo && d.vencimento && avisoOrigemPermitida(d.origem));
+  if (!lista.length){
+    html += '<p class="nota-dash">' + (pode ? 'Nenhum documento cadastrado ainda. Toque em \u2795 Novo documento para come\u00e7ar (CNH, licenciamento, alvar\u00e1s, certificado digital\u2026).' : 'Nenhum documento cadastrado ainda.') + '</p>';
+    cont.innerHTML = html; return;
+  }
+  const venc=[], breve=[], emdia=[];
+  lista.forEach(d => { const dd = diasAte(d.vencimento); const av = (typeof d.avisarDias==="number"?d.avisarDias:30); if (dd<0) venc.push(d); else if (dd<=av) breve.push(d); else emdia.push(d); });
+  const ordena = arr => arr.slice().sort((a,b)=> a.vencimento<b.vencimento?-1:a.vencimento>b.vencimento?1:0);
+  html += '<div class="venc-resumo">' +
+    '<div class="venc-tile vermelho"><b>'+venc.length+'</b><span>Vencidos</span></div>' +
+    '<div class="venc-tile laranja"><b>'+breve.length+'</b><span>Vencem em breve</span></div>' +
+    '<div class="venc-tile verde"><b>'+emdia.length+'</b><span>Em dia</span></div>' +
+    '</div>';
+  const bloco = (titulo, arr, cls) => {
+    if (!arr.length) return "";
+    let x = '<div class="venc-grupo-tit '+cls+'">'+titulo+' ('+arr.length+')</div>';
+    ordena(arr).forEach(d => { x += linhaDoc(d); });
+    return x;
+  };
+  html += bloco('\u26a0\ufe0f Vencidos', venc, 'vermelho') + bloco('\ud83d\udd14 Vencem em breve', breve, 'laranja') + bloco('\u2705 Em dia', emdia, 'verde');
+  cont.innerHTML = html;
+}
+function alternarVencimentos(){
+  const aberto = abrirPainelExclusivo("painelVencimentos");
+  const b = document.getElementById("btnVencimentos");
+  if (b) b.classList.toggle("ativo", aberto);
+  if (aberto) renderVencimentos();
 }
 function origemClasseCal(o){
   o = String(o||'').toLowerCase();
@@ -5974,7 +6195,7 @@ function renderDashboard(){
 // Barrinha "Exportar PDF / Imprimir" no topo de cada menu de conteúdo (v113 — saiu da barra lateral)
 function instalarFerramentasPaineis(){
   const alvos = ["painelDash","painelRegistros","painelHistorico","painelSimular","painelDescontos",
-                 "painelComparativo","painelCotacoes","painelPuxadas","painelAvisos","painelCalendario"];
+                 "painelComparativo","painelCotacoes","painelPuxadas","painelAvisos","painelCalendario","painelVencimentos"];
   alvos.forEach(id => {
     const p = document.getElementById(id);
     if (!p || p.querySelector(".painel-tools")) return;
@@ -5998,6 +6219,7 @@ function painelVisivelInfo(){
     ["painelCotacoes",  "Cotações do Dia", "cotacoes"],
     ["painelAvisos",    "Notificações", "notificacoes"],
     ["painelCalendario","Calendário",   "calendario"],
+    ["painelVencimentos","Vencimentos",  "vencimentos"],
     ["painelConfig",    "Configurações", "configuracoes"],
     ["painelAdmin",     "Usuários",    "usuarios"],
   ];
