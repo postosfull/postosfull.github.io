@@ -744,9 +744,11 @@
   .avi-item.feito .avi-data{background:var(--verde-claro);color:var(--verde);border-color:transparent}
   .avi-reabrir{background:transparent;color:var(--cinza);border:1px solid var(--borda);border-radius:20px;padding:5px 10px;font-size:.72rem;font-weight:600;cursor:pointer;white-space:nowrap;flex:0 0 auto}
   .avi-reabrir:hover{border-color:var(--verde);color:var(--verde)}
+  .avi-quem{flex-basis:100%;width:100%;font-size:.7rem;color:var(--cinza);margin-top:1px}
+  .avi-busca-feitos{width:100%;margin-top:6px;padding:8px 10px;border:1px solid var(--borda);border-radius:8px;background:var(--superficie-2);color:var(--txt);font-size:.82rem;box-sizing:border-box}
   .avi-toggle-feitos{background:transparent;border:none;color:var(--cinza);font-size:.8rem;font-weight:600;cursor:pointer;padding:10px 2px 4px;margin-top:6px;text-align:left}
   .avi-toggle-feitos:hover{color:var(--txt)}
-  .avi-feitos{margin-top:4px}
+  .avi-feitos{margin-top:4px;max-height:360px;overflow:auto;padding-right:2px}
   /* Calendário */
   .cal-topo{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
   .cal-mes{font-family:"Oswald","Poppins",sans-serif;font-size:1.05rem;font-weight:600;color:var(--txt);min-width:160px;text-align:center}
@@ -1643,6 +1645,7 @@ let avisosDia = null;              // notificações das agendas sincronizadas d
 let avisosStatus = { concluidos: {} };   // notificações marcadas como concluídas (config/avisosStatus)
 let escutaAvisosStatus = null;
 let avisosMostrarFeitos = false;   // mostrar a seção "Concluídos"
+let avisosBuscaFeitos = "";        // filtro de busca no histórico de concluídos
 let escutaTransportadora = null;
 let motoristas = [];               // [{id, nome, caminhao, capacidade}] cadastro da transportadora
 let escutaPuxadas = null;
@@ -4005,7 +4008,7 @@ function concluirAvisoIdx(i){
   const e = (window.__aviPend||[])[i]; if(!e) return;
   if(!avisosStatus) avisosStatus={concluidos:{}};
   if(!avisosStatus.concluidos) avisosStatus.concluidos={};
-  avisosStatus.concluidos[chaveAviso(e)] = { titulo:e.titulo, data:e.data, origem:e.origem||"", em:new Date().toISOString(), por: (typeof usuarioAtual!=="undefined"?usuarioAtual:"")||"" };
+  avisosStatus.concluidos[chaveAviso(e)] = { titulo:e.titulo, data:e.data, origem:e.origem||"", em:new Date().toISOString(), por: (typeof usuarioAtual!=="undefined"?usuarioAtual:"")||"", porNome: ((typeof nomeUsuario!=="undefined"&&nomeUsuario)?nomeUsuario:((typeof usuarioAtual!=="undefined"?usuarioAtual:"")||"")) };
   renderAvisos(); atualizarBadgeAvisos();
   try { docAvisosStatus.set({ concluidos: avisosStatus.concluidos }); } catch(_){}
 }
@@ -4015,6 +4018,21 @@ function reabrirAvisoIdx(i){
   renderAvisos(); atualizarBadgeAvisos();
   try { docAvisosStatus.set({ concluidos: (avisosStatus&&avisosStatus.concluidos)||{} }); } catch(_){}
 }
+function reabrirAvisoChave(chave){
+  if(avisosStatus && avisosStatus.concluidos){ delete avisosStatus.concluidos[chave]; }
+  renderAvisos(); atualizarBadgeAvisos();
+  try { docAvisosStatus.set({ concluidos: (avisosStatus&&avisosStatus.concluidos)||{} }); } catch(_){}
+}
+function buscarConcluidos(v){
+  avisosBuscaFeitos = v||"";
+  const termo = avisosBuscaFeitos.trim().toLowerCase();
+  const cont = document.getElementById("conteudoAvisos");
+  if(!cont) return;
+  cont.querySelectorAll(".avi-feitos .avi-item").forEach(it => {
+    const t = (it.getAttribute("data-busca")||"").toLowerCase();
+    it.style.display = (!termo || t.indexOf(termo) >= 0) ? "" : "none";
+  });
+}
 function alternarConcluidos(){ avisosMostrarFeitos = !avisosMostrarFeitos; renderAvisos(); }
 function renderAvisos(){
   const cont = document.getElementById("conteudoAvisos");
@@ -4022,8 +4040,13 @@ function renderAvisos(){
   const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
   const evsTodos = avisosVisiveis();
   const pend = evsTodos.filter(e => !avisoConcluido(e));
-  const feitos = evsTodos.filter(e => avisoConcluido(e));
-  window.__aviPend = pend; window.__aviFeito = feitos;
+  window.__aviPend = pend;
+  // Concluídos: histórico COMPLETO (config/avisosStatus) — não some com o tempo
+  const mapaFeitos = (avisosStatus && avisosStatus.concluidos) ? avisosStatus.concluidos : {};
+  const feitos = Object.keys(mapaFeitos)
+    .map(k => Object.assign({ __chave:k }, mapaFeitos[k]))
+    .filter(f => f && f.titulo && avisoOrigemPermitida(f.origem||""))
+    .sort((a,b) => (b.em||"") < (a.em||"") ? -1 : (b.em||"") > (a.em||"") ? 1 : 0);
   let html = '';
   if (avisosDia && avisosDia.atualizadoEm){
     html += '<p class="cot-quem">🔄 Atualizado em ' + fmtDataHora(new Date(avisosDia.atualizadoEm)) + '</p>';
@@ -4054,20 +4077,25 @@ function renderAvisos(){
   }
   if (feitos.length){
     html += '<button class="avi-toggle-feitos" onclick="alternarConcluidos()">' +
-      (avisosMostrarFeitos ? '▾' : '▸') + ' Concluídos (' + feitos.length + ')</button>';
+      (avisosMostrarFeitos ? '\u25be' : '\u25b8') + ' Concluídos (' + feitos.length + ')</button>';
     if (avisosMostrarFeitos){
+      html += '<input class="avi-busca-feitos" type="search" placeholder="\ud83d\udd0e Buscar tarefa concluída..." value="' + escAttr(avisosBuscaFeitos) + '" oninput="buscarConcluidos(this.value)">';
       html += '<div class="avi-lista avi-feitos">';
-      feitos.forEach((e,i) => {
-        html += '<div class="avi-item feito"><span class="avi-data">✓ ' + fmtDataCurta(e.data).slice(0,5) + '</span>' +
-          '<span class="avi-tit">' + esc(e.titulo) + '</span>' +
-          (e.origem ? '<span class="avi-origem">' + esc(e.origem) + '</span>' : '') +
-          '<button class="avi-reabrir" onclick="reabrirAvisoIdx(' + i + ')" title="Reabrir">↩ Reabrir</button>' +
+      feitos.forEach(f => {
+        const quando = f.em ? fmtDataHora(new Date(f.em)) : '';
+        const quem = esc(f.porNome || f.por || '');
+        html += '<div class="avi-item feito" data-busca="' + escAttr((f.titulo||'') + ' ' + (f.origem||'')) + '"><span class="avi-data">\u2713 ' + (f.data ? fmtDataCurta(f.data).slice(0,5) : '') + '</span>' +
+          '<span class="avi-tit">' + esc(f.titulo) + '</span>' +
+          (f.origem ? '<span class="avi-origem">' + esc(f.origem) + '</span>' : '') +
+          '<button class="avi-reabrir" onclick="reabrirAvisoChave(\'' + escAspas(f.__chave) + '\')" title="Reabrir (desfazer)">\u21a9 Reabrir</button>' +
+          ((quem || quando) ? '<span class="avi-quem">\u2713 Concluído' + (quem ? (' por ' + quem) : '') + (quando ? (' \u2022 ' + esc(quando)) : '') + '</span>' : '') +
           '</div>';
       });
       html += '</div>';
     }
   }
   cont.innerHTML = html;
+  if (avisosMostrarFeitos && avisosBuscaFeitos) buscarConcluidos(avisosBuscaFeitos);
 }
 
 /* ================== Calendário (eventos das agendas) ================== */
