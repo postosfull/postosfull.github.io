@@ -3765,6 +3765,8 @@ function renderCotacoes(){
     combustiveis.forEach(c => {
       // Gasolina Podium só aparece no card da Vibra
       if (/podium/i.test(c) && !cotMostraPodium(nome)) return;
+      // Diesel S500 não aparece na Vibra (só abastece Teresina, que não vende S500)
+      if (/s500/i.test(c) && String(nome).toLowerCase() === "vibra") return;
       const p = precos[c] || 0;
       const temValor = p > 0;
       const editando = !!(cotEditando[nome] && cotEditando[nome][c]);
@@ -3822,6 +3824,7 @@ function resumoCotLinhas(){
     const itens = [];
     combustiveis.forEach(c => {
       if (/podium/i.test(c) && !cotMostraPodium(nome)) return;
+      if (/s500/i.test(c) && String(nome).toLowerCase() === "vibra") return;
       const v = precos[c] || 0;
       if (v > 0){
         const prev = (cotHistorico[nome] && cotHistorico[nome][c]) ? cotHistorico[nome][c] : null;
