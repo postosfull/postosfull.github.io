@@ -849,7 +849,7 @@
   .venc-rot.hoje,.venc-rot.perto{color:#FF6401}
   .venc-acoes{margin-top:2px}
   .venc-anexo{margin-top:5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  .venc-anexo a,.venc-anexo-add{color:#FF6401;font-size:.78rem;font-weight:600;cursor:pointer;text-decoration:none}
+  .venc-anexo a,.venc-anexo-add,.venc-anexo-link{color:#FF6401;font-size:.78rem;font-weight:600;cursor:pointer;text-decoration:none}
   .venc-anexo-x{border:1px solid var(--borda);background:var(--superficie);border-radius:6px;padding:1px 7px;font-size:.72rem;cursor:pointer;color:var(--cinza)}
   .venc-anexo-x.confirmar{border-color:#e11d48;color:#e11d48;font-weight:700}
   .venc-anexo-prog{font-size:.72rem;color:var(--cinza)}
@@ -4461,7 +4461,7 @@ function anexoDocHtml(d){
   const esc = z => String(z||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
   const pode = podeGerenciarEventos();
   if (d.anexoUrl){
-    let h = '<div class="venc-anexo"><a href="'+encodeURI(d.anexoUrl)+'" target="_blank" rel="noopener">\ud83d\udcce Ver arquivo</a>';
+    let h = '<div class="venc-anexo"><span class="venc-anexo-link" onclick="abrirAnexoDoc(\''+d.id+'\')">\ud83d\udcce Ver arquivo</span><span class="venc-anexo-link" onclick="baixarAnexoDoc(\''+d.id+'\')">\u2b07\ufe0f Baixar</span>';
     if (pode){ const conf = confirmarRemAnexo === d.id; h += '<button class="venc-anexo-x'+(conf?' confirmar':'')+'" onclick="removerAnexoDoc(\''+d.id+'\')" title="Remover anexo">'+(conf?'\u2713 remover?':'remover')+'</button>'; }
     return h + '</div>';
   }
@@ -4525,7 +4525,7 @@ function linhaArquivo(a){
   const pode = podeGerenciarEventos();
   const ic = iconeArquivo(a.contentType, a.nome);
   const conf = confirmarExclArq === a.id;
-  let botoes = '<a class="cal-ev-btn" href="'+encodeURI(a.url)+'" target="_blank" rel="noopener" title="Abrir">Abrir</a>';
+  let botoes = '<button class="cal-ev-btn" onclick="abrirArquivo(\''+a.id+'\')" title="Abrir">Abrir</button><button class="cal-ev-btn" onclick="baixarArquivo(\''+a.id+'\')" title="Baixar">Baixar</button>';
   if (pode) botoes += '<button class="cal-ev-btn'+(conf?' confirmar':'')+'" title="Excluir" onclick="excluirArquivo(\''+a.id+'\')">'+(conf?'\u2713?':'\ud83d\uddd1')+'</button>';
   return '<div class="arq-item"><div class="venc-ic">'+ic+'</div>' +
     '<div class="venc-main"><div class="venc-tit">'+esc(a.nome||'arquivo')+'</div>' +
@@ -4568,6 +4568,21 @@ function renderArquivos(){
   });
   cont.innerHTML = html;
 }
+function arqFrescaURL(path, urlSalva){
+  const st = storageRef();
+  if (st && path){ try { return st.ref().child(path).getDownloadURL().catch(()=>urlSalva); } catch(e){ return Promise.resolve(urlSalva); } }
+  return Promise.resolve(urlSalva);
+}
+function _baixarURL(url, nome){
+  if (!url) return;
+  fetch(url).then(r=>{ if(!r.ok) throw new Error("http "+r.status); return r.blob(); })
+    .then(b=>{ const o=URL.createObjectURL(b); const a=document.createElement("a"); a.href=o; a.download=nome||"arquivo"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>{ try{URL.revokeObjectURL(o);}catch(e){} }, 60000); })
+    .catch(()=>{ try{ window.open(url, "_blank", "noopener"); }catch(e){} });
+}
+function abrirArquivo(id){ const a=(arquivos||[]).find(x=>x.id===id); if(!a) return; arqFrescaURL(a.path, a.url).then(u=>{ try{ window.open(u, "_blank", "noopener"); }catch(e){} }); }
+function baixarArquivo(id){ const a=(arquivos||[]).find(x=>x.id===id); if(!a) return; arqFrescaURL(a.path, a.url).then(u=>_baixarURL(u, a.nome)); }
+function abrirAnexoDoc(id){ const d=(documentos||[]).find(x=>x.id===id); if(!d||!d.anexoUrl) return; arqFrescaURL(d.anexoPath, d.anexoUrl).then(u=>{ try{ window.open(u, "_blank", "noopener"); }catch(e){} }); }
+function baixarAnexoDoc(id){ const d=(documentos||[]).find(x=>x.id===id); if(!d||!d.anexoUrl) return; arqFrescaURL(d.anexoPath, d.anexoUrl).then(u=>_baixarURL(u, d.anexoNome||"documento")); }
 function alternarArquivos(){
   const aberto = abrirPainelExclusivo("painelArquivos");
   const b = document.getElementById("btnArquivos");
