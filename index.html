@@ -819,6 +819,16 @@
   .rec-feito{font-size:.76rem;color:#18a558;margin-top:6px;font-weight:600}
   .rec-acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
   .rec-acoes .btn-verde,.rec-acoes .btn-claro{font-size:.8rem;padding:7px 12px}
+  .rec-tag.exige{background:rgba(255,100,1,.14);color:#FF6401}
+  .rec-box{border:1px dashed var(--borda);border-radius:10px;padding:10px 12px;margin-top:10px;background:var(--superficie)}
+  .rec-box-tit{font-size:.8rem;font-weight:700;color:var(--txt);margin-bottom:6px}
+  .rec-obs{width:100%;box-sizing:border-box;border:1px solid var(--borda);border-radius:8px;padding:8px;font-size:.9rem;background:var(--superficie);color:var(--txt);font-family:inherit}
+  .rec-comprov{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px}
+  .rec-comprov-item{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;color:var(--txt);border:1px solid var(--borda);border-radius:20px;padding:3px 5px 3px 10px}
+  .rec-comprov-link{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:.78rem;color:#FF6401;font-weight:600;border:1px solid var(--borda);border-radius:20px;padding:3px 10px}
+  .rec-exige{font-size:.76rem;color:#e11d48;margin-top:8px;font-weight:600}
+  .rec-obs-feita{font-size:.86rem;color:var(--txt);margin-top:6px;white-space:pre-wrap;border-left:3px solid var(--borda);padding-left:8px}
+  .recado-exigir{display:inline-flex;align-items:center;gap:8px;font-size:.88rem;cursor:pointer}
   .recado-form{display:flex;flex-direction:column;gap:10px;max-width:560px}
   .recado-form input,.recado-form textarea{border:1px solid var(--borda);border-radius:8px;padding:10px;font-size:.95rem;background:var(--superficie);color:var(--txt);font-family:inherit}
   .recado-tipos,.recado-dest{display:flex;gap:16px;flex-wrap:wrap;font-size:.9rem}
@@ -1478,6 +1488,7 @@
         </div>
         <input id="recadoTitulo" maxlength="80" placeholder="Título (ex.: Trocar o filtro da bomba 3)">
         <textarea id="recadoTexto" maxlength="500" rows="3" placeholder="Descrição (opcional)"></textarea>
+        <label class="recado-exigir" id="recadoExigirLinha"><input type="checkbox" id="recadoExigir"> 📎 Exigir comprovante (foto ou documento) para concluir</label>
         <div class="recado-dest">
           <label><input type="radio" name="recadoDest" value="todos" checked onchange="onRecadoDest()"> Enviar para todos</label>
           <label><input type="radio" name="recadoDest" value="alguns" onchange="onRecadoDest()"> Escolher pessoas</label>
@@ -2151,7 +2162,13 @@ function todosUsuariosConhecidos(){
 function nomeUsuarioDe(email){ email=(email||"").toLowerCase(); return (perfis&&perfis[email]) ? perfis[email] : email; }
 let recadoTipoSel = "tarefa", recadoDestSel = "todos", recadoMostrarFeitos = false;
 let confirmarExclRecado = null, timerExclRecado = null;
-function onRecadoTipo(){ const el=document.querySelector('input[name="recadoTipo"]:checked'); recadoTipoSel = el?el.value:"tarefa"; }
+const MAX_COMPROV = 3;
+let recadoConcluindo = null, recadoObsTmp = {}, recadoAnexTmp = {}, recadoProgTmp = {};
+function onRecadoTipo(){
+  const el=document.querySelector('input[name="recadoTipo"]:checked'); recadoTipoSel = el?el.value:"tarefa";
+  const lin=document.getElementById("recadoExigirLinha");
+  if (lin) lin.style.display = (recadoTipoSel==="aviso") ? "none" : "";
+}
 function onRecadoDest(){
   const el=document.querySelector('input[name="recadoDest"]:checked'); recadoDestSel = el?el.value:"todos";
   const box=document.getElementById("recadoPessoas");
@@ -2176,6 +2193,8 @@ function enviarRecado(){
     para=[...document.querySelectorAll('#recadoPessoas input:checked')].map(c=>c.value.toLowerCase());
     if(!para.length){ avisoAdmin("msgRecado","Escolha pelo menos uma pessoa (ou envie para todos).","erro"); return; }
   }
+  const chkExig=document.getElementById("recadoExigir");
+  const exigeComprov = (recadoTipoSel!=="aviso") && !!(chkExig && chkExig.checked);
   const id="rec_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,6);
   colRecados.doc(id).set({
     tipo: recadoTipoSel==="aviso"?"aviso":"tarefa",
@@ -2183,27 +2202,110 @@ function enviarRecado(){
     de: usuarioAtual||"", deNome: nomeUsuario||usuarioAtual||"",
     paraTodos, para,
     criadoEm: Date.now(),
-    concluida:false, concluidaPor:"", concluidaNome:"", concluidaEm:0
+    exigeComprovante: exigeComprov,
+    concluida:false, concluidaPor:"", concluidaNome:"", concluidaEm:0, obs:"", comprovantes:[]
   }).then(()=>{
     logAtividade({ acao:"enviou", area:"Caixa de entrada", resumo:"Enviou " + (recadoTipoSel==="aviso"?"aviso":"tarefa") + ": " + escAttr(titulo) + (paraTodos?" (para todos)":" (para " + para.length + " pessoa(s))") });
     document.getElementById("recadoTitulo").value="";
     document.getElementById("recadoTexto").value="";
+    if (chkExig) chkExig.checked=false;
     const rt=document.querySelector('input[name="recadoDest"][value="todos"]'); if(rt){ rt.checked=true; onRecadoDest(); }
     avisoAdmin("msgRecado","Enviado!","ok");
   }).catch(e=>avisoAdmin("msgRecado", msgErro(e), "erro"));
 }
 function concluirRecado(id){
   const r=(recados||[]).find(x=>x.id===id); if(!r) return;
-  colRecados.doc(id).set({ concluida:true, concluidaPor: usuarioAtual||"", concluidaNome: nomeUsuario||usuarioAtual||"", concluidaEm: Date.now() }, {merge:true})
-    .then(()=> logAtividade({ acao:"concluiu", area:"Caixa de entrada", resumo:"Concluiu: " + escAttr(r.titulo||"") })).catch(()=>{});
+  if (r.tipo==="aviso"){ gravarConclusaoRecado(r, "", []); return; }
+  recadoConcluindo = id;
+  if (typeof recadoObsTmp[id] !== "string") recadoObsTmp[id] = "";
+  if (!Array.isArray(recadoAnexTmp[id])) recadoAnexTmp[id] = [];
+  recadoProgTmp[id] = "";
+  renderCaixa();
+  setTimeout(()=>{ const c=document.getElementById("recObs_"+id); if(c){ try{ c.focus(); }catch(e){} } }, 30);
+}
+function recadoObsInput(id, valor){ recadoObsTmp[id] = valor; }
+function cancelarConcluirRecado(id){
+  const arqs = recadoAnexTmp[id] || [];
+  arqs.forEach(a => { if (a && a.path) apagarArquivoStorage(a.path); });
+  delete recadoAnexTmp[id]; delete recadoObsTmp[id]; delete recadoProgTmp[id];
+  recadoConcluindo = null;
+  renderCaixa();
+}
+function anexarComprovante(id, input){
+  const file = input && input.files && input.files[0];
+  try { input.value = ""; } catch(e){}
+  if (!file) return;
+  if (!Array.isArray(recadoAnexTmp[id])) recadoAnexTmp[id] = [];
+  if (recadoAnexTmp[id].length >= MAX_COMPROV){ recadoProgTmp[id] = "no máximo " + MAX_COMPROV + " arquivos"; renderCaixa(); return; }
+  recadoProgTmp[id] = "enviando… 0%";
+  renderCaixa();
+  subirArquivo(file, "recados/" + id, p => {
+    recadoProgTmp[id] = "enviando… " + p + "%";
+    const s = document.getElementById("recProg_" + id); if (s) s.textContent = recadoProgTmp[id];
+  }).then(info => {
+    if (!Array.isArray(recadoAnexTmp[id])) recadoAnexTmp[id] = [];
+    recadoAnexTmp[id].push(info);
+    recadoProgTmp[id] = "";
+    renderCaixa();
+  }).catch(err => {
+    recadoProgTmp[id] = "erro: " + (err && err.message ? err.message : "não foi possível enviar");
+    renderCaixa();
+  });
+}
+function removerComprovTmp(id, i){
+  const arqs = recadoAnexTmp[id] || [];
+  const a = arqs[i]; if (!a) return;
+  arqs.splice(i,1);
+  if (a.path) apagarArquivoStorage(a.path);
+  recadoProgTmp[id] = "";
+  renderCaixa();
+}
+function confirmarConcluirRecado(id){
+  const r=(recados||[]).find(x=>x.id===id); if(!r) return;
+  const arqs = recadoAnexTmp[id] || [];
+  if (r.exigeComprovante && !arqs.length){
+    recadoProgTmp[id] = "";
+    const av=document.getElementById("recAviso_"+id);
+    if (av){ av.style.display=""; } else { renderCaixa(); }
+    return;
+  }
+  gravarConclusaoRecado(r, (recadoObsTmp[id]||"").trim(), arqs);
+}
+function gravarConclusaoRecado(r, obs, arqs){
+  const id = r.id;
+  colRecados.doc(id).set({
+    concluida:true, concluidaPor: usuarioAtual||"", concluidaNome: nomeUsuario||usuarioAtual||"", concluidaEm: Date.now(),
+    obs: obs||"", comprovantes: Array.isArray(arqs)?arqs:[]
+  }, {merge:true}).then(()=>{
+    if (recadoConcluindo===id) recadoConcluindo=null;
+    delete recadoObsTmp[id]; delete recadoAnexTmp[id]; delete recadoProgTmp[id];
+    logAtividade({ acao:"concluiu", area:"Caixa de entrada", resumo:"Concluiu: " + escAttr(r.titulo||"") + ((arqs&&arqs.length)?(" (" + arqs.length + " comprovante(s))"):"") });
+    renderCaixa();
+  }).catch(()=>{
+    recadoProgTmp[id] = "erro ao salvar. Tente de novo.";
+    renderCaixa();
+  });
+}
+function abrirComprovante(id, i){
+  const r=(recados||[]).find(x=>x.id===id); if(!r) return;
+  const a=(Array.isArray(r.comprovantes)?r.comprovantes:[])[i]; if(!a) return;
+  arqFrescaURL(a.path, a.url).then(u=>{ try{ window.open(u, "_blank", "noopener"); }catch(e){} });
 }
 function reabrirRecado(id){
-  colRecados.doc(id).set({ concluida:false, concluidaPor:"", concluidaNome:"", concluidaEm:0 }, {merge:true}).catch(()=>{});
+  const r=(recados||[]).find(x=>x.id===id);
+  const arqs = (r && Array.isArray(r.comprovantes)) ? r.comprovantes : [];
+  arqs.forEach(a => { if (a && a.path) apagarArquivoStorage(a.path); });
+  colRecados.doc(id).set({ concluida:false, concluidaPor:"", concluidaNome:"", concluidaEm:0, obs:"", comprovantes:[] }, {merge:true}).catch(()=>{});
 }
 function excluirRecado(id){
   const r=(recados||[]).find(x=>x.id===id); if(!r) return;
   if(!(ehAdminAtual() || (r.de||"").toLowerCase()===(usuarioAtual||"").toLowerCase())) return;
-  if(confirmarExclRecado===id){ clearTimeout(timerExclRecado); confirmarExclRecado=null; colRecados.doc(id).delete().then(()=> logAtividade({ acao:"removeu", area:"Caixa de entrada", resumo:"Excluiu o recado: " + escAttr(r.titulo||"") })).catch(()=>{}); return; }
+  if(confirmarExclRecado===id){ clearTimeout(timerExclRecado); confirmarExclRecado=null;
+    (Array.isArray(r.comprovantes)?r.comprovantes:[]).forEach(a => { if (a && a.path) apagarArquivoStorage(a.path); });
+    (recadoAnexTmp[id]||[]).forEach(a => { if (a && a.path) apagarArquivoStorage(a.path); });
+    delete recadoAnexTmp[id]; delete recadoObsTmp[id]; delete recadoProgTmp[id];
+    if (recadoConcluindo===id) recadoConcluindo=null;
+    colRecados.doc(id).delete().then(()=> logAtividade({ acao:"removeu", area:"Caixa de entrada", resumo:"Excluiu o recado: " + escAttr(r.titulo||"") })).catch(()=>{}); return; }
   confirmarExclRecado=id; renderCaixa();
   timerExclRecado=setTimeout(()=>{ confirmarExclRecado=null; renderCaixa(); },4000);
 }
@@ -2221,22 +2323,60 @@ function recadoCardHtml(r, feito){
   const dest = r.paraTodos ? "para todos" : ("para " + (Array.isArray(r.para)?r.para.map(nomeUsuarioDe).join(", "):""));
   const podeExcluir = ehAdminAtual() || (r.de||"").toLowerCase()===(usuarioAtual||"").toLowerCase();
   const confExcl = confirmarExclRecado===r.id;
+  const caixaAberta = (!feito && recadoConcluindo===r.id);
   let acoes = "";
   if (feito){
     acoes += '<button class="btn-claro" onclick="reabrirRecado(\'' + escAspas(r.id) + '\')">↩︎ Reabrir</button>';
-  } else {
+  } else if (!caixaAberta){
     acoes += '<button class="btn-verde" onclick="concluirRecado(\'' + escAspas(r.id) + '\')">✓ Marcar como concluída</button>';
   }
-  if (podeExcluir) acoes += '<button class="btn-claro' + (confExcl?' confirmar':'') + '" onclick="excluirRecado(\'' + escAspas(r.id) + '\')">' + (confExcl?'✓ confirmar?':'🗑') + '</button>';
+  if (podeExcluir && !caixaAberta) acoes += '<button class="btn-claro' + (confExcl?' confirmar':'') + '" onclick="excluirRecado(\'' + escAspas(r.id) + '\')">' + (confExcl?'✓ confirmar?':'🗑') + '</button>';
+  const tagExige = (r.exigeComprovante && r.tipo!=="aviso") ? '<span class="rec-tag exige">📎 Comprovante</span>' : '';
   const rodapeFeito = feito ? ('<div class="rec-feito">✓ Concluída por ' + escAttr(r.concluidaNome||r.concluidaPor||"") + ' ' + escAttr(fmtPresencaHa(r.concluidaEm)) + '</div>') : '';
   return '<div class="rec-card' + (feito?' feito':'') + '">' +
-    '<div class="rec-topo">' + tipoTag + '<span class="rec-quando">' + escAttr(quando) + '</span></div>' +
+    '<div class="rec-topo">' + tipoTag + tagExige + '<span class="rec-quando">' + escAttr(quando) + '</span></div>' +
     '<div class="rec-titulo">' + escAttr(r.titulo||"") + '</div>' +
     (r.texto ? '<div class="rec-texto">' + escAttr(r.texto) + '</div>' : '') +
     '<div class="rec-meta">De ' + escAttr(r.deNome||r.de||"") + ' · ' + escAttr(dest) + '</div>' +
     rodapeFeito +
-    '<div class="rec-acoes">' + acoes + '</div>' +
+    (feito ? recadoProvaHtml(r) : '') +
+    (caixaAberta ? recadoCaixaConcluirHtml(r) : '') +
+    (acoes ? ('<div class="rec-acoes">' + acoes + '</div>') : '') +
     '</div>';
+}
+function recadoProvaHtml(r){
+  let h = '';
+  if (r.obs) h += '<div class="rec-obs-feita">' + escAttr(r.obs) + '</div>';
+  const arqs = Array.isArray(r.comprovantes) ? r.comprovantes : [];
+  if (arqs.length){
+    h += '<div class="rec-comprov">' + arqs.map(function(a,i){
+      return '<span class="rec-comprov-link" onclick="abrirComprovante(\'' + escAspas(r.id) + '\',' + i + ')">' + iconeArquivo(a.contentType, a.nome) + ' ' + escAttr(a.nome||"comprovante") + '</span>';
+    }).join('') + '</div>';
+  }
+  return h;
+}
+function recadoCaixaConcluirHtml(r){
+  const id = r.id, ida = escAspas(id);
+  const obs = recadoObsTmp[id] || "";
+  const arqs = Array.isArray(recadoAnexTmp[id]) ? recadoAnexTmp[id] : [];
+  const prog = recadoProgTmp[id] || "";
+  let h = '<div class="rec-box">';
+  h += '<div class="rec-box-tit">Conte como foi (opcional)</div>';
+  h += '<textarea class="rec-obs" id="recObs_' + escAttr(id) + '" rows="3" maxlength="500" placeholder="Ex.: troquei o filtro e limpei o bico da bomba 3." oninput="recadoObsInput(\'' + ida + '\', this.value)">' + escAttr(obs) + '</textarea>';
+  h += '<div class="rec-comprov">';
+  arqs.forEach(function(a,i){
+    h += '<span class="rec-comprov-item">' + iconeArquivo(a.contentType, a.nome) + ' ' + escAttr(a.nome||"arquivo") + ' <button class="venc-anexo-x" onclick="removerComprovTmp(\'' + ida + '\',' + i + ')">remover</button></span>';
+  });
+  if (arqs.length < MAX_COMPROV){
+    h += '<label class="venc-anexo-add">📎 Anexar foto ou documento<input type="file" accept="image/*,application/pdf" style="display:none" onchange="anexarComprovante(\'' + ida + '\', this)"></label>';
+  }
+  h += '<span class="venc-anexo-prog" id="recProg_' + escAttr(id) + '">' + escAttr(prog) + '</span>';
+  h += '</div>';
+  h += '<div class="rec-exige" id="recAviso_' + escAttr(id) + '" style="display:' + ((r.exigeComprovante && !arqs.length) ? '' : 'none') + '">📎 Esta tarefa exige comprovante: anexe pelo menos 1 foto ou documento.</div>';
+  h += '<div class="rec-acoes"><button class="btn-verde" onclick="confirmarConcluirRecado(\'' + ida + '\')">✓ Concluir</button>' +
+       '<button class="btn-claro" onclick="cancelarConcluirRecado(\'' + ida + '\')">Cancelar</button></div>';
+  h += '</div>';
+  return h;
 }
 function renderCaixa(){
   const grpEnviar=document.getElementById("grupoEnviarRecado");
