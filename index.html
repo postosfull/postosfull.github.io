@@ -823,7 +823,8 @@
   .cal-ev-btn.confirmar{border-color:#e11d48;color:#e11d48;font-weight:700}
   .cal-ev-obs{display:block;font-size:.72rem;color:var(--cinza);font-weight:400;margin-top:1px}
   .cal-ev-av{font-size:.68rem;color:var(--cinza);font-weight:600;white-space:nowrap}
-  .venc-resumo{display:flex;gap:10px;margin:10px 0 14px;flex-wrap:wrap}
+  .venc-resumo{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:10px 0 14px}
+  @media(max-width:640px){ .venc-resumo{grid-template-columns:repeat(2,1fr)} }
   .venc-tile{flex:1;min-width:92px;border:1px solid var(--borda);border-radius:12px;padding:10px 12px;text-align:center;background:var(--superficie-2)}
   .venc-tile b{display:block;font-size:1.5rem;line-height:1.1}
   .venc-tile span{font-size:.72rem;color:var(--cinza)}
@@ -864,6 +865,13 @@
   .arq-grupo{margin:10px 0}
   .arq-grupo-tit{font-weight:700;font-size:.85rem;margin:12px 0 6px;display:flex;align-items:center;gap:6px}
   .arq-item{display:flex;gap:10px;align-items:center;border:1px solid var(--borda);border-radius:12px;padding:9px 12px;margin:6px 0;background:var(--superficie)}
+  .doc-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0 4px}
+  .doc-busca{flex:1;min-width:190px;padding:9px 11px;border:1px solid var(--borda);border-radius:10px;background:var(--superficie-2);color:var(--txt);font-size:.88rem;box-sizing:border-box}
+  .doc-chip{border:1px solid var(--borda);background:var(--superficie);border-radius:999px;padding:6px 12px;font-size:.78rem;font-weight:600;color:var(--cinza);cursor:pointer}
+  .doc-chip.ativo{border-color:#FF6401;color:#FF6401;background:rgba(255,100,1,.08)}
+  .doc-vazio{font-size:.82rem;color:var(--cinza);margin:10px 0}
+  .venc-rot.semdata{color:var(--cinza)}
+  .venc-tile.cinza b{color:var(--cinza)}
   .perfil-sub:first-of-type{margin-top:6px}
   #offlineInfo{margin-top:8px}
   .off-info{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border:1px solid var(--borda);border-radius:10px;padding:10px 12px;background:var(--superficie-2);font-size:.9rem}
@@ -1101,8 +1109,7 @@
     <button class="btn-claro" id="btnPuxadas" onclick="alternarPuxadas()"><span class="mi">🧾</span><span class="mt">Puxadas</span></button>
     <button class="btn-claro" id="btnCotacoes" onclick="alternarCotacoes()"><span class="mi">💲</span><span class="mt">Cotações do Dia</span></button>
     <button class="btn-claro" id="btnCalendario" onclick="alternarCalendario()"><span class="mi">📅</span><span class="mt">Calendário</span></button>
-    <button class="btn-claro" id="btnVencimentos" onclick="alternarVencimentos()"><span class="mi">🗂️</span><span class="mt">Vencimentos</span></button>
-    <button class="btn-claro" id="btnArquivos" onclick="alternarArquivos()"><span class="mi">📁</span><span class="mt">Arquivos</span></button>
+    <button class="btn-claro" id="btnVencimentos" onclick="alternarVencimentos()"><span class="mi">📁</span><span class="mt">Documentos</span></button>
     <button class="btn-claro" id="btnCaixa" onclick="alternarCaixa()"><span class="mi">📥</span><span class="mt">Caixa de entrada</span><span class="menu-badge" id="badgeCaixa" style="display:none">0</span></button>
     <button class="btn-claro" id="btnConta" onclick="alternarConta()"><span class="mi">👤</span><span class="mt">Minha conta</span></button>
     <button class="btn-claro" id="btnConfig" onclick="alternarConfig()"><span class="mi">⚙</span><span class="mt">Configurações</span></button>
@@ -1269,17 +1276,9 @@
 
   <div class="config" id="painelVencimentos">
     <div class="grupo">
-      <h2>Central de Vencimentos</h2>
-      <p class="nota-dash">Documentos e licenças da rede com data de vencimento (CNH, licenciamento, seguro, alvarás, licença ambiental, AVCB, certificado digital, ANP…). O app avisa com antecedência — no sino e no calendário — e mostra o que está vencido, perto de vencer ou em dia.</p>
+      <h2>📁 Documentos</h2>
+      <p class="nota-dash">Tudo num lugar só: licenças, contratos, alvarás, CNH, certificados e qualquer outro arquivo da rede. O que tem data de vencimento aparece no sino e no calendário; o que não tem fica guardado aqui do mesmo jeito. Use a busca para achar por nome, tipo, unidade ou número.</p>
       <div id="conteudoVencimentos"></div>
-    </div>
-  </div>
-
-  <div class="config" id="painelArquivos">
-    <div class="grupo">
-      <h2>Arquivos (Licenças e Contratos)</h2>
-      <p class="nota-dash">Guarde aqui os PDFs de licenças, contratos e outros documentos das empresas, separados por unidade. Escolha a unidade e o tipo antes de enviar o arquivo.</p>
-      <div id="conteudoArquivos"></div>
     </div>
   </div>
 
@@ -1612,11 +1611,13 @@ let documentos = [];                   // documentos/licenças com vencimento (c
 let escutaDocumentos = null;
 let docFormAberto = false, editandoDoc = null;
 let confirmarExclDoc = null, timerExclDoc = null;
-let docForm = { id:null, titulo:"", categoria:"Outro", origem:"Outros", vencimento:"", avisarDias:30, numero:"", obs:"" };
+let docForm = { fonte:"doc", id:null, titulo:"", categoria:"Outro", origem:"Outros", vencimento:"", avisarDias:30, numero:"", obs:"" };
+let docVista = "tudo";                 // "tudo" | "venc" | "uni"  (menu unificado Documentos)
+let docBusca = "";                     // filtro de busca do menu Documentos
 let arquivos = [];                     // arquivos (licenças/contratos) — coleção "arquivos" + Firebase Storage
 let escutaArquivos = null;
 let confirmarExclArq = null, timerExclArq = null;
-let arqUnidadeSel = "Outros", arqTipoSel = "Licença";
+let arqUnidadeSel = "Outros", arqTipoSel = "Outro";
 let fbStorage = null;
 let confirmarRemAnexo = null, timerRemAnexo = null;
 const CATEGORIAS_DOC = ["CNH","Licenciamento/IPVA","Seguro","Alvará de funcionamento","Licença ambiental","AVCB (Bombeiros)","Certificado digital","Licença ANP","Alvará sanitário","Contrato","Outro"];
@@ -2985,11 +2986,16 @@ function iniciarSync(){
     if (pa && pa.classList.contains("aberto")) renderAvisos();
   }, ()=>{});
 
-  // Arquivos (licenças/contratos) guardados no Storage
+  // Arquivos (licenças/contratos) guardados no Storage — entram no menu unificado "Documentos"
   escutaArquivos = colArquivos.onSnapshot(snap => {
     const l = []; snap.forEach(d => l.push(Object.assign({ id: d.id }, d.data()))); arquivos = l;
-    const pa = document.getElementById("painelArquivos");
-    if (pa && pa.classList.contains("aberto")) renderArquivos();
+    atualizarBadgeAvisos();
+    const pv = document.getElementById("painelVencimentos");
+    if (pv && pv.classList.contains("aberto")) renderVencimentos();
+    const pc = document.getElementById("painelCalendario");
+    if (pc && pc.classList.contains("aberto")) renderCalendario();
+    const pa = document.getElementById("painelAvisos");
+    if (pa && pa.classList.contains("aberto")) renderAvisos();
   }, ()=>{});
 
   // Permissões de menus por usuário
@@ -3305,7 +3311,7 @@ function excluir(i){
 
 /* ================== Salvar / Carregar / Exportar ================== */
 // Painéis que ocupam a página; só um fica aberto por vez
-const PAINEIS = ["painelRegistros","painelDash","painelHistorico","painelSimular","painelDescontos","painelComparativo","painelPuxadas","painelCotacoes","painelAvisos","painelCalendario","painelVencimentos","painelArquivos","painelCaixa","painelConta","painelConfig","painelAdmin"];
+const PAINEIS = ["painelRegistros","painelDash","painelHistorico","painelSimular","painelDescontos","painelComparativo","painelPuxadas","painelCotacoes","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin"];
 function fecharTodosPaineis(exceto){
   PAINEIS.forEach(id => {
     const el = document.getElementById(id);
@@ -3342,8 +3348,6 @@ function fecharTodosPaineis(exceto){
   if (bcal) bcal.classList.toggle("ativo", document.getElementById("painelCalendario").classList.contains("aberto"));
   const bven = document.getElementById("btnVencimentos");
   if (bven) bven.classList.toggle("ativo", document.getElementById("painelVencimentos").classList.contains("aberto"));
-  const barq = document.getElementById("btnArquivos");
-  if (barq) barq.classList.toggle("ativo", document.getElementById("painelArquivos").classList.contains("aberto"));
   const bcx = document.getElementById("btnCaixa");
   if (bcx) bcx.classList.toggle("ativo", document.getElementById("painelCaixa").classList.contains("aberto"));
 }
@@ -3383,8 +3387,7 @@ const MENUS_APP = [
   {key:"cotacoes",    btn:"btnCotacoes",    pan:"painelCotacoes",    emp:"transp", nome:"Cotações do Dia"},
   {key:"puxadas",     btn:"btnPuxadas",     pan:"painelPuxadas",     emp:"transp", nome:"Puxadas"},
   {key:"calendario",  btn:"btnCalendario",  pan:"painelCalendario",  emp:"ambos",  nome:"Calendário"},
-  {key:"vencimentos", btn:"btnVencimentos", pan:"painelVencimentos", emp:"ambos",  nome:"Vencimentos"},
-  {key:"arquivos",    btn:"btnArquivos",    pan:"painelArquivos",    emp:"ambos",  nome:"Arquivos"},
+  {key:"vencimentos", btn:"btnVencimentos", pan:"painelVencimentos", emp:"ambos",  nome:"Documentos"},
   {key:"caixa",       btn:"btnCaixa",       pan:"painelCaixa",       emp:"ambos",  nome:"Caixa de entrada"},
   {key:"conta",       btn:"btnConta",       pan:"painelConta",       emp:"ambos",  nome:"Minha conta"},
   {key:"config",      btn:"btnConfig",      pan:"painelConfig",      emp:"ambos",  nome:"Configurações"}
@@ -3403,6 +3406,12 @@ function normPerm(v){
 }
 function menuPermitidoDe(email, key){
   if (key === "conta" || key === "caixa") return true;
+  // v133: "Vencimentos" e "Arquivos" viraram um menu só (Documentos).
+  // Quem tinha permissão em qualquer um dos dois continua vendo o menu unificado.
+  if (key === "vencimentos") return _menuPermBase(email, "vencimentos") || _menuPermBase(email, "arquivos");
+  return _menuPermBase(email, key);
+}
+function _menuPermBase(email, key){
   email = (email || "").toLowerCase();
   if ((typeof ADMINS !== "undefined") && ADMINS.includes(email)) return true;
   const rule = normPerm(permissoesTodos[email]);
@@ -4291,16 +4300,37 @@ function renderFormEvento(){
   h += '<div id="msgEventoCal" style="margin-top:8px;font-size:.82rem"></div></div>';
   return h;
 }
-/* ================== Central de Vencimentos (documentos e licenças) ================== */
+/* ================== Documentos (menu único: vencimentos + arquivos) ================== */
+
+// v133: lista unificada. Junta a colecao "documentos" (com vencimento) e a colecao
+// "arquivos" (arquivos guardados). Nada do que ja estava cadastrado se perde.
+function itensDocsTodos(){
+  const a = (documentos||[]).filter(d => d && d.titulo).map(d => ({
+    fonte:"doc", id:d.id, nome:d.titulo, tipo:d.categoria||"Outro", origem:d.origem||"Outros",
+    vencimento:d.vencimento||"", avisarDias:(typeof d.avisarDias==="number"?d.avisarDias:30),
+    numero:d.numero||"", obs:d.obs||"",
+    temArquivo: !!d.anexoUrl, nomeArq:d.anexoNome||"", tamanho:d.anexoTamanho||0, contentType:"",
+    criadoEm:d.criadoEm||0
+  }));
+  const b = (arquivos||[]).filter(x => x && x.url).map(x => ({
+    fonte:"arq", id:x.id, nome:x.nome||"arquivo", tipo:x.tipo||"Outro", origem:x.origem||"Outros",
+    vencimento:x.vencimento||"", avisarDias:(typeof x.avisarDias==="number"?x.avisarDias:30),
+    numero:x.numero||"", obs:x.obs||"",
+    temArquivo:true, nomeArq:x.nome||"", tamanho:x.tamanho||0, contentType:x.contentType||"",
+    criadoEm:x.criadoEm||0
+  }));
+  return a.concat(b).filter(i => avisoOrigemPermitida(i.origem));
+}
 function ocorrenciasDocumentos(){
-  return (documentos||[]).filter(d => d && d.vencimento && d.titulo).map(d => ({
-    data: d.vencimento,
-    titulo: "\ud83d\udcc4 " + d.titulo,
-    origem: d.origem || "",
-    obs: (d.categoria || ""),
-    _docId: d.id,
+  return itensDocsTodos().filter(i => i && i.vencimento && i.nome).map(i => ({
+    data: i.vencimento,
+    titulo: "📄 " + i.nome,
+    origem: i.origem || "",
+    obs: (i.tipo || ""),
+    _docId: i.id,
     _tipo: "doc",
-    avisarDias: (typeof d.avisarDias === "number" ? d.avisarDias : 30)
+    _fonte: i.fonte,
+    avisarDias: i.avisarDias
   }));
 }
 function avisoDoc(msg, tipo){
@@ -4317,41 +4347,87 @@ function _lerFormDoc(){
     docForm.numero = g("docNumero"); docForm.obs = g("docObs");
   }
 }
+
 function novoDoc(){
   editandoDoc = null; docFormAberto = true;
-  docForm = { id:null, titulo:"", categoria:"Outro", origem:"Outros", vencimento:"", avisarDias:30, numero:"", obs:"" };
+  docForm = { fonte:"doc", id:null, titulo:"", categoria:"Outro", origem:"Outros", vencimento:"", avisarDias:30, numero:"", obs:"" };
   renderVencimentos();
 }
+
 function editarDoc(id){
   const d = (documentos||[]).find(x => x.id === id); if (!d) return;
   editandoDoc = id; docFormAberto = true;
-  docForm = { id:id, titulo:d.titulo||"", categoria:d.categoria||"Outro", origem:d.origem||"Outros", vencimento:d.vencimento||"", avisarDias:(typeof d.avisarDias==="number"?d.avisarDias:30), numero:d.numero||"", obs:d.obs||"" };
+  docForm = { fonte:"doc", id:id, titulo:d.titulo||"", categoria:d.categoria||"Outro", origem:d.origem||"Outros", vencimento:d.vencimento||"", avisarDias:(typeof d.avisarDias==="number"?d.avisarDias:30), numero:d.numero||"", obs:d.obs||"" };
   renderVencimentos();
 }
 function cancelarDoc(){ docFormAberto = false; editandoDoc = null; renderVencimentos(); }
+// v133 - menu unificado Documentos: editar/excluir funcionam para as 2 origens (documentos + arquivos)
+function editarItemDoc(fonte, id){
+  if (fonte === "arq"){
+    const a = (arquivos||[]).find(x => x.id === id); if (!a) return;
+    editandoDoc = id; docFormAberto = true;
+    docForm = { fonte:"arq", id:id, titulo:a.nome||"", categoria:a.tipo||"Outro", origem:a.origem||"Outros",
+      vencimento:a.vencimento||"", avisarDias:(typeof a.avisarDias==="number"?a.avisarDias:30),
+      numero:a.numero||"", obs:a.obs||"" };
+    renderVencimentos(); return;
+  }
+  editarDoc(id);
+}
+function excluirItemDoc(fonte, id){
+  if (fonte === "arq") return excluirArquivo(id);
+  return excluirDoc(id);
+}
+function mudarVistaDocs(v){ docVista = v || "tudo"; renderVencimentos(); }
+function buscarDocs(v){
+  docBusca = v || "";
+  const termo = docBusca.trim().toLowerCase();
+  const cont = document.getElementById("conteudoVencimentos"); if (!cont) return;
+  const itens = Array.prototype.slice.call(cont.querySelectorAll("[data-busca]"));
+  itens.forEach(it => { const t = (it.getAttribute("data-busca")||"").toLowerCase();
+    it.style.display = (!termo || t.indexOf(termo) >= 0) ? "" : "none"; });
+  Array.prototype.slice.call(cont.querySelectorAll(".doc-bloco")).forEach(bl => {
+    const vis = Array.prototype.slice.call(bl.querySelectorAll("[data-busca]")).some(it => it.style.display !== "none");
+    bl.style.display = vis ? "" : "none"; });
+  const nada = document.getElementById("docNadaBusca");
+  if (nada) nada.style.display = (termo && !itens.some(it => it.style.display !== "none")) ? "" : "none";
+}
+
 function salvarDoc(){
   if (!podeGerenciarEventos()){ avisoDoc("Você não tem permissão para isso.", "erro"); return; }
   _lerFormDoc();
   const titulo = (docForm.titulo||"").trim(); const venc = (docForm.vencimento||"").trim();
   if (!titulo){ avisoDoc("Escreva o nome do documento.", "erro"); return; }
-  if (!venc){ avisoDoc("Escolha a data de vencimento.", "erro"); return; }
   const avDias = (typeof docForm.avisarDias === "number" && docForm.avisarDias >= 0) ? docForm.avisarDias : 30;
+  const resumoTxt = titulo + (venc ? (" (vence " + fmtDataCurta(venc) + ")") : " (sem vencimento)");
+  const fonte = docForm.fonte || "doc";
+  if (fonte === "arq" && editandoDoc){
+    const alvoA = editandoDoc;
+    const antesA = (arquivos||[]).find(x => x.id === alvoA) || null;
+    const dadosA = { nome: titulo, tipo: docForm.categoria||"Outro", origem: docForm.origem||"Outros",
+      vencimento: venc, avisarDias: avDias, numero: (docForm.numero||"").trim(), obs: (docForm.obs||"").trim(),
+      atualizadoEm: Date.now(), atualizadoPor: usuarioAtual||"" };
+    colArquivos.doc(alvoA).set(dadosA, { merge:true })
+      .then(()=> logAtividade({acao:"editou", area:"Documentos", resumo: resumoTxt, colecao:"arquivos", docId:alvoA, tipoUndo:"editar", antes: antesA}))
+      .catch(er => avisoDoc(msgErro(er), "erro"));
+    docFormAberto = false; editandoDoc = null; renderVencimentos(); return;
+  }
   const dados = { titulo, categoria: docForm.categoria||"Outro", origem: docForm.origem||"Outros", vencimento: venc,
     avisarDias: avDias, numero: (docForm.numero||"").trim(), obs: (docForm.obs||"").trim(),
     atualizadoEm: Date.now(), atualizadoPor: usuarioAtual||"" };
   if (editandoDoc){
     const antes = (documentos||[]).find(x => x.id === editandoDoc) || null; const alvo = editandoDoc;
     colDocumentos.doc(alvo).set(dados, { merge:true })
-      .then(()=> logAtividade({acao:"editou", area:"Vencimentos", resumo: titulo+" (vence "+fmtDataCurta(venc)+")", colecao:"documentos", docId:alvo, tipoUndo:"editar", antes: antes}))
+      .then(()=> logAtividade({acao:"editou", area:"Documentos", resumo: resumoTxt, colecao:"documentos", docId:alvo, tipoUndo:"editar", antes: antes}))
       .catch(er => avisoDoc(msgErro(er), "erro"));
   } else {
     dados.criadoEm = Date.now(); dados.criadoPor = usuarioAtual||"";
     colDocumentos.add(dados)
-      .then(ref => logAtividade({acao:"criou", area:"Vencimentos", resumo: titulo+" (vence "+fmtDataCurta(venc)+")", colecao:"documentos", docId: ref.id, tipoUndo:"criar"}))
+      .then(ref => logAtividade({acao:"criou", area:"Documentos", resumo: resumoTxt, colecao:"documentos", docId: ref.id, tipoUndo:"criar"}))
       .catch(er => avisoDoc(msgErro(er), "erro"));
   }
   docFormAberto = false; editandoDoc = null; renderVencimentos();
 }
+
 function excluirDoc(id){
   if (!podeGerenciarEventos()) return;
   if (confirmarExclDoc === id){
@@ -4359,7 +4435,7 @@ function excluirDoc(id){
     const antes = (documentos||[]).find(x => x.id === id) || null;
     if (antes && antes.anexoPath) apagarArquivoStorage(antes.anexoPath);
     colDocumentos.doc(id).delete()
-      .then(()=> logAtividade({acao:"excluiu", area:"Vencimentos", resumo:(antes&&antes.titulo)||"documento", colecao:"documentos", docId:id, tipoUndo:"excluir", antes: antes}))
+      .then(()=> logAtividade({acao:"excluiu", area:"Documentos", resumo:(antes&&antes.titulo)||"documento", colecao:"documentos", docId:id, tipoUndo:"excluir", antes: antes}))
       .catch(()=>{});
     renderVencimentos(); return;
   }
@@ -4369,7 +4445,9 @@ function excluirDoc(id){
 function renderFormDoc(){
   _lerFormDoc();
   const esc = z => String(z||'').replace(/"/g,'&quot;');
-  const catOpt = CATEGORIAS_DOC.map(c => '<option value="'+esc(c)+'"'+(docForm.categoria===c?' selected':'')+'>'+esc(c)+'</option>').join("");
+  const cats = CATEGORIAS_DOC.slice();
+  if (docForm.categoria && cats.indexOf(docForm.categoria) < 0) cats.unshift(docForm.categoria);
+  const catOpt = cats.map(c => '<option value="'+esc(c)+'"'+(docForm.categoria===c?' selected':'')+'>'+esc(c)+'</option>').join("");
   const uniOpt = ORIGENS_EVENTO.map(o => '<option value="'+esc(o)+'"'+(docForm.origem===o?' selected':'')+'>'+esc(o)+'</option>').join("");
   const avO = [[0,"No dia"],[7,"7 dias antes"],[10,"10 dias antes"],[15,"15 dias antes"],[30,"30 dias antes (padr\u00e3o)"],[45,"45 dias antes"],[60,"60 dias antes"],[90,"90 dias antes"]];
   const avA = (typeof docForm.avisarDias === "number") ? docForm.avisarDias : 30;
@@ -4378,7 +4456,7 @@ function renderFormDoc(){
   h += '<label class="ev-lbl">Nome do documento<input id="docTitulo" maxlength="80" value="'+esc(docForm.titulo)+'" placeholder="Ex: CNH do Jo\u00e3o / Licen\u00e7a ambiental - Teresina"></label>';
   h += '<label class="ev-lbl">Tipo<select id="docCategoria">'+catOpt+'</select></label>';
   h += '<label class="ev-lbl">Unidade<select id="docOrigem">'+uniOpt+'</select></label>';
-  h += '<label class="ev-lbl">Vence em<input id="docVenc" type="date" value="'+esc(docForm.vencimento)+'"></label>';
+  h += '<label class="ev-lbl">Vence em (opcional — deixe vazio se não vence)<input id="docVenc" type="date" value="'+esc(docForm.vencimento)+'"></label>';
   h += '<label class="ev-lbl">\ud83d\udd14 Avisar com anteced\u00eancia<select id="docAvisar">'+avO.map(o=>'<option value="'+o[0]+'"'+(avA===o[0]?' selected':'')+'>'+o[1]+'</option>').join("")+'</select></label>';
   h += '<label class="ev-lbl">N\u00famero (opcional)<input id="docNumero" maxlength="40" value="'+esc(docForm.numero)+'" placeholder="N\u00ba do documento"></label>';
   h += '<label class="ev-lbl">Observa\u00e7\u00e3o (opcional)<input id="docObs" maxlength="120" value="'+esc(docForm.obs)+'" placeholder="Detalhes"></label>';
@@ -4386,67 +4464,139 @@ function renderFormDoc(){
   h += '<div id="msgDoc" style="margin-top:8px;font-size:.82rem"></div></div>';
   return h;
 }
-function linhaDoc(d){
+
+function anexoItemDocHtml(i){
+  if (i.fonte === "arq"){
+    return '<div class="venc-anexo"><span class="venc-anexo-link" onclick="abrirArquivo(\'' + escAspas(i.id) + '\')">📎 Ver arquivo</span></div>';
+  }
+  const d = (documentos||[]).find(x => x.id === i.id);
+  return d ? anexoDocHtml(d) : "";
+}
+function linhaItemDoc(i){
   const esc = z => String(z||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
   const pode = podeGerenciarEventos();
-  const dd = diasAte(d.vencimento);
-  const av = (typeof d.avisarDias === "number" ? d.avisarDias : 30);
-  let rot, cls;
-  if (dd < 0){ cls='vencido'; const n=Math.abs(dd); rot='VENCIDO h\u00e1 '+n+(n===1?' dia':' dias'); }
-  else if (dd === 0){ cls='hoje'; rot='VENCE HOJE'; }
-  else if (dd === 1){ cls='perto'; rot='vence AMANH\u00c3'; }
-  else { cls=(dd<=av?'perto':''); rot='vence em '+dd+' dias'; }
-  const ic = ICONE_DOC[d.categoria] || '\ud83d\udcc4';
-  const conf = confirmarExclDoc === d.id;
+  let cls = '', rot = '', dataTxt = '—';
+  if (i.vencimento){
+    const dd = diasAte(i.vencimento);
+    const av = (typeof i.avisarDias === "number" ? i.avisarDias : 30);
+    if (dd < 0){ cls='vencido'; const n=Math.abs(dd); rot='VENCIDO há '+n+(n===1?' dia':' dias'); }
+    else if (dd === 0){ cls='hoje'; rot='VENCE HOJE'; }
+    else if (dd === 1){ cls='perto'; rot='vence AMANHÃ'; }
+    else { cls=(dd<=av?'perto':''); rot='vence em '+dd+' dias'; }
+    dataTxt = fmtDataCurta(i.vencimento);
+  } else {
+    rot = 'sem vencimento';
+  }
+  const ic = ICONE_DOC[i.tipo] || (i.fonte === "arq" ? iconeArquivo(i.contentType, i.nomeArq) : '📄');
+  const conf = (i.fonte === "arq" ? confirmarExclArq : confirmarExclDoc) === i.id;
   let botoes = '';
   if (pode){
-    botoes = '<button class="cal-ev-btn" title="Editar / Renovar" onclick="editarDoc(\'' + d.id + '\')">\u270f\ufe0f</button>' +
-      '<button class="cal-ev-btn'+(conf?' confirmar':'')+'" title="Excluir" onclick="excluirDoc(\'' + d.id + '\')">'+(conf?'\u2713?':'\ud83d\uddd1')+'</button>';
+    botoes = '<button class="cal-ev-btn" title="Editar / Renovar" onclick="editarItemDoc(\'' + i.fonte + '\',\'' + escAspas(i.id) + '\')">✏️</button>' +
+      '<button class="cal-ev-btn'+(conf?' confirmar':'')+'" title="Excluir" onclick="excluirItemDoc(\'' + i.fonte + '\',\'' + escAspas(i.id) + '\')">'+(conf?'✓?':'🗑')+'</button>';
   }
   const sub = [];
-  if (d.numero) sub.push('n\u00ba ' + esc(d.numero));
-  if (d.obs) sub.push(esc(d.obs));
-  return '<div class="venc-item '+cls+'">' +
+  if (i.numero) sub.push('nº ' + esc(i.numero));
+  if (i.obs) sub.push(esc(i.obs));
+  const chaveBusca = [i.nome, i.tipo, i.origem, i.numero, i.obs, (i.vencimento||'')].join(' ');
+  return '<div class="venc-item '+cls+'" data-busca="'+escAttr(chaveBusca)+'">' +
     '<div class="venc-ic">'+ic+'</div>' +
-    '<div class="venc-main"><div class="venc-tit">'+esc(d.titulo)+'</div>' +
-    '<div class="venc-tags"><span class="venc-cat">'+esc(d.categoria||'Documento')+'</span>' + (d.origem?'<span class="venc-uni"><i class="cal-dot '+origemClasseCal(d.origem)+'"></i>'+esc(d.origem)+'</span>':'') + '</div>' +
-    (sub.length?'<div class="venc-sub">'+sub.join(' \u00b7 ')+'</div>':'') +
-    anexoDocHtml(d) +
+    '<div class="venc-main"><div class="venc-tit">'+esc(i.nome)+'</div>' +
+    '<div class="venc-tags"><span class="venc-cat">'+esc(i.tipo||'Documento')+'</span>' +
+      (i.origem?'<span class="venc-uni"><i class="cal-dot '+origemClasseCal(i.origem)+'"></i>'+esc(i.origem)+'</span>':'') +
+      (i.tamanho?'<span class="venc-sub" style="margin:0">'+fmtTamanho(i.tamanho)+'</span>':'') + '</div>' +
+    (sub.length?'<div class="venc-sub">'+sub.join(' · ')+'</div>':'') +
+    anexoItemDocHtml(i) +
     '</div>' +
-    '<div class="venc-right"><div class="venc-data '+cls+'">'+fmtDataCurta(d.vencimento)+'</div><div class="venc-rot '+cls+'">'+rot+'</div><div class="venc-acoes">'+botoes+'</div></div>' +
+    '<div class="venc-right"><div class="venc-data '+cls+'">'+dataTxt+'</div><div class="venc-rot '+(i.vencimento?cls:'semdata')+'">'+rot+'</div><div class="venc-acoes">'+botoes+'</div></div>' +
     '</div>';
 }
+
 function renderVencimentos(){
   const cont = document.getElementById("conteudoVencimentos"); if (!cont) return;
+  const esc = z => String(z||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
   const pode = podeGerenciarEventos();
+  const st = storageRef();
   let html = "";
+  // --- gestao: novo documento + envio rapido de arquivo ---
   if (pode){
     html += '<div class="cal-gestao">';
-    if (!docFormAberto) html += '<button class="btn-verde" onclick="novoDoc()">\u2795 Novo documento</button>';
+    if (!docFormAberto) html += '<button class="btn-verde" onclick="novoDoc()">➕ Novo documento</button>';
     html += '</div>';
     if (docFormAberto) html += renderFormDoc();
+    if (!docFormAberto){
+      if (st){
+        html += '<div class="arq-upload"><div class="arq-up-linha">' +
+          '<label class="arq-up-lbl">Unidade<select id="arqUnidade" onchange="arqUnidadeSel=this.value">' + ORIGENS_EVENTO.map(o=>'<option value="'+escAttr(o)+'"'+(arqUnidadeSel===o?' selected':'')+'>'+escAttr(o)+'</option>').join("") + '</select></label>' +
+          '<label class="arq-up-lbl">Tipo<select id="arqTipo" onchange="arqTipoSel=this.value">' + CATEGORIAS_DOC.map(t=>'<option value="'+escAttr(t)+'"'+(arqTipoSel===t?' selected':'')+'>'+escAttr(t)+'</option>').join("") + '</select></label>' +
+          '</div>' +
+          '<label class="btn-verde arq-file-btn">📎 Enviar arquivo (sem data)<input type="file" id="arqFile" accept="application/pdf,image/*" style="display:none" onchange="aoEscolherArquivo(this)"></label>' +
+          '<div id="arqProgresso" class="arq-prog"></div>' +
+          '<p class="nota-dash" style="margin:6px 0 0;font-size:.7rem">PDF ou imagem, até 20 MB. Se o arquivo tiver data de vencimento, use ➕ Novo documento — ou envie aqui e depois toque em ✏️ para colocar a data.</p>' +
+          '</div>';
+      } else {
+        html += '<p class="nota-dash" style="color:#e11d48">O armazenamento de arquivos ainda não está ligado neste projeto. Peça ao administrador para ativar o Firebase Storage.</p>';
+      }
+    }
   }
-  const lista = (documentos||[]).filter(d => d && d.titulo && d.vencimento && avisoOrigemPermitida(d.origem));
-  if (!lista.length){
-    html += '<p class="nota-dash">' + (pode ? 'Nenhum documento cadastrado ainda. Toque em \u2795 Novo documento para come\u00e7ar (CNH, licenciamento, alvar\u00e1s, certificado digital\u2026).' : 'Nenhum documento cadastrado ainda.') + '</p>';
+  const itens = itensDocsTodos();
+  if (!itens.length){
+    html += '<p class="nota-dash">' + (pode ? 'Nada cadastrado ainda. Toque em ➕ Novo documento (CNH, licenças, alvarás, certificado digital…) ou envie um arquivo aqui em cima.' : 'Nenhum documento disponível ainda.') + '</p>';
     cont.innerHTML = html; return;
   }
+  // --- resumo ---
+  const comData = itens.filter(i => i.vencimento);
+  const semData = itens.filter(i => !i.vencimento);
   const venc=[], breve=[], emdia=[];
-  lista.forEach(d => { const dd = diasAte(d.vencimento); const av = (typeof d.avisarDias==="number"?d.avisarDias:30); if (dd<0) venc.push(d); else if (dd<=av) breve.push(d); else emdia.push(d); });
-  const ordena = arr => arr.slice().sort((a,b)=> a.vencimento<b.vencimento?-1:a.vencimento>b.vencimento?1:0);
+  comData.forEach(i => { const dd = diasAte(i.vencimento); const av = (typeof i.avisarDias==="number"?i.avisarDias:30); if (dd<0) venc.push(i); else if (dd<=av) breve.push(i); else emdia.push(i); });
   html += '<div class="venc-resumo">' +
     '<div class="venc-tile vermelho"><b>'+venc.length+'</b><span>Vencidos</span></div>' +
     '<div class="venc-tile laranja"><b>'+breve.length+'</b><span>Vencem em breve</span></div>' +
     '<div class="venc-tile verde"><b>'+emdia.length+'</b><span>Em dia</span></div>' +
+    '<div class="venc-tile cinza"><b>'+semData.length+'</b><span>Sem vencimento</span></div>' +
     '</div>';
+  // --- busca + visoes ---
+  const chip = (v, rot) => '<button class="doc-chip'+(docVista===v?' ativo':'')+'" onclick="mudarVistaDocs(\''+v+'\')">'+rot+'</button>';
+  html += '<div class="doc-tools">' +
+    '<input class="doc-busca" type="search" id="docBuscaInput" placeholder="🔎 Buscar por nome, tipo, unidade ou número..." value="'+escAttr(docBusca)+'" oninput="buscarDocs(this.value)">' +
+    chip('tudo', '📄 Tudo ('+itens.length+')') +
+    chip('venc', '⏰ Com vencimento ('+comData.length+')') +
+    chip('uni', '📂 Por unidade') +
+    '</div>';
+  const ordenaData = arr => arr.slice().sort((a,b)=> a.vencimento<b.vencimento?-1:a.vencimento>b.vencimento?1:0);
+  const ordenaNome = arr => arr.slice().sort((a,b)=> String(a.nome||'').localeCompare(String(b.nome||''), 'pt-BR'));
   const bloco = (titulo, arr, cls) => {
     if (!arr.length) return "";
-    let x = '<div class="venc-grupo-tit '+cls+'">'+titulo+' ('+arr.length+')</div>';
-    ordena(arr).forEach(d => { x += linhaDoc(d); });
-    return x;
+    let x = '<div class="doc-bloco">';
+    if (titulo) x += '<div class="venc-grupo-tit '+(cls||'')+'">'+titulo+' ('+arr.length+')</div>';
+    arr.forEach(i => { x += linhaItemDoc(i); });
+    return x + '</div>';
   };
-  html += bloco('\u26a0\ufe0f Vencidos', venc, 'vermelho') + bloco('\ud83d\udd14 Vencem em breve', breve, 'laranja') + bloco('\u2705 Em dia', emdia, 'verde');
+  if (docVista === "venc"){
+    if (!comData.length){
+      html += '<p class="doc-vazio">Nenhum item com data de vencimento. Toque em 📄 Tudo para ver os arquivos guardados.</p>';
+    } else {
+      html += bloco('⚠️ Vencidos', ordenaData(venc), 'vermelho') +
+              bloco('🔔 Vencem em breve', ordenaData(breve), 'laranja') +
+              bloco('✅ Em dia', ordenaData(emdia), 'verde');
+    }
+  } else if (docVista === "uni"){
+    const grupos = {};
+    itens.forEach(i => { const o = i.origem || "Outros"; (grupos[o] = grupos[o] || []).push(i); });
+    const ordemUni = ORIGENS_EVENTO.concat(Object.keys(grupos).filter(o => ORIGENS_EVENTO.indexOf(o) < 0));
+    ordemUni.forEach(o => {
+      const arr = grupos[o] || []; if (!arr.length) return;
+      const comD = ordenaData(arr.filter(i => i.vencimento));
+      const semD = ordenaNome(arr.filter(i => !i.vencimento));
+      html += '<div class="doc-bloco"><div class="arq-grupo-tit"><i class="cal-dot '+origemClasseCal(o)+'"></i>'+esc(o)+' ('+arr.length+')</div>';
+      comD.concat(semD).forEach(i => { html += linhaItemDoc(i); });
+      html += '</div>';
+    });
+  } else {
+    html += bloco('', ordenaData(comData).concat(ordenaNome(semData)), '');
+  }
+  html += '<p class="doc-vazio" id="docNadaBusca" style="display:none">Nada encontrado para essa busca.</p>';
   cont.innerHTML = html;
+  if (docBusca) buscarDocs(docBusca);
 }
 function alternarVencimentos(){
   const aberto = abrirPainelExclusivo("painelVencimentos");
@@ -4525,80 +4675,38 @@ function removerAnexoDoc(id){
   timerRemAnexo = setTimeout(()=>{ confirmarRemAnexo = null; renderVencimentos(); }, 4000);
 }
 // ---- Menu Arquivos (repositório por unidade) ----
+
 function aoEscolherArquivo(input){
   const file = input && input.files && input.files[0]; if (!file) return;
   arqUnidadeSel = (document.getElementById("arqUnidade")||{}).value || "Outros";
   arqTipoSel = (document.getElementById("arqTipo")||{}).value || "Outro";
   const prog = document.getElementById("arqProgresso");
   const slug = origemClasseCal(arqUnidadeSel);
-  if (prog){ prog.style.color = ""; prog.textContent = "Enviando\u2026 0%"; }
-  subirArquivo(file, "arquivos/"+slug, p => { if (prog) prog.textContent = "Enviando\u2026 "+p+"%"; })
-    .then(info => colArquivos.add({ nome: info.nome, tipo: arqTipoSel, origem: arqUnidadeSel, url: info.url, path: info.path, tamanho: info.tamanho, contentType: info.contentType, criadoEm: Date.now(), criadoPor: usuarioAtual||"" })
-      .then(ref => { if (prog) prog.textContent = "\u2713 Enviado!"; logAtividade({acao:"enviou", area:"Arquivos", resumo: info.nome+" ("+arqUnidadeSel+")", colecao:"arquivos", docId: ref.id }); }))
+  if (prog){ prog.style.color = ""; prog.textContent = "Enviando… 0%"; }
+  subirArquivo(file, "arquivos/"+slug, p => { if (prog) prog.textContent = "Enviando… "+p+"%"; })
+    .then(info => colArquivos.add({ nome: info.nome, tipo: arqTipoSel, origem: arqUnidadeSel, vencimento: "", url: info.url, path: info.path, tamanho: info.tamanho, contentType: info.contentType, criadoEm: Date.now(), criadoPor: usuarioAtual||"" })
+      .then(ref => { if (prog) prog.textContent = "✓ Enviado!"; logAtividade({acao:"enviou", area:"Documentos", resumo: info.nome+" ("+arqUnidadeSel+")", colecao:"arquivos", docId: ref.id }); }))
     .catch(err => { if (prog){ prog.style.color = "#e11d48"; prog.textContent = "Erro: " + (err && err.message ? err.message : "não foi possível enviar"); } });
   try { input.value = ""; } catch(e){}
 }
+
 function excluirArquivo(id){
   if (!podeGerenciarEventos()) return;
   if (confirmarExclArq === id){
     clearTimeout(timerExclArq); confirmarExclArq = null;
     const a = (arquivos||[]).find(x => x.id === id) || null;
     Promise.resolve(a && a.path ? apagarArquivoStorage(a.path) : null).then(()=>
-      colArquivos.doc(id).delete().then(()=> logAtividade({acao:"excluiu", area:"Arquivos", resumo:(a&&a.nome)||"arquivo", colecao:"arquivos", docId:id })).catch(()=>{})
+      colArquivos.doc(id).delete().then(()=> logAtividade({acao:"excluiu", area:"Documentos", resumo:(a&&a.nome)||"arquivo", colecao:"arquivos", docId:id })).catch(()=>{})
     );
-    renderArquivos(); return;
+    renderVencimentos(); return;
   }
-  confirmarExclArq = id; renderArquivos();
-  timerExclArq = setTimeout(()=>{ confirmarExclArq = null; renderArquivos(); }, 4000);
+  confirmarExclArq = id; renderVencimentos();
+  timerExclArq = setTimeout(()=>{ confirmarExclArq = null; renderVencimentos(); }, 4000);
 }
-function linhaArquivo(a){
-  const esc = z => String(z||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
-  const pode = podeGerenciarEventos();
-  const ic = iconeArquivo(a.contentType, a.nome);
-  const conf = confirmarExclArq === a.id;
-  let botoes = '<button class="cal-ev-btn" onclick="abrirArquivo(\''+a.id+'\')" title="Abrir">Abrir</button>';
-  if (pode) botoes += '<button class="cal-ev-btn'+(conf?' confirmar':'')+'" title="Excluir" onclick="excluirArquivo(\''+a.id+'\')">'+(conf?'\u2713?':'\ud83d\uddd1')+'</button>';
-  return '<div class="arq-item"><div class="venc-ic">'+ic+'</div>' +
-    '<div class="venc-main"><div class="venc-tit">'+esc(a.nome||'arquivo')+'</div>' +
-    '<div class="venc-tags"><span class="venc-cat">'+esc(a.tipo||'Arquivo')+'</span><span class="venc-sub" style="margin:0">'+fmtTamanho(a.tamanho)+'</span></div></div>' +
-    '<div class="venc-right"><div class="venc-acoes">'+botoes+'</div></div></div>';
-}
-function renderArquivos(){
-  const cont = document.getElementById("conteudoArquivos"); if (!cont) return;
-  const esc = z => String(z||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
-  const pode = podeGerenciarEventos();
-  const st = storageRef();
-  let html = "";
-  if (!st){
-    html += '<p class="nota-dash" style="color:#e11d48">O armazenamento de arquivos ainda não está ligado neste projeto. Peça ao administrador para ativar o Firebase Storage (o Claude passou o passo a passo).</p>';
-  }
-  if (pode && st){
-    html += '<div class="arq-upload"><div class="arq-up-linha">' +
-      '<label class="arq-up-lbl">Unidade<select id="arqUnidade" onchange="arqUnidadeSel=this.value">' + ORIGENS_EVENTO.map(o=>'<option value="'+escAttr(o)+'"'+(arqUnidadeSel===o?' selected':'')+'>'+escAttr(o)+'</option>').join("") + '</select></label>' +
-      '<label class="arq-up-lbl">Tipo<select id="arqTipo" onchange="arqTipoSel=this.value">' + ["Licença","Contrato","Outro"].map(t=>'<option value="'+t+'"'+(arqTipoSel===t?' selected':'')+'>'+t+'</option>').join("") + '</select></label>' +
-      '</div>' +
-      '<label class="btn-verde arq-file-btn">\ud83d\udcce Enviar arquivo<input type="file" id="arqFile" accept="application/pdf,image/*" style="display:none" onchange="aoEscolherArquivo(this)"></label>' +
-      '<div id="arqProgresso" class="arq-prog"></div>' +
-      '<p class="nota-dash" style="margin:6px 0 0;font-size:.7rem">PDF ou imagem, até 20 MB. Escolha a unidade e o tipo antes de enviar.</p>' +
-      '</div>';
-  }
-  const lista = (arquivos||[]).filter(a => a && a.url && avisoOrigemPermitida(a.origem));
-  if (!lista.length){
-    html += '<p class="nota-dash">' + ((pode && st) ? 'Nenhum arquivo enviado ainda. Escolha a unidade e o tipo e toque em \ud83d\udcce Enviar arquivo.' : 'Nenhum arquivo disponível ainda.') + '</p>';
-    cont.innerHTML = html; return;
-  }
-  const grupos = {};
-  lista.forEach(a => { const o = a.origem || "Outros"; (grupos[o] = grupos[o] || []).push(a); });
-  const ordemUni = ORIGENS_EVENTO.concat(Object.keys(grupos).filter(o => ORIGENS_EVENTO.indexOf(o) < 0));
-  ordemUni.forEach(o => {
-    const arr = (grupos[o] || []).slice().sort((a,b)=> (b.criadoEm||0)-(a.criadoEm||0));
-    if (!arr.length) return;
-    html += '<div class="arq-grupo"><div class="arq-grupo-tit"><i class="cal-dot '+origemClasseCal(o)+'"></i>'+esc(o)+' ('+arr.length+')</div>';
-    arr.forEach(a => { html += linhaArquivo(a); });
-    html += '</div>';
-  });
-  cont.innerHTML = html;
-}
+
+// v133: o menu "Arquivos" foi incorporado ao menu "Documentos".
+
+function renderArquivos(){ renderVencimentos(); }   // v133: menu unificado
 function arqFrescaURL(path, urlSalva){
   const st = storageRef();
   if (st && path){ try { return st.ref().child(path).getDownloadURL().catch(()=>urlSalva); } catch(e){ return Promise.resolve(urlSalva); } }
@@ -4614,12 +4722,7 @@ function abrirArquivo(id){ const a=(arquivos||[]).find(x=>x.id===id); if(!a) ret
 function baixarArquivo(id){ const a=(arquivos||[]).find(x=>x.id===id); if(!a) return; arqFrescaURL(a.path, a.url).then(u=>_baixarURL(u, a.nome)); }
 function abrirAnexoDoc(id){ const d=(documentos||[]).find(x=>x.id===id); if(!d||!d.anexoUrl) return; arqFrescaURL(d.anexoPath, d.anexoUrl).then(u=>{ try{ window.open(u, "_blank", "noopener"); }catch(e){} }); }
 function baixarAnexoDoc(id){ const d=(documentos||[]).find(x=>x.id===id); if(!d||!d.anexoUrl) return; arqFrescaURL(d.anexoPath, d.anexoUrl).then(u=>_baixarURL(u, d.anexoNome||"documento")); }
-function alternarArquivos(){
-  const aberto = abrirPainelExclusivo("painelArquivos");
-  const b = document.getElementById("btnArquivos");
-  if (b) b.classList.toggle("ativo", aberto);
-  if (aberto) renderArquivos();
-}
+function alternarArquivos(){ alternarVencimentos(); }   // v133: menu unificado
 function origemClasseCal(o){
   o = String(o||'').toLowerCase();
   if (o.indexOf('teresina') >= 0) return 'ct';
@@ -6460,7 +6563,7 @@ function painelVisivelInfo(){
     ["painelCotacoes",  "Cotações do Dia", "cotacoes"],
     ["painelAvisos",    "Notificações", "notificacoes"],
     ["painelCalendario","Calendário",   "calendario"],
-    ["painelVencimentos","Vencimentos",  "vencimentos"],
+    ["painelVencimentos","Documentos",  "documentos"],
     ["painelConfig",    "Configurações", "configuracoes"],
     ["painelAdmin",     "Usuários",    "usuarios"],
   ];
