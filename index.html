@@ -129,7 +129,22 @@
   /* max-width + object-fit: em tela estreita o logo encolhe sozinho em vez de passar
      por baixo do sino. O logo da conveniência é o mais comprido dos três e era o que
      mais precisava disso, mas vale para todos. */
-  header .logo-app{height:36px;width:auto;max-width:100%;object-fit:contain;object-position:left center;display:block}
+  /* As tres logomarcas trazem a palavra FULL em proporcoes diferentes dentro do proprio
+     arquivo (58% / 100% / 88% da altura da imagem). Se todas tiverem a mesma altura de
+     imagem, a palavra FULL sai de tamanhos diferentes e o cabecalho fica desalinhado ao
+     trocar de empresa. Entao a altura de cada uma e calculada a partir de um tamanho
+     unico da palavra FULL (--fullh) vezes o fator daquela logo. Para aumentar ou
+     diminuir as tres de uma vez, mexa so no --fullh. Logo nova = medir a palavra FULL
+     dentro do arquivo e dividir 1 pela fracao. */
+  header{ --fullh:clamp(26px, 4vw, 36px); }
+  /* Todas ocupam a mesma caixa (a altura da maior, a Postos Full), para o cabecalho nao
+     pular de tamanho ao trocar de empresa. Quem define o tamanho que cada desenho sai e
+     a largura + object-fit:contain: a largura e o --fullh vezes o fator da logo
+     (proporcao do arquivo dividida pela fracao que a palavra FULL ocupa nele). */
+  header .logo-app{height:calc(var(--fullh) * 1.732);max-width:100%;object-fit:contain;object-position:left center;display:block}
+  header .logo-postos{width:calc(var(--fullh) * 8.248)}
+  header .logo-transp{width:calc(var(--fullh) * 8.436)}
+  header .logo-conv{width:calc(var(--fullh) * 12.100)}
   #statusSalvo{font-size:.68rem;font-weight:400;font-family:"Poppins",sans-serif;text-transform:none;letter-spacing:0;color:#FFC9A3;margin-left:10px;opacity:0;transition:opacity .4s}
   header .acoes{display:flex;gap:8px;flex-wrap:wrap}
   .header-acoes-topo{display:flex;align-items:center;gap:8px;flex:0 0 auto}
@@ -999,7 +1014,7 @@
     .menu-hamb{ display:block; }
     header{ padding:12px 14px; gap:10px; }
     header h1{ font-size:.98rem; gap:10px; }
-    header .logo-app{ height:30px; }
+    header{ --fullh:clamp(22px, 6vw, 30px); }
     /* logo à esquerda e Tema fixo no canto superior direito, na mesma linha */
     .header-topo{ gap:8px; flex-wrap:nowrap; align-items:flex-start; }
     .header-topo h1{ min-width:0; flex:1 1 auto; }
@@ -1044,7 +1059,7 @@
     body{ padding:8px 12px 24px; }
     header{ padding:8px 16px; gap:6px; }
     header h1{ font-size:.95rem; }
-    header .logo-app{ height:26px; }
+    header{ --fullh:22px; }
     .header-topo{ gap:8px; }
     .usuario-logado{ font-size:.62rem; }
     .filtros{ padding:10px 16px; gap:8px; }
