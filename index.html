@@ -86,6 +86,13 @@
   body.empresa-transportadora.tema-escuro{
     --verde-claro:#33290A;
   }
+  /* ============= EMPRESA: FULL CONVENIÊNCIA ============= */
+  /* A conveniência usa a mesma paleta laranja do Postos Full (pedido do Tiago),
+     por isso aqui só troca o logo do cabeçalho — nenhuma variável de cor muda. */
+  header img.logo-conv{display:none}
+  body.empresa-conveniencia header img.logo-postos{display:none}
+  body.empresa-conveniencia header img.logo-conv{display:block}
+
   /* A tela de login mantém a identidade Postos Full (laranja) */
   #telaLogin{ --verde:#FF6401; --dourado:#FF6401; --verde-claro:#FFF0E6; }
 
@@ -119,7 +126,10 @@
     text-transform:uppercase;
     display:flex;align-items:center;gap:14px;flex-wrap:wrap;
   }
-  header .logo-app{height:36px;width:auto;display:block}
+  /* max-width + object-fit: em tela estreita o logo encolhe sozinho em vez de passar
+     por baixo do sino. O logo da conveniência é o mais comprido dos três e era o que
+     mais precisava disso, mas vale para todos. */
+  header .logo-app{height:36px;width:auto;max-width:100%;object-fit:contain;object-position:left center;display:block}
   #statusSalvo{font-size:.68rem;font-weight:400;font-family:"Poppins",sans-serif;text-transform:none;letter-spacing:0;color:#FFC9A3;margin-left:10px;opacity:0;transition:opacity .4s}
   header .acoes{display:flex;gap:8px;flex-wrap:wrap}
   .header-acoes-topo{display:flex;align-items:center;gap:8px;flex:0 0 auto}
@@ -665,6 +675,16 @@
   .pv-sync-vazio{font-size:.82rem;color:var(--cinza)}
   .pv-sub{margin:16px 0 2px;font-size:.98rem;font-weight:700;color:var(--txt);border-top:1px solid var(--borda);padding-top:12px}
   .pv-sub-nota{margin-top:2px}
+  /* Full Conveniência — reaproveita o visual dos Descontos e acrescenta só o essencial */
+  .cv-prev-margem{margin-left:8px;font-size:.82rem;color:var(--cinza)}
+  .cv-margem-boa{color:var(--verde);font-weight:700}
+  .cv-margem-ruim{color:var(--vermelho);font-weight:700}
+  .cc-pill{display:inline-block;border-radius:20px;padding:2px 9px;font-size:.7rem;font-weight:700;white-space:nowrap}
+  .cc-pago{background:var(--verde-claro);color:var(--verde)}
+  .cc-vencido{background:var(--erro-bg);color:var(--vermelho)}
+  .cc-perto{background:#FFF4D6;color:#8A6100}
+  .cc-aberto{background:var(--superficie-2);color:var(--cinza)}
+  .cc-ok{background:transparent;border:1px solid var(--borda);color:var(--cinza);border-radius:6px;padding:4px 9px;cursor:pointer;font-size:.8rem}
   .desc-mes-filtros{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin:6px 0 10px}
   .desc-mes-filtros input[type=date],.desc-mes-filtros select{border:1px solid var(--borda);border-radius:8px;padding:7px 9px;font-size:.9rem;background:var(--superficie);color:var(--txt)}
   .conta-senha{display:flex;flex-direction:column;gap:8px;max-width:340px;margin-bottom:8px}
@@ -1098,6 +1118,7 @@
     <div class="menu-empresa-box" id="empresaBox" style="display:none">
       <button type="button" onclick="definirEmpresa('postos')"><span class="mi">⛽</span><span>Postos Full</span></button>
       <button type="button" onclick="definirEmpresa('transportadora')"><span class="mi">🚚</span><span>Full Transportadora</span></button>
+      <button type="button" onclick="definirEmpresa('conveniencia')"><span class="mi">🛒</span><span>Full Conveniência</span></button>
     </div>
     <div class="menu-sep"></div>
     <button class="btn-claro" id="btnDash" onclick="alternarDash()"><span class="mi">📈</span><span class="mt">Dashboard</span></button>
@@ -1108,6 +1129,8 @@
     <button class="btn-claro" id="btnComparativo" onclick="alternarComparativo()"><span class="mi">🚛</span><span class="mt">Comparativo de Preços</span></button>
     <button class="btn-claro" id="btnPuxadas" onclick="alternarPuxadas()"><span class="mi">🧾</span><span class="mt">Puxadas</span></button>
     <button class="btn-claro" id="btnCotacoes" onclick="alternarCotacoes()"><span class="mi">💲</span><span class="mt">Cotações do Dia</span></button>
+    <button class="btn-claro" id="btnConvVendas" onclick="alternarConvVendas()"><span class="mi">🛒</span><span class="mt">Vendas e Margem da Loja</span></button>
+    <button class="btn-claro" id="btnConvCompras" onclick="alternarConvCompras()"><span class="mi">📦</span><span class="mt">Compras e Fornecedores</span></button>
     <button class="btn-claro" id="btnCalendario" onclick="alternarCalendario()"><span class="mi">📅</span><span class="mt">Calendário</span></button>
     <button class="btn-claro" id="btnVencimentos" onclick="alternarVencimentos()"><span class="mi">📁</span><span class="mt">Documentos</span></button>
     <button class="btn-claro" id="btnCaixa" onclick="alternarCaixa()"><span class="mi">📥</span><span class="mt">Caixa de entrada</span><span class="menu-badge" id="badgeCaixa" style="display:none">0</span></button>
@@ -1123,6 +1146,7 @@
       <h1>
         <img src="logo-full.png" alt="Postos Full" class="logo-app logo-postos">
         <img src="logo-transportadora.png?v=1" alt="Full Transportadora" class="logo-app logo-transp">
+        <img src="logo-conveniencia.png?v=1" alt="Full Conveniência" class="logo-app logo-conv">
         <span class="titulo-app"><span id="statusSalvo" aria-live="polite"></span></span>
         <span class="usuario-logado" id="usuarioLogado"></span>
       </h1>
@@ -1251,6 +1275,75 @@
         <span class="cot-status" id="cotStatus"></span>
       </div>
       <div id="conteudoCotacoes"></div>
+    </div>
+  </div>
+
+  <div class="config" id="painelConvVendas">
+    <div class="grupo">
+      <h2>Vendas e Margem da Loja</h2>
+      <p class="nota-dash">Lance o que a loja vendeu. Informe o produto, quanto você <b>pagou</b> (custo) e por quanto <b>vendeu</b> — o app calcula sozinho o lucro e a margem em %. Serve para descobrir quais produtos dão dinheiro de verdade.</p>
+      <div class="desc-controles">
+        <label class="cot-data-lbl">Dia: <input type="date" id="cvData" onchange="carregarConvVendas()"></label>
+      </div>
+      <div class="desc-form">
+        <div class="desc-campo"><label>Unidade</label><select id="cvUnidade" onchange="onConvUnidadeChange()"></select></div>
+        <div class="desc-campo"><label>Categoria</label><select id="cvCategoria"></select></div>
+        <div class="desc-campo"><label>Produto</label><input id="cvProduto" list="cvProdutosLista" maxlength="60" placeholder="Ex.: Água 500ml"><datalist id="cvProdutosLista"></datalist></div>
+        <div class="desc-campo"><label>Quantidade</label><input id="cvQtd" inputmode="decimal" placeholder="10" oninput="calcConvVendaPreview()"></div>
+        <div class="desc-campo"><label>Custo unitário (R$)</label><input id="cvCusto" inputmode="decimal" placeholder="2,50" oninput="calcConvVendaPreview()"></div>
+        <div class="desc-campo"><label>Venda unitária (R$)</label><input id="cvVenda" inputmode="decimal" placeholder="4,00" oninput="calcConvVendaPreview()"></div>
+        <div class="desc-campo"><label>Observação (opcional)</label><input id="cvObs" maxlength="80" placeholder="Ex.: promoção do dia"></div>
+        <div class="desc-total-box">Lucro: <b id="cvLucroPreview">R$ 0,00</b> <span id="cvMargemPreview" class="cv-prev-margem"></span></div>
+        <button class="btn-verde" onclick="lancarConvVenda()">Lançar venda</button>
+      </div>
+      <div class="msg-admin" id="msgConvVenda"></div>
+    </div>
+    <div class="grupo">
+      <h2>Vendas do dia — <span id="cvDiaRotulo"></span></h2>
+      <div id="cvConsolidado"></div>
+      <div id="cvLista"></div>
+    </div>
+    <div class="grupo">
+      <h2>Consolidado no Mês</h2>
+      <p class="nota-dash">Soma as vendas da loja num período. Mostra o faturamento, o custo, o lucro e a margem — no total, por unidade, por categoria e os produtos que mais deram lucro.</p>
+      <div class="desc-mes-filtros">
+        <label class="cot-data-lbl">De: <input type="date" id="cvMesIni" onchange="carregarConvVendasMes()"></label>
+        <label class="cot-data-lbl">Até: <input type="date" id="cvMesFim" onchange="carregarConvVendasMes()"></label>
+        <label class="cot-data-lbl">Unidade: <select id="cvMesUnidade" onchange="renderConvVendasMes()"></select></label>
+      </div>
+      <div id="cvMesConsolidado"></div>
+    </div>
+  </div>
+
+  <div class="config" id="painelConvCompras">
+    <div class="grupo">
+      <h2>Compras e Fornecedores</h2>
+      <p class="nota-dash">Registre as notas de compra da loja: quem forneceu, quanto custou e quando vence. O app avisa aqui o que está <b>vencendo ou vencido</b> e mostra quanto cada fornecedor representa no período.</p>
+      <div class="desc-form">
+        <div class="desc-campo"><label>Unidade</label><select id="ccUnidade" onchange="onConvCompraUnidadeChange()"></select></div>
+        <div class="desc-campo"><label>Fornecedor</label><select id="ccFornecedor"></select></div>
+        <div class="desc-campo"><label>Ou novo fornecedor</label><input id="ccFornecedorNovo" maxlength="60" placeholder="Digite para cadastrar"></div>
+        <div class="desc-campo"><label>Categoria</label><select id="ccCategoria"></select></div>
+        <div class="desc-campo"><label>Nº da nota (opcional)</label><input id="ccNota" maxlength="30" placeholder="Ex.: 12345"></div>
+        <div class="desc-campo"><label>Data da compra</label><input type="date" id="ccData"></div>
+        <div class="desc-campo"><label>Valor total (R$)</label><input id="ccValor" inputmode="decimal" placeholder="1.250,00"></div>
+        <div class="desc-campo"><label>Vencimento (opcional)</label><input type="date" id="ccVencimento"></div>
+        <div class="desc-campo"><label>Observação (opcional)</label><input id="ccObs" maxlength="80" placeholder="Ex.: pago no boleto"></div>
+        <button class="btn-verde" onclick="lancarConvCompra()">Lançar compra</button>
+      </div>
+      <div class="msg-admin" id="msgConvCompra"></div>
+    </div>
+    <div class="grupo">
+      <h2>Compras do período</h2>
+      <p class="nota-dash">Escolha o período para ver as notas lançadas. Use o ✓ para marcar como paga e o ✕ para remover uma nota lançada errada.</p>
+      <div class="desc-mes-filtros">
+        <label class="cot-data-lbl">De: <input type="date" id="ccMesIni" onchange="carregarConvCompras()"></label>
+        <label class="cot-data-lbl">Até: <input type="date" id="ccMesFim" onchange="carregarConvCompras()"></label>
+        <label class="cot-data-lbl">Unidade: <select id="ccMesUnidade" onchange="renderConvCompras()"></select></label>
+        <label class="cot-data-lbl">Fornecedor: <select id="ccMesFornecedor" onchange="renderConvCompras()"></select></label>
+      </div>
+      <div id="ccConsolidado"></div>
+      <div id="ccLista"></div>
     </div>
   </div>
 
@@ -1577,6 +1670,10 @@ const docTransportadora = db.collection("config").doc("transportadora"); // cada
 const colPuxadas = db.collection("puxadas");                      // registro de puxadas da Full Transportadora
 const colDescontos = db.collection("descontos");                  // descontos dados aos clientes (Postos Full)
 const docClientes = db.collection("config").doc("clientes");      // clientes cadastrados por posto (autocompletar do Descontos)
+const colConvVendas = db.collection("convVendas");                // vendas da loja de conveniência (custo x venda x margem)
+const colConvCompras = db.collection("convCompras");              // compras/notas dos fornecedores da conveniência
+const docConvFornec = db.collection("config").doc("convFornecedores"); // fornecedores cadastrados por unidade (autocompletar das Compras)
+const docConvProdutos = db.collection("config").doc("convProdutos");   // produtos já vendidos por unidade (autocompletar das Vendas)
 const colEventos = db.collection("eventos");                      // eventos do calendário criados no próprio app (substituem a sincronização do Google)
 const docPermEventos = db.collection("config").doc("permissoesEventos"); // quem pode criar/editar eventos do calendário
 const colDocumentos = db.collection("documentos");                // documentos/licenças com vencimento (Central de Vencimentos)
@@ -1656,6 +1753,19 @@ let descDataSel = "";
 let descontosMes = [];                 // descontos do período (Consolidado no Mês)
 let escutaDescontosMes = null;
 let descMesIniSel = "", descMesFimSel = "", descMesClienteSel = "";
+/* ---- Full Conveniência ---- */
+let convVendas = [];                   // vendas da loja no dia selecionado
+let escutaConvVendas = null;
+let convVendaDataSel = "";
+let convVendasMes = [];                // vendas da loja no período (consolidado)
+let escutaConvVendasMes = null;
+let convVMesIniSel = "", convVMesFimSel = "";
+let convCompras = [];                  // compras/notas no período selecionado
+let escutaConvCompras = null;
+let convCMesIniSel = "", convCMesFimSel = "";
+let convFornecedores = { porUnidade: {} };   // fornecedores cadastrados por unidade
+let convProdutos = { porUnidade: {} };       // produtos já lançados por unidade
+let escutaConvFornec = null, escutaConvProdutos = null;
 let precosVenda = { porPosto: {}, porPostoPrazo: {}, atualizadoEm: "", por: "", atualizadoPrazoEm: "", porPrazo: "" };  // à vista (Petros) + a prazo (manual)
 let escutaPrecosVenda = null;
 let clientes = { porPosto: {} };       // clientes por posto (cadastro do Descontos)
@@ -1982,6 +2092,11 @@ function aoMudarLogin(usuario){
     if (escutaDescontosMes){ escutaDescontosMes(); escutaDescontosMes = null; }
     if (escutaPrecosVenda){ escutaPrecosVenda(); escutaPrecosVenda = null; }
     if (escutaClientes){ escutaClientes(); escutaClientes = null; }
+    if (escutaConvVendas){ escutaConvVendas(); escutaConvVendas = null; }
+    if (escutaConvVendasMes){ escutaConvVendasMes(); escutaConvVendasMes = null; }
+    if (escutaConvCompras){ escutaConvCompras(); escutaConvCompras = null; }
+    if (escutaConvFornec){ escutaConvFornec(); escutaConvFornec = null; }
+    if (escutaConvProdutos){ escutaConvProdutos(); escutaConvProdutos = null; }
     if (escutaPresenca){ escutaPresenca(); escutaPresenca = null; }
     if (heartbeatTimer){ clearInterval(heartbeatTimer); heartbeatTimer = null; }
     if (escutaRecados){ escutaRecados(); escutaRecados = null; }
@@ -3094,6 +3209,20 @@ function iniciarSync(){
     if (pd && pd.classList.contains("aberto")) popularSelectDescCliente();
   }, ()=>{});
 
+  // Fornecedores e produtos da Full Conveniência (autocompletar dos dois painéis)
+  escutaConvFornec = docConvFornec.onSnapshot(snap => {
+    const d = snap.exists ? (snap.data() || {}) : {};
+    convFornecedores = { porUnidade: (d && d.porUnidade) ? d.porUnidade : {} };
+    const pcc = document.getElementById("painelConvCompras");
+    if (pcc && pcc.classList.contains("aberto")) popularSelectConvFornecedor();
+  }, ()=>{});
+  escutaConvProdutos = docConvProdutos.onSnapshot(snap => {
+    const d = snap.exists ? (snap.data() || {}) : {};
+    convProdutos = { porUnidade: (d && d.porUnidade) ? d.porUnidade : {} };
+    const pcv = document.getElementById("painelConvVendas");
+    if (pcv && pcv.classList.contains("aberto")) popularProdutosConv();
+  }, ()=>{});
+
   // Cadastro de motoristas/caminhões (Full Transportadora)
   escutaTransportadora = docTransportadora.onSnapshot(snap => {
     if (!snap.exists){
@@ -3311,7 +3440,7 @@ function excluir(i){
 
 /* ================== Salvar / Carregar / Exportar ================== */
 // Painéis que ocupam a página; só um fica aberto por vez
-const PAINEIS = ["painelRegistros","painelDash","painelHistorico","painelSimular","painelDescontos","painelComparativo","painelPuxadas","painelCotacoes","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin"];
+const PAINEIS = ["painelRegistros","painelDash","painelHistorico","painelSimular","painelDescontos","painelComparativo","painelPuxadas","painelCotacoes","painelConvVendas","painelConvCompras","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin"];
 function fecharTodosPaineis(exceto){
   PAINEIS.forEach(id => {
     const el = document.getElementById(id);
@@ -3340,6 +3469,10 @@ function fecharTodosPaineis(exceto){
   if (bpux) bpux.classList.toggle("ativo", document.getElementById("painelPuxadas").classList.contains("aberto"));
   const bcot = document.getElementById("btnCotacoes");
   if (bcot) bcot.classList.toggle("ativo", document.getElementById("painelCotacoes").classList.contains("aberto"));
+  const bcv = document.getElementById("btnConvVendas");
+  if (bcv) bcv.classList.toggle("ativo", document.getElementById("painelConvVendas").classList.contains("aberto"));
+  const bcc = document.getElementById("btnConvCompras");
+  if (bcc) bcc.classList.toggle("ativo", document.getElementById("painelConvCompras").classList.contains("aberto"));
   const bav = document.getElementById("btnAvisos");
   if (bav) bav.classList.toggle("ativo", document.getElementById("painelAvisos").classList.contains("aberto"));
   const bsh = document.getElementById("btnSinoHeader");
@@ -3386,6 +3519,8 @@ const MENUS_APP = [
   {key:"comparativo", btn:"btnComparativo", pan:"painelComparativo", emp:"transp", nome:"Comparativo de Preços"},
   {key:"cotacoes",    btn:"btnCotacoes",    pan:"painelCotacoes",    emp:"transp", nome:"Cotações do Dia"},
   {key:"puxadas",     btn:"btnPuxadas",     pan:"painelPuxadas",     emp:"transp", nome:"Puxadas"},
+  {key:"convVendas",  btn:"btnConvVendas",  pan:"painelConvVendas",  emp:"conv",   nome:"Vendas e Margem da Loja"},
+  {key:"convCompras", btn:"btnConvCompras", pan:"painelConvCompras", emp:"conv",   nome:"Compras e Fornecedores"},
   {key:"calendario",  btn:"btnCalendario",  pan:"painelCalendario",  emp:"ambos",  nome:"Calendário"},
   {key:"vencimentos", btn:"btnVencimentos", pan:"painelVencimentos", emp:"ambos",  nome:"Documentos"},
   {key:"caixa",       btn:"btnCaixa",       pan:"painelCaixa",       emp:"ambos",  nome:"Caixa de entrada"},
@@ -3428,33 +3563,43 @@ function menuPermitido(key){
   if (ehAdminAtual()) return true;
   return menuPermitidoDe(usuarioAtual, key);
 }
-function menuVisivelEmpresa(m, ehTransp){
-  return m.emp === "ambos" || (m.emp === "postos" && !ehTransp) || (m.emp === "transp" && ehTransp);
+// Antes só existiam duas empresas, então bastava um sim/não ("é transportadora?").
+// Com a Full Conveniência virando a terceira, a comparação passa a ser pela sigla
+// da empresa — assim uma quarta empresa entra só acrescentando uma linha no mapa.
+const SIGLA_EMPRESA = { postos:"postos", transportadora:"transp", conveniencia:"conv" };
+function siglaEmpresa(emp){ return SIGLA_EMPRESA[emp || empresa] || "postos"; }
+function menuVisivelEmpresa(m, sigla){
+  if (!m.emp || m.emp === "ambos") return true;
+  const s = sigla || siglaEmpresa(empresa);
+  // "postos|conv" permite listar um menu em mais de uma empresa sem duplicar a entrada
+  return String(m.emp).split("|").indexOf(s) >= 0;
 }
 function aplicarVisibilidadeMenus(){
   instalarFerramentasPaineis();
-  const ehTransp = empresa === "transportadora";
+  const s = siglaEmpresa(empresa);
   MENUS_APP.forEach(m => {
     const b = document.getElementById(m.btn);
     if (!b) return;
-    b.style.display = (menuVisivelEmpresa(m, ehTransp) && menuPermitido(m.key)) ? "" : "none";
+    b.style.display = (menuVisivelEmpresa(m, s) && menuPermitido(m.key)) ? "" : "none";
   });
-  const gm = document.getElementById("grupoMotoristas"); if (gm) gm.style.display = ehTransp ? "" : "none";
-  const gpv = document.getElementById("grupoPrecosVenda"); if (gpv) gpv.style.display = ehTransp ? "none" : "";
-  const gcl = document.getElementById("grupoClientes"); if (gcl) gcl.style.display = ehTransp ? "none" : "";
+  // Blocos das Configurações que só fazem sentido em uma empresa
+  const gm = document.getElementById("grupoMotoristas"); if (gm) gm.style.display = (s === "transp") ? "" : "none";
+  const gpv = document.getElementById("grupoPrecosVenda"); if (gpv) gpv.style.display = (s === "postos") ? "" : "none";
+  const gcl = document.getElementById("grupoClientes"); if (gcl) gcl.style.display = (s === "postos") ? "" : "none";
 }
 // Abre o primeiro menu (com painel) permitido da empresa atual
 function abrirPrimeiroPermitido(){
-  const ehTransp = empresa === "transportadora";
-  const cand = MENUS_APP.filter(m => m.pan && menuVisivelEmpresa(m, ehTransp) && menuPermitido(m.key));
+  const s = siglaEmpresa(empresa);
+  const cand = MENUS_APP.filter(m => m.pan && menuVisivelEmpresa(m, s) && menuPermitido(m.key));
   if (cand.length){ const b = document.getElementById(cand[0].btn); if (b){ b.click(); return true; } }
   fecharTodosPaineis();
   return false;
 }
 function abrirPainelInicial(){
-  const ehTransp = empresa === "transportadora";
-  if (ehTransp && menuPermitido("comparativo")){ abrirComparativoInicial(); return; }
-  if (!ehTransp && menuPermitido("dash")){ abrirDashboardInicial(); return; }
+  const s = siglaEmpresa(empresa);
+  if (s === "transp" && menuPermitido("comparativo")){ abrirComparativoInicial(); return; }
+  if (s === "conv"   && menuPermitido("convVendas")){ abrirConvVendasInicial(); return; }
+  if (s === "postos" && menuPermitido("dash")){ abrirDashboardInicial(); return; }
   abrirPrimeiroPermitido();
 }
 // Se o painel aberto não for mais permitido, troca para um permitido
@@ -3464,11 +3609,12 @@ function garantirPainelPermitido(){
   if (aberta && !menuPermitido(aberta.key)) abrirPainelInicial();
 }
 
+const NOME_EMPRESA = { postos:"Postos Full", transportadora:"Full Transportadora", conveniencia:"Full Conveniência" };
 function aplicarEmpresa(trocarPainel){
-  const ehTransp = empresa === "transportadora";
-  document.body.classList.toggle("empresa-transportadora", ehTransp);
+  document.body.classList.toggle("empresa-transportadora", empresa === "transportadora");
+  document.body.classList.toggle("empresa-conveniencia", empresa === "conveniencia");
   const nome = document.getElementById("empresaNome");
-  if (nome) nome.textContent = ehTransp ? "Full Transportadora" : "Postos Full";
+  if (nome) nome.textContent = NOME_EMPRESA[empresa] || NOME_EMPRESA.postos;
   aplicarVisibilidadeMenus();
   // Destaca a opção ativa dentro da caixa
   const box = document.getElementById("empresaBox");
@@ -3477,7 +3623,7 @@ function aplicarEmpresa(trocarPainel){
 }
 
 function definirEmpresa(nova){
-  if (nova !== "postos" && nova !== "transportadora") return;
+  if (!NOME_EMPRESA[nova]) return;
   const mudou = nova !== empresa;
   empresa = nova;
   try { localStorage.setItem(CHAVE_EMPRESA, empresa); } catch {}
@@ -3499,11 +3645,17 @@ function abrirComparativoInicial(){
   if (painel && painel.classList.contains("aberto")){ renderComparativo(); return; }
   alternarComparativo();
 }
+// alternarConvVendas() é liga/desliga; no boot precisa só ligar, nunca desligar
+function abrirConvVendasInicial(){
+  const painel = document.getElementById("painelConvVendas");
+  if (painel && painel.classList.contains("aberto")){ renderConvVendas(); return; }
+  alternarConvVendas();
+}
 
 function restaurarEmpresa(){
   let e = "postos";
   try { e = localStorage.getItem(CHAVE_EMPRESA) || "postos"; } catch {}
-  empresa = (e === "transportadora") ? "transportadora" : "postos";
+  empresa = NOME_EMPRESA[e] ? e : "postos";   // valor desconhecido/antigo volta para o Postos Full
   aplicarEmpresa(false);   // no boot não força painel; o aoMudarLogin abre o painel inicial certo
 }
 
@@ -5630,6 +5782,443 @@ function renderPuxadas(){
 
 
 function parseVolComp(s){ const n = parseInt(String(s).replace(/\D/g,""),10); return isFinite(n)?n:0; }
+/* ================== Full Conveniência ==================
+   Dois painéis: "Vendas e Margem da Loja" e "Compras e Fornecedores".
+   O visual reaproveita as classes do Descontos (.desc-form, .dc-*, .desc-tabela)
+   de propósito: é a mesma linguagem que o Tiago já conhece no app. */
+const CATEGORIAS_CONV = ["Bebidas","Cervejas","Cigarros","Doces e salgados","Padaria e café",
+                         "Mercearia","Higiene e limpeza","Gelo e água","Acessórios automotivos","Outros"];
+
+// As unidades da conveniência são as mesmas do app (Teresina/Matriz, Caxias/Filial, Dutra),
+// então saem da mesma lista das Configurações — cadastrou lá, aparece aqui.
+function unidadesConv(){ return opcoesDe("posto") || []; }
+function popularSelectUnidadeConv(id, comTodas){
+  const sel = document.getElementById(id); if (!sel) return;
+  const uni = unidadesConv();
+  const atual = sel.value;
+  sel.innerHTML = (comTodas ? '<option value="">Todas as unidades</option>' : '') +
+    uni.map(u => '<option value="'+escAttr(u)+'">'+escAttr(u)+'</option>').join("");
+  if (atual && (uni.indexOf(atual) >= 0 || (comTodas && atual === ""))) sel.value = atual;
+}
+function popularSelectCategoriaConv(id, comTodas){
+  const sel = document.getElementById(id); if (!sel) return;
+  const atual = sel.value;
+  sel.innerHTML = (comTodas ? '<option value="">Todas as categorias</option>' : '<option value="">—</option>') +
+    CATEGORIAS_CONV.map(c => '<option value="'+escAttr(c)+'">'+escAttr(c)+'</option>').join("");
+  if (atual) sel.value = atual;
+}
+function primeiroDiaMesConv(){ return primeiroDiaMesISO(); }
+
+/* ---------- Vendas e margem da loja ---------- */
+function alternarConvVendas(){
+  const aberto = abrirPainelExclusivo("painelConvVendas");
+  const b = document.getElementById("btnConvVendas");
+  if (b) b.classList.toggle("ativo", aberto);
+  if (!aberto) return;
+  const dt = document.getElementById("cvData");
+  if (dt && !dt.value) dt.value = hojeISO();
+  popularSelectUnidadeConv("cvUnidade", false);
+  popularSelectUnidadeConv("cvMesUnidade", true);
+  popularSelectCategoriaConv("cvCategoria", false);
+  popularProdutosConv();
+  calcConvVendaPreview();
+  carregarConvVendas();
+  const ini = document.getElementById("cvMesIni"), fim = document.getElementById("cvMesFim");
+  if (ini && !ini.value) ini.value = primeiroDiaMesConv();
+  if (fim && !fim.value) fim.value = hojeISO();
+  carregarConvVendasMes();
+}
+function onConvUnidadeChange(){ popularProdutosConv(); }
+// O campo de produto é livre, mas oferece como sugestão o que já foi vendido
+// naquela unidade — assim o nome não vira "Coca 2L", "coca 2 l", "Coca-Cola 2L".
+function popularProdutosConv(){
+  const dl = document.getElementById("cvProdutosLista"); if (!dl) return;
+  const uni = (document.getElementById("cvUnidade")||{}).value || "";
+  const lista = (convProdutos.porUnidade || {})[uni] || [];
+  dl.innerHTML = lista.slice().sort((a,b)=>String(a).localeCompare(String(b),"pt-BR"))
+    .map(p => '<option value="'+escAttr(p)+'"></option>').join("");
+}
+function registrarProdutoConv(unidade, produto){
+  produto = (produto||"").trim();
+  if (!unidade || !produto || !nuvemPronta) return;
+  if (!convProdutos.porUnidade) convProdutos.porUnidade = {};
+  if (!Array.isArray(convProdutos.porUnidade[unidade])) convProdutos.porUnidade[unidade] = [];
+  const jaTem = convProdutos.porUnidade[unidade].some(p => String(p).toLowerCase() === produto.toLowerCase());
+  if (jaTem) return;
+  convProdutos.porUnidade[unidade].push(produto);
+  docConvProdutos.set({ porUnidade: convProdutos.porUnidade, atualizadoEm: new Date().toISOString(), por: usuarioAtual || "" }).catch(()=>{});
+}
+function calcConvVendaPreview(){
+  const qtd   = parseNumBR((document.getElementById("cvQtd")||{}).value || "");
+  const custo = parsePrecoComp((document.getElementById("cvCusto")||{}).value || "");
+  const venda = parsePrecoComp((document.getElementById("cvVenda")||{}).value || "");
+  const lucro = (venda - custo) * qtd;
+  const margem = venda > 0 ? ((venda - custo) / venda) * 100 : 0;
+  const elL = document.getElementById("cvLucroPreview");
+  if (elL) elL.textContent = "R$ " + fmtBR(lucro || 0, 2);
+  const elM = document.getElementById("cvMargemPreview");
+  if (elM){
+    if (venda > 0){
+      elM.textContent = "margem de " + fmtBR(margem, 1) + "%";
+      elM.className = "cv-prev-margem " + (margem >= 0 ? "cv-margem-boa" : "cv-margem-ruim");
+    } else { elM.textContent = ""; elM.className = "cv-prev-margem"; }
+  }
+}
+function lancarConvVenda(){
+  const unidade  = (document.getElementById("cvUnidade")||{}).value || "";
+  const categoria= (document.getElementById("cvCategoria")||{}).value || "";
+  const produto  = ((document.getElementById("cvProduto")||{}).value || "").trim();
+  const qtd      = parseNumBR((document.getElementById("cvQtd")||{}).value || "");
+  const custo    = parsePrecoComp((document.getElementById("cvCusto")||{}).value || "");
+  const venda    = parsePrecoComp((document.getElementById("cvVenda")||{}).value || "");
+  const obs      = ((document.getElementById("cvObs")||{}).value || "").trim();
+  if (!produto){ avisoAdmin("msgConvVenda", "Escreva o nome do produto.", "erro"); return; }
+  if (!(qtd > 0)){ avisoAdmin("msgConvVenda", "Informe a quantidade vendida.", "erro"); return; }
+  if (!(venda > 0)){ avisoAdmin("msgConvVenda", "Informe por quanto o produto foi vendido.", "erro"); return; }
+  const custoTotal = Math.round(custo * qtd * 100) / 100;
+  const vendaTotal = Math.round(venda * qtd * 100) / 100;
+  const lucro = Math.round((vendaTotal - custoTotal) * 100) / 100;
+  const margemPct = vendaTotal > 0 ? (lucro / vendaTotal) * 100 : 0;
+  const dt = document.getElementById("cvData");
+  const data = (dt && dt.value) || hojeISO();
+  const ag = new Date();
+  const hora = String(ag.getHours()).padStart(2,"0") + ":" + String(ag.getMinutes()).padStart(2,"0");
+  const id = novoId();
+  colConvVendas.doc(id).set({
+    data, hora, unidade, categoria, produto,
+    qtd, custoUnit: custo, vendaUnit: venda,
+    custoTotal, vendaTotal, lucro, margemPct,
+    obs, por: usuarioAtual || "", criadoEm: Date.now()
+  }).then(() => {
+    registrarProdutoConv(unidade, produto);
+    logAtividade({ acao:"criou", area:"Conveniência — Vendas", colecao:"convVendas", docId:id, tipoUndo:"criar",
+      resumo:"Lançou venda de " + escAttr(produto) + " (" + escAttr(unidade) + ") R$ " + fmtBR(vendaTotal,2) });
+    avisoAdmin("msgConvVenda", "Venda lançada: R$ " + fmtBR(vendaTotal,2) + " · lucro R$ " + fmtBR(lucro,2) + ".", "ok");
+    limparFormConvVenda();
+  }).catch(e => avisoAdmin("msgConvVenda", msgErro(e), "erro"));
+}
+function limparFormConvVenda(){
+  ["cvProduto","cvQtd","cvCusto","cvVenda","cvObs"].forEach(id => { const el = document.getElementById(id); if (el) el.value = ""; });
+  calcConvVendaPreview();
+}
+function carregarConvVendas(){
+  const dt = document.getElementById("cvData");
+  convVendaDataSel = (dt && dt.value) || hojeISO();
+  const rot = document.getElementById("cvDiaRotulo");
+  if (rot) rot.textContent = fmtDataCurta(convVendaDataSel);
+  if (escutaConvVendas){ escutaConvVendas(); escutaConvVendas = null; }
+  try {
+    escutaConvVendas = colConvVendas.where("data","==",convVendaDataSel).onSnapshot(snap => {
+      convVendas = [];
+      snap.forEach(d => convVendas.push(Object.assign({ id:d.id }, d.data() || {})));
+      renderConvVendas();
+    }, () => { renderConvVendas(); });
+  } catch(e){ renderConvVendas(); }
+}
+function removerConvVenda(id){
+  if (!id) return;
+  const v = (convVendas || []).find(x => x.id === id);
+  colConvVendas.doc(id).delete().then(() => {
+    if (v) logAtividade({ acao:"excluiu", area:"Conveniência — Vendas", colecao:"convVendas", docId:id, tipoUndo:"excluir", antes:v,
+      resumo:"Excluiu venda de " + escAttr(v.produto || "produto") + " R$ " + fmtBR(+v.vendaTotal || 0, 2) });
+  }).catch(()=>{});
+}
+// Cartão de resumo usado tanto no dia quanto no período — evita repetir o HTML
+function blocoConvResumo(titulo, itens){
+  let fat = 0, cus = 0;
+  itens.forEach(v => { fat += (+v.vendaTotal || 0); cus += (+v.custoTotal || 0); });
+  const luc = fat - cus;
+  const mg = fat > 0 ? (luc / fat) * 100 : 0;
+  return '<div class="desc-cons"><div class="dc-tit">' + titulo + '</div><div class="dc-grid">' +
+    '<div class="dc-item"><span class="dc-lbl">Faturamento</span><span class="dc-val">R$ ' + fmtBR(fat,2) + '</span></div>' +
+    '<div class="dc-item"><span class="dc-lbl">Custo</span><span class="dc-val">R$ ' + fmtBR(cus,2) + '</span></div>' +
+    '<div class="dc-item"><span class="dc-lbl">Lucro</span><span class="dc-val">R$ ' + fmtBR(luc,2) + '</span></div>' +
+    '<div class="dc-item"><span class="dc-lbl">Margem</span><span class="dc-val">' + fmtBR(mg,1) + '%</span></div>' +
+    '<div class="dc-item"><span class="dc-lbl">Lançamentos</span><span class="dc-val">' + itens.length + '</span></div>' +
+    '</div>';
+}
+// Lista "por alguma coisa" (unidade, categoria, produto) ordenada pelo lucro
+function blocoConvPor(titulo, mapa){
+  const ord = Object.keys(mapa).sort((a,b) => mapa[b].luc - mapa[a].luc);
+  if (!ord.length) return "";
+  let x = '<div class="dc-posto-tit">' + titulo + '</div><div class="dc-postos">';
+  ord.forEach(k => {
+    const m = mapa[k];
+    const mg = m.fat > 0 ? (m.luc / m.fat) * 100 : 0;
+    x += '<div class="dc-posto"><span class="dc-posto-nome">' + escAttr(k) + '</span>' +
+      '<span class="dc-posto-val">R$ ' + fmtBR(m.luc,2) + '</span>' +
+      '<span class="dc-posto-sub">venda R$ ' + fmtBR(m.fat,2) + ' · margem ' + fmtBR(mg,1) + '%</span></div>';
+  });
+  return x + '</div>';
+}
+function agruparConv(itens, chave){
+  const mapa = {};
+  itens.forEach(v => {
+    const k = (v[chave] || "").trim() || "(sem " + chave + ")";
+    if (!mapa[k]) mapa[k] = { fat:0, cus:0, luc:0, n:0 };
+    mapa[k].fat += (+v.vendaTotal || 0);
+    mapa[k].cus += (+v.custoTotal || 0);
+    mapa[k].luc += (+v.vendaTotal || 0) - (+v.custoTotal || 0);
+    mapa[k].n++;
+  });
+  return mapa;
+}
+function renderConvVendas(){
+  const cons = document.getElementById("cvConsolidado");
+  const cont = document.getElementById("cvLista");
+  if (!cons || !cont) return;
+  const itens = (convVendas || []).slice().sort((a,b) => String(a.hora||"").localeCompare(String(b.hora||"")));
+  cons.innerHTML = blocoConvResumo("🛒 Resumo do dia", itens) +
+    blocoConvPor("Por unidade", agruparConv(itens, "unidade")) +
+    blocoConvPor("Por categoria", agruparConv(itens, "categoria")) + '</div>';
+  if (!itens.length){ cont.innerHTML = '<p class="nota-dash">Nenhuma venda lançada neste dia.</p>'; return; }
+  const podeExcluir = v => (typeof ehAdminAtual === "function" && ehAdminAtual()) || (v.por && v.por === usuarioAtual);
+  let h = '<div class="desc-tabela-wrap"><table class="desc-tabela"><thead><tr>' +
+    '<th>Hora</th><th>Unidade</th><th>Categoria</th><th>Produto</th><th>Qtd</th><th>Custo un.</th><th>Venda un.</th>' +
+    '<th>Faturado</th><th>Lucro</th><th>Margem</th><th>Quem lançou</th><th></th></tr></thead><tbody>';
+  itens.forEach(v => {
+    const fat = +v.vendaTotal || 0, luc = +v.lucro || 0;
+    const mg = fat > 0 ? (luc / fat) * 100 : 0;
+    h += '<tr>' +
+      '<td data-lbl="Hora">' + escAttr(v.hora || "") + '</td>' +
+      '<td data-lbl="Unidade">' + escAttr(v.unidade || "—") + '</td>' +
+      '<td data-lbl="Categoria">' + escAttr(v.categoria || "—") + '</td>' +
+      '<td data-lbl="Produto">' + escAttr(v.produto || "") + '</td>' +
+      '<td data-lbl="Qtd">' + fmtBR(+v.qtd || 0, 0) + '</td>' +
+      '<td data-lbl="Custo un.">R$ ' + fmtBR(+v.custoUnit || 0, 2) + '</td>' +
+      '<td data-lbl="Venda un.">R$ ' + fmtBR(+v.vendaUnit || 0, 2) + '</td>' +
+      '<td data-lbl="Faturado">R$ ' + fmtBR(fat, 2) + '</td>' +
+      '<td data-lbl="Lucro"><b>R$ ' + fmtBR(luc, 2) + '</b></td>' +
+      '<td data-lbl="Margem"><span class="' + (luc >= 0 ? 'cv-margem-boa' : 'cv-margem-ruim') + '">' + fmtBR(mg,1) + '%</span></td>' +
+      '<td data-lbl="Quem lançou">' + escAttr(nomeDe(v.por || "")) + '</td>' +
+      '<td>' + (podeExcluir(v) ? '<button class="desc-x" title="Remover" onclick="removerConvVenda(\'' + escAspas(v.id) + '\')">✕</button>' : '') + '</td>' +
+    '</tr>';
+  });
+  cont.innerHTML = h + '</tbody></table></div>';
+}
+function carregarConvVendasMes(){
+  const iniEl = document.getElementById("cvMesIni"), fimEl = document.getElementById("cvMesFim");
+  let ini = (iniEl && iniEl.value) || primeiroDiaMesConv();
+  let fim = (fimEl && fimEl.value) || hojeISO();
+  if (ini > fim){ const t = ini; ini = fim; fim = t; }
+  convVMesIniSel = ini; convVMesFimSel = fim;
+  if (escutaConvVendasMes){ escutaConvVendasMes(); escutaConvVendasMes = null; }
+  try {
+    escutaConvVendasMes = colConvVendas.where("data",">=",ini).where("data","<=",fim).onSnapshot(snap => {
+      convVendasMes = [];
+      snap.forEach(d => convVendasMes.push(Object.assign({ id:d.id }, d.data() || {})));
+      renderConvVendasMes();
+    }, () => { renderConvVendasMes(); });
+  } catch(e){ renderConvVendasMes(); }
+}
+function renderConvVendasMes(){
+  const cont = document.getElementById("cvMesConsolidado"); if (!cont) return;
+  const uni = (document.getElementById("cvMesUnidade")||{}).value || "";
+  let itens = (convVendasMes || []).slice();
+  if (uni) itens = itens.filter(v => (v.unidade || "") === uni);
+  const periodo = fmtData(convVMesIniSel) + " a " + fmtData(convVMesFimSel);
+  if (!itens.length){
+    cont.innerHTML = '<p class="nota-dash">Nenhuma venda no período (' + escAttr(periodo) + ')' + (uni ? (' em ' + escAttr(uni)) : '') + '.</p>';
+    return;
+  }
+  // Só os 10 produtos que mais deram lucro — a lista inteira viraria uma parede de cartões
+  const porProduto = agruparConv(itens, "produto");
+  const top = {};
+  Object.keys(porProduto).sort((a,b) => porProduto[b].luc - porProduto[a].luc).slice(0,10)
+    .forEach(k => top[k] = porProduto[k]);
+  cont.innerHTML = blocoConvResumo("📅 Período — " + escAttr(periodo) + (uni ? (" · " + escAttr(uni)) : ""), itens) +
+    (uni ? "" : blocoConvPor("Por unidade", agruparConv(itens, "unidade"))) +
+    blocoConvPor("Por categoria", agruparConv(itens, "categoria")) +
+    blocoConvPor("Produtos que mais deram lucro", top) + '</div>';
+}
+
+/* ---------- Compras e fornecedores ---------- */
+function alternarConvCompras(){
+  const aberto = abrirPainelExclusivo("painelConvCompras");
+  const b = document.getElementById("btnConvCompras");
+  if (b) b.classList.toggle("ativo", aberto);
+  if (!aberto) return;
+  popularSelectUnidadeConv("ccUnidade", false);
+  popularSelectUnidadeConv("ccMesUnidade", true);
+  popularSelectCategoriaConv("ccCategoria", false);
+  popularSelectConvFornecedor();
+  const dc = document.getElementById("ccData"); if (dc && !dc.value) dc.value = hojeISO();
+  const ini = document.getElementById("ccMesIni"), fim = document.getElementById("ccMesFim");
+  if (ini && !ini.value) ini.value = primeiroDiaMesConv();
+  if (fim && !fim.value) fim.value = hojeISO();
+  carregarConvCompras();
+}
+function onConvCompraUnidadeChange(){ popularSelectConvFornecedor(); }
+function fornecedoresDaUnidade(uni){
+  const arr = (convFornecedores.porUnidade || {})[uni];
+  return Array.isArray(arr) ? arr : [];
+}
+function popularSelectConvFornecedor(){
+  const sel = document.getElementById("ccFornecedor"); if (!sel) return;
+  const uni = (document.getElementById("ccUnidade")||{}).value || "";
+  const lista = fornecedoresDaUnidade(uni).slice().sort((a,b)=>String(a).localeCompare(String(b),"pt-BR"));
+  const atual = sel.value;
+  sel.innerHTML = '<option value="">— selecione um fornecedor —</option>' +
+    lista.map(f => '<option value="'+escAttr(f)+'">'+escAttr(f)+'</option>').join("");
+  if (atual && lista.indexOf(atual) >= 0) sel.value = atual;
+}
+function registrarFornecedorConv(unidade, nome){
+  nome = (nome||"").trim();
+  if (!unidade || !nome || !nuvemPronta) return;
+  if (!convFornecedores.porUnidade) convFornecedores.porUnidade = {};
+  if (!Array.isArray(convFornecedores.porUnidade[unidade])) convFornecedores.porUnidade[unidade] = [];
+  if (convFornecedores.porUnidade[unidade].some(f => String(f).toLowerCase() === nome.toLowerCase())) return;
+  convFornecedores.porUnidade[unidade].push(nome);
+  docConvFornec.set({ porUnidade: convFornecedores.porUnidade, atualizadoEm: new Date().toISOString(), por: usuarioAtual || "" }).catch(()=>{});
+}
+function lancarConvCompra(){
+  const unidade = (document.getElementById("ccUnidade")||{}).value || "";
+  const novoEl  = document.getElementById("ccFornecedorNovo");
+  const novo    = novoEl ? (novoEl.value || "").trim() : "";
+  const fornecedor = novo || ((document.getElementById("ccFornecedor")||{}).value || "").trim();
+  const categoria  = (document.getElementById("ccCategoria")||{}).value || "";
+  const nota       = ((document.getElementById("ccNota")||{}).value || "").trim();
+  const data       = ((document.getElementById("ccData")||{}).value) || hojeISO();
+  const valor      = parsePrecoComp((document.getElementById("ccValor")||{}).value || "");
+  const vencimento = ((document.getElementById("ccVencimento")||{}).value) || "";
+  const obs        = ((document.getElementById("ccObs")||{}).value || "").trim();
+  if (!fornecedor){ avisoAdmin("msgConvCompra", "Escolha ou cadastre o fornecedor.", "erro"); return; }
+  if (!(valor > 0)){ avisoAdmin("msgConvCompra", "Informe o valor total da compra.", "erro"); return; }
+  const id = novoId();
+  colConvCompras.doc(id).set({
+    data, unidade, fornecedor, categoria, nota, valor, vencimento, obs,
+    pago: false, por: usuarioAtual || "", criadoEm: Date.now()
+  }).then(() => {
+    registrarFornecedorConv(unidade, fornecedor);
+    logAtividade({ acao:"criou", area:"Conveniência — Compras", colecao:"convCompras", docId:id, tipoUndo:"criar",
+      resumo:"Lançou compra de " + escAttr(fornecedor) + " (" + escAttr(unidade) + ") R$ " + fmtBR(valor,2) });
+    avisoAdmin("msgConvCompra", "Compra lançada: R$ " + fmtBR(valor,2) + " (" + fornecedor + ").", "ok");
+    limparFormConvCompra();
+  }).catch(e => avisoAdmin("msgConvCompra", msgErro(e), "erro"));
+}
+function limparFormConvCompra(){
+  ["ccFornecedorNovo","ccNota","ccValor","ccVencimento","ccObs"].forEach(id => { const el = document.getElementById(id); if (el) el.value = ""; });
+  const sf = document.getElementById("ccFornecedor"); if (sf) sf.value = "";
+}
+function carregarConvCompras(){
+  const iniEl = document.getElementById("ccMesIni"), fimEl = document.getElementById("ccMesFim");
+  let ini = (iniEl && iniEl.value) || primeiroDiaMesConv();
+  let fim = (fimEl && fimEl.value) || hojeISO();
+  if (ini > fim){ const t = ini; ini = fim; fim = t; }
+  convCMesIniSel = ini; convCMesFimSel = fim;
+  if (escutaConvCompras){ escutaConvCompras(); escutaConvCompras = null; }
+  try {
+    escutaConvCompras = colConvCompras.where("data",">=",ini).where("data","<=",fim).onSnapshot(snap => {
+      convCompras = [];
+      snap.forEach(d => convCompras.push(Object.assign({ id:d.id }, d.data() || {})));
+      popularSelectConvMesFornecedor();
+      renderConvCompras();
+    }, () => { renderConvCompras(); });
+  } catch(e){ renderConvCompras(); }
+}
+function popularSelectConvMesFornecedor(){
+  const sel = document.getElementById("ccMesFornecedor"); if (!sel) return;
+  const nomes = [...new Set((convCompras||[]).map(c => (c.fornecedor||"").trim()).filter(Boolean))]
+    .sort((a,b)=>a.localeCompare(b,"pt-BR"));
+  const atual = sel.value;
+  sel.innerHTML = '<option value="">Todos os fornecedores</option>' +
+    nomes.map(n => '<option value="'+escAttr(n)+'">'+escAttr(n)+'</option>').join("");
+  if (atual && nomes.indexOf(atual) >= 0) sel.value = atual;
+}
+function marcarConvCompraPaga(id, pago){
+  if (!id) return;
+  colConvCompras.doc(id).update({ pago: !!pago }).then(() => {
+    const c = (convCompras || []).find(x => x.id === id);
+    logAtividade({ acao:"alterou", area:"Conveniência — Compras", colecao:"convCompras", docId:id,
+      resumo:(pago ? "Marcou como paga" : "Reabriu") + " a compra de " + escAttr((c && c.fornecedor) || "fornecedor") });
+  }).catch(()=>{});
+}
+function removerConvCompra(id){
+  if (!id) return;
+  const c = (convCompras || []).find(x => x.id === id);
+  colConvCompras.doc(id).delete().then(() => {
+    if (c) logAtividade({ acao:"excluiu", area:"Conveniência — Compras", colecao:"convCompras", docId:id, tipoUndo:"excluir", antes:c,
+      resumo:"Excluiu compra de " + escAttr(c.fornecedor || "fornecedor") + " R$ " + fmtBR(+c.valor || 0, 2) });
+  }).catch(()=>{});
+}
+// Situação da nota: paga, vencida, vencendo nos próximos 7 dias, ou só em aberto
+function situacaoConvCompra(c){
+  if (c.pago) return { cls:"cc-pago", txt:"Paga" };
+  if (!c.vencimento) return { cls:"cc-aberto", txt:"Em aberto" };
+  const hoje = hojeISO();
+  if (c.vencimento < hoje) return { cls:"cc-vencido", txt:"Vencida" };
+  const lim = new Date(); lim.setDate(lim.getDate() + 7);
+  const limISO = lim.getFullYear()+"-"+String(lim.getMonth()+1).padStart(2,"0")+"-"+String(lim.getDate()).padStart(2,"0");
+  if (c.vencimento <= limISO) return { cls:"cc-perto", txt:"Vence em breve" };
+  return { cls:"cc-aberto", txt:"Em aberto" };
+}
+function renderConvCompras(){
+  const cons = document.getElementById("ccConsolidado");
+  const cont = document.getElementById("ccLista");
+  if (!cons || !cont) return;
+  const uni = (document.getElementById("ccMesUnidade")||{}).value || "";
+  const forn = (document.getElementById("ccMesFornecedor")||{}).value || "";
+  let itens = (convCompras || []).slice();
+  if (uni) itens = itens.filter(c => (c.unidade || "") === uni);
+  if (forn) itens = itens.filter(c => (c.fornecedor || "").trim() === forn);
+  itens.sort((a,b) => String(b.data||"").localeCompare(String(a.data||"")));
+  const periodo = fmtData(convCMesIniSel) + " a " + fmtData(convCMesFimSel);
+  let total = 0, aberto = 0, vencido = 0;
+  const porForn = {}, porUni = {};
+  itens.forEach(c => {
+    const v = +c.valor || 0;
+    total += v;
+    if (!c.pago){ aberto += v; if (c.vencimento && c.vencimento < hojeISO()) vencido += v; }
+    const f = (c.fornecedor || "").trim() || "(sem fornecedor)";
+    if (!porForn[f]) porForn[f] = { val:0, n:0 }; porForn[f].val += v; porForn[f].n++;
+    const u = c.unidade || "(sem unidade)";
+    if (!porUni[u]) porUni[u] = { val:0, n:0 }; porUni[u].val += v; porUni[u].n++;
+  });
+  const blocoVal = (titulo, mapa) => {
+    const ord = Object.keys(mapa).sort((a,b) => mapa[b].val - mapa[a].val);
+    if (!ord.length) return "";
+    let x = '<div class="dc-posto-tit">' + titulo + '</div><div class="dc-postos">';
+    ord.forEach(k => {
+      x += '<div class="dc-posto"><span class="dc-posto-nome">' + escAttr(k) + '</span>' +
+        '<span class="dc-posto-val">R$ ' + fmtBR(mapa[k].val,2) + '</span>' +
+        '<span class="dc-posto-sub">' + mapa[k].n + (mapa[k].n === 1 ? ' nota' : ' notas') + '</span></div>';
+    });
+    return x + '</div>';
+  };
+  cons.innerHTML = '<div class="desc-cons"><div class="dc-tit">📦 Compras do período — ' + escAttr(periodo) +
+      (uni ? (' · ' + escAttr(uni)) : '') + (forn ? (' · ' + escAttr(forn)) : '') + '</div><div class="dc-grid">' +
+      '<div class="dc-item"><span class="dc-lbl">Total comprado</span><span class="dc-val">R$ ' + fmtBR(total,2) + '</span></div>' +
+      '<div class="dc-item"><span class="dc-lbl">Ainda em aberto</span><span class="dc-val">R$ ' + fmtBR(aberto,2) + '</span></div>' +
+      '<div class="dc-item"><span class="dc-lbl">Vencido</span><span class="dc-val">R$ ' + fmtBR(vencido,2) + '</span></div>' +
+      '<div class="dc-item"><span class="dc-lbl">Notas</span><span class="dc-val">' + itens.length + '</span></div>' +
+    '</div>' + (uni ? "" : blocoVal("Por unidade", porUni)) + blocoVal("Por fornecedor", porForn) + '</div>';
+  if (!itens.length){ cont.innerHTML = '<p class="nota-dash">Nenhuma compra lançada no período.</p>'; return; }
+  const podeMexer = c => (typeof ehAdminAtual === "function" && ehAdminAtual()) || (c.por && c.por === usuarioAtual);
+  let h = '<div class="desc-tabela-wrap"><table class="desc-tabela"><thead><tr>' +
+    '<th>Data</th><th>Unidade</th><th>Fornecedor</th><th>Categoria</th><th>Nota</th><th>Valor</th>' +
+    '<th>Vencimento</th><th>Situação</th><th>Obs.</th><th>Quem lançou</th><th></th></tr></thead><tbody>';
+  itens.forEach(c => {
+    const s = situacaoConvCompra(c);
+    h += '<tr>' +
+      '<td data-lbl="Data">' + escAttr(fmtData(c.data || "")) + '</td>' +
+      '<td data-lbl="Unidade">' + escAttr(c.unidade || "—") + '</td>' +
+      '<td data-lbl="Fornecedor">' + escAttr(c.fornecedor || "") + '</td>' +
+      '<td data-lbl="Categoria">' + escAttr(c.categoria || "—") + '</td>' +
+      '<td data-lbl="Nota">' + escAttr(c.nota || "—") + '</td>' +
+      '<td data-lbl="Valor"><b>R$ ' + fmtBR(+c.valor || 0, 2) + '</b></td>' +
+      '<td data-lbl="Vencimento">' + (c.vencimento ? escAttr(fmtData(c.vencimento)) : "—") + '</td>' +
+      '<td data-lbl="Situação"><span class="cc-pill ' + s.cls + '">' + s.txt + '</span></td>' +
+      '<td data-lbl="Obs.">' + escAttr(c.obs || "") + '</td>' +
+      '<td data-lbl="Quem lançou">' + escAttr(nomeDe(c.por || "")) + '</td>' +
+      '<td>' + (podeMexer(c)
+        ? '<button class="cc-ok" title="' + (c.pago ? 'Marcar como não paga' : 'Marcar como paga') + '" onclick="marcarConvCompraPaga(\'' + escAspas(c.id) + '\',' + (c.pago ? 'false' : 'true') + ')">' + (c.pago ? '↺' : '✓') + '</button> ' +
+          '<button class="desc-x" title="Remover" onclick="removerConvCompra(\'' + escAspas(c.id) + '\')">✕</button>'
+        : '') + '</td>' +
+    '</tr>';
+  });
+  cont.innerHTML = h + '</tbody></table></div>';
+}
+
 function parsePrecoComp(s){
   s = String(s).trim().replace(/\s/g,"");
   if (s === "") return 0;
@@ -6539,7 +7128,8 @@ function renderDashboard(){
 // Barrinha "Exportar PDF / Imprimir" no topo de cada menu de conteúdo (v113 — saiu da barra lateral)
 function instalarFerramentasPaineis(){
   const alvos = ["painelDash","painelRegistros","painelHistorico","painelSimular","painelDescontos",
-                 "painelComparativo","painelCotacoes","painelPuxadas","painelAvisos","painelCalendario","painelVencimentos"];
+                 "painelComparativo","painelCotacoes","painelPuxadas","painelAvisos","painelCalendario","painelVencimentos",
+                 "painelConvVendas","painelConvCompras"];
   alvos.forEach(id => {
     const p = document.getElementById(id);
     if (!p || p.querySelector(".painel-tools")) return;
@@ -6561,6 +7151,8 @@ function painelVisivelInfo(){
     ["painelPuxadas",   "Puxadas",     "puxadas"],
     ["painelComparativo", "Comparativo de Preços", "comparativo"],
     ["painelCotacoes",  "Cotações do Dia", "cotacoes"],
+    ["painelConvVendas",  "Vendas e Margem da Loja", "vendas_loja"],
+    ["painelConvCompras", "Compras e Fornecedores",  "compras"],
     ["painelAvisos",    "Notificações", "notificacoes"],
     ["painelCalendario","Calendário",   "calendario"],
     ["painelVencimentos","Documentos",  "documentos"],
@@ -6576,7 +7168,9 @@ function painelVisivelInfo(){
 }
 
 function nomeArquivoPadrao(info){
-  const prefixo = (typeof empresa !== "undefined" && empresa === "transportadora") ? "full_transportadora_" : "postos_full_";
+  // Cada empresa gera arquivo com o próprio nome, para não misturar na pasta de downloads
+  const PREFIXO_EMPRESA = { postos:"postos_full_", transportadora:"full_transportadora_", conveniencia:"full_conveniencia_" };
+  const prefixo = (typeof empresa !== "undefined" && PREFIXO_EMPRESA[empresa]) ? PREFIXO_EMPRESA[empresa] : PREFIXO_EMPRESA.postos;
   return prefixo + info.slug + "_" + new Date().toISOString().slice(0,10);
 }
 
@@ -6593,7 +7187,8 @@ function cabecalhoPDF(doc, subtitulo){
   doc.setFillColor(30,30,30); doc.rect(0,0,210,22,"F");
   doc.setFillColor(255,100,1); doc.rect(0,22,210,1.4,"F");
   doc.setTextColor(255,255,255); doc.setFont("helvetica","bold"); doc.setFontSize(14);
-  doc.text((typeof empresa !== "undefined" && empresa === "transportadora") ? "FULL TRANSPORTADORA" : "POSTOS FULL", 12, 10);
+  const TITULO_PDF = { postos:"POSTOS FULL", transportadora:"FULL TRANSPORTADORA", conveniencia:"FULL CONVENIÊNCIA" };
+  doc.text((typeof empresa !== "undefined" && TITULO_PDF[empresa]) ? TITULO_PDF[empresa] : TITULO_PDF.postos, 12, 10);
   doc.setFont("helvetica","normal"); doc.setFontSize(9);
   doc.text(subtitulo || "Controle de Margens", 12, 16.5);
   const ag = new Date();
