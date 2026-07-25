@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Postos Full — Controle de Margens</title>
+<title>Postos Full</title>
 <link rel="icon" href="favicon.ico?v=1" sizes="any">
 <link rel="icon" type="image/png" href="favicon-32.png?v=1" sizes="32x32">
 <link rel="manifest" href="manifest.json">
@@ -7189,7 +7189,7 @@ function cabecalhoPDF(doc, subtitulo){
   const TITULO_PDF = { postos:"POSTOS FULL", transportadora:"FULL TRANSPORTADORA", conveniencia:"FULL CONVENIÊNCIA" };
   doc.text((typeof empresa !== "undefined" && TITULO_PDF[empresa]) ? TITULO_PDF[empresa] : TITULO_PDF.postos, 12, 10);
   doc.setFont("helvetica","normal"); doc.setFontSize(9);
-  doc.text(subtitulo || "Controle de Margens", 12, 16.5);
+  if (subtitulo) doc.text(subtitulo, 12, 16.5);
   const ag = new Date();
   doc.setFontSize(7.5);
   doc.text("Gerado em " + ag.toLocaleDateString("pt-BR") + " " + ag.toLocaleTimeString("pt-BR").slice(0,5), 198, 16.5, { align:"right" });
@@ -7604,7 +7604,7 @@ function exportarPDFTabela(nomeArquivo){
   doc.text("POSTOS FULL", 14, 11);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  doc.text("Controle de Margens — Combustíveis", 14, 18);
+  doc.text("Lançamentos — Combustíveis", 14, 18);
   const agora = new Date();
   doc.setFontSize(8);
   doc.text("Gerado em " + agora.toLocaleDateString("pt-BR") + " às " + agora.toLocaleTimeString("pt-BR").slice(0,5), 283, 18, { align: "right" });
