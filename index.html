@@ -3823,6 +3823,7 @@ function abrirPrimeiroPermitido(){
 }
 function abrirPainelInicial(){
   const s = siglaEmpresa(empresa);
+  if (s === "transp" && menuPermitido("infleet")){ abrirInfleetInicial(); return; }
   if (s === "transp" && menuPermitido("comparativo")){ abrirComparativoInicial(); return; }
   if (s === "conv"   && menuPermitido("convVendas")){ abrirConvVendasInicial(); return; }
   if (s === "postos" && menuPermitido("dash")){ abrirDashboardInicial(); return; }
@@ -3870,6 +3871,11 @@ function abrirComparativoInicial(){
   const painel = document.getElementById("painelComparativo");
   if (painel && painel.classList.contains("aberto")){ renderComparativo(); return; }
   alternarComparativo();
+}
+function abrirInfleetInicial(){
+  const painel = document.getElementById("painelInfleet");
+  if (painel && painel.classList.contains("aberto")){ renderInfleet(); return; }
+  alternarInfleet();
 }
 // alternarConvVendas() é liga/desliga; no boot precisa só ligar, nunca desligar
 function abrirConvVendasInicial(){
