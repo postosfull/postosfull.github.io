@@ -3539,7 +3539,7 @@ function iniciarSync(){
     const dt = (snap.exists && snap.data()) ? snap.data() : {};
     clientesPedido = (Array.isArray(dt.clientesPedido) && dt.clientesPedido.length) ? dt.clientesPedido : CLIENTES_PEDIDO_PADRAO.slice();
     basesPedido = (Array.isArray(dt.basesPedido) && dt.basesPedido.length) ? dt.basesPedido : BASES_PEDIDO_PADRAO.slice();
-    companhiasPedido = (Array.isArray(dt.companhiasPedido) && dt.companhiasPedido.length) ? dt.companhiasPedido : COMPANHIAS_PEDIDO_PADRAO.slice();
+    companhiasPedido = Array.isArray(dt.companhiasPedido) ? dt.companhiasPedido : [];
     const ppd = document.getElementById("painelPedido");
     if (ppd && ppd.classList.contains("aberto")) renderPedido();
     const pm = document.getElementById("painelConfig");
@@ -4401,10 +4401,10 @@ const CLIENTES_PEDIDO_PADRAO = [
   { nome:"Discar Distribuidora Caxias", cnpj:"07.034.675/0001-09" }
 ];
 const BASES_PEDIDO_PADRAO = ["A COMBINAR"];
-const COMPANHIAS_PEDIDO_PADRAO = ["PETROBAHIA","VIBRA","RAÍZEN","IPIRANGA"];
+const COMPANHIAS_PEDIDO_PADRAO = [];   // as distribuidoras vêm das Configurações
 let clientesPedido = CLIENTES_PEDIDO_PADRAO.slice();
 let basesPedido = BASES_PEDIDO_PADRAO.slice();
-let companhiasPedido = COMPANHIAS_PEDIDO_PADRAO.slice();
+let companhiasPedido = [];   // legado: não é mais usado na lista de distribuidoras
 let pedido = null;
 
 function novoPedido(){
@@ -4507,12 +4507,9 @@ function opcoesProdutoPedido(sel){
 // As distribuidoras são as MESMAS cadastradas em Configurações (usadas nas Cotações,
 // no Comparativo e nas Puxadas); o que for digitado só aqui entra depois da lista.
 function listaDistribuidorasPedido(){
-  const base = (typeof opcoesDe === "function" && opcoesDe("distribuidora")) ? opcoesDe("distribuidora").slice() : [];
-  const vistos = base.map(x => String(x).toLowerCase());
-  companhiasPedido.forEach(x => {
-    if (x && vistos.indexOf(String(x).toLowerCase()) < 0){ base.push(x); vistos.push(String(x).toLowerCase()); }
-  });
-  return base;
+  // Uma lista só, a das Configurações — assim o que for cadastrado/removido lá vale aqui,
+  // e não sobra nome órfão que ninguém consegue apagar.
+  return (typeof opcoesDe === "function" && opcoesDe("distribuidora")) ? opcoesDe("distribuidora").slice() : [];
 }
 function renderPedido(forcarCampos){
   if (!pedido) pedido = novoPedido();
@@ -4622,8 +4619,7 @@ function salvarListasPedido(){
   });
   const base = String(pedido.base||"").trim();
   if (base && !basesPedido.some(b => b.toLowerCase() === base.toLowerCase())){ basesPedido.push(base); mudou = true; }
-  const comp = String(pedido.companhia||"").trim();
-  if (comp && !listaDistribuidorasPedido().some(b => String(b).toLowerCase() === comp.toLowerCase())){ companhiasPedido.push(comp); mudou = true; }
+  // Distribuidora digitada não é mais guardada aqui: quem manda é o cadastro das Configurações.
   // CPF do motorista fica guardado no cadastro dele
   const m = motoristas.find(x => x.id === pedido.motoristaId);
   if (m){
@@ -4634,7 +4630,6 @@ function salvarListasPedido(){
   if (!mudou) return;
   dados.clientesPedido = clientesPedido;
   dados.basesPedido = basesPedido;
-  dados.companhiasPedido = companhiasPedido;
   docTransportadora.set(dados, {merge:true}).catch(()=>{});
 }
 function enviarPedidoWhats(){
