@@ -459,9 +459,11 @@
   .resumo-dash .cartao-kpi b{display:block;font-size:1.05rem;color:var(--txt)}
   .resumo-dash .cartao-kpi b small{font-size:.72rem;color:var(--cinza);font-weight:600}
   .resumo-dash .cartao-kpi span{font-size:.72rem;color:var(--cinza);text-transform:uppercase;letter-spacing:.4px}
-  .res-tab{table-layout:fixed;width:100%}
-  .res-tab th:first-child, .res-tab td:first-child{width:62%}
-  .res-tab th:last-child,  .res-tab td:last-child{width:38%;text-align:right}
+  /* Tabelas do Resumo do dia: colunas estreitas e coladas uma na outra, em vez de
+     esticadas de ponta a ponta da tela (pedido do Tiago) */
+  .res-tab{table-layout:fixed;width:100%;max-width:430px}
+  .res-tab th:first-child, .res-tab td:first-child{width:52%}
+  .res-tab th:last-child,  .res-tab td:last-child{width:48%;text-align:right}
   .res-msg{
     white-space:pre-wrap;word-break:break-word;font-family:inherit;font-size:.9rem;line-height:1.5;
     background:var(--superficie-2);border:1px solid var(--borda);border-radius:8px;padding:12px 14px;margin:6px 0 0;
