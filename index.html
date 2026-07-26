@@ -1321,9 +1321,18 @@
       <p class="nota-dash" id="infMsg" style="margin-top:8px"></p>
     </div>
     <div class="grupo">
-      <h2>Dados da frota dentro do app</h2>
-      <p class="nota-dash">Em breve os números do Infleet aparecem aqui dentro, atualizados sozinhos — do mesmo jeito que as puxadas já chegam dos CT-e. Primeiros itens combinados: onde estão os caminhões, abastecimentos e consumo, manutenção e checklists, multas e comportamento do motorista.</p>
-      <div id="infleetResumo"></div>
+      <h2>🚛 Frota agora</h2>
+      <p class="nota-dash">Onde estava cada caminhão na última vez que o app conversou com o Infleet, com motorista, se estava ligado, o local e o odômetro.</p>
+      <div id="infleetFrotaBox"></div>
+    </div>
+    <div class="grupo">
+      <h2>⛽ Abastecimentos — <span id="infMesRotulo"></span></h2>
+      <p class="nota-dash">Quanto cada caminhão abasteceu no mês, quanto custou, o preço médio do litro e a média de quilômetros por litro.</p>
+      <div class="pux-mes-nav">
+        <button class="btn-claro" onclick="mudarMesInfleet(-1)">◀ Mês anterior</button>
+        <button class="btn-claro" onclick="mudarMesInfleet(1)">Próximo mês ▶</button>
+      </div>
+      <div id="infleetAbastBox"></div>
     </div>
   </div>
 
@@ -1728,6 +1737,13 @@ const colEventos = db.collection("eventos");                      // eventos do 
 const docPermEventos = db.collection("config").doc("permissoesEventos"); // quem pode criar/editar eventos do calendário
 const colDocumentos = db.collection("documentos");                // documentos/licenças com vencimento (Central de Vencimentos)
 const colArquivos = db.collection("arquivos");                    // metadados dos arquivos (licenças/contratos) guardados no Firebase Storage
+const docInfleetFrota = db.collection("config").doc("infleetFrota"); // foto da frota vinda do APP Infleet (rastreamento)
+const colInfAbast = db.collection("infleetAbastecimentos");         // abastecimentos importados do APP Infleet
+let infleetFrota = null;               // {atualizadoEm, por, veiculos:[...]} — última foto da frota
+let infAbastecimentos = [];            // abastecimentos importados do Infleet (mais recentes primeiro)
+let mesInfleet = null;                 // mês mostrado no bloco de abastecimentos (AAAA-MM)
+let escutaInfFrota = null;
+let escutaInfAbast = null;
 let usuarioAtual = "";                 // e-mail de quem está logado (para o histórico)
 let nomeUsuario = "";                  // nome amigável do usuário logado
 let perfis = {};                       // mapa e-mail -> nome, sincronizado da nuvem
@@ -2138,6 +2154,8 @@ function aoMudarLogin(usuario){
     if (escutaAlertas){ escutaAlertas(); escutaAlertas = null; }
     if (escutaTransportadora){ escutaTransportadora(); escutaTransportadora = null; }
     if (escutaPuxadas){ escutaPuxadas(); escutaPuxadas = null; }
+    if (escutaInfFrota){ escutaInfFrota(); escutaInfFrota = null; }
+    if (escutaInfAbast){ escutaInfAbast(); escutaInfAbast = null; }
     if (escutaDescontos){ escutaDescontos(); escutaDescontos = null; }
     if (escutaDescontosMes){ escutaDescontosMes(); escutaDescontosMes = null; }
     if (escutaPrecosVenda){ escutaPrecosVenda(); escutaPrecosVenda = null; }
@@ -3427,6 +3445,21 @@ function iniciarSync(){
     if (pp && pp.classList.contains("aberto")) renderPuxadas();
   }, ()=>{});
 
+  // APP Infleet — foto da frota e abastecimentos importados (Full Transportadora)
+  escutaInfFrota = docInfleetFrota.onSnapshot(snap => {
+    infleetFrota = snap.exists ? (snap.data() || null) : null;
+    const pi = document.getElementById("painelInfleet");
+    if (pi && pi.classList.contains("aberto")) renderInfleet();
+  }, ()=>{});
+  escutaInfAbast = colInfAbast.onSnapshot(snap => {
+    const lista = [];
+    snap.forEach(d => lista.push({ id: d.id, ...d.data() }));
+    lista.sort((x,y)=>String(y.data||"").localeCompare(String(x.data||"")));
+    infAbastecimentos = lista;
+    const pi = document.getElementById("painelInfleet");
+    if (pi && pi.classList.contains("aberto")) renderInfleet();
+  }, ()=>{});
+
   // Notificações (avisos das agendas Google dos postos)
   escutaAvisos = docAvisos.onSnapshot(snap => {
     avisosDia = snap.exists ? (snap.data() || null) : null;
@@ -4027,10 +4060,111 @@ function copiarLinkInfleet(){
   try { document.execCommand("copy"); } catch(e) {}
   document.body.removeChild(t); fim();
 }
-function renderInfleet(){
-  const el = document.getElementById("infleetResumo");
-  if (!el) return;
-  el.innerHTML = '<p class="nota-dash">Ainda n\u00e3o h\u00e1 dados do Infleet salvos no app.</p>';
+function renderInfleet(){ renderInfFrota(); renderInfAbast(); }
+
+// "2026-07-26T02:23" -> "26/07 às 02:23"
+function fmtQuandoInf(iso){
+  const s = String(iso||"");
+  if (s.length < 10) return "—";
+  const dia = s.slice(8,10)+"/"+s.slice(5,7);
+  const hora = s.slice(11,16);
+  return hora ? (dia+" às "+hora) : dia;
+}
+function nomeCombInf(c){
+  const m = { DIESEL_S10:"Diesel S10", DIESEL_S500:"Diesel S500", DIESEL:"Diesel", ARLA_32:"Arla 32",
+              GASOLINA:"Gasolina", GASOLINA_COMUM:"Gasolina", ETANOL:"Etanol" };
+  return m[c] || String(c||"").replace(/_/g," ");
+}
+function renderInfFrota(){
+  const box = document.getElementById("infleetFrotaBox");
+  if (!box) return;
+  const f = infleetFrota;
+  const lista = (f && Array.isArray(f.veiculos)) ? f.veiculos : [];
+  if (!lista.length){
+    box.innerHTML = '<p class="nota-dash">Ainda não recebemos os dados do Infleet. Eles chegam junto com a sincronização da manhã e da de hora em hora.</p>';
+    return;
+  }
+  let h = '<div class="tabela-wrap"><table class="pux-tab pux-lista"><thead><tr><th>Caminhão</th><th>Motorista</th><th>Situação</th><th>Onde está</th><th>Última posição</th><th>Odômetro</th></tr></thead><tbody>';
+  lista.forEach(v => {
+    const vel = (+v.velocidade > 1) ? (' · '+fmtBR(+v.velocidade,0)+' km/h') : '';
+    const sit = v.ligado ? ('🟢 Ligado'+vel) : '⚪ Desligado';
+    h += '<tr>'+
+      '<td data-lbl="Caminhão"><b>'+escAttr(v.nome||v.placa||"—")+'</b><br><span class="nota-dash">'+escAttr(v.placa||"")+'</span></td>'+
+      '<td data-lbl="Motorista">'+escAttr(v.motorista||"—")+'</td>'+
+      '<td data-lbl="Situação">'+sit+'</td>'+
+      '<td data-lbl="Onde está">'+escAttr(v.onde||"—")+'</td>'+
+      '<td data-lbl="Última posição">'+fmtQuandoInf(v.quando)+'</td>'+
+      '<td data-lbl="Odômetro">'+fmtBR(+v.km||0,0)+' km</td>'+
+    '</tr>';
+  });
+  h += '</tbody></table></div>';
+  if (f && f.atualizadoEm) h += '<p class="nota-dash">Atualizado em '+fmtQuandoInf(f.atualizadoEm)+'.</p>';
+  box.innerHTML = h;
+}
+function mudarMesInfleet(delta){
+  if (!mesInfleet) mesInfleet = hojeISO().slice(0,7);
+  let a = parseInt(mesInfleet.slice(0,4),10), mm = parseInt(mesInfleet.slice(5,7),10) + delta;
+  if (mm<1){ mm=12; a--; } else if (mm>12){ mm=1; a++; }
+  mesInfleet = a+"-"+String(mm).padStart(2,"0");
+  renderInfAbast();
+}
+function renderInfAbast(){
+  if (!mesInfleet) mesInfleet = hojeISO().slice(0,7);
+  const rot = document.getElementById("infMesRotulo");
+  if (rot) rot.textContent = fmtMesRotulo(mesInfleet);
+  const box = document.getElementById("infleetAbastBox");
+  if (!box) return;
+  const doMes = infAbastecimentos.filter(a => String(a.data||"").slice(0,7)===mesInfleet);
+  if (!doMes.length){
+    box.innerHTML = '<p class="nota-dash">Nenhum abastecimento neste mês.</p>';
+    return;
+  }
+  const porVeic = {};
+  doMes.forEach(a => {
+    const k = a.placa || "—";
+    if (!porVeic[k]) porVeic[k] = { nome:a.veiculo||"", motorista:a.motorista||"", litros:0, valor:0, qtd:0, somaKmL:0, nKmL:0 };
+    const r = porVeic[k];
+    r.litros += (+a.litros||0); r.valor += (+a.valor||0); r.qtd += 1;
+    if (+a.kmPorLitro > 0){ r.somaKmL += (+a.kmPorLitro); r.nKmL += 1; }
+    if (!r.motorista && a.motorista) r.motorista = a.motorista;
+    if (!r.nome && a.veiculo) r.nome = a.veiculo;
+  });
+  const placas = Object.keys(porVeic).sort((x,y)=>porVeic[y].valor-porVeic[x].valor);
+  let totL=0, totV=0, totQ=0;
+  let h = '<div class="tabela-wrap"><table class="pux-tab pux-lista pux-resumo"><thead><tr><th>Caminhão</th><th>Abastec.</th><th>Litros</th><th>Gasto</th><th>R$/L médio</th><th>Média km/L</th></tr></thead><tbody>';
+  placas.forEach(pl => {
+    const r = porVeic[pl]; totL+=r.litros; totV+=r.valor; totQ+=r.qtd;
+    const precoL = r.litros>0 ? (r.valor/r.litros) : 0;
+    const kml = r.nKmL ? (r.somaKmL/r.nKmL) : 0;
+    h += '<tr>'+
+      '<td data-lbl="Caminhão"><b>'+escAttr(r.nome||pl)+'</b><br><span class="nota-dash">'+escAttr(pl+(r.motorista?(" · "+r.motorista):""))+'</span></td>'+
+      '<td data-lbl="Abastec.">'+r.qtd+'</td>'+
+      '<td data-lbl="Litros">'+fmtLitros(r.litros)+' L</td>'+
+      '<td data-lbl="Gasto">R$ '+fmtBR(r.valor,2)+'</td>'+
+      '<td data-lbl="R$/L médio">R$ '+fmtBR(precoL,3)+'</td>'+
+      '<td data-lbl="Média km/L">'+(kml? fmtBR(kml,2) : "—")+'</td>'+
+    '</tr>';
+  });
+  const precoT = totL>0 ? (totV/totL) : 0;
+  h += '<tr class="pux-total"><td data-lbl="Caminhão">Total</td><td data-lbl="Abastec.">'+totQ+'</td><td data-lbl="Litros">'+fmtLitros(totL)+' L</td><td data-lbl="Gasto">R$ '+fmtBR(totV,2)+'</td><td data-lbl="R$/L médio">R$ '+fmtBR(precoT,3)+'</td><td data-lbl="Média km/L">—</td></tr>';
+  h += '</tbody></table></div>';
+  h += '<p class="nota-dash"><b>Abastecimento por abastecimento</b></p>';
+  h += '<div class="tabela-wrap"><table class="pux-tab pux-lista"><thead><tr><th>Data</th><th>Caminhão</th><th>Motorista</th><th>Combustível</th><th>Litros</th><th>R$/L</th><th>Valor</th><th>km/L</th><th>Onde abasteceu</th></tr></thead><tbody>';
+  doMes.forEach(a => {
+    h += '<tr>'+
+      '<td data-lbl="Data">'+fmtDataCurta(a.data)+'</td>'+
+      '<td data-lbl="Caminhão">'+escAttr(a.veiculo||a.placa||"")+'</td>'+
+      '<td data-lbl="Motorista">'+escAttr(a.motorista||"—")+'</td>'+
+      '<td data-lbl="Combustível">'+escAttr(nomeCombInf(a.combustivel))+'</td>'+
+      '<td data-lbl="Litros">'+fmtLitros(+a.litros||0)+' L</td>'+
+      '<td data-lbl="R$/L">R$ '+fmtBR(+a.precoLitro||0,3)+'</td>'+
+      '<td data-lbl="Valor">R$ '+fmtBR(+a.valor||0,2)+'</td>'+
+      '<td data-lbl="km/L">'+((+a.kmPorLitro>0)? fmtBR(+a.kmPorLitro,2) : "—")+'</td>'+
+      '<td data-lbl="Onde abasteceu">'+escAttr(a.fornecedor||"")+'</td>'+
+    '</tr>';
+  });
+  h += '</tbody></table></div>';
+  box.innerHTML = h;
 }
 
 /* ================== Cotações do Dia ================== */
