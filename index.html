@@ -461,7 +461,7 @@
   .resumo-dash .cartao-kpi span{font-size:.72rem;color:var(--cinza);text-transform:uppercase;letter-spacing:.4px}
   /* Tabelas do Resumo do dia: colunas estreitas e coladas uma na outra, em vez de
      esticadas de ponta a ponta da tela (pedido do Tiago) */
-  .res-tab{table-layout:fixed;width:100%;max-width:430px}
+  .res-tab{table-layout:fixed;width:100%;min-width:0;max-width:430px}   /* min-width:0 anula o table{min-width:1100px} global */
   .res-tab th:first-child, .res-tab td:first-child{width:52%}
   .res-tab th:last-child,  .res-tab td:last-child{width:48%;text-align:right}
   .res-msg{
@@ -4150,7 +4150,7 @@ function renderResumoDia(){
     let tot = 0;
     h += '<div class="tabela-wrap"><table class="pux-tab pux-lista pux-resumo res-tab"><thead><tr><th>Posto</th><th>Litros vendidos</th></tr></thead><tbody>';
     postos.forEach(x => { tot += (+x.litros||0);
-      h += '<tr><td data-lbl="Posto">'+escAttr(x.unidade||"")+'</td><td data-lbl="Litros vendidos">'+fmtLitros(+x.litros||0)+' L</td></tr>'; });
+      h += '<tr><td data-lbl="Posto">'+escAttr(nomeUnidadeResumo(x.unidade))+'</td><td data-lbl="Litros vendidos">'+fmtLitros(+x.litros||0)+' L</td></tr>'; });
     h += '<tr class="pux-total"><td data-lbl="Posto">Total</td><td data-lbl="Litros vendidos">'+fmtLitros(tot)+' L</td></tr>';
     h += '</tbody></table></div>';
   }
@@ -4158,7 +4158,7 @@ function renderResumoDia(){
     let tot = 0;
     h += '<div class="tabela-wrap"><table class="pux-tab pux-lista pux-resumo res-tab"><thead><tr><th>Conveniência</th><th>Faturamento</th></tr></thead><tbody>';
     lojas.forEach(x => { tot += (+x.faturamento||0);
-      h += '<tr><td data-lbl="Conveniência">'+escAttr(x.unidade||"")+'</td><td data-lbl="Faturamento">R$ '+fmtBR(+x.faturamento||0,2)+'</td></tr>'; });
+      h += '<tr><td data-lbl="Conveniência">'+escAttr(nomeUnidadeResumo(x.unidade))+'</td><td data-lbl="Faturamento">R$ '+fmtBR(+x.faturamento||0,2)+'</td></tr>'; });
     h += '<tr class="pux-total"><td data-lbl="Conveniência">Total</td><td data-lbl="Faturamento">R$ '+fmtBR(tot,2)+'</td></tr>';
     h += '</tbody></table></div>';
   }
@@ -4171,31 +4171,49 @@ function renderResumoDia(){
   box.innerHTML = h;
   if (pre) pre.textContent = montarTextoResumo(dia);
 }
+// "Pres. Dutra" (nome que vem do Adaptive) aparece como "Dutra" para o pessoal
+function nomeUnidadeResumo(u){
+  const s = String(u||"").trim();
+  return /dutra/i.test(s) ? "Dutra" : s;
+}
+// Bloco de largura fixa (```) para os números ficarem alinhados no WhatsApp
+function blocoAlinhadoResumo(itens){
+  const w1 = itens.reduce((m,i)=>Math.max(m, i.nome.length), 0);
+  const w2 = itens.reduce((m,i)=>Math.max(m, i.valor.length), 0);
+  const linhas = itens.map(i => i.nome.padEnd(w1) + "  " + i.valor.padStart(w2));
+  return "```\n" + linhas.join("\n") + "\n```";
+}
 function montarTextoResumo(dia){
   const r = resumosDia[dia];
   if (!r) return "";
   const linhas = [];
-  linhas.push("📊 Full — vendas de " + nomeDiaSemana(dia) + ", " + fmtDataCurta(dia));
+  linhas.push("📊 Vendas de " + nomeDiaSemana(dia) + ", " + fmtDataCurta(dia));
   const postos = r.postos || [], lojas = r.lojas || [];
   if (postos.length){
     let tot = 0;
+    const itens = postos.map(x => { tot += (+x.litros||0);
+      return { nome: nomeUnidadeResumo(x.unidade), valor: fmtLitros(+x.litros||0) + " L" }; });
+    itens.push({ nome:"Total", valor: fmtLitros(tot) + " L" });
     linhas.push("");
     linhas.push("⛽ Postos (litros)");
-    postos.forEach(x => { tot += (+x.litros||0); linhas.push("• " + (x.unidade||"") + ": " + fmtLitros(+x.litros||0) + " L"); });
-    linhas.push("Total: " + fmtLitros(tot) + " L");
+    linhas.push(blocoAlinhadoResumo(itens));
   }
   if (lojas.length){
     let tot = 0;
+    const itens = lojas.map(x => { tot += (+x.faturamento||0);
+      return { nome: nomeUnidadeResumo(x.unidade), valor: "R$ " + fmtBR(+x.faturamento||0,2) }; });
+    itens.push({ nome:"Total", valor: "R$ " + fmtBR(tot,2) });
     linhas.push("");
     linhas.push("🛒 Conveniências (faturamento)");
-    lojas.forEach(x => { tot += (+x.faturamento||0); linhas.push("• " + (x.unidade||"") + ": R$ " + fmtBR(+x.faturamento||0,2)); });
-    linhas.push("Total: R$ " + fmtBR(tot,2));
+    linhas.push(blocoAlinhadoResumo(itens));
   }
   const ac = acumuladoMesResumo(dia);
   linhas.push("");
   linhas.push("📅 No mês até aqui");
-  linhas.push("Postos: " + fmtLitros(ac.litros) + " L");
-  linhas.push("Conveniências: R$ " + fmtBR(ac.fat,2));
+  linhas.push(blocoAlinhadoResumo([
+    { nome:"Postos", valor: fmtLitros(ac.litros) + " L" },
+    { nome:"Conveniências", valor: "R$ " + fmtBR(ac.fat,2) }
+  ]));
   return linhas.join("\n");
 }
 function enviarResumoWhats(){
