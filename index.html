@@ -3453,6 +3453,9 @@ function iniciarSync(){
       } catch {}
       renderConfig();
       render();
+      // mudou a lista de distribuidoras/postos: se o Pedido estiver aberto, atualiza na hora
+      const ppd = document.getElementById("painelPedido");
+      if (ppd && ppd.classList.contains("aberto")) renderPedido();
     } else {
       // Config ainda não existe na nuvem: migra as listas locais (postos, distribuidoras, frete)
       docConfig.set({ listas, fretePadrao }).catch(()=>{});
