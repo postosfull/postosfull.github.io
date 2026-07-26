@@ -459,6 +459,10 @@
   .resumo-dash .cartao-kpi b{display:block;font-size:1.05rem;color:var(--txt)}
   .resumo-dash .cartao-kpi b small{font-size:.72rem;color:var(--cinza);font-weight:600}
   .resumo-dash .cartao-kpi span{font-size:.72rem;color:var(--cinza);text-transform:uppercase;letter-spacing:.4px}
+  .res-msg{
+    white-space:pre-wrap;word-break:break-word;font-family:inherit;font-size:.9rem;line-height:1.5;
+    background:var(--superficie-2);border:1px solid var(--borda);border-radius:8px;padding:12px 14px;margin:6px 0 0;
+  }
   .inf-sumido{color:var(--vermelho);font-size:.78rem;font-weight:600}
   .inf-linha-sumida td:first-child{border-left:3px solid var(--vermelho)}
   .resumo-dash .sobe{color:var(--vermelho)}
@@ -1155,6 +1159,7 @@
     </div>
     <div class="menu-sep"></div>
     <button class="btn-claro" id="btnDash" onclick="alternarDash()"><span class="mi">📈</span><span class="mt">Dashboard</span></button>
+    <button class="btn-claro" id="btnResumoDia" onclick="alternarResumoDia()"><span class="mi">📊</span><span class="mt">Resumo do dia</span></button>
     <button class="btn-claro" id="btnRegistros" onclick="alternarRegistros()"><span class="mi">📋</span><span class="mt">Lançamentos</span></button>
     <button class="btn-claro" id="btnHistorico" onclick="alternarHistorico()"><span class="mi">🕐</span><span class="mt">Histórico</span></button>
     <button class="btn-claro" id="btnSimular" onclick="alternarSimular()"><span class="mi">💰</span><span class="mt">Simular Margens</span></button>
@@ -1464,6 +1469,25 @@
     </div>
   </div>
 
+  <div class="config" id="painelResumoDia">
+    <div class="grupo">
+      <h2>📊 Resumo do dia</h2>
+      <p class="nota-dash">Vendas do dia anterior: quantos litros cada posto vendeu e quanto cada loja faturou. Os números chegam sozinhos na sincronização da manhã.</p>
+      <label class="cot-data-lbl">Dia: <input type="date" id="resData" onchange="renderResumoDia()"></label>
+      <div id="resumoDiaBox"></div>
+    </div>
+    <div class="grupo">
+      <h2>📲 Mensagem para o grupo</h2>
+      <p class="nota-dash">Texto pronto para mandar no WhatsApp. O botão abre o WhatsApp já com a mensagem escrita — é só escolher o grupo e enviar.</p>
+      <pre id="resumoTexto" class="res-msg"></pre>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px">
+        <button class="btn-verde" onclick="enviarResumoWhats()">📲 Enviar no WhatsApp</button>
+        <button class="btn-claro" onclick="copiarResumoTexto()">📋 Copiar mensagem</button>
+      </div>
+      <p class="nota-dash" id="resMsg" style="margin-top:8px"></p>
+    </div>
+  </div>
+
   <div class="config" id="painelDash">
     <div class="grupo">
       <div id="conteudoPetros"></div>
@@ -1748,6 +1772,9 @@ const colEventos = db.collection("eventos");                      // eventos do 
 const docPermEventos = db.collection("config").doc("permissoesEventos"); // quem pode criar/editar eventos do calendário
 const colDocumentos = db.collection("documentos");                // documentos/licenças com vencimento (Central de Vencimentos)
 const colArquivos = db.collection("arquivos");                    // metadados dos arquivos (licenças/contratos) guardados no Firebase Storage
+const colResumoDiario = db.collection("resumoDiario");             // um doc por dia: litros por posto + faturamento por loja
+let resumosDia = {};                   // "AAAA-MM-DD" -> {postos:[...], lojas:[...], coletadoEm}
+let escutaResumos = null;
 const docInfleetFrota = db.collection("config").doc("infleetFrota"); // foto da frota vinda do APP Infleet (rastreamento)
 const colInfAbast = db.collection("infleetAbastecimentos");         // abastecimentos importados do APP Infleet
 let infleetFrota = null;               // {atualizadoEm, por, veiculos:[...]} — última foto da frota
@@ -2165,6 +2192,7 @@ function aoMudarLogin(usuario){
     if (escutaAlertas){ escutaAlertas(); escutaAlertas = null; }
     if (escutaTransportadora){ escutaTransportadora(); escutaTransportadora = null; }
     if (escutaPuxadas){ escutaPuxadas(); escutaPuxadas = null; }
+    if (escutaResumos){ escutaResumos(); escutaResumos = null; }
     if (escutaInfFrota){ escutaInfFrota(); escutaInfFrota = null; }
     if (escutaInfAbast){ escutaInfAbast(); escutaInfAbast = null; }
     if (escutaDescontos){ escutaDescontos(); escutaDescontos = null; }
@@ -3456,6 +3484,15 @@ function iniciarSync(){
     if (pp && pp.classList.contains("aberto")) renderPuxadas();
   }, ()=>{});
 
+  // Resumo diário (vendas do dia anterior: litros nos postos, faturamento nas lojas)
+  escutaResumos = colResumoDiario.onSnapshot(snap => {
+    const m = {};
+    snap.forEach(d => m[d.id] = d.data() || {});
+    resumosDia = m;
+    const pr = document.getElementById("painelResumoDia");
+    if (pr && pr.classList.contains("aberto")) renderResumoDia();
+  }, ()=>{});
+
   // APP Infleet — foto da frota e abastecimentos importados (Full Transportadora)
   escutaInfFrota = docInfleetFrota.onSnapshot(snap => {
     infleetFrota = snap.exists ? (snap.data() || null) : null;
@@ -3663,7 +3700,7 @@ function excluir(i){
 
 /* ================== Salvar / Carregar / Exportar ================== */
 // Painéis que ocupam a página; só um fica aberto por vez
-const PAINEIS = ["painelRegistros","painelDash","painelHistorico","painelSimular","painelDescontos","painelComparativo","painelPuxadas","painelCotacoes","painelInfleet","painelConvVendas","painelConvCompras","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin"];
+const PAINEIS = ["painelRegistros","painelDash","painelResumoDia","painelHistorico","painelSimular","painelDescontos","painelComparativo","painelPuxadas","painelCotacoes","painelInfleet","painelConvVendas","painelConvCompras","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin"];
 function fecharTodosPaineis(exceto){
   PAINEIS.forEach(id => {
     const el = document.getElementById(id);
@@ -3682,6 +3719,8 @@ function fecharTodosPaineis(exceto){
   if (bu) bu.classList.toggle("ativo", document.getElementById("painelAdmin").classList.contains("aberto"));
   const bd = document.getElementById("btnDash");
   if (bd) bd.classList.toggle("ativo", document.getElementById("painelDash").classList.contains("aberto"));
+  const brd = document.getElementById("btnResumoDia");
+  if (brd) brd.classList.toggle("ativo", document.getElementById("painelResumoDia").classList.contains("aberto"));
   const bs = document.getElementById("btnSimular");
   if (bs) bs.classList.toggle("ativo", document.getElementById("painelSimular").classList.contains("aberto"));
   const bdesc = document.getElementById("btnDescontos");
@@ -3737,6 +3776,7 @@ const CHAVE_EMPRESA = "margens_empresa";
 // Registro central dos menus (para empresa + permissões por usuário)
 const MENUS_APP = [
   {key:"dash",        btn:"btnDash",        pan:"painelDash",        emp:"postos", nome:"Dashboard"},
+  {key:"resumoDia",   btn:"btnResumoDia",   pan:"painelResumoDia",   emp:"postos|conv", nome:"Resumo do dia"},
   {key:"registros",   btn:"btnRegistros",   pan:"painelRegistros",   emp:"postos", nome:"Lançamentos"},
   {key:"historico",   btn:"btnHistorico",   pan:"painelHistorico",   emp:"postos", nome:"Histórico"},
   {key:"simular",     btn:"btnSimular",     pan:"painelSimular",     emp:"postos", nome:"Simular Margens"},
@@ -4048,6 +4088,134 @@ function alternarSimular(){
   const bs = document.getElementById("btnSimular");
   if (bs) bs.classList.toggle("ativo", aberto);
   if (aberto) prepararSimulador();
+}
+
+/* ================== Resumo do dia (vendas do dia anterior) ================== */
+function ontemISO(){
+  const d = new Date(); d.setDate(d.getDate()-1);
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+const DIAS_SEMANA = ["domingo","segunda-feira","terça-feira","quarta-feira","quinta-feira","sexta-feira","sábado"];
+function nomeDiaSemana(iso){
+  const p = String(iso||"").split("-");
+  if (p.length !== 3) return "";
+  return DIAS_SEMANA[new Date(+p[0], +p[1]-1, +p[2]).getDay()] || "";
+}
+function alternarResumoDia(){
+  const aberto = abrirPainelExclusivo("painelResumoDia");
+  const b = document.getElementById("btnResumoDia");
+  if (b) b.classList.toggle("ativo", aberto);
+  if (aberto){
+    const dt = document.getElementById("resData");
+    if (dt && !dt.value) dt.value = ontemISO();
+    renderResumoDia();
+  }
+}
+function diaResumoSel(){
+  const dt = document.getElementById("resData");
+  return (dt && dt.value) ? dt.value : ontemISO();
+}
+// Soma do mês do dia escolhido, até esse dia (inclusive)
+function acumuladoMesResumo(dia){
+  const mes = String(dia).slice(0,7);
+  let litros = 0, fat = 0, dias = 0;
+  Object.keys(resumosDia).forEach(d => {
+    if (d.slice(0,7) !== mes || d > dia) return;
+    const r = resumosDia[d] || {};
+    (r.postos||[]).forEach(x => litros += (+x.litros||0));
+    (r.lojas||[]).forEach(x => fat += (+x.faturamento||0));
+    dias++;
+  });
+  return { litros, fat, dias };
+}
+function renderResumoDia(){
+  const dia = diaResumoSel();
+  const box = document.getElementById("resumoDiaBox");
+  const pre = document.getElementById("resumoTexto");
+  const r = resumosDia[dia];
+  if (!box) return;
+  if (!r){
+    box.innerHTML = '<p class="nota-dash">Ainda não temos os números deste dia. Eles são coletados na sincronização da manhã.</p>';
+    if (pre) pre.textContent = "";
+    return;
+  }
+  const postos = r.postos || [], lojas = r.lojas || [];
+  let h = "";
+  if (postos.length){
+    let tot = 0;
+    h += '<div class="tabela-wrap"><table class="pux-tab pux-lista pux-resumo"><thead><tr><th>Posto</th><th>Litros vendidos</th></tr></thead><tbody>';
+    postos.forEach(x => { tot += (+x.litros||0);
+      h += '<tr><td data-lbl="Posto">'+escAttr(x.unidade||"")+'</td><td data-lbl="Litros vendidos">'+fmtLitros(+x.litros||0)+' L</td></tr>'; });
+    h += '<tr class="pux-total"><td data-lbl="Posto">Total</td><td data-lbl="Litros vendidos">'+fmtLitros(tot)+' L</td></tr>';
+    h += '</tbody></table></div>';
+  }
+  if (lojas.length){
+    let tot = 0;
+    h += '<div class="tabela-wrap"><table class="pux-tab pux-lista pux-resumo"><thead><tr><th>Loja</th><th>Faturamento</th></tr></thead><tbody>';
+    lojas.forEach(x => { tot += (+x.faturamento||0);
+      h += '<tr><td data-lbl="Loja">'+escAttr(x.unidade||"")+'</td><td data-lbl="Faturamento">R$ '+fmtBR(+x.faturamento||0,2)+'</td></tr>'; });
+    h += '<tr class="pux-total"><td data-lbl="Loja">Total</td><td data-lbl="Faturamento">R$ '+fmtBR(tot,2)+'</td></tr>';
+    h += '</tbody></table></div>';
+  }
+  const ac = acumuladoMesResumo(dia);
+  h += '<div class="resumo-dash" style="margin-top:12px">'+
+       '<div class="cartao-kpi"><span>No mês até este dia</span><b>'+fmtLitros(ac.litros)+' L <small>em '+ac.dias+' dia'+(ac.dias===1?'':'s')+'</small></b></div>'+
+       '<div class="cartao-kpi"><span>Faturamento das lojas no mês</span><b>R$ '+fmtBR(ac.fat,2)+'</b></div>'+
+       '</div>';
+  if (r.coletadoEm) h += '<p class="nota-dash">Coletado em '+String(r.coletadoEm).slice(8,10)+'/'+String(r.coletadoEm).slice(5,7)+' às '+String(r.coletadoEm).slice(11,16)+'.</p>';
+  box.innerHTML = h;
+  if (pre) pre.textContent = montarTextoResumo(dia);
+}
+function montarTextoResumo(dia){
+  const r = resumosDia[dia];
+  if (!r) return "";
+  const linhas = [];
+  linhas.push("📊 Full — vendas de " + nomeDiaSemana(dia) + ", " + fmtDataCurta(dia));
+  const postos = r.postos || [], lojas = r.lojas || [];
+  if (postos.length){
+    let tot = 0;
+    linhas.push("");
+    linhas.push("⛽ Postos (litros)");
+    postos.forEach(x => { tot += (+x.litros||0); linhas.push("• " + (x.unidade||"") + ": " + fmtLitros(+x.litros||0) + " L"); });
+    linhas.push("Total: " + fmtLitros(tot) + " L");
+  }
+  if (lojas.length){
+    let tot = 0;
+    linhas.push("");
+    linhas.push("🛒 Lojas (faturamento)");
+    lojas.forEach(x => { tot += (+x.faturamento||0); linhas.push("• " + (x.unidade||"") + ": R$ " + fmtBR(+x.faturamento||0,2)); });
+    linhas.push("Total: R$ " + fmtBR(tot,2));
+  }
+  const ac = acumuladoMesResumo(dia);
+  linhas.push("");
+  linhas.push("📅 No mês até aqui: " + fmtLitros(ac.litros) + " L · R$ " + fmtBR(ac.fat,2));
+  return linhas.join("\n");
+}
+function enviarResumoWhats(){
+  const txt = montarTextoResumo(diaResumoSel());
+  const m = document.getElementById("resMsg");
+  if (!txt){ if (m) m.textContent = "Não há resumo para este dia."; return; }
+  const url = "https://wa.me/?text=" + encodeURIComponent(txt);
+  let janela = null;
+  try { janela = window.open(url, "_blank", "noopener"); } catch(e) {}
+  if (!janela){
+    if (m) m.innerHTML = 'O aparelho bloqueou a abertura. Toque aqui: <a href="' + url + '" target="_blank" rel="noopener">abrir o WhatsApp</a>.';
+  } else if (m){
+    m.textContent = "WhatsApp aberto — escolha o grupo e envie.";
+  }
+}
+function copiarResumoTexto(){
+  const txt = montarTextoResumo(diaResumoSel());
+  const m = document.getElementById("resMsg");
+  const fim = () => { if (m) m.textContent = "Mensagem copiada."; };
+  if (!txt){ if (m) m.textContent = "Não há resumo para este dia."; return; }
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(fim, fim); return; }
+  } catch(e) {}
+  const ta = document.createElement("textarea");
+  ta.value = txt; document.body.appendChild(ta); ta.select();
+  try { document.execCommand("copy"); } catch(e) {}
+  document.body.removeChild(ta); fim();
 }
 
 /* ================== APP Infleet (Full Transportadora) ================== */
