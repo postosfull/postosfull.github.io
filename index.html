@@ -3654,7 +3654,7 @@ function excluir(i){
 
 /* ================== Salvar / Carregar / Exportar ================== */
 // Painéis que ocupam a página; só um fica aberto por vez
-const PAINEIS = ["painelRegistros","painelDash","painelHistorico","painelSimular","painelDescontos","painelComparativo","painelPuxadas","painelCotacoes","painelConvVendas","painelConvCompras","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin"];
+const PAINEIS = ["painelRegistros","painelDash","painelHistorico","painelSimular","painelDescontos","painelComparativo","painelPuxadas","painelCotacoes","painelInfleet","painelConvVendas","painelConvCompras","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin"];
 function fecharTodosPaineis(exceto){
   PAINEIS.forEach(id => {
     const el = document.getElementById(id);
@@ -3683,6 +3683,8 @@ function fecharTodosPaineis(exceto){
   if (bpux) bpux.classList.toggle("ativo", document.getElementById("painelPuxadas").classList.contains("aberto"));
   const bcot = document.getElementById("btnCotacoes");
   if (bcot) bcot.classList.toggle("ativo", document.getElementById("painelCotacoes").classList.contains("aberto"));
+  const binf = document.getElementById("btnInfleet");
+  if (binf) binf.classList.toggle("ativo", document.getElementById("painelInfleet").classList.contains("aberto"));
   const bcv = document.getElementById("btnConvVendas");
   if (bcv) bcv.classList.toggle("ativo", document.getElementById("painelConvVendas").classList.contains("aberto"));
   const bcc = document.getElementById("btnConvCompras");
