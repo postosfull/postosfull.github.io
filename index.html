@@ -1362,6 +1362,7 @@
       <p class="nota-dash">Preencha os campos e o app monta a mensagem pronta para o grupo dos motoristas. Escolher o motorista já traz o CPF e as placas; escolher o cliente já traz o CNPJ.</p>
       <div class="desc-form">
         <div class="desc-campo"><label>Motorista</label><select id="pedMotorista" onchange="onPedMotorista(this.value)"></select></div>
+        <div class="desc-campo"><label>Nome completo do motorista</label><input id="pedNomeMot" maxlength="60" placeholder="Nome como vai no pedido" oninput="pedCampo('motorista', this.value)"></div>
         <div class="desc-campo"><label>CPF do motorista</label><input id="pedCpf" maxlength="18" placeholder="000.000.000-00" oninput="pedCampo('cpf', this.value)"></div>
         <div class="desc-campo"><label>Caminhão (placa)</label><input id="pedCaminhao" maxlength="10" oninput="pedCampo('caminhao', this.value)"></div>
         <div class="desc-campo"><label>Tanque (placa)</label><input id="pedTanque" maxlength="10" oninput="pedCampo('tanque', this.value)"></div>
@@ -4431,7 +4432,7 @@ function onPedMotorista(id){
   if (!pedido) pedido = novoPedido();
   const m = motoristas.find(x => x.id === id);
   pedido.motoristaId = id;
-  pedido.motorista = m ? m.nome : "";
+  pedido.motorista = m ? (m.nomeCompleto || m.nome) : "";
   if (m){
     if (m.cpf) pedido.cpf = m.cpf;
     if (m.placaCaminhao) pedido.caminhao = m.placaCaminhao;
@@ -4503,7 +4504,7 @@ function renderPedido(forcarCampos){
   if (dlB) dlB.innerHTML = basesPedido.map(x => '<option value="'+escAttr(x)+'">').join("");
   if (forcarCampos){
     const set = (id, v) => { const el = document.getElementById(id); if (el && document.activeElement !== el) el.value = v || ""; };
-    set("pedCpf", pedido.cpf); set("pedCaminhao", pedido.caminhao); set("pedTanque", pedido.tanque);
+    set("pedNomeMot", pedido.motorista); set("pedCpf", pedido.cpf); set("pedCaminhao", pedido.caminhao); set("pedTanque", pedido.tanque);
     set("pedHora", pedido.hora); set("pedCompanhia", pedido.companhia); set("pedBase", pedido.base);
   }
   // destinos
@@ -4598,10 +4599,10 @@ function salvarListasPedido(){
   if (comp && !companhiasPedido.some(b => b.toLowerCase() === comp.toLowerCase())){ companhiasPedido.push(comp); mudou = true; }
   // CPF do motorista fica guardado no cadastro dele
   const m = motoristas.find(x => x.id === pedido.motoristaId);
-  if (m && pedido.cpf && m.cpf !== pedido.cpf){
-    m.cpf = pedido.cpf;
-    dados.motoristas = motoristas;
-    mudou = true;
+  if (m){
+    if (pedido.cpf && m.cpf !== pedido.cpf){ m.cpf = pedido.cpf; dados.motoristas = motoristas; mudou = true; }
+    const nc = String(pedido.motorista||"").trim();
+    if (nc && nc !== m.nome && m.nomeCompleto !== nc){ m.nomeCompleto = nc; dados.motoristas = motoristas; mudou = true; }
   }
   if (!mudou) return;
   dados.clientesPedido = clientesPedido;
