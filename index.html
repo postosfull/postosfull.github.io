@@ -480,10 +480,12 @@
   .cardres-mes b{color:#1b1f24;font-variant-numeric:tabular-nums}
   .ped-comp{border:1px solid var(--borda);border-radius:10px;padding:10px 12px;margin:10px 0;background:var(--superficie-2)}
   .ped-comp-tit{font-size:.72rem;font-weight:700;color:var(--cinza);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
-  .ped-linha{display:grid;grid-template-columns:1fr 130px 40px;gap:8px;align-items:center;margin-bottom:6px}
+  .ped-linha{display:grid;grid-template-columns:1fr 40px 110px 40px 38px;gap:6px;align-items:center;margin-bottom:6px}
+  .ped-linha .ped-passo{padding:8px 0;font-size:1.05rem;font-weight:700;line-height:1}
+  .ped-linha input{text-align:right}
   .ped-linha select,.ped-linha input{border:1px solid var(--borda);border-radius:8px;padding:8px;font-size:.9rem;background:var(--superficie);color:var(--txt);width:100%}
   .cardres-comp{font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 2px}
-  @media (max-width:520px){ .ped-linha{grid-template-columns:1fr 96px 34px} }
+  @media (max-width:520px){ .ped-linha{grid-template-columns:1fr 34px 78px 34px 30px;gap:4px} }
   .res-tab{table-layout:fixed;width:100%;min-width:0;max-width:430px}   /* min-width:0 anula o table{min-width:1100px} global */
   .res-tab th:first-child, .res-tab td:first-child{width:52%}
   .res-tab th:last-child,  .res-tab td:last-child{width:48%;text-align:right}
@@ -4479,6 +4481,19 @@ function removerCompartPedido(i, c){
 function addLinhaPedido(i, c){
   pedido.destinos[i].comps[c].push({prod:"", litros:""}); renderPedido();
 }
+// Botões + e − : somam/tiram 5.000 litros de uma vez
+const PASSO_LITROS_PEDIDO = 5000;
+function pedLitrosPasso(i, c, l, sinal){
+  const linha = pedido && pedido.destinos[i] && pedido.destinos[i].comps[c] && pedido.destinos[i].comps[c][l];
+  if (!linha) return;
+  const atual = parseFloat(String(linha.litros||"").replace(/\./g,"").replace(",",".")) || 0;
+  let novo = atual + sinal * PASSO_LITROS_PEDIDO;
+  if (novo < 0) novo = 0;
+  linha.litros = novo ? novo.toLocaleString("pt-BR",{maximumFractionDigits:0}) : "";
+  const el = document.getElementById("pedLit"+i+"_"+c+"_"+l);
+  if (el) el.value = linha.litros;
+  atualizarTextoPedido();
+}
 function removerLinhaPedido(i, c, l){
   const comp = pedido.destinos[i].comps[c];
   if (comp.length <= 1) return;
@@ -4525,7 +4540,9 @@ function renderPedido(forcarCampos){
         comp.forEach((linha, l) => {
           h += '<div class="ped-linha">' +
                '<select onchange="pedLinhaCampo('+i+','+c+','+l+', \'prod\', this.value)">' + opcoesProdutoPedido(linha.prod) + '</select>' +
-               '<input inputmode="numeric" maxlength="9" placeholder="litros" value="'+escAttr(linha.litros)+'" oninput="pedLinhaCampo('+i+','+c+','+l+', \'litros\', this.value)">' +
+               '<button class="btn-claro ped-passo" title="Tirar 5.000 litros" onclick="pedLitrosPasso('+i+','+c+','+l+',-1)">−</button>' +
+               '<input id="pedLit'+i+'_'+c+'_'+l+'" inputmode="numeric" maxlength="9" placeholder="litros" value="'+escAttr(linha.litros)+'" oninput="pedLinhaCampo('+i+','+c+','+l+', \'litros\', this.value)">' +
+               '<button class="btn-claro ped-passo" title="Somar 5.000 litros" onclick="pedLitrosPasso('+i+','+c+','+l+',1)">+</button>' +
                (comp.length > 1 ? '<button class="btn-claro" onclick="removerLinhaPedido('+i+','+c+','+l+')">✕</button>' : '<span></span>') +
                '</div>';
         });
