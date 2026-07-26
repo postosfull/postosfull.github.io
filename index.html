@@ -1160,6 +1160,7 @@
     <button class="btn-claro" id="btnComparativo" onclick="alternarComparativo()"><span class="mi">🚛</span><span class="mt">Comparativo de Preços</span></button>
     <button class="btn-claro" id="btnPuxadas" onclick="alternarPuxadas()"><span class="mi">🧾</span><span class="mt">Puxadas</span></button>
     <button class="btn-claro" id="btnCotacoes" onclick="alternarCotacoes()"><span class="mi">💲</span><span class="mt">Cotações do Dia</span></button>
+    <button class="btn-claro" id="btnInfleet" onclick="alternarInfleet()"><span class="mi">📡</span><span class="mt">APP Infleet</span></button>
     <button class="btn-claro" id="btnConvVendas" onclick="alternarConvVendas()"><span class="mi">🛒</span><span class="mt">Vendas e Margem da Loja</span></button>
     <button class="btn-claro" id="btnConvCompras" onclick="alternarConvCompras()"><span class="mi">📦</span><span class="mt">Compras e Fornecedores</span></button>
     <button class="btn-claro" id="btnCalendario" onclick="alternarCalendario()"><span class="mi">📅</span><span class="mt">Calendário</span></button>
@@ -1306,6 +1307,23 @@
         <span class="cot-status" id="cotStatus"></span>
       </div>
       <div id="conteudoCotacoes"></div>
+    </div>
+  </div>
+
+  <div class="config" id="painelInfleet">
+    <div class="grupo">
+      <h2>📡 APP Infleet</h2>
+      <p class="nota-dash">Plataforma que a Full Transportadora usa para acompanhar a frota: onde estão os caminhões, abastecimentos, manutenção, checklist e multas. O botão abaixo abre o Infleet em uma aba nova — é preciso ter login próprio na plataforma.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px">
+        <button class="btn-verde" onclick="abrirInfleet()">🔗 Abrir o APP Infleet</button>
+        <button class="btn-claro" onclick="copiarLinkInfleet()">📋 Copiar o endereço</button>
+      </div>
+      <p class="nota-dash" id="infMsg" style="margin-top:8px"></p>
+    </div>
+    <div class="grupo">
+      <h2>Dados da frota dentro do app</h2>
+      <p class="nota-dash">Em breve os números do Infleet aparecem aqui dentro, atualizados sozinhos — do mesmo jeito que as puxadas já chegam dos CT-e. Primeiros itens combinados: onde estão os caminhões, abastecimentos e consumo, manutenção e checklists, multas e comportamento do motorista.</p>
+      <div id="infleetResumo"></div>
     </div>
   </div>
 
@@ -3680,6 +3698,7 @@ const MENUS_APP = [
   {key:"comparativo", btn:"btnComparativo", pan:"painelComparativo", emp:"transp", nome:"Comparativo de Preços"},
   {key:"cotacoes",    btn:"btnCotacoes",    pan:"painelCotacoes",    emp:"transp", nome:"Cotações do Dia"},
   {key:"puxadas",     btn:"btnPuxadas",     pan:"painelPuxadas",     emp:"transp", nome:"Puxadas"},
+  {key:"infleet",     btn:"btnInfleet",     pan:"painelInfleet",     emp:"transp", nome:"APP Infleet"},
   {key:"convVendas",  btn:"btnConvVendas",  pan:"painelConvVendas",  emp:"conv",   nome:"Vendas e Margem da Loja"},
   {key:"convCompras", btn:"btnConvCompras", pan:"painelConvCompras", emp:"conv",   nome:"Compras e Fornecedores"},
   {key:"calendario",  btn:"btnCalendario",  pan:"painelCalendario",  emp:"ambos",  nome:"Calendário"},
@@ -3977,6 +3996,41 @@ function alternarSimular(){
   const bs = document.getElementById("btnSimular");
   if (bs) bs.classList.toggle("ativo", aberto);
   if (aberto) prepararSimulador();
+}
+
+/* ================== APP Infleet (Full Transportadora) ================== */
+const URL_INFLEET = "https://app.infleet.com.br/dashboard";
+function alternarInfleet(){
+  const aberto = abrirPainelExclusivo("painelInfleet");
+  const b = document.getElementById("btnInfleet");
+  if (b) b.classList.toggle("ativo", aberto);
+  if (aberto) renderInfleet();
+}
+function abrirInfleet(){
+  const m = document.getElementById("infMsg");
+  let janela = null;
+  try { janela = window.open(URL_INFLEET, "_blank", "noopener"); } catch(e) {}
+  if (!janela){
+    if (m) m.innerHTML = 'O aparelho bloqueou a abertura autom\u00e1tica. Toque aqui: <a href="' + URL_INFLEET + '" target="_blank" rel="noopener">abrir o Infleet</a>.';
+  } else if (m) {
+    m.textContent = "Infleet aberto em outra aba.";
+  }
+}
+function copiarLinkInfleet(){
+  const m = document.getElementById("infMsg");
+  const fim = () => { if (m) m.textContent = "Endere\u00e7o copiado: " + URL_INFLEET; };
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(URL_INFLEET).then(fim, fim); return; }
+  } catch(e) {}
+  const t = document.createElement("textarea");
+  t.value = URL_INFLEET; document.body.appendChild(t); t.select();
+  try { document.execCommand("copy"); } catch(e) {}
+  document.body.removeChild(t); fim();
+}
+function renderInfleet(){
+  const el = document.getElementById("infleetResumo");
+  if (!el) return;
+  el.innerHTML = '<p class="nota-dash">Ainda n\u00e3o h\u00e1 dados do Infleet salvos no app.</p>';
 }
 
 /* ================== Cotações do Dia ================== */
