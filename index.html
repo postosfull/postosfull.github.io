@@ -1369,7 +1369,7 @@
         <div class="desc-campo"><label>Caminhão (placa)</label><input id="pedCaminhao" maxlength="10" oninput="pedCampo('caminhao', this.value)"></div>
         <div class="desc-campo"><label>Tanque (placa)</label><input id="pedTanque" maxlength="10" oninput="pedCampo('tanque', this.value)"></div>
         <div class="desc-campo"><label>Carregamento (hora)</label><input id="pedHora" maxlength="10" placeholder="05h" oninput="pedCampo('hora', this.value)"></div>
-        <div class="desc-campo"><label>Companhia</label><input id="pedCompanhia" list="pedCompanhiasLista" maxlength="40" placeholder="PETROBAHIA" oninput="pedCampo('companhia', this.value)"><datalist id="pedCompanhiasLista"></datalist></div>
+        <div class="desc-campo"><label>Distribuidora</label><input id="pedCompanhia" list="pedCompanhiasLista" maxlength="40" placeholder="PETROBAHIA" oninput="pedCampo('companhia', this.value)"><datalist id="pedCompanhiasLista"></datalist></div>
         <div class="desc-campo"><label>Base</label><input id="pedBase" list="pedBasesLista" maxlength="40" placeholder="A COMBINAR" oninput="pedCampo('base', this.value)"><datalist id="pedBasesLista"></datalist></div>
       </div>
     </div>
@@ -4504,6 +4504,16 @@ function opcoesProdutoPedido(sel){
     PRODUTOS_PEDIDO.map(p => '<option value="'+escAttr(p)+'"'+(p===sel?' selected':'')+'>'+escAttr(p)+'</option>')
   ).join("");
 }
+// As distribuidoras são as MESMAS cadastradas em Configurações (usadas nas Cotações,
+// no Comparativo e nas Puxadas); o que for digitado só aqui entra depois da lista.
+function listaDistribuidorasPedido(){
+  const base = (typeof opcoesDe === "function" && opcoesDe("distribuidora")) ? opcoesDe("distribuidora").slice() : [];
+  const vistos = base.map(x => String(x).toLowerCase());
+  companhiasPedido.forEach(x => {
+    if (x && vistos.indexOf(String(x).toLowerCase()) < 0){ base.push(x); vistos.push(String(x).toLowerCase()); }
+  });
+  return base;
+}
 function renderPedido(forcarCampos){
   if (!pedido) pedido = novoPedido();
   // selects e listas
@@ -4514,7 +4524,7 @@ function renderPedido(forcarCampos){
     ).join("");
   }
   const dlC = document.getElementById("pedCompanhiasLista");
-  if (dlC) dlC.innerHTML = companhiasPedido.map(x => '<option value="'+escAttr(x)+'">').join("");
+  if (dlC) dlC.innerHTML = listaDistribuidorasPedido().map(x => '<option value="'+escAttr(x)+'">').join("");
   const dlB = document.getElementById("pedBasesLista");
   if (dlB) dlB.innerHTML = basesPedido.map(x => '<option value="'+escAttr(x)+'">').join("");
   if (forcarCampos){
@@ -4588,7 +4598,7 @@ function montarTextoPedido(){
   });
   L.push("");
   if (pedido.hora) L.push("Carregamento: " + pedido.hora);
-  if (pedido.companhia) L.push("Companhia: " + pedido.companhia);
+  if (pedido.companhia) L.push("Distribuidora: " + pedido.companhia);
   if (pedido.base) L.push("Base: " + pedido.base);
   L.push("");
   L.push("Transportadora: Full Transportadora");
@@ -4613,7 +4623,7 @@ function salvarListasPedido(){
   const base = String(pedido.base||"").trim();
   if (base && !basesPedido.some(b => b.toLowerCase() === base.toLowerCase())){ basesPedido.push(base); mudou = true; }
   const comp = String(pedido.companhia||"").trim();
-  if (comp && !companhiasPedido.some(b => b.toLowerCase() === comp.toLowerCase())){ companhiasPedido.push(comp); mudou = true; }
+  if (comp && !listaDistribuidorasPedido().some(b => String(b).toLowerCase() === comp.toLowerCase())){ companhiasPedido.push(comp); mudou = true; }
   // CPF do motorista fica guardado no cadastro dele
   const m = motoristas.find(x => x.id === pedido.motoristaId);
   if (m){
