@@ -4179,9 +4179,13 @@ function nomeUnidadeResumo(u){
 }
 // Bloco de largura fixa (```) para os números ficarem alinhados no WhatsApp
 function blocoAlinhadoResumo(itens){
+  // itens: {nome, pre, num, suf}. O que alinha é o NÚMERO: o "R$" fica numa coluna fixa
+  // e as casas decimais também batem, mesmo quando um valor tem um dígito a mais.
   const w1 = itens.reduce((m,i)=>Math.max(m, i.nome.length), 0);
-  const w2 = itens.reduce((m,i)=>Math.max(m, i.valor.length), 0);
-  const linhas = itens.map(i => i.nome.padEnd(w1) + "  " + i.valor.padStart(w2));
+  const wn = itens.reduce((m,i)=>Math.max(m, String(i.num||"").length), 0);
+  const wp = itens.reduce((m,i)=>Math.max(m, String(i.pre||"").length), 0);
+  const linhas = itens.map(i =>
+    i.nome.padEnd(w1) + "  " + String(i.pre||"").padStart(wp) + String(i.num||"").padStart(wn) + (i.suf||""));
   return "```\n" + linhas.join("\n") + "\n```";
 }
 function montarTextoResumo(dia){
@@ -4193,8 +4197,8 @@ function montarTextoResumo(dia){
   if (postos.length){
     let tot = 0;
     const itens = postos.map(x => { tot += (+x.litros||0);
-      return { nome: nomeUnidadeResumo(x.unidade), valor: fmtLitros(+x.litros||0) + " L" }; });
-    itens.push({ nome:"Total", valor: fmtLitros(tot) + " L" });
+      return { nome: nomeUnidadeResumo(x.unidade), num: fmtLitros(+x.litros||0), suf:" L" }; });
+    itens.push({ nome:"Total", num: fmtLitros(tot), suf:" L" });
     linhas.push("");
     linhas.push("⛽ Postos (litros)");
     linhas.push(blocoAlinhadoResumo(itens));
@@ -4202,8 +4206,8 @@ function montarTextoResumo(dia){
   if (lojas.length){
     let tot = 0;
     const itens = lojas.map(x => { tot += (+x.faturamento||0);
-      return { nome: nomeUnidadeResumo(x.unidade), valor: "R$ " + fmtBR(+x.faturamento||0,2) }; });
-    itens.push({ nome:"Total", valor: "R$ " + fmtBR(tot,2) });
+      return { nome: nomeUnidadeResumo(x.unidade), pre:"R$ ", num: fmtBR(+x.faturamento||0,2) }; });
+    itens.push({ nome:"Total", pre:"R$ ", num: fmtBR(tot,2) });
     linhas.push("");
     linhas.push("🛒 Conveniências (faturamento)");
     linhas.push(blocoAlinhadoResumo(itens));
@@ -4211,10 +4215,9 @@ function montarTextoResumo(dia){
   const ac = acumuladoMesResumo(dia);
   linhas.push("");
   linhas.push("📅 No mês até aqui");
-  linhas.push(blocoAlinhadoResumo([
-    { nome:"Postos", valor: fmtLitros(ac.litros) + " L" },
-    { nome:"Conveniências", valor: "R$ " + fmtBR(ac.fat,2) }
-  ]));
+  // aqui as unidades são diferentes (litro x real), então alinhar não ajuda: linha simples
+  linhas.push("Postos: " + fmtLitros(ac.litros) + " L");
+  linhas.push("Conveniências: R$ " + fmtBR(ac.fat,2));
   return linhas.join("\n");
 }
 function enviarResumoWhats(){
