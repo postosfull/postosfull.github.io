@@ -1283,6 +1283,15 @@
   <div class="config" id="painelPuxadas">
     <div id="boxPlacaPendente" style="display:none"></div>
     <div class="grupo">
+      <h2>🖥 Bsoft CT-e</h2>
+      <p class="nota-dash">Site onde os CT-e da Full Transportadora são emitidos (antigo HiveCloud). É dele que as puxadas abaixo chegam sozinhas. O botão abre em uma aba nova — é preciso ter login próprio no sistema.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px">
+        <button class="btn-verde" onclick="abrirBsoft()">🔗 Abrir o Bsoft CT-e</button>
+        <button class="btn-claro" onclick="copiarLinkBsoft()">📋 Copiar o endereço</button>
+      </div>
+      <p class="nota-dash" id="bsoftMsg" style="margin-top:8px"></p>
+    </div>
+    <div class="grupo">
       <h2>Volume por motorista — <span id="puxMesRotulo"></span></h2>
       <p class="nota-dash">Soma dos litros de todas as puxadas de cada motorista no mês selecionado.</p>
       <div class="pux-mes-nav">
@@ -1293,7 +1302,7 @@
     </div>
     <div class="grupo">
       <h2>Puxadas registradas</h2>
-      <p class="nota-dash">Coletadas automaticamente dos CT-e (HiveCloud) na sincronização diária. Use o ✕ para remover alguma que não deva entrar.</p>
+      <p class="nota-dash">Coletadas automaticamente dos CT-e (Bsoft CT-e) na sincronização diária. Use o ✕ para remover alguma que não deva entrar.</p>
       <div id="listaPuxadas"></div>
     </div>
   </div>
@@ -4043,27 +4052,34 @@ function alternarInfleet(){
   if (b) b.classList.toggle("ativo", aberto);
   if (aberto) renderInfleet();
 }
-function abrirInfleet(){
-  const m = document.getElementById("infMsg");
+/* Abrir / copiar endereco de sistemas de fora (Infleet, Bsoft CT-e, e o que vier depois) */
+function abrirSiteExterno(url, nome, msgId){
+  const m = document.getElementById(msgId);
   let janela = null;
-  try { janela = window.open(URL_INFLEET, "_blank", "noopener"); } catch(e) {}
+  try { janela = window.open(url, "_blank", "noopener"); } catch(e) {}
   if (!janela){
-    if (m) m.innerHTML = 'O aparelho bloqueou a abertura autom\u00e1tica. Toque aqui: <a href="' + URL_INFLEET + '" target="_blank" rel="noopener">abrir o Infleet</a>.';
+    if (m) m.innerHTML = 'O aparelho bloqueou a abertura automática. Toque aqui: <a href="' + url + '" target="_blank" rel="noopener">abrir o ' + nome + '</a>.';
   } else if (m) {
-    m.textContent = "Infleet aberto em outra aba.";
+    m.textContent = nome + " aberto em outra aba.";
   }
 }
-function copiarLinkInfleet(){
-  const m = document.getElementById("infMsg");
-  const fim = () => { if (m) m.textContent = "Endere\u00e7o copiado: " + URL_INFLEET; };
+function copiarEnderecoExterno(url, msgId){
+  const m = document.getElementById(msgId);
+  const fim = () => { if (m) m.textContent = "Endereço copiado: " + url; };
   try {
-    if (navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(URL_INFLEET).then(fim, fim); return; }
+    if (navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(fim, fim); return; }
   } catch(e) {}
-  const t = document.createElement("textarea");
-  t.value = URL_INFLEET; document.body.appendChild(t); t.select();
+  const ta = document.createElement("textarea");
+  ta.value = url; document.body.appendChild(ta); ta.select();
   try { document.execCommand("copy"); } catch(e) {}
-  document.body.removeChild(t); fim();
+  document.body.removeChild(ta); fim();
 }
+// Bsoft CT-e (antigo HiveCloud) — mora no menu Puxadas, que e alimentado por ele
+const URL_BSOFT = "https://cte.hivecloud.com.br/ctes";
+function abrirBsoft(){ abrirSiteExterno(URL_BSOFT, "Bsoft CT-e", "bsoftMsg"); }
+function copiarLinkBsoft(){ copiarEnderecoExterno(URL_BSOFT, "bsoftMsg"); }
+function abrirInfleet(){ abrirSiteExterno(URL_INFLEET, "Infleet", "infMsg"); }
+function copiarLinkInfleet(){ copiarEnderecoExterno(URL_INFLEET, "infMsg"); }
 function renderInfleet(){ renderInfFrota(); renderInfAbast(); }
 
 // "2026-07-26T02:23" -> "26/07 às 02:23"
