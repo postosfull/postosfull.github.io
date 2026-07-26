@@ -461,6 +461,23 @@
   .resumo-dash .cartao-kpi span{font-size:.72rem;color:var(--cinza);text-transform:uppercase;letter-spacing:.4px}
   /* Tabelas do Resumo do dia: colunas estreitas e coladas uma na outra, em vez de
      esticadas de ponta a ponta da tela (pedido do Tiago) */
+  /* Cartão em imagem do Resumo do dia — cores fixas (claro) para ficar legível no WhatsApp */
+  .cardres{position:fixed;left:-10000px;top:0;width:560px;background:#fff;border-radius:20px;overflow:hidden;
+    color:#1b1f24;z-index:9998;font-family:"Poppins","Segoe UI",Helvetica,Arial,sans-serif}
+  .cardres.visivel{left:12px;top:12px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  .cardres-topo{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;background:#161419}
+  .cardres-topo img{height:38px;display:block}
+  .cardres-dt{color:#fff;font-size:13px;line-height:1.3;text-align:right;opacity:.85}
+  .cardres-dt b{font-size:16px;display:block;opacity:1}
+  .cardres-corpo{padding:16px 22px 20px}
+  .cardres-sec{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;letter-spacing:1px;margin:14px 0 6px}
+  .cardres-sec .un{font-weight:600;color:#6b7280;letter-spacing:.3px}
+  .cardres-l{display:flex;justify-content:space-between;align-items:baseline;padding:6px 10px;font-size:18px;border-radius:8px}
+  .cardres-l b{font-variant-numeric:tabular-nums;font-weight:700}
+  .cardres-l.tot{background:#fff4ec;font-weight:800;margin-top:5px}
+  .cardres-mes{margin-top:16px;padding-top:12px;border-top:1px solid #e8eaed;display:flex;justify-content:space-between;
+    align-items:baseline;gap:10px;font-size:13px;color:#6b7280}
+  .cardres-mes b{color:#1b1f24;font-variant-numeric:tabular-nums}
   .res-tab{table-layout:fixed;width:100%;min-width:0;max-width:430px}   /* min-width:0 anula o table{min-width:1100px} global */
   .res-tab th:first-child, .res-tab td:first-child{width:52%}
   .res-tab th:last-child,  .res-tab td:last-child{width:48%;text-align:right}
@@ -1487,9 +1504,11 @@
       <p class="nota-dash">Texto pronto para mandar no WhatsApp. O botão abre o WhatsApp já com a mensagem escrita — é só escolher o grupo e enviar.</p>
       <pre id="resumoTexto" class="res-msg"></pre>
       <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px">
-        <button class="btn-verde" onclick="enviarResumoWhats()">📲 Enviar no WhatsApp</button>
+        <button class="btn-verde" onclick="gerarImagemResumo()">🖼️ Enviar como imagem</button>
+        <button class="btn-claro" onclick="enviarResumoWhats()">📲 Enviar como texto</button>
         <button class="btn-claro" onclick="copiarResumoTexto()">📋 Copiar mensagem</button>
       </div>
+      <div id="cartaoResumo" class="cardres"></div>
       <p class="nota-dash" id="resMsg" style="margin-top:8px"></p>
     </div>
   </div>
@@ -4219,6 +4238,79 @@ function montarTextoResumo(dia){
   linhas.push("Postos: " + fmtLitros(ac.litros) + " L");
   linhas.push("Conveniências: R$ " + fmtBR(ac.fat,2));
   return linhas.join("\n");
+}
+function cardLinhaResumo(nome, valor, tot){
+  return '<div class="cardres-l' + (tot ? ' tot' : '') + '"><span>' + escAttr(nome) + '</span><b>' + escAttr(valor) + '</b></div>';
+}
+// Monta o cartão (fica fora da tela até alguém pedir a imagem)
+function montarCartaoResumo(dia){
+  const r = resumosDia[dia];
+  const el = document.getElementById("cartaoResumo");
+  if (!r || !el) return null;
+  const postos = r.postos || [], lojas = r.lojas || [];
+  let totP = 0, totC = 0, h = "";
+  h += '<div class="cardres-topo"><img src="logo-full.png" alt="Postos Full">' +
+       '<div class="cardres-dt">Vendas de<b>' + nomeDiaSemana(dia) + ', ' + fmtDataCurta(dia) + '</b></div></div>';
+  h += '<div class="cardres-corpo">';
+  if (postos.length){
+    h += '<div class="cardres-sec">⛽ POSTOS <span class="un">litros</span></div>';
+    postos.forEach(x => { totP += (+x.litros||0);
+      h += cardLinhaResumo(nomeUnidadeResumo(x.unidade), fmtLitros(+x.litros||0) + " L"); });
+    h += cardLinhaResumo("Total", fmtLitros(totP) + " L", true);
+  }
+  if (lojas.length){
+    h += '<div class="cardres-sec">🛒 CONVENIÊNCIAS <span class="un">R$</span></div>';
+    lojas.forEach(x => { totC += (+x.faturamento||0);
+      h += cardLinhaResumo(nomeUnidadeResumo(x.unidade), fmtBR(+x.faturamento||0,2)); });
+    h += cardLinhaResumo("Total", fmtBR(totC,2), true);
+  }
+  const ac = acumuladoMesResumo(dia);
+  h += '<div class="cardres-mes"><div>No mês até aqui (' + ac.dias + ' dia' + (ac.dias===1?'':'s') + ')</div>' +
+       '<div><b>' + fmtLitros(ac.litros) + ' L</b> · <b>R$ ' + fmtBR(ac.fat,2) + '</b></div></div>';
+  h += '</div>';
+  el.innerHTML = h;
+  return el;
+}
+// Usadas pela rotina automática: deixa o cartão visível no canto e devolve onde ele está
+function mostrarCartaoResumo(dia){
+  const el = montarCartaoResumo(dia);
+  if (!el) return null;
+  el.classList.add("visivel");
+  const r = el.getBoundingClientRect();
+  return { x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height) };
+}
+function esconderCartaoResumo(){
+  const el = document.getElementById("cartaoResumo");
+  if (el) el.classList.remove("visivel");
+}
+async function gerarImagemResumo(){
+  const dia = diaResumoSel();
+  const m = document.getElementById("resMsg");
+  const el = montarCartaoResumo(dia);
+  if (!el){ if (m) m.textContent = "Não há resumo para este dia."; return; }
+  if (m) m.textContent = "Gerando a imagem…";
+  try {
+    await carregarBibliotecasPDF();
+    const canvas = await html2canvas(el, { scale:2, backgroundColor:"#ffffff", useCORS:true, logging:false });
+    const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
+    const nome = "vendas-" + dia + ".png";
+    const legenda = "📊 Vendas de " + nomeDiaSemana(dia) + ", " + fmtDataCurta(dia);
+    const arq = new File([blob], nome, { type:"image/png" });
+    if (navigator.canShare && navigator.canShare({ files:[arq] })){
+      await navigator.share({ files:[arq], text: legenda });
+      if (m) m.textContent = "Escolha o grupo para enviar a imagem.";
+      return;
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = nome; document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    if (m) m.textContent = "Imagem salva (" + nome + ") — é só anexar no WhatsApp.";
+  } catch(e){
+    const msg = (e && e.name === "AbortError") ? "Envio cancelado." : ("Não consegui gerar a imagem: " + (e && e.message ? e.message : e));
+    if (m) m.textContent = msg;
+  }
 }
 function enviarResumoWhats(){
   const txt = montarTextoResumo(diaResumoSel());
