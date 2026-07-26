@@ -4206,10 +4206,10 @@ function montarTextoResumo(dia){
   if (lojas.length){
     let tot = 0;
     const itens = lojas.map(x => { tot += (+x.faturamento||0);
-      return { nome: nomeUnidadeResumo(x.unidade), pre:"R$ ", num: fmtBR(+x.faturamento||0,2) }; });
-    itens.push({ nome:"Total", pre:"R$ ", num: fmtBR(tot,2) });
+      return { nome: nomeUnidadeResumo(x.unidade), num: fmtBR(+x.faturamento||0,2) }; });
+    itens.push({ nome:"Total", num: fmtBR(tot,2) });
     linhas.push("");
-    linhas.push("🛒 Conveniências (faturamento)");
+    linhas.push("🛒 Conveniências (faturamento em R$)");
     linhas.push(blocoAlinhadoResumo(itens));
   }
   const ac = acumuladoMesResumo(dia);
