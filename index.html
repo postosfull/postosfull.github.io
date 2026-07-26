@@ -459,6 +459,8 @@
   .resumo-dash .cartao-kpi b{display:block;font-size:1.05rem;color:var(--txt)}
   .resumo-dash .cartao-kpi b small{font-size:.72rem;color:var(--cinza);font-weight:600}
   .resumo-dash .cartao-kpi span{font-size:.72rem;color:var(--cinza);text-transform:uppercase;letter-spacing:.4px}
+  .inf-sumido{color:var(--vermelho);font-size:.78rem;font-weight:600}
+  .inf-linha-sumida td:first-child{border-left:3px solid var(--vermelho)}
   .resumo-dash .sobe{color:var(--vermelho)}
   .resumo-dash .desce{color:#1B7A3D}
   .dash-toggles{
@@ -4075,25 +4077,41 @@ function nomeCombInf(c){
               GASOLINA:"Gasolina", GASOLINA_COMUM:"Gasolina", ETANOL:"Etanol" };
   return m[c] || String(c||"").replace(/_/g," ");
 }
+// Quantas horas sem posição nova até o caminhão ser marcado como "sem sinal"
+const INF_HORAS_SEM_SINAL = 6;
+function horasSemSinalInf(quando){
+  const t = Date.parse(String(quando||""));
+  if (!isFinite(t)) return null;
+  return (Date.now() - t) / 3600000;
+}
+function textoTempoInf(horas){
+  if (horas < 48) return fmtBR(Math.floor(horas),0)+"h";
+  return fmtBR(Math.floor(horas/24),0)+" dias";
+}
+function ehArlaInf(c){ return /ARLA/i.test(String(c||"")); }
+function ehCombInf(c){ return /DIESEL|GASOLINA|ETANOL|GNV/i.test(String(c||"")); }
 function renderInfFrota(){
   const box = document.getElementById("infleetFrotaBox");
   if (!box) return;
   const f = infleetFrota;
   const lista = (f && Array.isArray(f.veiculos)) ? f.veiculos : [];
   if (!lista.length){
-    box.innerHTML = '<p class="nota-dash">Ainda não recebemos os dados do Infleet. Eles chegam junto com a sincronização da manhã e da de hora em hora.</p>';
+    box.innerHTML = '<p class="nota-dash">Ainda não recebemos os dados do Infleet. Eles chegam junto com a sincronização automática.</p>';
     return;
   }
   let h = '<div class="tabela-wrap"><table class="pux-tab pux-lista"><thead><tr><th>Caminhão</th><th>Motorista</th><th>Situação</th><th>Onde está</th><th>Última posição</th><th>Odômetro</th></tr></thead><tbody>';
   lista.forEach(v => {
     const vel = (+v.velocidade > 1) ? (' · '+fmtBR(+v.velocidade,0)+' km/h') : '';
     const sit = v.ligado ? ('🟢 Ligado'+vel) : '⚪ Desligado';
-    h += '<tr>'+
+    const hs = horasSemSinalInf(v.quando);
+    const sumido = (hs !== null && hs >= INF_HORAS_SEM_SINAL);
+    const alerta = sumido ? ('<br><span class="inf-sumido">⚠️ sem sinal há '+textoTempoInf(hs)+'</span>') : '';
+    h += '<tr'+(sumido?' class="inf-linha-sumida"':'')+'>'+
       '<td data-lbl="Caminhão"><b>'+escAttr(v.nome||v.placa||"—")+'</b><br><span class="nota-dash">'+escAttr(v.placa||"")+'</span></td>'+
       '<td data-lbl="Motorista">'+escAttr(v.motorista||"—")+'</td>'+
       '<td data-lbl="Situação">'+sit+'</td>'+
       '<td data-lbl="Onde está">'+escAttr(v.onde||"—")+'</td>'+
-      '<td data-lbl="Última posição">'+fmtQuandoInf(v.quando)+'</td>'+
+      '<td data-lbl="Última posição">'+fmtQuandoInf(v.quando)+alerta+'</td>'+
       '<td data-lbl="Odômetro">'+fmtBR(+v.km||0,0)+' km</td>'+
     '</tr>';
   });
@@ -4119,35 +4137,62 @@ function renderInfAbast(){
     box.innerHTML = '<p class="nota-dash">Nenhum abastecimento neste mês.</p>';
     return;
   }
+  // Arla 32 é aditivo, não é combustível: entra em coluna separada para não sujar o R$/L
   const porVeic = {};
   doMes.forEach(a => {
     const k = a.placa || "—";
-    if (!porVeic[k]) porVeic[k] = { nome:a.veiculo||"", motorista:a.motorista||"", litros:0, valor:0, qtd:0, somaKmL:0, nKmL:0 };
+    if (!porVeic[k]) porVeic[k] = { nome:a.veiculo||"", motorista:a.motorista||"", qtd:0,
+                                    litros:0, valor:0, arlaL:0, arlaV:0, outrosV:0, somaKmL:0, litrosKmL:0 };
     const r = porVeic[k];
-    r.litros += (+a.litros||0); r.valor += (+a.valor||0); r.qtd += 1;
-    if (+a.kmPorLitro > 0){ r.somaKmL += (+a.kmPorLitro); r.nKmL += 1; }
+    const litros = +a.litros||0, valor = +a.valor||0;
+    r.qtd += 1;
+    if (ehArlaInf(a.combustivel)){ r.arlaL += litros; r.arlaV += valor; }
+    else if (ehCombInf(a.combustivel)){
+      r.litros += litros; r.valor += valor;
+      if (+a.kmPorLitro > 0){ r.somaKmL += (+a.kmPorLitro)*litros; r.litrosKmL += litros; }
+    } else { r.outrosV += valor; }
     if (!r.motorista && a.motorista) r.motorista = a.motorista;
     if (!r.nome && a.veiculo) r.nome = a.veiculo;
   });
-  const placas = Object.keys(porVeic).sort((x,y)=>porVeic[y].valor-porVeic[x].valor);
-  let totL=0, totV=0, totQ=0;
-  let h = '<div class="tabela-wrap"><table class="pux-tab pux-lista pux-resumo"><thead><tr><th>Caminhão</th><th>Abastec.</th><th>Litros</th><th>Gasto</th><th>R$/L médio</th><th>Média km/L</th></tr></thead><tbody>';
+  const placas = Object.keys(porVeic).sort((x,y)=>(porVeic[y].valor+porVeic[y].arlaV)-(porVeic[x].valor+porVeic[x].arlaV));
+  let totL=0, totV=0, totQ=0, totAL=0, totAV=0, totOut=0, totKm=0, totLkm=0;
+  placas.forEach(pl => { const r=porVeic[pl];
+    totL+=r.litros; totV+=r.valor; totQ+=r.qtd; totAL+=r.arlaL; totAV+=r.arlaV;
+    totOut+=r.outrosV; totKm+=r.somaKmL; totLkm+=r.litrosKmL; });
+  const precoT = totL>0 ? (totV/totL) : 0;
+  const kmlT = totLkm>0 ? (totKm/totLkm) : 0;
+
+  // Quadrinhos do mês
+  let h = '<div class="resumo-dash">'+
+    '<div class="cartao-kpi"><span>Gasto no mês</span><b>R$ '+fmtBR(totV+totAV+totOut,2)+'</b></div>'+
+    '<div class="cartao-kpi"><span>Combustível</span><b>'+fmtLitros(totL)+' L <small>R$ '+fmtBR(precoT,3)+'/L</small></b></div>'+
+    '<div class="cartao-kpi"><span>Arla 32</span><b>'+fmtLitros(totAL)+' L <small>R$ '+fmtBR(totAV,2)+'</small></b></div>'+
+    '<div class="cartao-kpi"><span>Média km/L</span><b>'+(kmlT? fmtBR(kmlT,2) : "—")+'</b></div>'+
+  '</div>';
+
+  h += '<div class="tabela-wrap"><table class="pux-tab pux-lista pux-resumo"><thead><tr><th>Caminhão</th><th>Abastec.</th><th>Combustível</th><th>Gasto comb.</th><th>R$/L médio</th><th>Arla 32</th><th>Gasto Arla</th><th>Média km/L</th></tr></thead><tbody>';
   placas.forEach(pl => {
-    const r = porVeic[pl]; totL+=r.litros; totV+=r.valor; totQ+=r.qtd;
+    const r = porVeic[pl];
     const precoL = r.litros>0 ? (r.valor/r.litros) : 0;
-    const kml = r.nKmL ? (r.somaKmL/r.nKmL) : 0;
+    const kml = r.litrosKmL ? (r.somaKmL/r.litrosKmL) : 0;
     h += '<tr>'+
       '<td data-lbl="Caminhão"><b>'+escAttr(r.nome||pl)+'</b><br><span class="nota-dash">'+escAttr(pl+(r.motorista?(" · "+r.motorista):""))+'</span></td>'+
       '<td data-lbl="Abastec.">'+r.qtd+'</td>'+
-      '<td data-lbl="Litros">'+fmtLitros(r.litros)+' L</td>'+
-      '<td data-lbl="Gasto">R$ '+fmtBR(r.valor,2)+'</td>'+
+      '<td data-lbl="Combustível">'+fmtLitros(r.litros)+' L</td>'+
+      '<td data-lbl="Gasto comb.">R$ '+fmtBR(r.valor,2)+'</td>'+
       '<td data-lbl="R$/L médio">R$ '+fmtBR(precoL,3)+'</td>'+
+      '<td data-lbl="Arla 32">'+(r.arlaL? (fmtLitros(r.arlaL)+' L') : "—")+'</td>'+
+      '<td data-lbl="Gasto Arla">'+(r.arlaV? ('R$ '+fmtBR(r.arlaV,2)) : "—")+'</td>'+
       '<td data-lbl="Média km/L">'+(kml? fmtBR(kml,2) : "—")+'</td>'+
     '</tr>';
   });
-  const precoT = totL>0 ? (totV/totL) : 0;
-  h += '<tr class="pux-total"><td data-lbl="Caminhão">Total</td><td data-lbl="Abastec.">'+totQ+'</td><td data-lbl="Litros">'+fmtLitros(totL)+' L</td><td data-lbl="Gasto">R$ '+fmtBR(totV,2)+'</td><td data-lbl="R$/L médio">R$ '+fmtBR(precoT,3)+'</td><td data-lbl="Média km/L">—</td></tr>';
+  h += '<tr class="pux-total"><td data-lbl="Caminhão">Total</td><td data-lbl="Abastec.">'+totQ+'</td>'+
+       '<td data-lbl="Combustível">'+fmtLitros(totL)+' L</td><td data-lbl="Gasto comb.">R$ '+fmtBR(totV,2)+'</td>'+
+       '<td data-lbl="R$/L médio">R$ '+fmtBR(precoT,3)+'</td><td data-lbl="Arla 32">'+fmtLitros(totAL)+' L</td>'+
+       '<td data-lbl="Gasto Arla">R$ '+fmtBR(totAV,2)+'</td><td data-lbl="Média km/L">'+(kmlT? fmtBR(kmlT,2) : "—")+'</td></tr>';
   h += '</tbody></table></div>';
+  if (totOut > 0) h += '<p class="nota-dash">Fora das colunas acima, R$ '+fmtBR(totOut,2)+' em outros itens lançados no Infleet.</p>';
+
   h += '<p class="nota-dash"><b>Abastecimento por abastecimento</b></p>';
   h += '<div class="tabela-wrap"><table class="pux-tab pux-lista"><thead><tr><th>Data</th><th>Caminhão</th><th>Motorista</th><th>Combustível</th><th>Litros</th><th>R$/L</th><th>Valor</th><th>km/L</th><th>Onde abasteceu</th></tr></thead><tbody>';
   doMes.forEach(a => {
