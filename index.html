@@ -478,6 +478,12 @@
   .cardres-mes{margin-top:16px;padding-top:12px;border-top:1px solid #e8eaed;display:flex;justify-content:space-between;
     align-items:baseline;gap:10px;font-size:13px;color:#6b7280}
   .cardres-mes b{color:#1b1f24;font-variant-numeric:tabular-nums}
+  .ped-comp{border:1px solid var(--borda);border-radius:10px;padding:10px 12px;margin:10px 0;background:var(--superficie-2)}
+  .ped-comp-tit{font-size:.72rem;font-weight:700;color:var(--cinza);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+  .ped-linha{display:grid;grid-template-columns:1fr 130px 40px;gap:8px;align-items:center;margin-bottom:6px}
+  .ped-linha select,.ped-linha input{border:1px solid var(--borda);border-radius:8px;padding:8px;font-size:.9rem;background:var(--superficie);color:var(--txt);width:100%}
+  .cardres-comp{font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 2px}
+  @media (max-width:520px){ .ped-linha{grid-template-columns:1fr 96px 34px} }
   .res-tab{table-layout:fixed;width:100%;min-width:0;max-width:430px}   /* min-width:0 anula o table{min-width:1100px} global */
   .res-tab th:first-child, .res-tab td:first-child{width:52%}
   .res-tab th:last-child,  .res-tab td:last-child{width:48%;text-align:right}
@@ -1188,6 +1194,7 @@
     <button class="btn-claro" id="btnSimular" onclick="alternarSimular()"><span class="mi">💰</span><span class="mt">Simular Margens</span></button>
     <button class="btn-claro" id="btnDescontos" onclick="alternarDescontos()"><span class="mi">🏷️</span><span class="mt">Descontos</span></button>
     <button class="btn-claro" id="btnInfleet" onclick="alternarInfleet()"><span class="mi">📡</span><span class="mt">APP Infleet</span></button>
+    <button class="btn-claro" id="btnPedido" onclick="alternarPedido()"><span class="mi">📝</span><span class="mt">Pedido de carregamento</span></button>
     <button class="btn-claro" id="btnComparativo" onclick="alternarComparativo()"><span class="mi">🚛</span><span class="mt">Comparativo de Preços</span></button>
     <button class="btn-claro" id="btnPuxadas" onclick="alternarPuxadas()"><span class="mi">🧾</span><span class="mt">Puxadas</span></button>
     <button class="btn-claro" id="btnCotacoes" onclick="alternarCotacoes()"><span class="mi">💲</span><span class="mt">Cotações do Dia</span></button>
@@ -1346,6 +1353,39 @@
         <span class="cot-status" id="cotStatus"></span>
       </div>
       <div id="conteudoCotacoes"></div>
+    </div>
+  </div>
+
+  <div class="config" id="painelPedido">
+    <div class="grupo">
+      <h2>📝 Pedido de carregamento</h2>
+      <p class="nota-dash">Preencha os campos e o app monta a mensagem pronta para o grupo dos motoristas. Escolher o motorista já traz o CPF e as placas; escolher o cliente já traz o CNPJ.</p>
+      <div class="desc-form">
+        <div class="desc-campo"><label>Motorista</label><select id="pedMotorista" onchange="onPedMotorista(this.value)"></select></div>
+        <div class="desc-campo"><label>CPF do motorista</label><input id="pedCpf" maxlength="18" placeholder="000.000.000-00" oninput="pedCampo('cpf', this.value)"></div>
+        <div class="desc-campo"><label>Caminhão (placa)</label><input id="pedCaminhao" maxlength="10" oninput="pedCampo('caminhao', this.value)"></div>
+        <div class="desc-campo"><label>Tanque (placa)</label><input id="pedTanque" maxlength="10" oninput="pedCampo('tanque', this.value)"></div>
+        <div class="desc-campo"><label>Carregamento (hora)</label><input id="pedHora" maxlength="10" placeholder="05h" oninput="pedCampo('hora', this.value)"></div>
+        <div class="desc-campo"><label>Companhia</label><input id="pedCompanhia" list="pedCompanhiasLista" maxlength="40" placeholder="PETROBAHIA" oninput="pedCampo('companhia', this.value)"><datalist id="pedCompanhiasLista"></datalist></div>
+        <div class="desc-campo"><label>Base</label><input id="pedBase" list="pedBasesLista" maxlength="40" placeholder="A COMBINAR" oninput="pedCampo('base', this.value)"><datalist id="pedBasesLista"></datalist></div>
+      </div>
+    </div>
+    <div id="pedDestinos"></div>
+    <div class="grupo">
+      <button class="btn-claro" onclick="addDestinoPedido()">➕ Outro destino (outro pedido)</button>
+    </div>
+    <div class="grupo">
+      <h2>📲 Mensagem para o grupo</h2>
+      <p class="nota-dash">Confira antes de enviar. A imagem sai com a logo da Full; o texto vai igualzinho ao que vocês escrevem hoje.</p>
+      <pre id="pedTexto" class="res-msg"></pre>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px">
+        <button class="btn-verde" onclick="gerarImagemPedido()">🖼️ Enviar como imagem</button>
+        <button class="btn-claro" onclick="enviarPedidoWhats()">📲 Enviar como texto</button>
+        <button class="btn-claro" onclick="copiarPedidoTexto()">📋 Copiar mensagem</button>
+        <button class="btn-claro" onclick="limparPedido()">🧹 Limpar</button>
+      </div>
+      <p class="nota-dash" id="pedMsg" style="margin-top:8px"></p>
+      <div id="cartaoPedido" class="cardres"></div>
     </div>
   </div>
 
@@ -3493,6 +3533,12 @@ function iniciarSync(){
     } else {
       motoristas = (snap.data() && Array.isArray(snap.data().motoristas)) ? snap.data().motoristas : [];
     }
+    const dt = (snap.exists && snap.data()) ? snap.data() : {};
+    clientesPedido = (Array.isArray(dt.clientesPedido) && dt.clientesPedido.length) ? dt.clientesPedido : CLIENTES_PEDIDO_PADRAO.slice();
+    basesPedido = (Array.isArray(dt.basesPedido) && dt.basesPedido.length) ? dt.basesPedido : BASES_PEDIDO_PADRAO.slice();
+    companhiasPedido = (Array.isArray(dt.companhiasPedido) && dt.companhiasPedido.length) ? dt.companhiasPedido : COMPANHIAS_PEDIDO_PADRAO.slice();
+    const ppd = document.getElementById("painelPedido");
+    if (ppd && ppd.classList.contains("aberto")) renderPedido();
     const pm = document.getElementById("painelConfig");
     if (pm && pm.classList.contains("aberto")) renderMotoristas();
     const pp = document.getElementById("painelPuxadas");
@@ -3725,7 +3771,7 @@ function excluir(i){
 
 /* ================== Salvar / Carregar / Exportar ================== */
 // Painéis que ocupam a página; só um fica aberto por vez
-const PAINEIS = ["painelRegistros","painelDash","painelResumoDia","painelHistorico","painelSimular","painelDescontos","painelComparativo","painelPuxadas","painelCotacoes","painelInfleet","painelConvVendas","painelConvCompras","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin"];
+const PAINEIS = ["painelRegistros","painelDash","painelResumoDia","painelHistorico","painelSimular","painelDescontos","painelComparativo","painelPuxadas","painelCotacoes","painelInfleet","painelPedido","painelConvVendas","painelConvCompras","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin"];
 function fecharTodosPaineis(exceto){
   PAINEIS.forEach(id => {
     const el = document.getElementById(id);
@@ -3758,6 +3804,8 @@ function fecharTodosPaineis(exceto){
   if (bcot) bcot.classList.toggle("ativo", document.getElementById("painelCotacoes").classList.contains("aberto"));
   const binf = document.getElementById("btnInfleet");
   if (binf) binf.classList.toggle("ativo", document.getElementById("painelInfleet").classList.contains("aberto"));
+  const bped = document.getElementById("btnPedido");
+  if (bped) bped.classList.toggle("ativo", document.getElementById("painelPedido").classList.contains("aberto"));
   const bcv = document.getElementById("btnConvVendas");
   if (bcv) bcv.classList.toggle("ativo", document.getElementById("painelConvVendas").classList.contains("aberto"));
   const bcc = document.getElementById("btnConvCompras");
@@ -3807,6 +3855,7 @@ const MENUS_APP = [
   {key:"simular",     btn:"btnSimular",     pan:"painelSimular",     emp:"postos", nome:"Simular Margens"},
   {key:"descontos",   btn:"btnDescontos",   pan:"painelDescontos",   emp:"postos", nome:"Descontos"},
   {key:"infleet",     btn:"btnInfleet",     pan:"painelInfleet",     emp:"transp", nome:"APP Infleet"},
+  {key:"pedido",      btn:"btnPedido",      pan:"painelPedido",      emp:"transp", nome:"Pedido de carregamento"},
   {key:"comparativo", btn:"btnComparativo", pan:"painelComparativo", emp:"transp", nome:"Comparativo de Preços"},
   {key:"cotacoes",    btn:"btnCotacoes",    pan:"painelCotacoes",    emp:"transp", nome:"Cotações do Dia"},
   {key:"puxadas",     btn:"btnPuxadas",     pan:"painelPuxadas",     emp:"transp", nome:"Puxadas"},
@@ -4337,6 +4386,315 @@ function copiarResumoTexto(){
   ta.value = txt; document.body.appendChild(ta); ta.select();
   try { document.execCommand("copy"); } catch(e) {}
   document.body.removeChild(ta); fim();
+}
+
+/* ================== Pedido de carregamento (Full Transportadora) ==================
+   Monta a mensagem que hoje é digitada à mão no grupo dos motoristas. */
+const PRODUTOS_PEDIDO = ["Gasolina Comum","Gasolina Aditivada","Etanol","Diesel S-10","Diesel S-500"];
+const CLIENTES_PEDIDO_PADRAO = [
+  { nome:"Posto Full Teresina",       cnpj:"09.641.208/0001-64" },
+  { nome:"Posto Full Caxias",         cnpj:"15.772.754/0001-37" },
+  { nome:"Posto Full Dutra",          cnpj:"46.785.405/0001-83" },
+  { nome:"Discar Distribuidora Caxias", cnpj:"07.034.675/0001-09" }
+];
+const BASES_PEDIDO_PADRAO = ["A COMBINAR"];
+const COMPANHIAS_PEDIDO_PADRAO = ["PETROBAHIA","VIBRA","RAÍZEN","IPIRANGA"];
+let clientesPedido = CLIENTES_PEDIDO_PADRAO.slice();
+let basesPedido = BASES_PEDIDO_PADRAO.slice();
+let companhiasPedido = COMPANHIAS_PEDIDO_PADRAO.slice();
+let pedido = null;
+
+function novoPedido(){
+  return { motoristaId:"", motorista:"", cpf:"", caminhao:"", tanque:"", hora:"", companhia:"", base:"A COMBINAR",
+           destinos:[ { nome:"", cnpj:"", comps:[ [ {prod:"", litros:""} ] ] } ] };
+}
+function alternarPedido(){
+  const aberto = abrirPainelExclusivo("painelPedido");
+  const b = document.getElementById("btnPedido");
+  if (b) b.classList.toggle("ativo", aberto);
+  if (aberto){
+    if (!pedido) pedido = novoPedido();
+    renderPedido(true);
+  }
+}
+function limparPedido(){
+  pedido = novoPedido();
+  renderPedido(true);
+  const m = document.getElementById("pedMsg"); if (m) m.textContent = "";
+}
+function pedCampo(campo, valor){
+  if (!pedido) pedido = novoPedido();
+  pedido[campo] = valor;
+  atualizarTextoPedido();
+}
+function onPedMotorista(id){
+  if (!pedido) pedido = novoPedido();
+  const m = motoristas.find(x => x.id === id);
+  pedido.motoristaId = id;
+  pedido.motorista = m ? m.nome : "";
+  if (m){
+    if (m.cpf) pedido.cpf = m.cpf;
+    if (m.placaCaminhao) pedido.caminhao = m.placaCaminhao;
+    if (m.placaTanque) pedido.tanque = m.placaTanque;
+  }
+  renderPedido(true);
+}
+function pedDestCampo(i, campo, valor){
+  const d = pedido && pedido.destinos[i]; if (!d) return;
+  d[campo] = valor;
+  if (campo === "nome"){
+    const c = clientesPedido.find(x => (x.nome||"").toLowerCase() === String(valor||"").trim().toLowerCase());
+    if (c && c.cnpj){
+      d.cnpj = c.cnpj;
+      const el = document.getElementById("pedCnpj"+i);
+      if (el) el.value = c.cnpj;
+    }
+  }
+  atualizarTextoPedido();
+}
+function pedLinhaCampo(i, c, l, campo, valor){
+  const linha = pedido && pedido.destinos[i] && pedido.destinos[i].comps[c] && pedido.destinos[i].comps[c][l];
+  if (!linha) return;
+  linha[campo] = valor;
+  atualizarTextoPedido();
+}
+function addDestinoPedido(){
+  if (!pedido) pedido = novoPedido();
+  pedido.destinos.push({ nome:"", cnpj:"", comps:[ [ {prod:"", litros:""} ] ] });
+  renderPedido();
+}
+function removerDestinoPedido(i){
+  if (!pedido || pedido.destinos.length <= 1) return;
+  pedido.destinos.splice(i,1); renderPedido();
+}
+function addCompartPedido(i){
+  pedido.destinos[i].comps.push([ {prod:"", litros:""} ]); renderPedido();
+}
+function removerCompartPedido(i, c){
+  const d = pedido.destinos[i];
+  if (d.comps.length <= 1) return;
+  d.comps.splice(c,1); renderPedido();
+}
+function addLinhaPedido(i, c){
+  pedido.destinos[i].comps[c].push({prod:"", litros:""}); renderPedido();
+}
+function removerLinhaPedido(i, c, l){
+  const comp = pedido.destinos[i].comps[c];
+  if (comp.length <= 1) return;
+  comp.splice(l,1); renderPedido();
+}
+function opcoesProdutoPedido(sel){
+  return ['<option value="">— produto —</option>'].concat(
+    PRODUTOS_PEDIDO.map(p => '<option value="'+escAttr(p)+'"'+(p===sel?' selected':'')+'>'+escAttr(p)+'</option>')
+  ).join("");
+}
+function renderPedido(forcarCampos){
+  if (!pedido) pedido = novoPedido();
+  // selects e listas
+  const selM = document.getElementById("pedMotorista");
+  if (selM){
+    selM.innerHTML = ['<option value="">— selecione —</option>'].concat(
+      motoristas.map(m => '<option value="'+escAttr(m.id)+'"'+(m.id===pedido.motoristaId?' selected':'')+'>'+escAttr(m.nome)+'</option>')
+    ).join("");
+  }
+  const dlC = document.getElementById("pedCompanhiasLista");
+  if (dlC) dlC.innerHTML = companhiasPedido.map(x => '<option value="'+escAttr(x)+'">').join("");
+  const dlB = document.getElementById("pedBasesLista");
+  if (dlB) dlB.innerHTML = basesPedido.map(x => '<option value="'+escAttr(x)+'">').join("");
+  if (forcarCampos){
+    const set = (id, v) => { const el = document.getElementById(id); if (el && document.activeElement !== el) el.value = v || ""; };
+    set("pedCpf", pedido.cpf); set("pedCaminhao", pedido.caminhao); set("pedTanque", pedido.tanque);
+    set("pedHora", pedido.hora); set("pedCompanhia", pedido.companhia); set("pedBase", pedido.base);
+  }
+  // destinos
+  const box = document.getElementById("pedDestinos");
+  if (box){
+    let h = "";
+    pedido.destinos.forEach((d, i) => {
+      h += '<div class="grupo">';
+      h += '<h2>' + (i===0 ? 'Destino' : 'Destino ' + (i+1)) +
+           (i>0 ? ' <button class="btn-claro" style="float:right" onclick="removerDestinoPedido('+i+')">✕ remover</button>' : '') + '</h2>';
+      h += '<div class="desc-form">' +
+           '<div class="desc-campo"><label>Cliente</label><input id="pedNome'+i+'" list="pedClientesLista" maxlength="60" value="'+escAttr(d.nome)+'" placeholder="Posto Full Caxias" oninput="pedDestCampo('+i+', \'nome\', this.value)"></div>' +
+           '<div class="desc-campo"><label>CNPJ</label><input id="pedCnpj'+i+'" maxlength="20" value="'+escAttr(d.cnpj)+'" placeholder="00.000.000/0000-00" oninput="pedDestCampo('+i+', \'cnpj\', this.value)"></div>' +
+           '</div>';
+      d.comps.forEach((comp, c) => {
+        h += '<div class="ped-comp"><div class="ped-comp-tit">Compartimento ' + (c+1) +
+             (d.comps.length > 1 ? ' <button class="btn-claro" onclick="removerCompartPedido('+i+','+c+')">✕</button>' : '') + '</div>';
+        comp.forEach((linha, l) => {
+          h += '<div class="ped-linha">' +
+               '<select onchange="pedLinhaCampo('+i+','+c+','+l+', \'prod\', this.value)">' + opcoesProdutoPedido(linha.prod) + '</select>' +
+               '<input inputmode="numeric" maxlength="9" placeholder="litros" value="'+escAttr(linha.litros)+'" oninput="pedLinhaCampo('+i+','+c+','+l+', \'litros\', this.value)">' +
+               (comp.length > 1 ? '<button class="btn-claro" onclick="removerLinhaPedido('+i+','+c+','+l+')">✕</button>' : '<span></span>') +
+               '</div>';
+        });
+        h += '<button class="btn-claro" onclick="addLinhaPedido('+i+','+c+')">➕ Produto</button></div>';
+      });
+      h += '<button class="btn-claro" onclick="addCompartPedido('+i+')">➕ Compartimento</button>';
+      h += '</div>';
+    });
+    h += '<datalist id="pedClientesLista">' + clientesPedido.map(c => '<option value="'+escAttr(c.nome)+'">').join("") + '</datalist>';
+    box.innerHTML = h;
+  }
+  atualizarTextoPedido();
+}
+function fmtLitrosPedido(v){
+  const n = parseFloat(String(v||"").replace(/\./g,"").replace(",","."));
+  if (!isFinite(n) || n <= 0) return String(v||"");
+  return n.toLocaleString("pt-BR", {maximumFractionDigits:0});
+}
+function montarTextoPedido(){
+  if (!pedido) return "";
+  const L = [];
+  pedido.destinos.forEach((d, i) => {
+    if (i > 0){ L.push(""); L.push("_________"); }
+    L.push("Pedido:");
+    if (d.nome) L.push(d.nome);
+    if (d.cnpj) L.push("CNPJ: " + d.cnpj);
+    if (i === 0){
+      if (pedido.motorista) L.push("Motorista: " + pedido.motorista);
+      if (pedido.cpf) L.push("CPF: " + pedido.cpf);
+      if (pedido.caminhao || pedido.tanque){
+        L.push("Placas:");
+        if (pedido.caminhao) L.push("Caminhão: " + pedido.caminhao);
+        if (pedido.tanque) L.push("Tanque: " + pedido.tanque);
+      }
+      if (d.nome){ L.push(""); L.push(d.nome); }
+    }
+    d.comps.forEach(comp => {
+      const linhas = comp.filter(x => x.prod && String(x.litros||"").trim());
+      if (!linhas.length) return;
+      L.push("");
+      linhas.forEach(x => L.push(x.prod + " = " + fmtLitrosPedido(x.litros) + " litros"));
+    });
+  });
+  L.push("");
+  if (pedido.hora) L.push("Carregamento: " + pedido.hora);
+  if (pedido.companhia) L.push("Companhia: " + pedido.companhia);
+  if (pedido.base) L.push("Base: " + pedido.base);
+  L.push("");
+  L.push("Transportadora: Full Transportadora");
+  return L.join("\n");
+}
+function atualizarTextoPedido(){
+  const pre = document.getElementById("pedTexto");
+  if (pre) pre.textContent = montarTextoPedido();
+}
+// Guarda cliente/base/companhia novos para aparecerem na lista da próxima vez
+function salvarListasPedido(){
+  if (!pedido || !nuvemPronta) return;
+  const dados = {};
+  let mudou = false;
+  pedido.destinos.forEach(d => {
+    const nome = String(d.nome||"").trim();
+    if (!nome) return;
+    const achou = clientesPedido.find(c => (c.nome||"").toLowerCase() === nome.toLowerCase());
+    if (!achou){ clientesPedido.push({ nome, cnpj: String(d.cnpj||"").trim() }); mudou = true; }
+    else if (!achou.cnpj && d.cnpj){ achou.cnpj = String(d.cnpj).trim(); mudou = true; }
+  });
+  const base = String(pedido.base||"").trim();
+  if (base && !basesPedido.some(b => b.toLowerCase() === base.toLowerCase())){ basesPedido.push(base); mudou = true; }
+  const comp = String(pedido.companhia||"").trim();
+  if (comp && !companhiasPedido.some(b => b.toLowerCase() === comp.toLowerCase())){ companhiasPedido.push(comp); mudou = true; }
+  // CPF do motorista fica guardado no cadastro dele
+  const m = motoristas.find(x => x.id === pedido.motoristaId);
+  if (m && pedido.cpf && m.cpf !== pedido.cpf){
+    m.cpf = pedido.cpf;
+    dados.motoristas = motoristas;
+    mudou = true;
+  }
+  if (!mudou) return;
+  dados.clientesPedido = clientesPedido;
+  dados.basesPedido = basesPedido;
+  dados.companhiasPedido = companhiasPedido;
+  docTransportadora.set(dados, {merge:true}).catch(()=>{});
+}
+function enviarPedidoWhats(){
+  const txt = montarTextoPedido();
+  const m = document.getElementById("pedMsg");
+  if (!txt.trim()){ if (m) m.textContent = "Preencha o pedido primeiro."; return; }
+  salvarListasPedido();
+  const url = "https://wa.me/?text=" + encodeURIComponent(txt);
+  let janela = null;
+  try { janela = window.open(url, "_blank", "noopener"); } catch(e) {}
+  if (!janela){
+    if (m) m.innerHTML = 'O aparelho bloqueou a abertura. Toque aqui: <a href="' + url + '" target="_blank" rel="noopener">abrir o WhatsApp</a>.';
+  } else if (m){ m.textContent = "WhatsApp aberto — escolha o grupo e envie."; }
+}
+function copiarPedidoTexto(){
+  const txt = montarTextoPedido();
+  const m = document.getElementById("pedMsg");
+  if (!txt.trim()){ if (m) m.textContent = "Preencha o pedido primeiro."; return; }
+  salvarListasPedido();
+  const fim = () => { if (m) m.textContent = "Mensagem copiada."; };
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(fim, fim); return; }
+  } catch(e) {}
+  const ta = document.createElement("textarea");
+  ta.value = txt; document.body.appendChild(ta); ta.select();
+  try { document.execCommand("copy"); } catch(e) {}
+  document.body.removeChild(ta); fim();
+}
+function montarCartaoPedido(){
+  const el = document.getElementById("cartaoPedido");
+  if (!el || !pedido) return null;
+  let h = '<div class="cardres-topo"><img src="logo-transportadora.png" alt="Full Transportadora">' +
+          '<div class="cardres-dt">Pedido de<b>carregamento</b></div></div>';
+  h += '<div class="cardres-corpo">';
+  if (pedido.motorista || pedido.caminhao || pedido.tanque){
+    h += '<div class="cardres-sec">🚛 MOTORISTA</div>';
+    if (pedido.motorista) h += cardLinhaResumo("Nome", pedido.motorista);
+    if (pedido.cpf) h += cardLinhaResumo("CPF", pedido.cpf);
+    if (pedido.caminhao) h += cardLinhaResumo("Caminhão", pedido.caminhao);
+    if (pedido.tanque) h += cardLinhaResumo("Tanque", pedido.tanque);
+  }
+  pedido.destinos.forEach(d => {
+    h += '<div class="cardres-sec">⛽ ' + escAttr((d.nome||"DESTINO").toUpperCase()) +
+         (d.cnpj ? ' <span class="un">' + escAttr(d.cnpj) + '</span>' : '') + '</div>';
+    d.comps.forEach((comp, c) => {
+      const linhas = comp.filter(x => x.prod && String(x.litros||"").trim());
+      if (!linhas.length) return;
+      if (d.comps.length > 1) h += '<div class="cardres-comp">Compartimento ' + (c+1) + '</div>';
+      linhas.forEach(x => { h += cardLinhaResumo(x.prod, fmtLitrosPedido(x.litros) + " L"); });
+    });
+  });
+  h += '<div class="cardres-mes"><div>' +
+       (pedido.hora ? 'Carregamento <b>' + escAttr(pedido.hora) + '</b>' : '') + '</div><div>' +
+       (pedido.companhia ? '<b>' + escAttr(pedido.companhia) + '</b>' : '') +
+       (pedido.base ? ' · ' + escAttr(pedido.base) : '') + '</div></div>';
+  h += '</div>';
+  el.innerHTML = h;
+  return el;
+}
+async function gerarImagemPedido(){
+  const m = document.getElementById("pedMsg");
+  if (!montarTextoPedido().trim()){ if (m) m.textContent = "Preencha o pedido primeiro."; return; }
+  salvarListasPedido();
+  const el = montarCartaoPedido();
+  if (!el){ if (m) m.textContent = "Não consegui montar o cartão."; return; }
+  if (m) m.textContent = "Gerando a imagem…";
+  try {
+    await carregarBibliotecasPDF();
+    const canvas = await html2canvas(el, { scale:2, backgroundColor:"#ffffff", useCORS:true, logging:false });
+    const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
+    const nome = "pedido-" + hojeISO() + ".png";
+    const legenda = "📝 Pedido de carregamento" + (pedido.hora ? " — " + pedido.hora : "");
+    const arq = new File([blob], nome, { type:"image/png" });
+    if (navigator.canShare && navigator.canShare({ files:[arq] })){
+      await navigator.share({ files:[arq], text: legenda });
+      if (m) m.textContent = "Escolha o grupo para enviar a imagem.";
+      return;
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = nome; document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    if (m) m.textContent = "Imagem salva (" + nome + ") — é só anexar no WhatsApp.";
+  } catch(e){
+    const msg = (e && e.name === "AbortError") ? "Envio cancelado." : ("Não consegui gerar a imagem: " + (e && e.message ? e.message : e));
+    if (m) m.textContent = msg;
+  }
 }
 
 /* ================== APP Infleet (Full Transportadora) ================== */
