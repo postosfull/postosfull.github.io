@@ -459,6 +459,9 @@
   .resumo-dash .cartao-kpi b{display:block;font-size:1.05rem;color:var(--txt)}
   .resumo-dash .cartao-kpi b small{font-size:.72rem;color:var(--cinza);font-weight:600}
   .resumo-dash .cartao-kpi span{font-size:.72rem;color:var(--cinza);text-transform:uppercase;letter-spacing:.4px}
+  .res-tab{table-layout:fixed;width:100%}
+  .res-tab th:first-child, .res-tab td:first-child{width:62%}
+  .res-tab th:last-child,  .res-tab td:last-child{width:38%;text-align:right}
   .res-msg{
     white-space:pre-wrap;word-break:break-word;font-family:inherit;font-size:.9rem;line-height:1.5;
     background:var(--superficie-2);border:1px solid var(--borda);border-radius:8px;padding:12px 14px;margin:6px 0 0;
@@ -4143,7 +4146,7 @@ function renderResumoDia(){
   let h = "";
   if (postos.length){
     let tot = 0;
-    h += '<div class="tabela-wrap"><table class="pux-tab pux-lista pux-resumo"><thead><tr><th>Posto</th><th>Litros vendidos</th></tr></thead><tbody>';
+    h += '<div class="tabela-wrap"><table class="pux-tab pux-lista pux-resumo res-tab"><thead><tr><th>Posto</th><th>Litros vendidos</th></tr></thead><tbody>';
     postos.forEach(x => { tot += (+x.litros||0);
       h += '<tr><td data-lbl="Posto">'+escAttr(x.unidade||"")+'</td><td data-lbl="Litros vendidos">'+fmtLitros(+x.litros||0)+' L</td></tr>'; });
     h += '<tr class="pux-total"><td data-lbl="Posto">Total</td><td data-lbl="Litros vendidos">'+fmtLitros(tot)+' L</td></tr>';
@@ -4151,16 +4154,16 @@ function renderResumoDia(){
   }
   if (lojas.length){
     let tot = 0;
-    h += '<div class="tabela-wrap"><table class="pux-tab pux-lista pux-resumo"><thead><tr><th>Loja</th><th>Faturamento</th></tr></thead><tbody>';
+    h += '<div class="tabela-wrap"><table class="pux-tab pux-lista pux-resumo res-tab"><thead><tr><th>Conveniência</th><th>Faturamento</th></tr></thead><tbody>';
     lojas.forEach(x => { tot += (+x.faturamento||0);
-      h += '<tr><td data-lbl="Loja">'+escAttr(x.unidade||"")+'</td><td data-lbl="Faturamento">R$ '+fmtBR(+x.faturamento||0,2)+'</td></tr>'; });
-    h += '<tr class="pux-total"><td data-lbl="Loja">Total</td><td data-lbl="Faturamento">R$ '+fmtBR(tot,2)+'</td></tr>';
+      h += '<tr><td data-lbl="Conveniência">'+escAttr(x.unidade||"")+'</td><td data-lbl="Faturamento">R$ '+fmtBR(+x.faturamento||0,2)+'</td></tr>'; });
+    h += '<tr class="pux-total"><td data-lbl="Conveniência">Total</td><td data-lbl="Faturamento">R$ '+fmtBR(tot,2)+'</td></tr>';
     h += '</tbody></table></div>';
   }
   const ac = acumuladoMesResumo(dia);
   h += '<div class="resumo-dash" style="margin-top:12px">'+
-       '<div class="cartao-kpi"><span>No mês até este dia</span><b>'+fmtLitros(ac.litros)+' L <small>em '+ac.dias+' dia'+(ac.dias===1?'':'s')+'</small></b></div>'+
-       '<div class="cartao-kpi"><span>Faturamento das lojas no mês</span><b>R$ '+fmtBR(ac.fat,2)+'</b></div>'+
+       '<div class="cartao-kpi"><span>Postos no mês</span><b>'+fmtLitros(ac.litros)+' L <small>em '+ac.dias+' dia'+(ac.dias===1?'':'s')+'</small></b></div>'+
+       '<div class="cartao-kpi"><span>Conveniências no mês</span><b>R$ '+fmtBR(ac.fat,2)+'</b></div>'+
        '</div>';
   if (r.coletadoEm) h += '<p class="nota-dash">Coletado em '+String(r.coletadoEm).slice(8,10)+'/'+String(r.coletadoEm).slice(5,7)+' às '+String(r.coletadoEm).slice(11,16)+'.</p>';
   box.innerHTML = h;
@@ -4182,13 +4185,15 @@ function montarTextoResumo(dia){
   if (lojas.length){
     let tot = 0;
     linhas.push("");
-    linhas.push("🛒 Lojas (faturamento)");
+    linhas.push("🛒 Conveniências (faturamento)");
     lojas.forEach(x => { tot += (+x.faturamento||0); linhas.push("• " + (x.unidade||"") + ": R$ " + fmtBR(+x.faturamento||0,2)); });
     linhas.push("Total: R$ " + fmtBR(tot,2));
   }
   const ac = acumuladoMesResumo(dia);
   linhas.push("");
-  linhas.push("📅 No mês até aqui: " + fmtLitros(ac.litros) + " L · R$ " + fmtBR(ac.fat,2));
+  linhas.push("📅 No mês até aqui");
+  linhas.push("Postos: " + fmtLitros(ac.litros) + " L");
+  linhas.push("Conveniências: R$ " + fmtBR(ac.fat,2));
   return linhas.join("\n");
 }
 function enviarResumoWhats(){
