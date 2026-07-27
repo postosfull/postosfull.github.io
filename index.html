@@ -1252,8 +1252,6 @@
     <button class="btn-claro" id="btnComparativo" onclick="alternarComparativo()"><span class="mi">🚛</span><span class="mt">Comparativo de Preços</span></button>
     <button class="btn-claro" id="btnPuxadas" onclick="alternarPuxadas()"><span class="mi">🧾</span><span class="mt">Puxadas</span></button>
     <button class="btn-claro" id="btnCotacoes" onclick="alternarCotacoes()"><span class="mi">💲</span><span class="mt">Cotações do Dia</span></button>
-    <button class="btn-claro" id="btnConvVendas" onclick="alternarConvVendas()"><span class="mi">🛒</span><span class="mt">Vendas e Margem da Loja</span></button>
-    <button class="btn-claro" id="btnConvCompras" onclick="alternarConvCompras()"><span class="mi">📦</span><span class="mt">Compras e Fornecedores</span></button>
     <button class="btn-claro" id="btnRelLoja" onclick="alternarRelLoja()"><span class="mi">🍫</span><span class="mt">Produtos e categorias</span></button>
     <button class="btn-claro" id="btnCalendario" onclick="alternarCalendario()"><span class="mi">📅</span><span class="mt">Calendário</span></button>
     <button class="btn-claro" id="btnVencimentos" onclick="alternarVencimentos()"><span class="mi">📁</span><span class="mt">Documentos</span></button>
@@ -1471,76 +1469,7 @@
     </div>
   </div>
 
-  <div class="config" id="painelConvVendas">
-    <div class="grupo">
-      <h2>Vendas e Margem da Loja</h2>
-      <p class="nota-dash">Lance o que a loja vendeu. Informe o produto, quanto você <b>pagou</b> (custo) e por quanto <b>vendeu</b> — o app calcula sozinho o lucro e a margem em %. Serve para descobrir quais produtos dão dinheiro de verdade.</p>
-      <div class="desc-controles">
-        <label class="cot-data-lbl">Dia: <input type="date" id="cvData" onchange="carregarConvVendas()"></label>
-      </div>
-      <div class="desc-form">
-        <div class="desc-campo"><label>Unidade</label><select id="cvUnidade" onchange="onConvUnidadeChange()"></select></div>
-        <div class="desc-campo"><label>Categoria</label><select id="cvCategoria"></select></div>
-        <div class="desc-campo"><label>Produto</label><input id="cvProduto" list="cvProdutosLista" maxlength="60" placeholder="Ex.: Água 500ml"><datalist id="cvProdutosLista"></datalist></div>
-        <div class="desc-campo"><label>Quantidade</label><input id="cvQtd" inputmode="decimal" placeholder="10" oninput="calcConvVendaPreview()"></div>
-        <div class="desc-campo"><label>Custo unitário (R$)</label><input id="cvCusto" inputmode="decimal" placeholder="2,50" oninput="calcConvVendaPreview()"></div>
-        <div class="desc-campo"><label>Venda unitária (R$)</label><input id="cvVenda" inputmode="decimal" placeholder="4,00" oninput="calcConvVendaPreview()"></div>
-        <div class="desc-campo"><label>Observação (opcional)</label><input id="cvObs" maxlength="80" placeholder="Ex.: promoção do dia"></div>
-        <div class="desc-total-box">Lucro: <b id="cvLucroPreview">R$ 0,00</b> <span id="cvMargemPreview" class="cv-prev-margem"></span></div>
-        <button class="btn-verde" onclick="lancarConvVenda()">Lançar venda</button>
-      </div>
-      <div class="msg-admin" id="msgConvVenda"></div>
-    </div>
-    <div class="grupo">
-      <h2>Vendas do dia — <span id="cvDiaRotulo"></span></h2>
-      <div id="cvConsolidado"></div>
-      <div id="cvLista"></div>
-    </div>
-    <div class="grupo">
-      <h2>Consolidado no Mês</h2>
-      <p class="nota-dash">Soma as vendas da loja num período. Mostra o faturamento, o custo, o lucro e a margem — no total, por unidade, por categoria e os produtos que mais deram lucro.</p>
-      <div class="desc-mes-filtros">
-        <label class="cot-data-lbl">De: <input type="date" id="cvMesIni" onchange="carregarConvVendasMes()"></label>
-        <label class="cot-data-lbl">Até: <input type="date" id="cvMesFim" onchange="carregarConvVendasMes()"></label>
-        <label class="cot-data-lbl">Unidade: <select id="cvMesUnidade" onchange="renderConvVendasMes()"></select></label>
-      </div>
-      <div id="cvMesConsolidado"></div>
-    </div>
-  </div>
-
-  <div class="config" id="painelConvCompras">
-    <div class="grupo">
-      <h2>Compras e Fornecedores</h2>
-      <p class="nota-dash">Registre as notas de compra da loja: quem forneceu, quanto custou e quando vence. O app avisa aqui o que está <b>vencendo ou vencido</b> e mostra quanto cada fornecedor representa no período.</p>
-      <div class="desc-form">
-        <div class="desc-campo"><label>Unidade</label><select id="ccUnidade" onchange="onConvCompraUnidadeChange()"></select></div>
-        <div class="desc-campo"><label>Fornecedor</label><select id="ccFornecedor"></select></div>
-        <div class="desc-campo"><label>Ou novo fornecedor</label><input id="ccFornecedorNovo" maxlength="60" placeholder="Digite para cadastrar"></div>
-        <div class="desc-campo"><label>Categoria</label><select id="ccCategoria"></select></div>
-        <div class="desc-campo"><label>Nº da nota (opcional)</label><input id="ccNota" maxlength="30" placeholder="Ex.: 12345"></div>
-        <div class="desc-campo"><label>Data da compra</label><input type="date" id="ccData"></div>
-        <div class="desc-campo"><label>Valor total (R$)</label><input id="ccValor" inputmode="decimal" placeholder="1.250,00"></div>
-        <div class="desc-campo"><label>Vencimento (opcional)</label><input type="date" id="ccVencimento"></div>
-        <div class="desc-campo"><label>Observação (opcional)</label><input id="ccObs" maxlength="80" placeholder="Ex.: pago no boleto"></div>
-        <button class="btn-verde" onclick="lancarConvCompra()">Lançar compra</button>
-      </div>
-      <div class="msg-admin" id="msgConvCompra"></div>
-    </div>
-    <div class="grupo">
-      <h2>Compras do período</h2>
-      <p class="nota-dash">Escolha o período para ver as notas lançadas. Use o ✓ para marcar como paga e o ✕ para remover uma nota lançada errada.</p>
-      <div class="desc-mes-filtros">
-        <label class="cot-data-lbl">De: <input type="date" id="ccMesIni" onchange="carregarConvCompras()"></label>
-        <label class="cot-data-lbl">Até: <input type="date" id="ccMesFim" onchange="carregarConvCompras()"></label>
-        <label class="cot-data-lbl">Unidade: <select id="ccMesUnidade" onchange="renderConvCompras()"></select></label>
-        <label class="cot-data-lbl">Fornecedor: <select id="ccMesFornecedor" onchange="renderConvCompras()"></select></label>
-      </div>
-      <div id="ccConsolidado"></div>
-      <div id="ccLista"></div>
-    </div>
-  </div>
-
-  <div class="config" id="painelAvisos">
+      <div class="config" id="painelAvisos">
     <div class="grupo">
       <h2>Notificações</h2>
       <p class="nota-dash">Avisos importantes vindos das agendas Google dos postos (vencimento de certificados, licenças, prazos...). Sincronizam automaticamente todo dia; para atualizar agora, peça ao Claude: "sincroniza as notificações".</p>
@@ -3940,7 +3869,7 @@ function excluir(i){
 
 /* ================== Salvar / Carregar / Exportar ================== */
 // Painéis que ocupam a página; só um fica aberto por vez
-const PAINEIS = ["painelRegistros","painelDash","painelResumoDia","painelHistorico","painelSimular","painelDescontos","painelComparativo","painelPuxadas","painelCotacoes","painelInfleet","painelPedido","painelConvVendas","painelConvCompras","painelRelPosto","painelRelLoja","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin"];
+const PAINEIS = ["painelRegistros","painelDash","painelResumoDia","painelHistorico","painelSimular","painelDescontos","painelComparativo","painelPuxadas","painelCotacoes","painelInfleet","painelPedido","painelRelPosto","painelRelLoja","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin"];
 function fecharTodosPaineis(exceto){
   PAINEIS.forEach(id => {
     const el = document.getElementById(id);
@@ -4029,8 +3958,6 @@ const MENUS_APP = [
   {key:"comparativo", btn:"btnComparativo", pan:"painelComparativo", emp:"transp", nome:"Comparativo de Preços"},
   {key:"cotacoes",    btn:"btnCotacoes",    pan:"painelCotacoes",    emp:"transp", nome:"Cotações do Dia"},
   {key:"puxadas",     btn:"btnPuxadas",     pan:"painelPuxadas",     emp:"transp", nome:"Puxadas"},
-  {key:"convVendas",  btn:"btnConvVendas",  pan:"painelConvVendas",  emp:"conv",   nome:"Vendas e Margem da Loja"},
-  {key:"convCompras", btn:"btnConvCompras", pan:"painelConvCompras", emp:"conv",   nome:"Compras e Fornecedores"},
   {key:"relLoja",     btn:"btnRelLoja",     pan:"painelRelLoja",     emp:"conv",   nome:"Produtos e categorias"},
   {key:"calendario",  btn:"btnCalendario",  pan:"painelCalendario",  emp:"ambos",  nome:"Calendário"},
   {key:"vencimentos", btn:"btnVencimentos", pan:"painelVencimentos", emp:"ambos",  nome:"Documentos"},
@@ -4110,7 +4037,7 @@ function abrirPainelInicial(){
   const s = siglaEmpresa(empresa);
   if (s === "transp" && menuPermitido("infleet")){ abrirInfleetInicial(); return; }
   if (s === "transp" && menuPermitido("comparativo")){ abrirComparativoInicial(); return; }
-  if (s === "conv"   && menuPermitido("convVendas")){ abrirConvVendasInicial(); return; }
+  if (s === "conv"   && menuPermitido("relLoja")){ abrirRelLojaInicial(); return; }
   if (s === "postos" && menuPermitido("dash")){ abrirDashboardInicial(); return; }
   abrirPrimeiroPermitido();
 }
@@ -4163,10 +4090,10 @@ function abrirInfleetInicial(){
   alternarInfleet();
 }
 // alternarConvVendas() é liga/desliga; no boot precisa só ligar, nunca desligar
-function abrirConvVendasInicial(){
-  const painel = document.getElementById("painelConvVendas");
-  if (painel && painel.classList.contains("aberto")){ renderConvVendas(); return; }
-  alternarConvVendas();
+function abrirRelLojaInicial(){
+  const painel = document.getElementById("painelRelLoja");
+  if (painel && painel.classList.contains("aberto")){ renderRelLoja(); return; }
+  alternarRelLoja();
 }
 
 function restaurarEmpresa(){
