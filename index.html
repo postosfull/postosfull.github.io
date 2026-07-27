@@ -3522,12 +3522,12 @@ function iniciarSync(){
 
   // v168 - relatórios mensais vindos do Adaptive
   escutaRelPosto = colRelPosto.onSnapshot(snap => {
-    const m = {}; snap.forEach(d => m[d.id] = Object.assign({ id: d.id }, d.data())); relPostos = m;
+    const m = {}; snap.forEach(d => m[d.id] = normalizaRel(Object.assign({ id: d.id }, d.data()))); relPostos = m;
     const pr = document.getElementById("painelRelPosto");
     if (pr && pr.classList.contains("aberto")) renderRelPosto();
   }, ()=>{});
   escutaRelLoja = colRelLoja.onSnapshot(snap => {
-    const m = {}; snap.forEach(d => m[d.id] = Object.assign({ id: d.id }, d.data())); relLojas = m;
+    const m = {}; snap.forEach(d => m[d.id] = normalizaRel(Object.assign({ id: d.id }, d.data()))); relLojas = m;
     const pl = document.getElementById("painelRelLoja");
     if (pl && pl.classList.contains("aberto")) renderRelLoja();
   }, ()=>{});
@@ -4337,6 +4337,17 @@ function alternarSimular(){
 
 
 /* ================== v168 - Relatórios do posto e da conveniência (Adaptive) ================== */
+// Firestore não guarda lista dentro de lista: as tabelas vêm como texto JSON.
+const CAMPOS_LISTA_REL = ["aten","hora","comb","lbm","receb","cat","itens"];
+function normalizaRel(o){
+  if (!o) return o;
+  CAMPOS_LISTA_REL.forEach(k => {
+    if (typeof o[k] === "string"){
+      try { o[k] = JSON.parse(o[k]); } catch(e){ o[k] = []; }
+    }
+  });
+  return o;
+}
 const UNIDADES_REL = [
   { chave:"teresina", nome:"Teresina" },
   { chave:"caxias",   nome:"Caxias" },
