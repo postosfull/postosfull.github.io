@@ -1397,7 +1397,7 @@
     </div>
     <div class="grupo">
       <h2>Volume por motorista — <span id="puxMesRotulo"></span></h2>
-      <p class="nota-dash">Soma dos litros de todas as puxadas de cada motorista no mês selecionado.</p>
+      <p class="nota-dash">Soma dos litros de todas as puxadas de cada motorista no mês selecionado. <b>Puxadas</b> conta os CT-e; <b>Viagens</b> conta as idas de verdade. Sai mais de um CT-e na mesma viagem em dois casos: quando o caminhão <b>carrega em duas distribuidoras</b> para o mesmo cliente, e quando <b>descarrega no mesmo endereço para duas empresas</b> (o Posto Full Caxias e a Discar ficam no mesmo prédio).</p>
       <div class="pux-mes-nav">
         <button class="btn-claro" onclick="mudarMesPuxadas(-1)">◀ Mês anterior</button>
         <button class="btn-claro" onclick="mudarMesPuxadas(1)">Próximo mês ▶</button>
@@ -7557,10 +7557,11 @@ function renderPuxadas(){
   const resumo = {};
   doMes.forEach(p => {
     const nome = p.motorista || (p.placaCaminhao ? ("Placa "+p.placaCaminhao) : "(sem motorista)");
-    if (!resumo[nome]) resumo[nome] = { litros:0, qtd:0, frete:0 };
+    if (!resumo[nome]) resumo[nome] = { litros:0, qtd:0, frete:0, itens:[] };
     resumo[nome].litros += (+p.litros||0);
     resumo[nome].frete  += (+p.valorFrete||0);
     resumo[nome].qtd    += 1;
+    resumo[nome].itens.push(p);                        // v175 - para contar viagens
   });
   const cont = document.getElementById("resumoPuxadas");
   const nomes = Object.keys(resumo).sort((a,b)=>resumo[b].litros-resumo[a].litros);
@@ -7568,13 +7569,14 @@ function renderPuxadas(){
     if (!nomes.length){
       cont.innerHTML = '<p class="nota-dash">Nenhuma puxada neste mês.</p>';
     } else {
-      let totL=0, totF=0, totQ=0;
-      let h = '<div class="tabela-wrap"><table class="pux-tab pux-lista pux-resumo"><thead><tr><th>Motorista</th><th>Puxadas</th><th>Litros no mês</th><th>Frete no mês</th></tr></thead><tbody>';
+      let totL=0, totF=0, totQ=0, totV=0;
+      let h = '<div class="tabela-wrap"><table class="pux-tab pux-lista pux-resumo"><thead><tr><th>Motorista</th><th>Puxadas</th><th>Viagens</th><th>Litros no mês</th><th>Frete no mês</th></tr></thead><tbody>';
       nomes.forEach(n=>{
-        const r=resumo[n]; totL+=r.litros; totF+=r.frete; totQ+=r.qtd;
-        h += '<tr><td data-lbl="Motorista">'+escAttr(n)+'</td><td data-lbl="Puxadas">'+r.qtd+'</td><td data-lbl="Litros no mês">'+fmtLitros(r.litros)+' L</td><td data-lbl="Frete no mês">R$ '+fmtBR(r.frete,2)+'</td></tr>';
+        const r=resumo[n]; const v=contarViagens(r.itens);
+        totL+=r.litros; totF+=r.frete; totQ+=r.qtd; totV+=v;
+        h += '<tr><td data-lbl="Motorista">'+escAttr(n)+'</td><td data-lbl="Puxadas">'+r.qtd+'</td><td data-lbl="Viagens">'+v+'</td><td data-lbl="Litros no mês">'+fmtLitros(r.litros)+' L</td><td data-lbl="Frete no mês">R$ '+fmtBR(r.frete,2)+'</td></tr>';
       });
-      h += '<tr class="pux-total"><td data-lbl="Motorista">Total</td><td data-lbl="Puxadas">'+totQ+'</td><td data-lbl="Litros no mês">'+fmtLitros(totL)+' L</td><td data-lbl="Frete no mês">R$ '+fmtBR(totF,2)+'</td></tr>';
+      h += '<tr class="pux-total"><td data-lbl="Motorista">Total</td><td data-lbl="Puxadas">'+totQ+'</td><td data-lbl="Viagens">'+totV+'</td><td data-lbl="Litros no mês">'+fmtLitros(totL)+' L</td><td data-lbl="Frete no mês">R$ '+fmtBR(totF,2)+'</td></tr>';
       h += '</tbody></table></div>';
       cont.innerHTML = h;
     }
@@ -7606,6 +7608,46 @@ function renderPuxadas(){
   lista.innerHTML = h;
 }
 
+
+/* ============ v175 — locais de entrega (para contar VIAGENS) ============
+   Um CT-e é emitido por destinatário. Quando o caminhão descarrega no mesmo
+   endereço para duas empresas diferentes (o Posto Full Caxias e a Discar ficam
+   no mesmo prédio), saem DUAS puxadas que na rua foram UMA viagem só.
+   Aqui ficam os apelidos de cada endereço. Também resolve o mesmo destinatário
+   escrito de jeitos diferentes ("FCN.X" e "FCN X", "NC ... PD" e "NC ... PD LTDA").
+   Para incluir um endereço novo: acrescente uma entrada com pedaços do nome que
+   apareçam no campo "Destinatário" da puxada (em MAIÚSCULAS, sem acento). */
+const LOCAIS_ENTREGA = [
+  { local: "Posto Full Caxias (mesmo prédio da Discar)", contem: ["FCN.X", "FCN X", "DISCAR"] },
+  { local: "Posto Full Dutra",                           contem: ["NC DISTRIBUIDORA"] },
+  { local: "Posto Full Teresina",                        contem: ["FCN.X CARVALHO", "FCN X CARVALHO"] }
+];
+function semAcento(s){
+  return String(s == null ? "" : s).toUpperCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+// Devolve o apelido do endereço do destinatário; se não conhecer, devolve o
+// próprio nome limpo (cada destinatário desconhecido vira o seu próprio local).
+function localDaPuxada(destinatario){
+  const d = semAcento(destinatario);
+  if (!d) return "(sem destinatario)";
+  for (let i = 0; i < LOCAIS_ENTREGA.length; i++){
+    const L = LOCAIS_ENTREGA[i];
+    for (let j = 0; j < L.contem.length; j++){
+      if (d.indexOf(semAcento(L.contem[j])) >= 0) return L.local;
+    }
+  }
+  return d;
+}
+// Uma viagem = um dia + um motorista + um endereço de entrega.
+// Recebe a lista de puxadas de UM motorista e devolve quantas viagens ele fez.
+function contarViagens(lista){
+  const chaves = {};
+  (lista || []).forEach(p => {
+    chaves[String(p.data || "") + "|" + localDaPuxada(p.destinatario)] = true;
+  });
+  return Object.keys(chaves).length;
+}
 
 function parseVolComp(s){ const n = parseInt(String(s).replace(/\D/g,""),10); return isFinite(n)?n:0; }
 /* ================== Full Conveniência ==================
