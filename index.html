@@ -1512,7 +1512,7 @@
 
   <div class="config" id="painelAnalise">
     <div class="grupo">
-      <h2>🧠 Análise</h2>
+      <h2 id="anaTitulo">🧠 Análise</h2>
       <p class="nota-dash">Uma leitura dos números do app escrita pelo Claude, junto com a coleta das vendas de manhã. É uma opinião a partir dos dados — vale conferir antes de decidir.</p>
       <div class="evo-filtros">
         <div class="desc-campo"><label>Análise de</label><select id="anaData" onchange="anaSel=this.value;renderAnalise()"></select></div>
@@ -4002,7 +4002,7 @@ const MENUS_APP = [
   {key:"cotacoes",    btn:"btnCotacoes",    pan:"painelCotacoes",    emp:"transp", nome:"Cotações do Dia"},
   {key:"puxadas",     btn:"btnPuxadas",     pan:"painelPuxadas",     emp:"transp", nome:"Puxadas"},
   {key:"relLoja",     btn:"btnRelLoja",     pan:"painelRelLoja",     emp:"conv",   nome:"Produtos e categorias"},
-  {key:"analise",     btn:"btnAnalise",     pan:"painelAnalise",     emp:"postos|conv", nome:"Análise"},
+  {key:"analise",     btn:"btnAnalise",     pan:"painelAnalise",     emp:"postos|conv|transp", nome:"Análise"},
   {key:"calendario",  btn:"btnCalendario",  pan:"painelCalendario",  emp:"ambos",  nome:"Calendário"},
   {key:"vencimentos", btn:"btnVencimentos", pan:"painelVencimentos", emp:"ambos",  nome:"Documentos"},
   {key:"caixa",       btn:"btnCaixa",       pan:"painelCaixa",       emp:"ambos",  nome:"Caixa de entrada"},
@@ -4369,7 +4369,14 @@ function barrasRel(itens, sufixo){
    Quem escreve e o Claude nas rotinas da manha, gravando em
    analises/{postos|conv}_{AAAA-MM-DD}. Aqui a tela so mostra.        */
 const ANA_SELO = { atencao:"⚠️", bom:"✅", olho:"👀" };
-function anaEmpresaAtual(){ const s = siglaEmpresa(empresa); return s === "conv" ? "conv" : "postos"; }
+function anaEmpresaAtual(){
+  const s = siglaEmpresa(empresa);
+  return (s === "conv" || s === "transp") ? s : "postos";
+}
+function anaAtualizarTitulo(){
+  const h = document.getElementById("anaTitulo");
+  if (h) h.textContent = "🧠 Análise — " + (NOME_EMPRESA[empresa] || "Postos Full");
+}
 function anaDatasDe(sigla){
   return Object.keys(analises || {})
     .filter(k => k.indexOf(sigla + "_") === 0)
@@ -4390,6 +4397,7 @@ function anaHoraCurta(iso){
 function renderAnalise(){
   const box = document.getElementById("anaBox");
   if (!box) return;
+  anaAtualizarTitulo();
   const sigla = anaEmpresaAtual();
   const datas = anaDatasDe(sigla);
   const sel = document.getElementById("anaData");
