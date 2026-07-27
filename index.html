@@ -744,6 +744,21 @@
   .rel-barra-val{flex:0 0 74px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
   .rel-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
   .rel-alerta{background:var(--erro-bg);border:1px solid var(--vermelho);color:var(--vermelho);border-radius:8px;padding:8px 10px;font-size:.84rem;margin-top:10px}
+  /* v172 - menu Analise */
+  .ana-resumo{background:var(--verde-claro);border-left:4px solid var(--verde);border-radius:0 10px 10px 0;padding:12px 14px;margin:12px 0 14px;font-size:.95rem;line-height:1.6}
+  .ana-item{background:var(--superficie-2);border:1px solid var(--borda);border-left:4px solid var(--cinza);border-radius:10px;padding:10px 12px;margin:8px 0}
+  .ana-item.atencao{border-left-color:var(--vermelho)}
+  .ana-item.bom{border-left-color:#22c55e}
+  .ana-item.olho{border-left-color:var(--verde)}
+  .ana-tit{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-weight:700;font-size:.93rem}
+  .ana-uni{font-size:.7rem;font-weight:600;color:var(--cinza);background:var(--superficie);border:1px solid var(--borda);border-radius:20px;padding:1px 8px;white-space:nowrap}
+  .ana-txt{font-size:.88rem;line-height:1.55;margin-top:5px;color:var(--txt)}
+  .ana-conf{background:var(--superficie-2);border:1px solid var(--borda);border-radius:10px;padding:11px 13px;margin-top:14px}
+  .ana-conf b{font-size:.86rem}
+  .ana-conf ul{margin:7px 0 0;padding-left:18px;font-size:.88rem;line-height:1.5}
+  .ana-conf li{margin-bottom:4px}
+  .ana-rodape{font-size:.74rem;color:var(--cinza);font-style:italic;margin-top:14px;line-height:1.5}
+  .ana-vazio{border:1px dashed var(--borda);border-radius:10px;padding:22px 16px;text-align:center;color:var(--cinza);font-size:.9rem;line-height:1.6}
   .evo-filtros .desc-campo{flex:0 1 200px;min-width:150px}
   .evo-filtros .desc-campo.auto{flex:0 0 auto;min-width:0}
   .evo-filtros .dash-check{padding:9px 0;white-space:nowrap;text-transform:none;letter-spacing:0;font-size:.9rem;font-weight:400;color:var(--txt)}
@@ -1247,6 +1262,7 @@
     <button class="btn-claro" id="btnSimular" onclick="alternarSimular()"><span class="mi">💰</span><span class="mt">Simular Margens</span></button>
     <button class="btn-claro" id="btnDescontos" onclick="alternarDescontos()"><span class="mi">🏷️</span><span class="mt">Descontos</span></button>
     <button class="btn-claro" id="btnRelPosto" onclick="alternarRelPosto()"><span class="mi">📑</span><span class="mt">Relatórios do posto</span></button>
+    <button class="btn-claro" id="btnAnalise" onclick="alternarAnalise()"><span class="mi">🧠</span><span class="mt">Análise</span></button>
     <button class="btn-claro" id="btnInfleet" onclick="alternarInfleet()"><span class="mi">📡</span><span class="mt">APP Infleet</span></button>
     <button class="btn-claro" id="btnPedido" onclick="alternarPedido()"><span class="mi">📝</span><span class="mt">Pedido de carregamento</span></button>
     <button class="btn-claro" id="btnComparativo" onclick="alternarComparativo()"><span class="mi">🚛</span><span class="mt">Comparativo de Preços</span></button>
@@ -1491,6 +1507,17 @@
       </div>
       <div class="doc-tools" id="relPostoAbas"></div>
       <div id="relPostoBox"></div>
+    </div>
+  </div>
+
+  <div class="config" id="painelAnalise">
+    <div class="grupo">
+      <h2>🧠 Análise</h2>
+      <p class="nota-dash">Uma leitura dos números do app escrita pelo Claude, junto com a coleta das vendas de manhã. É uma opinião a partir dos dados — vale conferir antes de decidir.</p>
+      <div class="evo-filtros">
+        <div class="desc-campo"><label>Análise de</label><select id="anaData" onchange="anaSel=this.value;renderAnalise()"></select></div>
+      </div>
+      <div id="anaBox"></div>
     </div>
   </div>
 
@@ -1872,6 +1899,7 @@ const colArquivos = db.collection("arquivos");                    // metadados d
 const colResumoDiario = db.collection("resumoDiario");             // um doc por dia: litros por posto + faturamento por loja
 const colVendasMensais = db.collection("vendasMensais");
 const colRelPosto = db.collection("relatoriosPosto");      // v168 - relatórios mensais dos postos (Adaptive)
+const colAnalises = db.collection("analises");             // v172 - "postos_2026-07-28" / "conv_2026-07-28"
 const colRelLoja  = db.collection("relatoriosLoja");       // v168 - produtos/categorias das conveniências           // um doc por mês (AAAA-MM): litros por posto + faturamento por loja
 let vendasMensais = {};                // "AAAA-MM" -> {postos:{...}, lojas:{...}, parcial}
 let evolucaoPadrao = { empresa:"posto:teresina", meses:3 };   // o que abre por padrão no card
@@ -1915,6 +1943,8 @@ let documentos = [];                   // documentos/licenças com vencimento (c
 let escutaDocumentos = null;
 let relPostos = {}, relLojas = {};              // v168 - {"teresina_2026-07": {...}}
 let escutaRelPosto = null, escutaRelLoja = null;
+let analises = {}, anaSel = "";                 // v172 - {"postos_2026-07-28": {...}}
+let escutaAnalises = null;
 let relPostoSel = "teresina", relPostoMes = "", relPostoAba = "resultado";
 let relLojaSel = "teresina", relLojaMes = "", relLojaOrdem = "lb";
 let docFormAberto = false, editandoDoc = null;
@@ -2345,6 +2375,7 @@ function aoMudarLogin(usuario){
     if (escutaDocumentos){ escutaDocumentos(); escutaDocumentos = null; }
     if (escutaRelPosto){ escutaRelPosto(); escutaRelPosto = null; }
     if (escutaRelLoja){ escutaRelLoja(); escutaRelLoja = null; }
+    if (escutaAnalises){ escutaAnalises(); escutaAnalises = null; }
     if (escutaArquivos){ escutaArquivos(); escutaArquivos = null; }
     nuvemPronta = false;
   }
@@ -3461,6 +3492,13 @@ function iniciarSync(){
     if (pl && pl.classList.contains("aberto")) renderRelLoja();
   }, ()=>{});
 
+  // v172 - analises escritas pelo Claude nas rotinas
+  escutaAnalises = colAnalises.onSnapshot(snap => {
+    const m = {}; snap.forEach(d => m[d.id] = Object.assign({ id: d.id }, d.data())); analises = m;
+    const pa = document.getElementById("painelAnalise");
+    if (pa && pa.classList.contains("aberto")) renderAnalise();
+  }, ()=>{});
+
   // Eventos do calendário criados no app
   escutaEventos = colEventos.onSnapshot(snap => {
     const l = []; snap.forEach(d => l.push(Object.assign({ id: d.id }, d.data()))); eventos = l;
@@ -3869,7 +3907,7 @@ function excluir(i){
 
 /* ================== Salvar / Carregar / Exportar ================== */
 // Painéis que ocupam a página; só um fica aberto por vez
-const PAINEIS = ["painelRegistros","painelDash","painelResumoDia","painelHistorico","painelSimular","painelDescontos","painelComparativo","painelPuxadas","painelCotacoes","painelInfleet","painelPedido","painelRelPosto","painelRelLoja","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin"];
+const PAINEIS = ["painelRegistros","painelDash","painelResumoDia","painelHistorico","painelSimular","painelDescontos","painelComparativo","painelPuxadas","painelCotacoes","painelInfleet","painelPedido","painelRelPosto","painelRelLoja","painelAnalise","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin"];
 function fecharTodosPaineis(exceto){
   PAINEIS.forEach(id => {
     const el = document.getElementById(id);
@@ -3918,6 +3956,11 @@ function fecharTodosPaineis(exceto){
   if (bven) bven.classList.toggle("ativo", document.getElementById("painelVencimentos").classList.contains("aberto"));
   const bcx = document.getElementById("btnCaixa");
   if (bcx) bcx.classList.toggle("ativo", document.getElementById("painelCaixa").classList.contains("aberto"));
+  // v172 - estes tres faltavam: o botao ficava aceso depois de abrir outro menu
+  ["btnRelPosto:painelRelPosto","btnRelLoja:painelRelLoja","btnAnalise:painelAnalise"].forEach(par => {
+    const p = par.split(":"), b = document.getElementById(p[0]), pan = document.getElementById(p[1]);
+    if (b && pan) b.classList.toggle("ativo", pan.classList.contains("aberto"));
+  });
 }
 
 /* ===== Menu lateral: abrir/fechar no celular ===== */
@@ -3959,6 +4002,7 @@ const MENUS_APP = [
   {key:"cotacoes",    btn:"btnCotacoes",    pan:"painelCotacoes",    emp:"transp", nome:"Cotações do Dia"},
   {key:"puxadas",     btn:"btnPuxadas",     pan:"painelPuxadas",     emp:"transp", nome:"Puxadas"},
   {key:"relLoja",     btn:"btnRelLoja",     pan:"painelRelLoja",     emp:"conv",   nome:"Produtos e categorias"},
+  {key:"analise",     btn:"btnAnalise",     pan:"painelAnalise",     emp:"postos|conv", nome:"Análise"},
   {key:"calendario",  btn:"btnCalendario",  pan:"painelCalendario",  emp:"ambos",  nome:"Calendário"},
   {key:"vencimentos", btn:"btnVencimentos", pan:"painelVencimentos", emp:"ambos",  nome:"Documentos"},
   {key:"caixa",       btn:"btnCaixa",       pan:"painelCaixa",       emp:"ambos",  nome:"Caixa de entrada"},
@@ -4059,6 +4103,8 @@ function aplicarEmpresa(trocarPainel){
   const box = document.getElementById("empresaBox");
   if (box) box.querySelectorAll("button").forEach(b => b.classList.toggle("ativo", (b.getAttribute("onclick")||"").indexOf("'"+empresa+"'") >= 0));
   if (trocarPainel){ abrirPainelInicial(); }
+  const pana = document.getElementById("painelAnalise");
+  if (pana && pana.classList.contains("aberto")) renderAnalise();   // v172 - o texto muda por empresa
 }
 
 function definirEmpresa(nova){
@@ -4318,6 +4364,83 @@ function barrasRel(itens, sufixo){
   }).join("");
 }
 /* ---------- Relatórios do posto ---------- */
+/* ===================== v172 - menu Analise =====================
+   Os textos NAO sao gerados no app (pagina publica, sem chave de API).
+   Quem escreve e o Claude nas rotinas da manha, gravando em
+   analises/{postos|conv}_{AAAA-MM-DD}. Aqui a tela so mostra.        */
+const ANA_SELO = { atencao:"⚠️", bom:"✅", olho:"👀" };
+function anaEmpresaAtual(){ const s = siglaEmpresa(empresa); return s === "conv" ? "conv" : "postos"; }
+function anaDatasDe(sigla){
+  return Object.keys(analises || {})
+    .filter(k => k.indexOf(sigla + "_") === 0)
+    .map(k => k.slice(sigla.length + 1))
+    .sort().reverse();
+}
+function alternarAnalise(){
+  const aberto = abrirPainelExclusivo("painelAnalise");
+  const b = document.getElementById("btnAnalise");
+  if (b) b.classList.toggle("ativo", aberto);
+  if (aberto) renderAnalise();
+}
+function anaHoraCurta(iso){
+  const d = new Date(iso);
+  if (isNaN(d)) return "";
+  return String(d.getHours()).padStart(2,"0") + "h" + String(d.getMinutes()).padStart(2,"0");
+}
+function renderAnalise(){
+  const box = document.getElementById("anaBox");
+  if (!box) return;
+  const sigla = anaEmpresaAtual();
+  const datas = anaDatasDe(sigla);
+  const sel = document.getElementById("anaData");
+
+  if (!datas.length){
+    if (sel) sel.innerHTML = "";
+    const linha = document.querySelector("#painelAnalise .evo-filtros");
+    if (linha) linha.style.display = "none";
+    box.innerHTML = '<div class="ana-vazio">Ainda não há análise para a <b>' +
+      escAttr(NOME_EMPRESA[empresa] || "empresa") + '</b>.<br>' +
+      'Ela é escrita de manhã, junto com a coleta das vendas do dia anterior.</div>';
+    return;
+  }
+  const linha = document.querySelector("#painelAnalise .evo-filtros");
+  if (linha) linha.style.display = "";
+  if (datas.indexOf(anaSel) < 0) anaSel = datas[0];
+  preencherSelectRel("anaData", datas, anaSel, d => fmtDataCurta(d));
+  anaSel = (document.getElementById("anaData") || {}).value || anaSel;
+
+  const a = analises[sigla + "_" + anaSel] || {};
+  let html = "";
+  if (a.periodo) html += '<p class="nota-dash" style="margin:0 0 4px">Período analisado: ' + escAttr(a.periodo) + '</p>';
+  if (a.resumo)  html += '<div class="ana-resumo">' + escAttr(a.resumo) + '</div>';
+
+  const itens = Array.isArray(a.itens) ? a.itens : [];
+  itens.forEach(i => {
+    const tipo = (i && ANA_SELO[i.tipo]) ? i.tipo : "olho";
+    html += '<div class="ana-item ' + tipo + '">' +
+      '<div class="ana-tit"><span>' + ANA_SELO[tipo] + '</span><span>' + escAttr(i.titulo || "") + '</span>' +
+      (i.unidade ? '<span class="ana-uni">' + escAttr(i.unidade) + '</span>' : '') + '</div>' +
+      (i.texto ? '<div class="ana-txt">' + escAttr(i.texto) + '</div>' : '') +
+      '</div>';
+  });
+  if (!itens.length && !a.resumo){
+    html += '<div class="ana-vazio">A análise deste dia veio vazia.</div>';
+  }
+
+  const conf = Array.isArray(a.conferir) ? a.conferir.filter(Boolean) : [];
+  if (conf.length){
+    html += '<div class="ana-conf"><b>O que vale conferir</b><ul>' +
+      conf.map(c => '<li>' + escAttr(c) + '</li>').join("") + '</ul></div>';
+  }
+
+  const quando = a.criadoEm ? (fmtDataCurta(String(a.criadoEm).slice(0,10)) + (anaHoraCurta(a.criadoEm) ? " às " + anaHoraCurta(a.criadoEm) : "")) : fmtDataCurta(anaSel);
+  html += '<p class="ana-rodape">Escrito pelo Claude em ' + escAttr(quando) +
+          (a.por ? " (" + escAttr(a.por) + ")" : "") + ', a partir dos números que estão no app. ' +
+          'É uma leitura para chamar atenção, não um laudo: confira no Petros antes de decidir.</p>';
+
+  box.innerHTML = html;
+}
+
 function alternarRelPosto(){
   const aberto = abrirPainelExclusivo("painelRelPosto");
   const b = document.getElementById("btnRelPosto");
