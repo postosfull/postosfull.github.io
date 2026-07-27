@@ -956,6 +956,7 @@
   .venc-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:3px;align-items:center}
   .venc-cat{background:var(--superficie-2);border:1px solid var(--borda);border-radius:6px;padding:1px 7px;font-size:.72rem;color:var(--txt)}
   .venc-uni{font-size:.72rem;color:var(--cinza);display:inline-flex;align-items:center;gap:4px}
+  .venc-emp{background:var(--verde-claro);border:1px solid var(--verde);color:var(--verde-escuro);border-radius:6px;padding:1px 7px;font-size:.72rem;font-weight:600}
   .venc-sub{font-size:.74rem;color:var(--cinza);margin-top:3px;word-break:break-word}
   .venc-right{text-align:right;white-space:nowrap;display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0}
   .venc-data{font-weight:700;font-size:.85rem}
@@ -1923,15 +1924,39 @@ let documentos = [];                   // documentos/licenças com vencimento (c
 let escutaDocumentos = null;
 let docFormAberto = false, editandoDoc = null;
 let confirmarExclDoc = null, timerExclDoc = null;
-let docForm = { fonte:"doc", id:null, titulo:"", categoria:"Outro", origem:"Outros", vencimento:"", avisarDias:30, numero:"", obs:"" };
+let docForm = { fonte:"doc", id:null, titulo:"", categoria:"Outro", empresa:"", origem:"Outros", vencimento:"", avisarDias:30, numero:"", obs:"" };
 let docVista = "tudo";                 // "tudo" | "venc" | "uni"  (menu unificado Documentos)
 let docBusca = "";                     // filtro de busca do menu Documentos
 let arquivos = [];                     // arquivos (licenças/contratos) — coleção "arquivos" + Firebase Storage
 let escutaArquivos = null;
 let confirmarExclArq = null, timerExclArq = null;
-let arqUnidadeSel = "Outros", arqTipoSel = "Outro";
+let arqUnidadeSel = "Outros", arqTipoSel = "Outro", arqEmpresaSel = "";
 let fbStorage = null;
 let confirmarRemAnexo = null, timerRemAnexo = null;
+// v166 - empresas do grupo (usadas no menu Documentos para dizer de quem e cada arquivo)
+const EMPRESAS_GRUPO = [
+  { nome:"Posto Full Teresina",        razao:"FCN.X CARVALHO COMBUSTIVEL LTDA",              cnpj:"09.641.208/0001-64", unidade:"Posto Full - Teresina" },
+  { nome:"Full Conveniência Teresina", razao:"V & T CARVALHO LTDA (Full Mania)",             cnpj:"17.957.841/0001-94", unidade:"Posto Full - Teresina" },
+  { nome:"TSC Administradora",         razao:"TSC SERVICOS ADMINISTRATIVOS LTDA",            cnpj:"43.703.942/0001-49", unidade:"Posto Full - Teresina" },
+  { nome:"BTC THE",                    razao:"BTC THE SOLUCOES EMPRESARIAIS LTDA",           cnpj:"64.947.495/0001-43", unidade:"Posto Full - Teresina" },
+  { nome:"Posto Full Caxias",          razao:"FCN.X COMBUSTIVEIS LTDA",                      cnpj:"15.772.754/0001-37", unidade:"Posto Full - Caxias" },
+  { nome:"Full Conveniência Caxias",   razao:"FULL CONVENIENCIA LTDA",                       cnpj:"16.993.906/0001-94", unidade:"Posto Full - Caxias" },
+  { nome:"TSC.X Administradora",       razao:"TSC.X ADMINISTRADORA LTDA",                    cnpj:"44.838.751/0001-57", unidade:"Posto Full - Caxias" },
+  { nome:"BTC Caxias",                 razao:"BTC CAXIAS GESTAO DE NEGOCIOS LTDA",           cnpj:"64.947.020/0001-57", unidade:"Posto Full - Caxias" },
+  { nome:"Posto Full Dutra",           razao:"NC DISTRIBUIDORA DE COMBUSTIVEIS PD LTDA",     cnpj:"46.785.405/0001-83", unidade:"Posto Full - Dutra" },
+  { nome:"Full Conveniência Dutra",    razao:"T E C CONVENIENCIA LTDA",                      cnpj:"49.949.736/0001-08", unidade:"Posto Full - Dutra" },
+  { nome:"T E C Comércio e Serviços",  razao:"T E C COMERCIO E SERVICOS ADMINISTRATIVOS LTDA", cnpj:"50.295.648/0001-00", unidade:"Posto Full - Dutra" },
+  { nome:"BTC Dutra",                  razao:"BTC DUTRA ADMINISTRACAO DE NEGOCIOS LTDA",     cnpj:"65.133.422/0001-80", unidade:"Posto Full - Dutra" },
+  { nome:"Full Transportadora",        razao:"FULL TRANSPORTADORA LTDA",                     cnpj:"47.389.745/0001-58", unidade:"Full Transportadora" }
+];
+function empresaDoGrupo(nome){ return EMPRESAS_GRUPO.find(e => e.nome === nome) || null; }
+function unidadeDaEmpresa(nome){ const e = empresaDoGrupo(nome); return e ? e.unidade : ""; }
+function opcoesEmpresaHtml(sel){
+  let h = '<option value="">— não informar —</option>';
+  h += EMPRESAS_GRUPO.map(e => '<option value="'+escAttr(e.nome)+'"'+(sel===e.nome?' selected':'')+'>'+escAttr(e.nome)+'</option>').join("");
+  if (sel && !empresaDoGrupo(sel)) h += '<option value="'+escAttr(sel)+'" selected>'+escAttr(sel)+'</option>';
+  return h;
+}
 const CATEGORIAS_DOC = ["CNH","Licenciamento/IPVA","Seguro","Alvará de funcionamento","Licença ambiental","AVCB (Bombeiros)","Certificado digital","Licença ANP","Alvará sanitário","Contrato","Outro"];
 const ICONE_DOC = {"CNH":"\ud83e\udeaa","Licenciamento/IPVA":"\ud83d\ude97","Seguro":"\ud83d\udee1\ufe0f","Alvará de funcionamento":"\ud83c\udfe2","Licença ambiental":"\ud83c\udf31","AVCB (Bombeiros)":"\ud83e\uddef","Certificado digital":"\ud83d\udd10","Licença ANP":"\u26fd","Alvará sanitário":"\ud83e\ude7a","Contrato":"\ud83d\udcd1","Outro":"\ud83d\udcc4"};
 let permissoesTodos = {};              // {emailLower:{menuKey:bool} | {perfil:id} | {menus:{...}}} sincronizado da nuvem
@@ -5826,14 +5851,14 @@ function itensDocsTodos(){
   const a = (documentos||[]).filter(d => d && d.titulo).map(d => ({
     fonte:"doc", id:d.id, nome:d.titulo, tipo:d.categoria||"Outro", origem:d.origem||"Outros",
     vencimento:d.vencimento||"", avisarDias:(typeof d.avisarDias==="number"?d.avisarDias:30),
-    numero:d.numero||"", obs:d.obs||"",
+    numero:d.numero||"", obs:d.obs||"", empresa:d.empresa||"",
     temArquivo: !!d.anexoUrl, nomeArq:d.anexoNome||"", tamanho:d.anexoTamanho||0, contentType:"",
     criadoEm:d.criadoEm||0
   }));
   const b = (arquivos||[]).filter(x => x && x.url).map(x => ({
     fonte:"arq", id:x.id, nome:x.nome||"arquivo", tipo:x.tipo||"Outro", origem:x.origem||"Outros",
     vencimento:x.vencimento||"", avisarDias:(typeof x.avisarDias==="number"?x.avisarDias:30),
-    numero:x.numero||"", obs:x.obs||"",
+    numero:x.numero||"", obs:x.obs||"", empresa:x.empresa||"",
     temArquivo:true, nomeArq:x.nome||"", tamanho:x.tamanho||0, contentType:x.contentType||"",
     criadoEm:x.criadoEm||0
   }));
@@ -5861,6 +5886,7 @@ function _lerFormDoc(){
   const g = id => { const el = document.getElementById(id); return el ? el.value : undefined; };
   if (document.getElementById("docTitulo")){
     docForm.titulo = g("docTitulo"); docForm.categoria = g("docCategoria"); docForm.origem = g("docOrigem");
+    docForm.empresa = g("docEmpresa") || "";
     docForm.vencimento = g("docVenc"); const av = parseInt(g("docAvisar"), 10); docForm.avisarDias = isNaN(av) ? 30 : av;
     docForm.numero = g("docNumero"); docForm.obs = g("docObs");
   }
@@ -5868,14 +5894,14 @@ function _lerFormDoc(){
 
 function novoDoc(){
   editandoDoc = null; docFormAberto = true;
-  docForm = { fonte:"doc", id:null, titulo:"", categoria:"Outro", origem:"Outros", vencimento:"", avisarDias:30, numero:"", obs:"" };
+  docForm = { fonte:"doc", id:null, titulo:"", categoria:"Outro", empresa:"", origem:"Outros", vencimento:"", avisarDias:30, numero:"", obs:"" };
   renderVencimentos();
 }
 
 function editarDoc(id){
   const d = (documentos||[]).find(x => x.id === id); if (!d) return;
   editandoDoc = id; docFormAberto = true;
-  docForm = { fonte:"doc", id:id, titulo:d.titulo||"", categoria:d.categoria||"Outro", origem:d.origem||"Outros", vencimento:d.vencimento||"", avisarDias:(typeof d.avisarDias==="number"?d.avisarDias:30), numero:d.numero||"", obs:d.obs||"" };
+  docForm = { fonte:"doc", id:id, titulo:d.titulo||"", categoria:d.categoria||"Outro", empresa:d.empresa||"", origem:d.origem||"Outros", vencimento:d.vencimento||"", avisarDias:(typeof d.avisarDias==="number"?d.avisarDias:30), numero:d.numero||"", obs:d.obs||"" };
   renderVencimentos();
 }
 function cancelarDoc(){ docFormAberto = false; editandoDoc = null; renderVencimentos(); }
@@ -5884,7 +5910,7 @@ function editarItemDoc(fonte, id){
   if (fonte === "arq"){
     const a = (arquivos||[]).find(x => x.id === id); if (!a) return;
     editandoDoc = id; docFormAberto = true;
-    docForm = { fonte:"arq", id:id, titulo:a.nome||"", categoria:a.tipo||"Outro", origem:a.origem||"Outros",
+    docForm = { fonte:"arq", id:id, titulo:a.nome||"", categoria:a.tipo||"Outro", empresa:a.empresa||"", origem:a.origem||"Outros",
       vencimento:a.vencimento||"", avisarDias:(typeof a.avisarDias==="number"?a.avisarDias:30),
       numero:a.numero||"", obs:a.obs||"" };
     renderVencimentos(); return;
@@ -5921,7 +5947,7 @@ function salvarDoc(){
   if (fonte === "arq" && editandoDoc){
     const alvoA = editandoDoc;
     const antesA = (arquivos||[]).find(x => x.id === alvoA) || null;
-    const dadosA = { nome: titulo, tipo: docForm.categoria||"Outro", origem: docForm.origem||"Outros",
+    const dadosA = { nome: titulo, tipo: docForm.categoria||"Outro", empresa: docForm.empresa||"", origem: docForm.origem||"Outros",
       vencimento: venc, avisarDias: avDias, numero: (docForm.numero||"").trim(), obs: (docForm.obs||"").trim(),
       atualizadoEm: Date.now(), atualizadoPor: usuarioAtual||"" };
     colArquivos.doc(alvoA).set(dadosA, { merge:true })
@@ -5929,7 +5955,7 @@ function salvarDoc(){
       .catch(er => avisoDoc(msgErro(er), "erro"));
     docFormAberto = false; editandoDoc = null; renderVencimentos(); return;
   }
-  const dados = { titulo, categoria: docForm.categoria||"Outro", origem: docForm.origem||"Outros", vencimento: venc,
+  const dados = { titulo, categoria: docForm.categoria||"Outro", empresa: docForm.empresa||"", origem: docForm.origem||"Outros", vencimento: venc,
     avisarDias: avDias, numero: (docForm.numero||"").trim(), obs: (docForm.obs||"").trim(),
     atualizadoEm: Date.now(), atualizadoPor: usuarioAtual||"" };
   if (editandoDoc){
@@ -5973,6 +5999,7 @@ function renderFormDoc(){
   let h = '<div class="ev-form"><div class="ev-form-tit">'+(editandoDoc?'\u270f\ufe0f Editar documento':'\u2795 Novo documento')+'</div>';
   h += '<label class="ev-lbl">Nome do documento<input id="docTitulo" maxlength="80" value="'+esc(docForm.titulo)+'" placeholder="Ex: CNH do Jo\u00e3o / Licen\u00e7a ambiental - Teresina"></label>';
   h += '<label class="ev-lbl">Tipo<select id="docCategoria">'+catOpt+'</select></label>';
+  h += '<label class="ev-lbl">Empresa<select id="docEmpresa" onchange="aoTrocarEmpresaDoc(this.value)">'+opcoesEmpresaHtml(docForm.empresa)+'</select></label>';
   h += '<label class="ev-lbl">Unidade<select id="docOrigem">'+uniOpt+'</select></label>';
   h += '<label class="ev-lbl">Vence em (opcional — deixe vazio se não vence)<input id="docVenc" type="date" value="'+esc(docForm.vencimento)+'"></label>';
   h += '<label class="ev-lbl">\ud83d\udd14 Avisar com anteced\u00eancia<select id="docAvisar">'+avO.map(o=>'<option value="'+o[0]+'"'+(avA===o[0]?' selected':'')+'>'+o[1]+'</option>').join("")+'</select></label>';
@@ -5983,6 +6010,18 @@ function renderFormDoc(){
   return h;
 }
 
+function aoTrocarEmpresaDoc(nome){
+  const u = unidadeDaEmpresa(nome);
+  const sel = document.getElementById("docOrigem");
+  if (u && sel){ sel.value = u; docForm.origem = u; }
+  docForm.empresa = nome || "";
+}
+function aoTrocarEmpresaArq(nome){
+  arqEmpresaSel = nome || "";
+  const u = unidadeDaEmpresa(nome);
+  const sel = document.getElementById("arqUnidade");
+  if (u && sel){ sel.value = u; arqUnidadeSel = u; }
+}
 function anexoItemDocHtml(i){
   if (i.fonte === "arq"){
     return '<div class="venc-anexo"><span class="venc-anexo-link" onclick="abrirArquivo(\'' + escAspas(i.id) + '\')">📎 Ver arquivo</span></div>';
@@ -6015,11 +6054,13 @@ function linhaItemDoc(i){
   const sub = [];
   if (i.numero) sub.push('nº ' + esc(i.numero));
   if (i.obs) sub.push(esc(i.obs));
-  const chaveBusca = [i.nome, i.tipo, i.origem, i.numero, i.obs, (i.vencimento||'')].join(' ');
+  const empInfo = empresaDoGrupo(i.empresa);
+  const seloEmp = i.empresa ? '<span class="venc-emp" title="'+escAttr(empInfo ? (empInfo.razao+' — CNPJ '+empInfo.cnpj) : i.empresa)+'">🏢 '+esc(i.empresa)+'</span>' : '';
+  const chaveBusca = [i.nome, i.tipo, i.empresa, (empInfo?empInfo.razao+' '+empInfo.cnpj:''), i.origem, i.numero, i.obs, (i.vencimento||'')].join(' ');
   return '<div class="venc-item '+cls+'" data-busca="'+escAttr(chaveBusca)+'">' +
     '<div class="venc-ic">'+ic+'</div>' +
     '<div class="venc-main"><div class="venc-tit">'+esc(i.nome)+'</div>' +
-    '<div class="venc-tags"><span class="venc-cat">'+esc(i.tipo||'Documento')+'</span>' +
+    '<div class="venc-tags">' + seloEmp + '<span class="venc-cat">'+esc(i.tipo||'Documento')+'</span>' +
       (i.origem?'<span class="venc-uni"><i class="cal-dot '+origemClasseCal(i.origem)+'"></i>'+esc(i.origem)+'</span>':'') +
       (i.tamanho?'<span class="venc-sub" style="margin:0">'+fmtTamanho(i.tamanho)+'</span>':'') + '</div>' +
     (sub.length?'<div class="venc-sub">'+sub.join(' · ')+'</div>':'') +
@@ -6044,6 +6085,7 @@ function renderVencimentos(){
     if (!docFormAberto){
       if (st){
         html += '<div class="arq-upload"><div class="arq-up-linha">' +
+          '<label class="arq-up-lbl">Empresa<select id="arqEmpresa" onchange="aoTrocarEmpresaArq(this.value)">' + opcoesEmpresaHtml(arqEmpresaSel) + '</select></label>' +
           '<label class="arq-up-lbl">Unidade<select id="arqUnidade" onchange="arqUnidadeSel=this.value">' + ORIGENS_EVENTO.map(o=>'<option value="'+escAttr(o)+'"'+(arqUnidadeSel===o?' selected':'')+'>'+escAttr(o)+'</option>').join("") + '</select></label>' +
           '<label class="arq-up-lbl">Tipo<select id="arqTipo" onchange="arqTipoSel=this.value">' + CATEGORIAS_DOC.map(t=>'<option value="'+escAttr(t)+'"'+(arqTipoSel===t?' selected':'')+'>'+escAttr(t)+'</option>').join("") + '</select></label>' +
           '</div>' +
@@ -6075,10 +6117,11 @@ function renderVencimentos(){
   // --- busca + visoes ---
   const chip = (v, rot) => '<button class="doc-chip'+(docVista===v?' ativo':'')+'" onclick="mudarVistaDocs(\''+v+'\')">'+rot+'</button>';
   html += '<div class="doc-tools">' +
-    '<input class="doc-busca" type="search" id="docBuscaInput" placeholder="🔎 Buscar por nome, tipo, unidade ou número..." value="'+escAttr(docBusca)+'" oninput="buscarDocs(this.value)">' +
+    '<input class="doc-busca" type="search" id="docBuscaInput" placeholder="🔎 Buscar por nome, empresa, CNPJ, tipo ou número..." value="'+escAttr(docBusca)+'" oninput="buscarDocs(this.value)">' +
     chip('tudo', '📄 Tudo ('+itens.length+')') +
     chip('venc', '⏰ Com vencimento ('+comData.length+')') +
     chip('uni', '📂 Por unidade') +
+    chip('emp', '🏢 Por empresa') +
     '</div>';
   const ordenaData = arr => arr.slice().sort((a,b)=> a.vencimento<b.vencimento?-1:a.vencimento>b.vencimento?1:0);
   const ordenaNome = arr => arr.slice().sort((a,b)=> String(a.nome||'').localeCompare(String(b.nome||''), 'pt-BR'));
@@ -6097,6 +6140,22 @@ function renderVencimentos(){
               bloco('🔔 Vencem em breve', ordenaData(breve), 'laranja') +
               bloco('✅ Em dia', ordenaData(emdia), 'verde');
     }
+  } else if (docVista === "emp"){
+    const gruposE = {};
+    itens.forEach(i => { const e = i.empresa || "Sem empresa"; (gruposE[e] = gruposE[e] || []).push(i); });
+    const ordemEmp = EMPRESAS_GRUPO.map(e => e.nome)
+      .concat(Object.keys(gruposE).filter(e => e !== "Sem empresa" && !empresaDoGrupo(e)).sort())
+      .concat(["Sem empresa"]);
+    ordemEmp.forEach(e => {
+      const arr = gruposE[e] || []; if (!arr.length) return;
+      const info = empresaDoGrupo(e);
+      const comD = ordenaData(arr.filter(i => i.vencimento));
+      const semD = ordenaNome(arr.filter(i => !i.vencimento));
+      html += '<div class="doc-bloco"><div class="arq-grupo-tit"><i class="cal-dot '+origemClasseCal(info?info.unidade:"")+'"></i>'+esc(e)+' ('+arr.length+')'+
+              (info ? '<span class="venc-sub" style="margin-left:8px;font-weight:400">'+esc(info.razao)+' · CNPJ '+esc(info.cnpj)+'</span>' : '')+'</div>';
+      comD.concat(semD).forEach(i => { html += linhaItemDoc(i); });
+      html += '</div>';
+    });
   } else if (docVista === "uni"){
     const grupos = {};
     itens.forEach(i => { const o = i.origem || "Outros"; (grupos[o] = grupos[o] || []).push(i); });
@@ -6198,11 +6257,12 @@ function aoEscolherArquivo(input){
   const file = input && input.files && input.files[0]; if (!file) return;
   arqUnidadeSel = (document.getElementById("arqUnidade")||{}).value || "Outros";
   arqTipoSel = (document.getElementById("arqTipo")||{}).value || "Outro";
+  arqEmpresaSel = (document.getElementById("arqEmpresa")||{}).value || "";
   const prog = document.getElementById("arqProgresso");
   const slug = origemClasseCal(arqUnidadeSel);
   if (prog){ prog.style.color = ""; prog.textContent = "Enviando… 0%"; }
   subirArquivo(file, "arquivos/"+slug, p => { if (prog) prog.textContent = "Enviando… "+p+"%"; })
-    .then(info => colArquivos.add({ nome: info.nome, tipo: arqTipoSel, origem: arqUnidadeSel, vencimento: "", url: info.url, path: info.path, tamanho: info.tamanho, contentType: info.contentType, criadoEm: Date.now(), criadoPor: usuarioAtual||"" })
+    .then(info => colArquivos.add({ nome: info.nome, tipo: arqTipoSel, empresa: arqEmpresaSel, origem: arqUnidadeSel, vencimento: "", url: info.url, path: info.path, tamanho: info.tamanho, contentType: info.contentType, criadoEm: Date.now(), criadoPor: usuarioAtual||"" })
       .then(ref => { if (prog) prog.textContent = "✓ Enviado!"; logAtividade({acao:"enviou", area:"Documentos", resumo: info.nome+" ("+arqUnidadeSel+")", colecao:"arquivos", docId: ref.id }); }))
     .catch(err => { if (prog){ prog.style.color = "#e11d48"; prog.textContent = "Erro: " + (err && err.message ? err.message : "não foi possível enviar"); } });
   try { input.value = ""; } catch(e){}
