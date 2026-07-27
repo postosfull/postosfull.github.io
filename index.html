@@ -722,6 +722,28 @@
   .desc-controles{margin:2px 0 14px}
   .desc-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;align-items:end}
   .evo-filtros{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:10px}
+  .rel-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:12px 0}
+  .rel-kpi{background:var(--superficie-2);border:1px solid var(--borda);border-radius:10px;padding:10px 12px}
+  .rel-kpi span{display:block;font-size:.68rem;font-weight:600;color:var(--cinza);text-transform:uppercase;letter-spacing:.3px}
+  .rel-kpi b{display:block;font-size:1.12rem;margin-top:3px;color:var(--txt)}
+  .rel-kpi.bom b{color:#18a558}
+  .rel-kpi.ruim b{color:var(--vermelho)}
+  .rel-tab{width:100%;min-width:0;border-collapse:collapse;font-size:.86rem;margin-top:8px}
+  .rel-tab th{background:var(--superficie-2);color:var(--txt);text-align:left;padding:7px 9px;font-size:.72rem;text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--borda);white-space:nowrap}
+  .rel-tab td{padding:7px 9px;border-bottom:1px solid var(--borda);white-space:nowrap}
+  .rel-tab td.n,.rel-tab th.n{text-align:right;font-variant-numeric:tabular-nums}
+  .rel-tab tbody tr:hover{background:var(--superficie-2)}
+  .rel-tab th.ord{cursor:pointer}
+  .rel-tab th.ord.ativo{color:var(--verde)}
+  .rel-sobe{color:#18a558;font-weight:700}
+  .rel-desce{color:var(--vermelho);font-weight:700}
+  .rel-barra-linha{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:.84rem}
+  .rel-barra-nome{flex:0 0 190px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rel-barra-fundo{flex:1 1 auto;background:var(--superficie-2);border-radius:5px;height:16px;overflow:hidden;min-width:60px}
+  .rel-barra-cheia{background:var(--verde);height:100%;border-radius:5px}
+  .rel-barra-val{flex:0 0 74px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+  .rel-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .rel-alerta{background:var(--erro-bg);border:1px solid var(--vermelho);color:var(--vermelho);border-radius:8px;padding:8px 10px;font-size:.84rem;margin-top:10px}
   .evo-filtros .desc-campo{flex:0 1 200px;min-width:150px}
   .evo-filtros .desc-campo.auto{flex:0 0 auto;min-width:0}
   .evo-filtros .dash-check{padding:9px 0;white-space:nowrap;text-transform:none;letter-spacing:0;font-size:.9rem;font-weight:400;color:var(--txt)}
@@ -1224,6 +1246,7 @@
     <button class="btn-claro" id="btnHistorico" onclick="alternarHistorico()"><span class="mi">🕐</span><span class="mt">Histórico</span></button>
     <button class="btn-claro" id="btnSimular" onclick="alternarSimular()"><span class="mi">💰</span><span class="mt">Simular Margens</span></button>
     <button class="btn-claro" id="btnDescontos" onclick="alternarDescontos()"><span class="mi">🏷️</span><span class="mt">Descontos</span></button>
+    <button class="btn-claro" id="btnRelPosto" onclick="alternarRelPosto()"><span class="mi">📑</span><span class="mt">Relatórios do posto</span></button>
     <button class="btn-claro" id="btnInfleet" onclick="alternarInfleet()"><span class="mi">📡</span><span class="mt">APP Infleet</span></button>
     <button class="btn-claro" id="btnPedido" onclick="alternarPedido()"><span class="mi">📝</span><span class="mt">Pedido de carregamento</span></button>
     <button class="btn-claro" id="btnComparativo" onclick="alternarComparativo()"><span class="mi">🚛</span><span class="mt">Comparativo de Preços</span></button>
@@ -1231,6 +1254,7 @@
     <button class="btn-claro" id="btnCotacoes" onclick="alternarCotacoes()"><span class="mi">💲</span><span class="mt">Cotações do Dia</span></button>
     <button class="btn-claro" id="btnConvVendas" onclick="alternarConvVendas()"><span class="mi">🛒</span><span class="mt">Vendas e Margem da Loja</span></button>
     <button class="btn-claro" id="btnConvCompras" onclick="alternarConvCompras()"><span class="mi">📦</span><span class="mt">Compras e Fornecedores</span></button>
+    <button class="btn-claro" id="btnRelLoja" onclick="alternarRelLoja()"><span class="mi">🍫</span><span class="mt">Produtos e categorias</span></button>
     <button class="btn-claro" id="btnCalendario" onclick="alternarCalendario()"><span class="mi">📅</span><span class="mt">Calendário</span></button>
     <button class="btn-claro" id="btnVencimentos" onclick="alternarVencimentos()"><span class="mi">📁</span><span class="mt">Documentos</span></button>
     <button class="btn-claro" id="btnCaixa" onclick="alternarCaixa()"><span class="mi">📥</span><span class="mt">Caixa de entrada</span><span class="menu-badge" id="badgeCaixa" style="display:none">0</span></button>
@@ -1525,6 +1549,37 @@
         <p class="push-status nota-dash" id="pushStatus"></p>
       </div>
       <div id="conteudoAvisos"></div>
+    </div>
+  </div>
+
+  <div class="config" id="painelRelPosto">
+    <div class="grupo">
+      <h2>📑 Relatórios do posto</h2>
+      <p class="nota-dash">Números que vêm do Petros/Adaptive: resultado do mês, fechamento de caixa, equipe e margem por combustível. Atualizados na sincronização.</p>
+      <div class="evo-filtros">
+        <div class="desc-campo"><label>Posto</label><select id="relPostoEmp" onchange="relPostoSel=this.value;renderRelPosto()"></select></div>
+        <div class="desc-campo"><label>Mês</label><select id="relPostoMesSel" onchange="relPostoMes=this.value;renderRelPosto()"></select></div>
+      </div>
+      <div class="doc-tools" id="relPostoAbas"></div>
+      <div id="relPostoBox"></div>
+    </div>
+  </div>
+
+  <div class="config" id="painelRelLoja">
+    <div class="grupo">
+      <h2>🍫 Produtos e categorias</h2>
+      <p class="nota-dash">O que a conveniência vendeu no mês, por categoria e por item, com o lucro e a margem de cada um. Dados do Petros/Adaptive.</p>
+      <div class="evo-filtros">
+        <div class="desc-campo"><label>Conveniência</label><select id="relLojaEmp" onchange="relLojaSel=this.value;renderRelLoja()"></select></div>
+        <div class="desc-campo"><label>Mês</label><select id="relLojaMesSel" onchange="relLojaMes=this.value;renderRelLoja()"></select></div>
+        <div class="desc-campo"><label>Ordenar por</label><select id="relLojaOrd" onchange="relLojaOrdem=this.value;renderRelLoja()">
+          <option value="lb">Lucro bruto</option>
+          <option value="receita">Faturamento</option>
+          <option value="qtd">Quantidade vendida</option>
+          <option value="margem">Margem %</option>
+        </select></div>
+      </div>
+      <div id="relLojaBox"></div>
     </div>
   </div>
 
@@ -1886,7 +1941,9 @@ const docPermEventos = db.collection("config").doc("permissoesEventos"); // quem
 const colDocumentos = db.collection("documentos");                // documentos/licenças com vencimento (Central de Vencimentos)
 const colArquivos = db.collection("arquivos");                    // metadados dos arquivos (licenças/contratos) guardados no Firebase Storage
 const colResumoDiario = db.collection("resumoDiario");             // um doc por dia: litros por posto + faturamento por loja
-const colVendasMensais = db.collection("vendasMensais");           // um doc por mês (AAAA-MM): litros por posto + faturamento por loja
+const colVendasMensais = db.collection("vendasMensais");
+const colRelPosto = db.collection("relatoriosPosto");      // v168 - relatórios mensais dos postos (Adaptive)
+const colRelLoja  = db.collection("relatoriosLoja");       // v168 - produtos/categorias das conveniências           // um doc por mês (AAAA-MM): litros por posto + faturamento por loja
 let vendasMensais = {};                // "AAAA-MM" -> {postos:{...}, lojas:{...}, parcial}
 let evolucaoPadrao = { empresa:"posto:teresina", meses:3 };   // o que abre por padrão no card
 let escutaVendasMensais = null;
@@ -1927,6 +1984,10 @@ let confirmarExclEvento = null, timerExclEvento = null;
 let evForm = { id:null, titulo:"", data:"", origem:"Outros", obs:"", repTipo:"nenhum", repAte:"", avisarDias:7 };
 let documentos = [];                   // documentos/licenças com vencimento (coleção "documentos")
 let escutaDocumentos = null;
+let relPostos = {}, relLojas = {};              // v168 - {"teresina_2026-07": {...}}
+let escutaRelPosto = null, escutaRelLoja = null;
+let relPostoSel = "teresina", relPostoMes = "", relPostoAba = "resultado";
+let relLojaSel = "teresina", relLojaMes = "", relLojaOrdem = "lb";
 let docFormAberto = false, editandoDoc = null;
 let confirmarExclDoc = null, timerExclDoc = null;
 let docForm = { fonte:"doc", id:null, titulo:"", categoria:"Outro", empresa:"", origem:"Outros", vencimento:"", avisarDias:30, numero:"", obs:"" };
@@ -2353,6 +2414,8 @@ function aoMudarLogin(usuario){
     if (escutaEventos){ escutaEventos(); escutaEventos = null; }
     if (escutaPermEventos){ escutaPermEventos(); escutaPermEventos = null; }
     if (escutaDocumentos){ escutaDocumentos(); escutaDocumentos = null; }
+    if (escutaRelPosto){ escutaRelPosto(); escutaRelPosto = null; }
+    if (escutaRelLoja){ escutaRelLoja(); escutaRelLoja = null; }
     if (escutaArquivos){ escutaArquivos(); escutaArquivos = null; }
     nuvemPronta = false;
   }
@@ -3457,6 +3520,18 @@ function iniciarSync(){
     if (pAdm && pAdm.classList.contains("aberto")) renderEditorAcesso();
   }, ()=>{});
 
+  // v168 - relatórios mensais vindos do Adaptive
+  escutaRelPosto = colRelPosto.onSnapshot(snap => {
+    const m = {}; snap.forEach(d => m[d.id] = Object.assign({ id: d.id }, d.data())); relPostos = m;
+    const pr = document.getElementById("painelRelPosto");
+    if (pr && pr.classList.contains("aberto")) renderRelPosto();
+  }, ()=>{});
+  escutaRelLoja = colRelLoja.onSnapshot(snap => {
+    const m = {}; snap.forEach(d => m[d.id] = Object.assign({ id: d.id }, d.data())); relLojas = m;
+    const pl = document.getElementById("painelRelLoja");
+    if (pl && pl.classList.contains("aberto")) renderRelLoja();
+  }, ()=>{});
+
   // Eventos do calendário criados no app
   escutaEventos = colEventos.onSnapshot(snap => {
     const l = []; snap.forEach(d => l.push(Object.assign({ id: d.id }, d.data()))); eventos = l;
@@ -3865,7 +3940,7 @@ function excluir(i){
 
 /* ================== Salvar / Carregar / Exportar ================== */
 // Painéis que ocupam a página; só um fica aberto por vez
-const PAINEIS = ["painelRegistros","painelDash","painelResumoDia","painelHistorico","painelSimular","painelDescontos","painelComparativo","painelPuxadas","painelCotacoes","painelInfleet","painelPedido","painelConvVendas","painelConvCompras","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin"];
+const PAINEIS = ["painelRegistros","painelDash","painelResumoDia","painelHistorico","painelSimular","painelDescontos","painelComparativo","painelPuxadas","painelCotacoes","painelInfleet","painelPedido","painelConvVendas","painelConvCompras","painelRelPosto","painelRelLoja","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin"];
 function fecharTodosPaineis(exceto){
   PAINEIS.forEach(id => {
     const el = document.getElementById(id);
@@ -3948,6 +4023,7 @@ const MENUS_APP = [
   {key:"historico",   btn:"btnHistorico",   pan:"painelHistorico",   emp:"postos", nome:"Histórico"},
   {key:"simular",     btn:"btnSimular",     pan:"painelSimular",     emp:"postos", nome:"Simular Margens"},
   {key:"descontos",   btn:"btnDescontos",   pan:"painelDescontos",   emp:"postos", nome:"Descontos"},
+  {key:"relPosto",    btn:"btnRelPosto",    pan:"painelRelPosto",    emp:"postos", nome:"Relatórios do posto"},
   {key:"infleet",     btn:"btnInfleet",     pan:"painelInfleet",     emp:"transp", nome:"APP Infleet"},
   {key:"pedido",      btn:"btnPedido",      pan:"painelPedido",      emp:"transp", nome:"Pedido de carregamento"},
   {key:"comparativo", btn:"btnComparativo", pan:"painelComparativo", emp:"transp", nome:"Comparativo de Preços"},
@@ -3955,6 +4031,7 @@ const MENUS_APP = [
   {key:"puxadas",     btn:"btnPuxadas",     pan:"painelPuxadas",     emp:"transp", nome:"Puxadas"},
   {key:"convVendas",  btn:"btnConvVendas",  pan:"painelConvVendas",  emp:"conv",   nome:"Vendas e Margem da Loja"},
   {key:"convCompras", btn:"btnConvCompras", pan:"painelConvCompras", emp:"conv",   nome:"Compras e Fornecedores"},
+  {key:"relLoja",     btn:"btnRelLoja",     pan:"painelRelLoja",     emp:"conv",   nome:"Produtos e categorias"},
   {key:"calendario",  btn:"btnCalendario",  pan:"painelCalendario",  emp:"ambos",  nome:"Calendário"},
   {key:"vencimentos", btn:"btnVencimentos", pan:"painelVencimentos", emp:"ambos",  nome:"Documentos"},
   {key:"caixa",       btn:"btnCaixa",       pan:"painelCaixa",       emp:"ambos",  nome:"Caixa de entrada"},
@@ -4256,6 +4333,255 @@ function alternarSimular(){
   const bs = document.getElementById("btnSimular");
   if (bs) bs.classList.toggle("ativo", aberto);
   if (aberto) prepararSimulador();
+}
+
+
+/* ================== v168 - Relatórios do posto e da conveniência (Adaptive) ================== */
+const UNIDADES_REL = [
+  { chave:"teresina", nome:"Teresina" },
+  { chave:"caxias",   nome:"Caxias" },
+  { chave:"dutra",    nome:"Dutra" }
+];
+const ABAS_REL_POSTO = [
+  ["resultado", "💵 Resultado"],
+  ["caixa",     "🧾 Caixa"],
+  ["equipe",    "👷 Equipe e movimento"],
+  ["comb",      "⛽ Combustíveis"]
+];
+function fmtR$(v){ return "R$ " + fmtBR(+v||0, 2); }
+function fmtR$0(v){ return "R$ " + fmtBR(+v||0, 0); }
+function fmtL(v){ return fmtLitros(+v||0) + " L"; }
+function fmtPctRel(v, casas){ return fmtBR(+v||0, (casas==null?1:casas)) + "%"; }
+function rotuloMesRel(ym){
+  if (!ym) return "—";
+  const p = String(ym).split("-");
+  return (MESES_CURTOS[(+p[1]||1)-1] || "?") + "/" + String(p[0]||"").slice(2);
+}
+function mesesDisponiveis(mapa, unidade){
+  return Object.keys(mapa||{})
+    .filter(k => k.indexOf(unidade + "_") === 0)
+    .map(k => k.split("_")[1])
+    .sort().reverse();
+}
+function preencherSelectRel(idSel, valores, sel, rotulo){
+  const el = document.getElementById(idSel);
+  if (!el) return;
+  el.innerHTML = valores.map(v => '<option value="'+escAttr(v)+'"'+(sel===v?' selected':'')+'>'+escAttr(rotulo?rotulo(v):v)+'</option>').join("");
+  if (valores.indexOf(sel) < 0 && valores.length) el.value = valores[0];
+}
+function barrasRel(itens, sufixo){
+  if (!itens || !itens.length) return '<p class="nota-dash">Sem dados.</p>';
+  const max = itens.reduce((m,i)=>Math.max(m, +i[1]||0), 0) || 1;
+  return itens.map(i => {
+    const v = +i[1]||0;
+    return '<div class="rel-barra-linha"><span class="rel-barra-nome" title="'+escAttr(i[0])+'">'+escAttr(i[0])+'</span>' +
+      '<span class="rel-barra-fundo"><span class="rel-barra-cheia" style="width:'+(v/max*100).toFixed(1)+'%"></span></span>' +
+      '<span class="rel-barra-val">'+fmtBR(v,0)+(sufixo||"")+'</span></div>';
+  }).join("");
+}
+/* ---------- Relatórios do posto ---------- */
+function alternarRelPosto(){
+  const aberto = abrirPainelExclusivo("painelRelPosto");
+  const b = document.getElementById("btnRelPosto");
+  if (b) b.classList.toggle("ativo", aberto);
+  if (aberto) renderRelPosto();
+}
+function mudarAbaRelPosto(a){ relPostoAba = a; renderRelPosto(); }
+function renderRelPosto(){
+  const box = document.getElementById("relPostoBox");
+  if (!box) return;
+  preencherSelectRel("relPostoEmp", UNIDADES_REL.map(u=>u.chave), relPostoSel, c => (UNIDADES_REL.find(u=>u.chave===c)||{}).nome || c);
+  relPostoSel = (document.getElementById("relPostoEmp")||{}).value || relPostoSel;
+  const meses = mesesDisponiveis(relPostos, relPostoSel);
+  if (!meses.length){
+    document.getElementById("relPostoAbas").innerHTML = "";
+    preencherSelectRel("relPostoMesSel", [], "", null);
+    box.innerHTML = '<p class="nota-dash">Ainda não temos os relatórios deste posto. Eles são montados na sincronização — peça ao Claude: "sincroniza os relatórios do posto".</p>';
+    return;
+  }
+  if (meses.indexOf(relPostoMes) < 0) relPostoMes = meses[0];
+  preencherSelectRel("relPostoMesSel", meses, relPostoMes, rotuloMesRel);
+  const d = relPostos[relPostoSel + "_" + relPostoMes] || {};
+  document.getElementById("relPostoAbas").innerHTML = ABAS_REL_POSTO
+    .map(a => '<button class="doc-chip'+(relPostoAba===a[0]?' ativo':'')+'" onclick="mudarAbaRelPosto(\''+a[0]+'\')">'+a[1]+'</button>').join("");
+  let h = "";
+  if (d.ate) h += '<p class="nota-dash">Período: 1 a '+String(d.ate).slice(8,10)+' de '+rotuloMesRel(relPostoMes)+'.</p>';
+  if (relPostoAba === "resultado") h += blocoResultadoPosto(d);
+  else if (relPostoAba === "caixa") h += blocoCaixaPosto(d);
+  else if (relPostoAba === "equipe") h += blocoEquipePosto(d);
+  else h += blocoCombPosto(d);
+  box.innerHTML = h;
+}
+function blocoResultadoPosto(d){
+  const r = d.res;
+  if (!r) return '<p class="nota-dash">Sem o resultado deste mês.</p>';
+  const perdeu = (+r.varEst||0) < 0;
+  let h = '<div class="rel-kpis">' +
+    '<div class="rel-kpi"><span>Volume vendido</span><b>'+fmtL(r.vol)+'</b></div>' +
+    '<div class="rel-kpi"><span>Faturamento</span><b>'+fmtR$0((+r.comb||0)+(+r.outros||0)+(+r.outrasRec||0))+'</b></div>' +
+    '<div class="rel-kpi"><span>Lucro bruto</span><b>'+fmtR$0(r.lb)+'</b></div>' +
+    '<div class="rel-kpi"><span>Despesas</span><b>'+fmtR$0(r.desp)+'</b></div>' +
+    '<div class="rel-kpi '+((+r.ll||0)>=0?'bom':'ruim')+'"><span>Lucro líquido</span><b>'+fmtR$0(r.ll)+'</b></div>' +
+    '<div class="rel-kpi '+(perdeu?'ruim':'')+'"><span>Variação de estoque</span><b>'+fmtL(r.varEst)+'</b></div>' +
+    '</div>';
+  h += '<div class="rel-scroll"><table class="rel-tab"><thead><tr><th>Linha</th><th class="n">Valor</th><th class="n">Por litro</th></tr></thead><tbody>';
+  const litros = +r.vol || 1;
+  const linha = (nome, valor, porLitro, moeda) => '<tr><td>'+nome+'</td><td class="n">'+(moeda===false?fmtL(valor):fmtR$(valor))+'</td><td class="n">'+(porLitro==null?"—":("R$ "+fmtBR(porLitro,3)))+'</td></tr>';
+  h += linha("Venda de combustível", r.comb, (+r.comb||0)/litros);
+  h += linha("Venda de outros produtos", r.outros, (+r.outros||0)/litros);
+  h += linha("Outras receitas", r.outrasRec, (+r.outrasRec||0)/litros);
+  h += linha("Custo do combustível", r.custoComb, (+r.custoComb||0)/litros);
+  h += linha("Custo dos outros produtos", r.custoOutros, (+r.custoOutros||0)/litros);
+  h += linha("<b>Lucro bruto</b>", r.lb, r.lbL);
+  h += linha("Despesas", r.desp, r.despL);
+  h += '<tr><td>Variação de estoque</td><td class="n">'+fmtL(r.varEst)+'</td><td class="n">—</td></tr>';
+  h += linha("<b>Lucro líquido</b>", r.ll, r.llL);
+  h += '</tbody></table></div>';
+  if (perdeu) h += '<div class="rel-alerta">⚠️ A variação de estoque do mês está negativa em '+fmtL(Math.abs(+r.varEst||0))+'. Vale conferir aferições, vazamentos e as entradas de nota.</div>';
+  return h;
+}
+function blocoCaixaPosto(d){
+  const c = d.cx;
+  if (!c) return '<p class="nota-dash">Sem os dados de caixa deste mês.</p>';
+  const dif = (+c.sobra||0) - (+c.falta||0);
+  let h = '<div class="rel-kpis">' +
+    '<div class="rel-kpi bom"><span>Sobra no caixa</span><b>'+fmtR$(c.sobra)+'</b></div>' +
+    '<div class="rel-kpi ruim"><span>Falta no caixa</span><b>'+fmtR$(c.falta)+'</b></div>' +
+    '<div class="rel-kpi '+(dif>=0?'bom':'ruim')+'"><span>Saldo</span><b>'+fmtR$(dif)+'</b></div>' +
+    '<div class="rel-kpi"><span>Caixas fechados</span><b>'+fmtPctRel(c.pctFech)+'</b></div>' +
+    '<div class="rel-kpi '+((+c.pctConf||0)>=95?'bom':'ruim')+'"><span>Caixas confirmados</span><b>'+fmtPctRel(c.pctConf)+'</b></div>' +
+    '<div class="rel-kpi"><span>Tempo médio p/ confirmar</span><b style="font-size:.95rem">'+escAttr(c.tempo||"—")+'</b></div>' +
+    '<div class="rel-kpi"><span>Aferições</span><b>'+fmtBR(c.afer,0)+'</b></div>' +
+    '<div class="rel-kpi '+((+c.pend||0)>0?'ruim':'')+'"><span>Abastecimentos pendentes</span><b>'+fmtBR(c.pend,0)+'</b></div>' +
+    '</div>';
+  if ((+c.pctConf||0) < 95) h += '<div class="rel-alerta">⚠️ Só '+fmtPctRel(c.pctConf)+' dos caixas foram confirmados. O tempo médio de confirmação está em '+escAttr(c.tempo||"—")+'.</div>';
+  const rec = d.receb || [];
+  if (rec.length){
+    const tot = rec.reduce((a,x)=>a+(+x[3]||0), 0) || 1;
+    h += '<h4 style="margin:16px 0 0">Como o dinheiro entrou</h4>';
+    h += '<div class="rel-scroll"><table class="rel-tab"><thead><tr><th>Forma</th><th class="n">Vendas</th><th class="n">Valor</th><th class="n">Líquido</th><th class="n">Troco</th><th class="n">% do total</th></tr></thead><tbody>';
+    rec.slice().sort((a,b)=>(+b[3]||0)-(+a[3]||0)).forEach(x => {
+      h += '<tr><td>'+escAttr(x[0])+'</td><td class="n">'+fmtBR(x[1],0)+'</td><td class="n">'+fmtR$(x[2])+'</td><td class="n">'+fmtR$(x[3])+'</td><td class="n">'+fmtR$(x[4])+'</td><td class="n">'+fmtPctRel((+x[3]||0)/tot*100)+'</td></tr>';
+    });
+    h += '</tbody></table></div>';
+  }
+  return h;
+}
+function blocoEquipePosto(d){
+  const at = (d.aten || []).slice().sort((a,b)=>(+b[1]||0)-(+a[1]||0));
+  const hr = d.hora || [];
+  let h = "";
+  if (at.length){
+    const total = at.reduce((a,x)=>a+(+x[1]||0), 0);
+    const media = total / at.length;
+    h += '<div class="rel-kpis">' +
+      '<div class="rel-kpi"><span>Frentistas</span><b>'+at.length+'</b></div>' +
+      '<div class="rel-kpi"><span>Abastecimentos</span><b>'+fmtBR(total,0)+'</b></div>' +
+      '<div class="rel-kpi"><span>Média por frentista</span><b>'+fmtBR(media,0)+'</b></div>' +
+      '</div>';
+    h += '<h4 style="margin:14px 0 4px">Abastecimentos por frentista</h4>' + barrasRel(at);
+  }
+  if (hr.length){
+    const pico = hr.slice().sort((a,b)=>(+b[1]||0)-(+a[1]||0))[0];
+    const fraco = hr.slice().sort((a,b)=>(+a[1]||0)-(+b[1]||0))[0];
+    h += '<h4 style="margin:18px 0 4px">Movimento por hora</h4>';
+    h += '<p class="nota-dash">Hora mais cheia: <b>'+escAttr(pico[0])+'h</b> ('+fmtBR(pico[1],0)+' abastecimentos). Mais vazia: <b>'+escAttr(fraco[0])+'h</b> ('+fmtBR(fraco[1],0)+').</p>';
+    h += barrasRel(hr.map(x=>[x[0]+"h", x[1]]));
+  }
+  return h || '<p class="nota-dash">Sem dados de equipe neste mês.</p>';
+}
+function blocoCombPosto(d){
+  const c = d.comb || [], lbm = d.lbm || [];
+  if (!c.length) return '<p class="nota-dash">Sem os dados de combustível deste mês.</p>';
+  const totL = c.reduce((a,x)=>a+(+x[1]||0), 0) || 1;
+  const mapaLbm = {}; lbm.forEach(x => mapaLbm[x[0]] = { media:+x[1]||0, atual:+x[2]||0 });
+  let h = '<div class="rel-scroll"><table class="rel-tab"><thead><tr><th>Combustível</th><th class="n">Litros</th><th class="n">% do volume</th><th class="n">Faturamento</th><th class="n">Lucro bruto</th><th class="n">R$/L</th><th class="n">Média do ano</th><th class="n">Diferença</th></tr></thead><tbody>';
+  const abaixo = [];
+  c.slice().sort((a,b)=>(+b[1]||0)-(+a[1]||0)).forEach(x => {
+    const nome = x[0], litros = +x[1]||0, lbL = +x[6]||0;
+    const ref = mapaLbm[nome];
+    let cmp = '<td class="n">—</td><td class="n">—</td>';
+    if (ref && ref.media > 0){
+      const dif = lbL - ref.media;
+      const cls = dif >= 0 ? "rel-sobe" : "rel-desce";
+      cmp = '<td class="n">R$ '+fmtBR(ref.media,2)+'</td><td class="n '+cls+'">'+(dif>=0?"▲ +":"▼ ")+fmtBR(dif,3)+'</td>';
+      if (dif < 0) abaixo.push(nome);
+    }
+    h += '<tr><td>'+escAttr(nome)+'</td><td class="n">'+fmtLitros(litros)+'</td><td class="n">'+fmtPctRel(litros/totL*100)+'</td>' +
+         '<td class="n">'+fmtR$0(x[2])+'</td><td class="n">'+fmtR$0(x[4])+'</td><td class="n">R$ '+fmtBR(lbL,3)+'</td>'+cmp+'</tr>';
+  });
+  h += '</tbody></table></div>';
+  h += '<p class="nota-dash">"Média do ano" é o lucro bruto por litro que esse combustível costuma dar. A diferença mostra se o mês está acima ou abaixo do normal dele.</p>';
+  if (abaixo.length) h += '<div class="rel-alerta">⚠️ Abaixo da média do ano: '+escAttr(abaixo.join(", "))+'.</div>';
+  return h;
+}
+/* ---------- Produtos e categorias (conveniência) ---------- */
+function alternarRelLoja(){
+  const aberto = abrirPainelExclusivo("painelRelLoja");
+  const b = document.getElementById("btnRelLoja");
+  if (b) b.classList.toggle("ativo", aberto);
+  if (aberto) renderRelLoja();
+}
+function ordenaRelLoja(arr){
+  const idx = { qtd:1, receita:2, lb:4, margem:5 }[relLojaOrdem] || 4;
+  return arr.slice().sort((a,b)=>(+b[idx]||0)-(+a[idx]||0));
+}
+function renderRelLoja(){
+  const box = document.getElementById("relLojaBox");
+  if (!box) return;
+  preencherSelectRel("relLojaEmp", UNIDADES_REL.map(u=>u.chave), relLojaSel, c => (UNIDADES_REL.find(u=>u.chave===c)||{}).nome || c);
+  relLojaSel = (document.getElementById("relLojaEmp")||{}).value || relLojaSel;
+  const meses = mesesDisponiveis(relLojas, relLojaSel);
+  if (!meses.length){
+    preencherSelectRel("relLojaMesSel", [], "", null);
+    box.innerHTML = '<p class="nota-dash">Ainda não temos os dados desta conveniência. Eles são montados na sincronização — peça ao Claude: "sincroniza os produtos da conveniência".</p>';
+    return;
+  }
+  if (meses.indexOf(relLojaMes) < 0) relLojaMes = meses[0];
+  preencherSelectRel("relLojaMesSel", meses, relLojaMes, rotuloMesRel);
+  const d = relLojas[relLojaSel + "_" + relLojaMes] || {};
+  const k = d.kpi || {};
+  let h = "";
+  if (d.ate) h += '<p class="nota-dash">Período: 1 a '+String(d.ate).slice(8,10)+' de '+rotuloMesRel(relLojaMes)+'.</p>';
+  h += '<div class="rel-kpis">' +
+    '<div class="rel-kpi"><span>Faturamento</span><b>'+fmtR$0(k.receita)+'</b></div>' +
+    '<div class="rel-kpi"><span>Custo</span><b>'+fmtR$0(k.custo)+'</b></div>' +
+    '<div class="rel-kpi bom"><span>Lucro bruto</span><b>'+fmtR$0(k.lb)+'</b></div>' +
+    '<div class="rel-kpi"><span>Margem</span><b>'+fmtPctRel(k.margem)+'</b></div>' +
+    '<div class="rel-kpi"><span>Ticket médio</span><b>'+fmtR$(k.ticket)+'</b></div>' +
+    '<div class="rel-kpi"><span>Itens diferentes vendidos</span><b>'+fmtBR(k.mix,0)+'</b></div>' +
+    '</div>';
+  const cat = d.cat || [], itens = d.itens || [];
+  if (cat.length){
+    const totR = cat.reduce((a,x)=>a+(+x[2]||0), 0) || 1;
+    h += '<h4 style="margin:16px 0 0">Categorias</h4>';
+    h += '<div class="rel-scroll"><table class="rel-tab"><thead><tr><th>Categoria</th><th class="n">Qtde</th><th class="n">Faturamento</th><th class="n">% do total</th><th class="n">Lucro bruto</th><th class="n">Margem</th></tr></thead><tbody>';
+    ordenaRelLoja(cat).forEach(x => {
+      const m = +x[5]||0;
+      h += '<tr><td>'+escAttr(x[0])+'</td><td class="n">'+fmtBR(x[1],0)+'</td><td class="n">'+fmtR$0(x[2])+'</td><td class="n">'+fmtPctRel((+x[2]||0)/totR*100)+'</td>' +
+           '<td class="n">'+fmtR$0(x[4])+'</td><td class="n '+(m<25?'rel-desce':'')+'">'+fmtPctRel(m)+'</td></tr>';
+    });
+    h += '</tbody></table></div>';
+  }
+  if (itens.length){
+    h += '<h4 style="margin:18px 0 0">Itens mais vendidos</h4>';
+    h += '<div class="rel-scroll"><table class="rel-tab"><thead><tr><th>Item</th><th class="n">Qtde</th><th class="n">Faturamento</th><th class="n">Lucro bruto</th><th class="n">Margem</th></tr></thead><tbody>';
+    ordenaRelLoja(itens).forEach(x => {
+      const m = +x[5]||0;
+      h += '<tr><td>'+escAttr(x[0])+'</td><td class="n">'+fmtBR(x[1],0)+'</td><td class="n">'+fmtR$0(x[2])+'</td><td class="n">'+fmtR$0(x[4])+'</td><td class="n '+(m<25?'rel-desce':'')+'">'+fmtPctRel(m)+'</td></tr>';
+    });
+    h += '</tbody></table></div>';
+    const ruins = ordenaRelLoja(itens).filter(x => (+x[5]||0) < 25 && (+x[2]||0) > 0).slice(0,6).map(x=>x[0]);
+    if (ruins.length) h += '<div class="rel-alerta">⚠️ Vendem bem mas com margem abaixo de 25%: '+escAttr(ruins.join(", "))+'.</div>';
+  }
+  const hr = d.hora || [];
+  if (hr.length){
+    const pico = hr.slice().sort((a,b)=>(+b[1]||0)-(+a[1]||0))[0];
+    h += '<h4 style="margin:18px 0 4px">Faturamento por hora</h4>';
+    h += '<p class="nota-dash">Hora mais forte: <b>'+escAttr(pico[0])+'h</b> ('+fmtR$0(pico[1])+').</p>';
+    h += barrasRel(hr.map(x=>[x[0]+"h", Math.round(+x[1]||0)]));
+  }
+  box.innerHTML = h;
 }
 
 /* ================== Evolução das vendas (Dashboard dos Postos) ================== */
