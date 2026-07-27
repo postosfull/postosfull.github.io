@@ -499,6 +499,16 @@
   .evo-mes{font-size:11px;fill:var(--cinza)}
   .evo-eixo{font-size:10px;fill:var(--cinza)}
   .evo-parcial{font-size:9px;fill:var(--cinza)}
+  .evo-wrap{position:relative}
+  .evo-hit{fill:transparent;cursor:pointer}
+  .evo-hit:hover{fill:rgba(127,127,127,.10)}
+  .evo-tip{position:absolute;z-index:8;display:none;pointer-events:none;background:var(--superficie);color:var(--txt);border:1px solid var(--borda);border-radius:8px;padding:8px 10px;font-size:12px;line-height:1.55;box-shadow:0 8px 22px rgba(0,0,0,.22);min-width:200px;max-width:270px}
+  .evo-tip b{display:block;margin-bottom:5px;font-size:13px}
+  .evo-tip .l{display:flex;justify-content:space-between;gap:14px;white-space:nowrap}
+  .evo-tip .l span:last-child{font-weight:700;font-variant-numeric:tabular-nums}
+  .evo-tip hr{border:0;border-top:1px solid var(--borda);margin:6px 0}
+  .evo-tip .sobe{color:#18a558}
+  .evo-tip .desce{color:var(--vermelho)}
   .res-tab{table-layout:fixed;width:100%;min-width:0;max-width:430px}   /* min-width:0 anula o table{min-width:1100px} global */
   .res-tab th:first-child, .res-tab td:first-child{width:52%}
   .res-tab th:last-child,  .res-tab td:last-child{width:48%;text-align:right}
@@ -1573,7 +1583,7 @@
     <div class="grupo">
       <div id="conteudoPetros"></div>
       <h2>📈 Evolução das vendas</h2>
-      <p class="nota-dash">Compare mês a mês. Nos postos o gráfico mostra <b>litros vendidos</b>; nas conveniências, <b>faturamento</b>. O mês em andamento aparece mais claro, marcado como parcial.</p>
+      <p class="nota-dash">Compare mês a mês. Nos postos o gráfico mostra <b>litros vendidos</b>; nas conveniências, <b>faturamento</b>. O mês em andamento aparece mais claro, marcado como parcial. Passe o mouse (ou toque, no celular) em cima de um mês para ver os números em detalhe.</p>
       <div class="desc-form" style="max-width:700px;margin-bottom:10px">
         <div class="desc-campo"><label>Empresa</label><select id="evoEmpresa" onchange="onEvoFiltro()"></select></div>
         <div class="desc-campo"><label>Período</label><select id="evoPeriodo" onchange="onEvoFiltro()">
@@ -4228,6 +4238,7 @@ const EMPRESAS_EVO = [
   { id:"loja:dutra",     nome:"🛒 Conveniência Dutra",    grupo:"lojas",  chave:"dutra" }
 ];
 let evoTocado = false;   // true depois que alguém mexe nos filtros (aí o padrão não sobrescreve)
+let evoTips = [];        // conteúdo da janelinha de cada mês do gráfico
 const MESES_CURTOS = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
 function rotuloMesEvo(ym){
   const a = String(ym).slice(0,4), m = parseInt(String(ym).slice(5,7),10);
@@ -4262,11 +4273,68 @@ function salvarPadraoEvolucao(){
       .catch(()=> { if (m) m.textContent = "Não consegui salvar o padrão agora."; });
   } else if (m) { m.textContent = "Sem conexão com a nuvem — tente de novo em instantes."; }
 }
+function fmtValorEvo(v, moeda){ return moeda ? ("R$ " + fmtBR(v,2)) : (fmtLitros(v) + " L"); }
+function linhaDifEvo(atual, base, moeda){
+  if (base === null || base === undefined || !(base > 0)) return "";
+  const d = (+atual||0) - base, p = d / base * 100;
+  const cls = d >= 0 ? "sobe" : "desce", sinal = d >= 0 ? "+" : "-";
+  return '<div class="l"><span>Diferença</span><span class="'+cls+'">'+sinal+' '+fmtValorEvo(Math.abs(d), moeda)+' ('+sinal+fmtBR(Math.abs(p),1)+'%)</span></div>';
+}
+function montarTipEvo(it, moeda){
+  let s = '<b>'+escAttr(it.rotulo)+(it.parcial ? ' <i style="font-weight:400;font-size:11px;color:var(--cinza)">(mês em andamento)</i>' : '')+'</b>';
+  s += '<div class="l"><span>Este mês</span><span>'+fmtValorEvo(it.valor, moeda)+'</span></div>';
+  if (it.valorAnt !== null && it.valorAnt !== undefined){
+    s += '<div class="l"><span>'+escAttr(it.rotuloAnt)+' (ano passado)</span><span>'+fmtValorEvo(it.valorAnt, moeda)+'</span></div>';
+    s += linhaDifEvo(it.valor, it.valorAnt, moeda);
+  }
+  if (it.valorPrev !== null && it.valorPrev !== undefined){
+    s += '<hr>';
+    s += '<div class="l"><span>'+escAttr(it.rotuloPrev)+' (mês anterior)</span><span>'+fmtValorEvo(it.valorPrev, moeda)+'</span></div>';
+    s += linhaDifEvo(it.valor, it.valorPrev, moeda);
+  }
+  return s;
+}
+function ligarTipEvo(){
+  const wrap = document.querySelector("#evolucaoBox .evo-wrap");
+  const tip = document.getElementById("evoTip");
+  if (!wrap || !tip) return;
+  const mostrar = (ev) => {
+    const alvo = (ev.target && ev.target.closest) ? ev.target.closest(".evo-hit") : null;
+    if (!alvo){ tip.style.display = "none"; return; }
+    const i = +alvo.getAttribute("data-i");
+    const html = evoTips[i];
+    if (!html){ tip.style.display = "none"; return; }
+    tip.innerHTML = html;
+    tip.style.display = "block";
+    const r = wrap.getBoundingClientRect();
+    const lt = tip.offsetWidth, at = tip.offsetHeight;
+    let x = ev.clientX - r.left + 14, y = ev.clientY - r.top + 14;
+    if (x + lt > r.width - 4) x = ev.clientX - r.left - lt - 14;
+    if (x < 4) x = 4;
+    if (y + at > r.height - 4) y = Math.max(4, ev.clientY - r.top - at - 14);
+    if (y < 4) y = 4;
+    tip.style.left = x + "px";
+    tip.style.top = y + "px";
+  };
+  wrap.addEventListener("mousemove", mostrar);
+  wrap.addEventListener("pointerdown", mostrar);
+  wrap.addEventListener("mouseleave", () => { tip.style.display = "none"; });
+  if (!window.__evoTipFora){
+    window.__evoTipFora = true;
+    document.addEventListener("pointerdown", (e) => {
+      const t = document.getElementById("evoTip");
+      if (!t) return;
+      const dentro = e.target && e.target.closest && e.target.closest(".evo-wrap");
+      if (!dentro) t.style.display = "none";
+    });
+  }
+}
 function graficoBarrasEvo(itens, moeda, comparar){
   const W = 720, H = comparar ? 300 : 270, padL = 58, padR = 12, padT = 24, padB = comparar ? 62 : 46;
   const max = itens.reduce((a,i)=>Math.max(a, +i.valor||0, comparar ? (+i.valorAnt||0) : 0), 0) || 1;
   const larg = (W - padL - padR) / itens.length;
   const alturaDe = v => (H - padT - padB) * ((+v||0) / max);
+  evoTips = itens.map(it => montarTipEvo(it, moeda));
   let s = '<svg viewBox="0 0 '+W+' '+H+'" class="evo-svg" preserveAspectRatio="xMidYMid meet">';
   for (let g = 0; g <= 4; g++){
     const y = padT + (H - padT - padB) * g / 4;
@@ -4280,8 +4348,8 @@ function graficoBarrasEvo(itens, moeda, comparar){
       const w = larg*0.30;
       const xA = base + larg*0.16, xB = base + larg*0.52;
       const hA = alturaDe(it.valorAnt), hB = alturaDe(it.valor);
-      s += '<rect x="'+xA.toFixed(1)+'" y="'+(H-padB-hA).toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+Math.max(hA,1).toFixed(1)+'" rx="3" class="evo-barra ant"><title>'+escAttr(it.rotuloAnt+": "+fmtT(it.valorAnt))+'</title></rect>';
-      s += '<rect x="'+xB.toFixed(1)+'" y="'+(H-padB-hB).toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+Math.max(hB,1).toFixed(1)+'" rx="3" class="evo-barra'+(it.parcial?' parcial':'')+'"><title>'+escAttr(it.rotulo+": "+fmtT(it.valor))+'</title></rect>';
+      s += '<rect x="'+xA.toFixed(1)+'" y="'+(H-padB-hA).toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+Math.max(hA,1).toFixed(1)+'" rx="3" class="evo-barra ant"/>';
+      s += '<rect x="'+xB.toFixed(1)+'" y="'+(H-padB-hB).toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+Math.max(hB,1).toFixed(1)+'" rx="3" class="evo-barra'+(it.parcial?' parcial':'')+'"/>';
       s += '<text x="'+(xB+w/2).toFixed(1)+'" y="'+(H-padB-hB-6).toFixed(1)+'" text-anchor="middle" class="evo-valor">'+abreviaNumEvo(it.valor)+'</text>';
       if (+it.valorAnt > 0){
         const p = (it.valor - it.valorAnt) / it.valorAnt * 100;
@@ -4289,11 +4357,16 @@ function graficoBarrasEvo(itens, moeda, comparar){
       }
     } else {
       const w = larg*0.64, x = base + larg*0.18, h2 = alturaDe(it.valor);
-      s += '<rect x="'+x.toFixed(1)+'" y="'+(H-padB-h2).toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+Math.max(h2,1).toFixed(1)+'" rx="4" class="evo-barra'+(it.parcial?' parcial':'')+'"><title>'+escAttr(it.rotulo+": "+fmtT(it.valor))+'</title></rect>';
+      s += '<rect x="'+x.toFixed(1)+'" y="'+(H-padB-h2).toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+Math.max(h2,1).toFixed(1)+'" rx="4" class="evo-barra'+(it.parcial?' parcial':'')+'"/>';
       s += '<text x="'+(x+w/2).toFixed(1)+'" y="'+(H-padB-h2-6).toFixed(1)+'" text-anchor="middle" class="evo-valor">'+abreviaNumEvo(it.valor)+'</text>';
     }
     s += '<text x="'+(base+larg/2).toFixed(1)+'" y="'+(H-padB+17)+'" text-anchor="middle" class="evo-mes">'+escAttr(it.rotulo)+'</text>';
     if (it.parcial) s += '<text x="'+(base+larg/2).toFixed(1)+'" y="'+(H-padB+(comparar?45:31))+'" text-anchor="middle" class="evo-parcial">parcial</text>';
+  });
+  const altHit = (H - padT - padB) + (comparar ? 40 : 24);
+  itens.forEach((it, i) => {
+    const base = padL + i*larg;
+    s += '<rect class="evo-hit" data-i="'+i+'" x="'+base.toFixed(1)+'" y="'+padT+'" width="'+larg.toFixed(1)+'" height="'+altHit.toFixed(1)+'"/>';
   });
   if (comparar){
     s += '<rect x="'+padL+'" y="6" width="10" height="10" rx="2" class="evo-barra ant"/>';
@@ -4302,7 +4375,7 @@ function graficoBarrasEvo(itens, moeda, comparar){
     s += '<text x="'+(padL+112)+'" y="15" class="evo-legenda">ano atual</text>';
   }
   s += '</svg>';
-  return s;
+  return '<div class="evo-wrap">' + s + '<div class="evo-tip" id="evoTip"></div></div>';
 }
 function renderEvolucao(){
   popularSelectEvo();
@@ -4327,11 +4400,17 @@ function renderEvolucao(){
     return +bloco[emp.chave] || 0;
   };
   const anoAntes = ym => (parseInt(ym.slice(0,4),10) - 1) + ym.slice(4);
+  const mesAntes = ym => {
+    let a = parseInt(ym.slice(0,4),10), m = parseInt(ym.slice(5,7),10) - 1;
+    if (m < 1){ m = 12; a--; }
+    return a + "-" + String(m).padStart(2,"0");
+  };
   const itens = usar.map(ym => {
     const d = vendasMensais[ym] || {};
-    const ant = anoAntes(ym);
+    const ant = anoAntes(ym), prev = mesAntes(ym);
     return { rotulo: rotuloMesEvo(ym), valor: valorDe(ym) || 0, parcial: !!d.parcial,
-             rotuloAnt: rotuloMesEvo(ant), valorAnt: valorDe(ant) };
+             rotuloAnt: rotuloMesEvo(ant), valorAnt: valorDe(ant),
+             rotuloPrev: rotuloMesEvo(prev), valorPrev: valorDe(prev) };
   });
   const temAnt = itens.some(i => i.valorAnt !== null && i.valorAnt > 0);
   let h = graficoBarrasEvo(itens, moeda, comparar && temAnt);
@@ -4363,6 +4442,7 @@ function renderEvolucao(){
        '<div class="cartao-kpi"><span>Contra o ano passado</span><b>'+anoAno+'</b></div>' +
        '</div>';
   box.innerHTML = h;
+  ligarTipEvo();
 }
 
 /* ================== Resumo do dia (vendas do dia anterior) ================== */
