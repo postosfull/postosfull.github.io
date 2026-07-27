@@ -721,6 +721,11 @@
   /* ===== Descontos ===== */
   .desc-controles{margin:2px 0 14px}
   .desc-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;align-items:end}
+  .evo-filtros{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:10px}
+  .evo-filtros .desc-campo{flex:0 1 200px;min-width:150px}
+  .evo-filtros .desc-campo.auto{flex:0 0 auto;min-width:0}
+  .evo-filtros .dash-check{padding:9px 0;white-space:nowrap;text-transform:none;letter-spacing:0;font-size:.9rem;font-weight:400;color:var(--txt)}
+  .evo-filtros button{white-space:nowrap}
   .desc-campo{display:flex;flex-direction:column;gap:4px;min-width:0}
   .desc-campo label{font-size:.7rem;font-weight:600;color:var(--cinza);text-transform:uppercase;letter-spacing:.3px}
   .desc-campo input,.desc-campo select{border:1px solid var(--borda);border-radius:8px;padding:9px;font-size:.9rem;background:var(--superficie);color:var(--txt);width:100%}
@@ -1585,15 +1590,15 @@
       <div id="conteudoPetros"></div>
       <h2>📈 Evolução das vendas</h2>
       <p class="nota-dash">Compare mês a mês. Nos postos o gráfico mostra <b>litros vendidos</b>; nas conveniências, <b>faturamento</b>. O mês em andamento aparece mais claro, marcado como parcial. Passe o mouse (ou toque, no celular) em cima de um mês para ver os números em detalhe.</p>
-      <div class="desc-form" style="max-width:700px;margin-bottom:10px">
+      <div class="evo-filtros">
         <div class="desc-campo"><label>Empresa</label><select id="evoEmpresa" onchange="onEvoFiltro()"></select></div>
         <div class="desc-campo"><label>Período</label><select id="evoPeriodo" onchange="onEvoFiltro()">
           <option value="3">Últimos 3 meses</option>
           <option value="6">Últimos 6 meses</option>
           <option value="12">Últimos 12 meses</option>
         </select></div>
-        <div class="desc-campo"><label>Comparar</label><label class="dash-check" style="padding:9px 0"><input type="checkbox" id="evoComparar" onchange="onEvoFiltro()"> com o ano passado</label></div>
-        <div class="desc-campo"><label>&nbsp;</label><button class="btn-claro" onclick="salvarPadraoEvolucao()">⭐ Usar como padrão</button></div>
+        <div class="desc-campo auto"><label>&nbsp;</label><button class="btn-claro" onclick="salvarPadraoEvolucao()">⭐ Usar como padrão</button></div>
+        <div class="desc-campo auto"><label>Comparar</label><label class="dash-check"><input type="checkbox" id="evoComparar" onchange="onEvoFiltro()"> com o ano passado</label></div>
       </div>
       <div id="evolucaoBox"></div>
       <p class="nota-dash" id="evoMsg"></p>
