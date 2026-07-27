@@ -486,6 +486,14 @@
   .ped-linha select,.ped-linha input{border:1px solid var(--borda);border-radius:8px;padding:8px;font-size:.9rem;background:var(--superficie);color:var(--txt);width:100%}
   .cardres-comp{font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 2px}
   @media (max-width:520px){ .ped-linha{grid-template-columns:1fr 34px 78px 34px 30px;gap:4px} }
+  /* v176 - cabeçalho do compartimento com o seletor de destino */
+  .ped-comp-topo{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+  .ped-comp-topo .ped-comp-tit{margin-bottom:0}
+  .ped-comp-cap{font-size:.72rem;color:var(--cinza);font-weight:600}
+  .ped-comp-dest{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:.74rem;color:var(--cinza)}
+  .ped-comp-dest select{border:1px solid var(--borda);border-radius:8px;padding:5px 8px;font-size:.82rem;background:var(--superficie);color:var(--txt)}
+  .ped-comp.vazio{opacity:.62}
+  .cam-form input,.cam-form select{min-width:0}
   .evo-svg{width:100%;height:auto;max-height:320px;display:block}
   .evo-grade{stroke:var(--borda);stroke-width:1}
   .evo-barra{fill:var(--verde)}
@@ -1428,13 +1436,13 @@
   <div class="config" id="painelPedido">
     <div class="grupo">
       <h2>📝 Pedido de carregamento</h2>
-      <p class="nota-dash">Preencha os campos e o app monta a mensagem pronta para o grupo dos motoristas. Escolher o motorista já traz o CPF e as placas; escolher o cliente já traz o CNPJ.</p>
+      <p class="nota-dash">Preencha os campos e o app monta a mensagem pronta para o grupo dos motoristas. Escolher o motorista já traz o CPF e as placas; escolher o caminhão já traz o tanque de sempre, e o tanque abre os compartimentos prontos — basta dizer o produto de cada um. Escolher o cliente já traz o CNPJ.</p>
       <div class="desc-form">
         <div class="desc-campo"><label>Motorista</label><select id="pedMotorista" onchange="onPedMotorista(this.value)"></select></div>
         <div class="desc-campo"><label>Nome completo do motorista</label><input id="pedNomeMot" maxlength="60" placeholder="Nome como vai no pedido" oninput="pedCampo('motorista', this.value)"></div>
         <div class="desc-campo"><label>CPF do motorista</label><input id="pedCpf" maxlength="18" placeholder="000.000.000-00" oninput="pedCampo('cpf', this.value)"></div>
-        <div class="desc-campo"><label>Caminhão (placa)</label><input id="pedCaminhao" maxlength="10" oninput="pedCampo('caminhao', this.value)"></div>
-        <div class="desc-campo"><label>Tanque (placa)</label><input id="pedTanque" maxlength="10" oninput="pedCampo('tanque', this.value)"></div>
+        <div class="desc-campo"><label>Caminhão (placa)</label><select id="pedCaminhao" onchange="onPedCaminhao(this.value)"></select></div>
+        <div class="desc-campo"><label>Tanque (placa)</label><select id="pedTanque" onchange="onPedTanque(this.value)"></select></div>
         <div class="desc-campo"><label>Carregamento (hora)</label><input id="pedHora" maxlength="10" placeholder="05h" oninput="pedCampo('hora', this.value)"></div>
         <div class="desc-campo"><label>Distribuidora</label><input id="pedCompanhia" list="pedCompanhiasLista" maxlength="40" placeholder="PETROBAHIA" oninput="pedCampo('companhia', this.value)"><datalist id="pedCompanhiasLista"></datalist></div>
         <div class="desc-campo"><label>Base</label><input id="pedBase" list="pedBasesLista" maxlength="40" placeholder="A COMBINAR" oninput="pedCampo('base', this.value)"><datalist id="pedBasesLista"></datalist></div>
@@ -1814,6 +1822,24 @@
       <div class="msg-admin" id="msgMotorista"></div>
       <div class="usr-lista" id="listaMotoristas"></div>
     </div>
+    <div class="grupo" id="grupoCaminhoes" style="display:none">
+      <h2>Caminhões e tanques</h2>
+      <p class="nota-dash">Cada caminhão tem um tanque que ele costuma puxar — é esse que o Pedido de carregamento seleciona sozinho (dá para trocar na hora). No tanque, escreva os compartimentos separados por vírgula, do primeiro ao último: <b>7000, 5000, 5000, 5000, 5000, 5000, 5000</b>. É essa lista que abre pronta no pedido.</p>
+      <div class="admin-form cam-form">
+        <input id="camPlaca" maxlength="10" placeholder="Placa do caminhão (ex.: RSR4I66)">
+        <select id="camTanquePadrao"></select>
+        <button class="btn-verde" onclick="adicionarCaminhao()">Adicionar caminhão</button>
+      </div>
+      <div class="msg-admin" id="msgCaminhao"></div>
+      <div class="usr-lista" id="listaCaminhoes"></div>
+      <div class="admin-form cam-form" style="margin-top:14px">
+        <input id="tanPlaca" maxlength="10" placeholder="Placa do tanque (ex.: ROH0J42)">
+        <input id="tanComps" maxlength="120" placeholder="Compartimentos: 7000, 5000, 5000, 5000, 5000, 5000, 5000">
+        <button class="btn-verde" onclick="adicionarTanque()">Adicionar tanque</button>
+      </div>
+      <div class="msg-admin" id="msgTanque"></div>
+      <div class="usr-lista" id="listaTanques"></div>
+    </div>
     <div class="grupo" id="grupoClientes">
       <h2>Clientes (Descontos)</h2>
       <p class="nota-dash">Os clientes são salvos sozinhos quando alguém lança um desconto no menu Descontos. Aqui você pode corrigir o nome ou remover um cliente. Cada posto tem a sua própria lista.</p>
@@ -2011,6 +2037,11 @@ let avisosMostrarFeitos = false;   // mostrar a seção "Concluídos"
 let avisosBuscaFeitos = "";        // filtro de busca no histórico de concluídos
 let escutaTransportadora = null;
 let motoristas = [];               // [{id, nome, caminhao, capacidade}] cadastro da transportadora
+// v176 - frota: cada caminhão aponta para o tanque de sempre, e cada tanque
+// guarda a lista de compartimentos (em litros, do primeiro ao último).
+let caminhoes = [];                // [{placa, tanquePadrao}]
+let tanques = [];                  // [{placa, comps:[7000,5000,...]}]
+let editandoCaminhao = null, editandoTanque = null;
 let escutaPuxadas = null;
 let descontos = [];                    // descontos do dia selecionado
 let escutaDescontos = null;
@@ -3660,6 +3691,19 @@ function iniciarSync(){
     } else {
       motoristas = (snap.data() && Array.isArray(snap.data().motoristas)) ? snap.data().motoristas : [];
     }
+    // v176 - frota. Na primeira vez, monta a partir dos motoristas já cadastrados.
+    const dtf = (snap.exists && snap.data()) ? snap.data() : {};
+    caminhoes = Array.isArray(dtf.caminhoes) ? dtf.caminhoes : [];
+    tanques   = Array.isArray(dtf.tanques)   ? dtf.tanques   : [];
+    if (!caminhoes.length && !tanques.length && motoristas.length){
+      const semente = semearFrota();
+      caminhoes = semente.caminhoes; tanques = semente.tanques;
+      docTransportadora.set({ caminhoes, tanques }, { merge:true }).catch(()=>{});
+    }
+    const pcam = document.getElementById("painelConfig");
+    if (pcam && pcam.classList.contains("aberto")) renderFrota();
+    const pped = document.getElementById("painelPedido");
+    if (pped && pped.classList.contains("aberto")) renderPedido(true);
     const dt = (snap.exists && snap.data()) ? snap.data() : {};
     clientesPedido = (Array.isArray(dt.clientesPedido) && dt.clientesPedido.length) ? dt.clientesPedido : CLIENTES_PEDIDO_PADRAO.slice();
     basesPedido = (Array.isArray(dt.basesPedido) && dt.basesPedido.length) ? dt.basesPedido : BASES_PEDIDO_PADRAO.slice();
@@ -4066,6 +4110,7 @@ function aplicarVisibilidadeMenus(){
   });
   // Blocos das Configurações que só fazem sentido em uma empresa
   const gm = document.getElementById("grupoMotoristas"); if (gm) gm.style.display = (s === "transp") ? "" : "none";
+  const gc = document.getElementById("grupoCaminhoes"); if (gc) gc.style.display = (s === "transp") ? "" : "none";
   const gpv = document.getElementById("grupoPrecosVenda"); if (gpv) gpv.style.display = (s === "postos") ? "" : "none";
   const gcl = document.getElementById("grupoClientes"); if (gcl) gcl.style.display = (s === "postos") ? "" : "none";
 }
@@ -5111,8 +5156,11 @@ let companhiasPedido = [];   // legado: não é mais usado na lista de distribui
 let pedido = null;
 
 function novoPedido(){
+  // v176 - os compartimentos são do TANQUE, não do destino: viram uma lista só,
+  // e cada um diz para qual destino vai (dest = índice em destinos).
   return { motoristaId:"", motorista:"", cpf:"", caminhao:"", tanque:"", hora:"", companhia:"", base:"A COMBINAR",
-           destinos:[ { nome:"", cnpj:"", comps:[ [ {prod:"", litros:""} ] ] } ] };
+           destinos:[ { nome:"", cnpj:"" } ],
+           comps:[ { dest:0, cap:0, linhas:[ {prod:"", litros:""} ] } ] };
 }
 function alternarPedido(){
   const aberto = abrirPainelExclusivo("painelPedido");
@@ -5140,10 +5188,44 @@ function onPedMotorista(id){
   pedido.motorista = m ? (m.nomeCompleto || m.nome) : "";
   if (m){
     if (m.cpf) pedido.cpf = m.cpf;
-    if (m.placaCaminhao) pedido.caminhao = m.placaCaminhao;
-    if (m.placaTanque) pedido.tanque = m.placaTanque;
+    if (m.placaCaminhao) pedido.caminhao = normPlaca(m.placaCaminhao);
+    // o tanque vem do cadastro do caminhão; o do motorista é a reserva
+    const cam = caminhaoPorPlaca(pedido.caminhao);
+    const tq = (cam && cam.tanquePadrao) ? cam.tanquePadrao : m.placaTanque;
+    if (tq){ pedido.tanque = normPlaca(tq); montarCompsPedido(pedido.tanque); }
   }
   renderPedido(true);
+}
+// Escolher o caminhão traz o tanque de sempre — e o tanque abre os compartimentos.
+function onPedCaminhao(placa){
+  if (!pedido) pedido = novoPedido();
+  pedido.caminhao = normPlaca(placa);
+  const cam = caminhaoPorPlaca(pedido.caminhao);
+  if (cam && cam.tanquePadrao){
+    pedido.tanque = normPlaca(cam.tanquePadrao);
+    montarCompsPedido(pedido.tanque);
+  }
+  renderPedido(true);
+}
+function onPedTanque(placa){
+  if (!pedido) pedido = novoPedido();
+  pedido.tanque = normPlaca(placa);
+  montarCompsPedido(pedido.tanque);
+  renderPedido(true);
+}
+// Monta a lista de compartimentos com os litros já preenchidos. O produto que já
+// tinha sido escolhido é mantido pela posição, para não perder trabalho quem
+// troca o tanque no meio do preenchimento.
+function montarCompsPedido(placaTanque){
+  const caps = compsDoTanque(placaTanque);
+  if (!caps.length) return;                       // tanque sem compartimentação: deixa como está
+  const antigos = (pedido.comps || []);
+  pedido.comps = caps.map((cap, i) => {
+    const velho = antigos[i];
+    const prod = (velho && velho.linhas && velho.linhas[0] && velho.linhas[0].prod) ? velho.linhas[0].prod : "";
+    const dest = (velho && typeof velho.dest === "number") ? velho.dest : 0;
+    return { dest, cap, linhas: [ { prod, litros: cap.toLocaleString("pt-BR") } ] };
+  });
 }
 function pedDestCampo(i, campo, valor){
   const d = pedido && pedido.destinos[i]; if (!d) return;
@@ -5158,49 +5240,67 @@ function pedDestCampo(i, campo, valor){
   }
   atualizarTextoPedido();
 }
-function pedLinhaCampo(i, c, l, campo, valor){
-  const linha = pedido && pedido.destinos[i] && pedido.destinos[i].comps[c] && pedido.destinos[i].comps[c][l];
+function pedLinhaCampo(c, l, campo, valor){
+  const linha = pedido && pedido.comps[c] && pedido.comps[c].linhas[l];
   if (!linha) return;
   linha[campo] = valor;
-  atualizarTextoPedido();
+  if (campo === "prod") renderPedido();   // acende/apaga o compartimento na hora
+  else atualizarTextoPedido();
+}
+// Para qual destino vai este compartimento
+function pedCompDestino(c, valor){
+  const comp = pedido && pedido.comps[c];
+  if (!comp) return;
+  comp.dest = parseInt(valor, 10) || 0;
+  renderPedido();
 }
 function addDestinoPedido(){
   if (!pedido) pedido = novoPedido();
-  pedido.destinos.push({ nome:"", cnpj:"", comps:[ [ {prod:"", litros:""} ] ] });
+  pedido.destinos.push({ nome:"", cnpj:"" });
   renderPedido();
 }
 function removerDestinoPedido(i){
   if (!pedido || pedido.destinos.length <= 1) return;
-  pedido.destinos.splice(i,1); renderPedido();
+  pedido.destinos.splice(i,1);
+  // os compartimentos que iam para o destino removido voltam para o primeiro
+  (pedido.comps || []).forEach(comp => {
+    if (comp.dest === i) comp.dest = 0;
+    else if (comp.dest > i) comp.dest -= 1;
+  });
+  renderPedido();
 }
-function addCompartPedido(i){
-  pedido.destinos[i].comps.push([ {prod:"", litros:""} ]); renderPedido();
+function addCompartPedido(){
+  if (!pedido) pedido = novoPedido();
+  pedido.comps.push({ dest:0, cap:0, linhas:[ {prod:"", litros:""} ] }); renderPedido();
 }
-function removerCompartPedido(i, c){
-  const d = pedido.destinos[i];
-  if (d.comps.length <= 1) return;
-  d.comps.splice(c,1); renderPedido();
+function removerCompartPedido(c){
+  if (!pedido || pedido.comps.length <= 1) return;
+  pedido.comps.splice(c,1); renderPedido();
 }
-function addLinhaPedido(i, c){
-  pedido.destinos[i].comps[c].push({prod:"", litros:""}); renderPedido();
+function addLinhaPedido(c){
+  pedido.comps[c].linhas.push({prod:"", litros:""}); renderPedido();
 }
 // Botões + e − : somam/tiram 5.000 litros de uma vez
 const PASSO_LITROS_PEDIDO = 5000;
-function pedLitrosPasso(i, c, l, sinal){
-  const linha = pedido && pedido.destinos[i] && pedido.destinos[i].comps[c] && pedido.destinos[i].comps[c][l];
+function pedLitrosPasso(c, l, sinal){
+  const linha = pedido && pedido.comps[c] && pedido.comps[c].linhas[l];
   if (!linha) return;
   const atual = parseFloat(String(linha.litros||"").replace(/\./g,"").replace(",",".")) || 0;
   let novo = atual + sinal * PASSO_LITROS_PEDIDO;
   if (novo < 0) novo = 0;
   linha.litros = novo ? novo.toLocaleString("pt-BR",{maximumFractionDigits:0}) : "";
-  const el = document.getElementById("pedLit"+i+"_"+c+"_"+l);
+  const el = document.getElementById("pedLit"+c+"_"+l);
   if (el) el.value = linha.litros;
   atualizarTextoPedido();
 }
-function removerLinhaPedido(i, c, l){
-  const comp = pedido.destinos[i].comps[c];
-  if (comp.length <= 1) return;
-  comp.splice(l,1); renderPedido();
+function removerLinhaPedido(c, l){
+  const linhas = pedido.comps[c].linhas;
+  if (linhas.length <= 1) return;
+  linhas.splice(l,1); renderPedido();
+}
+// Um compartimento só entra na mensagem quando tem produto escolhido.
+function compUsado(comp){
+  return !!(comp && (comp.linhas || []).some(x => x.prod && String(x.litros||"").trim()));
 }
 function opcoesProdutoPedido(sel){
   return ['<option value="">— produto —</option>'].concat(
@@ -5227,12 +5327,22 @@ function renderPedido(forcarCampos){
   if (dlC) dlC.innerHTML = listaDistribuidorasPedido().map(x => '<option value="'+escAttr(x)+'">').join("");
   const dlB = document.getElementById("pedBasesLista");
   if (dlB) dlB.innerHTML = basesPedido.map(x => '<option value="'+escAttr(x)+'">').join("");
+  // v176 - caminhão e tanque agora são listas do cadastro (Configurações)
+  const selCam = document.getElementById("pedCaminhao");
+  if (selCam){
+    selCam.innerHTML = '<option value="">— selecione —</option>' +
+      caminhoes.map(c => '<option value="'+escAttr(c.placa)+'"' + (normPlaca(c.placa)===normPlaca(pedido.caminhao)?' selected':'') + '>' + escAttr(c.placa) + '</option>').join("");
+  }
+  const selTan = document.getElementById("pedTanque");
+  if (selTan){
+    selTan.innerHTML = '<option value="">— selecione —</option>' + opcoesTanqueHtml(pedido.tanque, false);
+  }
   if (forcarCampos){
     const set = (id, v) => { const el = document.getElementById(id); if (el && document.activeElement !== el) el.value = v || ""; };
-    set("pedNomeMot", pedido.motorista); set("pedCpf", pedido.cpf); set("pedCaminhao", pedido.caminhao); set("pedTanque", pedido.tanque);
+    set("pedNomeMot", pedido.motorista); set("pedCpf", pedido.cpf);
     set("pedHora", pedido.hora); set("pedCompanhia", pedido.companhia); set("pedBase", pedido.base);
   }
-  // destinos
+  // destinos (dados do cliente) e, depois, os compartimentos do tanque
   const box = document.getElementById("pedDestinos");
   if (box){
     let h = "";
@@ -5244,23 +5354,50 @@ function renderPedido(forcarCampos){
            '<div class="desc-campo"><label>Cliente</label><input id="pedNome'+i+'" list="pedClientesLista" maxlength="60" value="'+escAttr(d.nome)+'" placeholder="Posto Full Caxias" oninput="pedDestCampo('+i+', \'nome\', this.value)"></div>' +
            '<div class="desc-campo"><label>CNPJ</label><input id="pedCnpj'+i+'" maxlength="20" value="'+escAttr(d.cnpj)+'" placeholder="00.000.000/0000-00" oninput="pedDestCampo('+i+', \'cnpj\', this.value)"></div>' +
            '</div>';
-      d.comps.forEach((comp, c) => {
-        h += '<div class="ped-comp"><div class="ped-comp-tit">Compartimento ' + (c+1) +
-             (d.comps.length > 1 ? ' <button class="btn-claro" onclick="removerCompartPedido('+i+','+c+')">✕</button>' : '') + '</div>';
-        comp.forEach((linha, l) => {
-          h += '<div class="ped-linha">' +
-               '<select onchange="pedLinhaCampo('+i+','+c+','+l+', \'prod\', this.value)">' + opcoesProdutoPedido(linha.prod) + '</select>' +
-               '<button class="btn-claro ped-passo" title="Tirar 5.000 litros" onclick="pedLitrosPasso('+i+','+c+','+l+',-1)">−</button>' +
-               '<input id="pedLit'+i+'_'+c+'_'+l+'" inputmode="numeric" maxlength="9" placeholder="litros" value="'+escAttr(linha.litros)+'" oninput="pedLinhaCampo('+i+','+c+','+l+', \'litros\', this.value)">' +
-               '<button class="btn-claro ped-passo" title="Somar 5.000 litros" onclick="pedLitrosPasso('+i+','+c+','+l+',1)">+</button>' +
-               (comp.length > 1 ? '<button class="btn-claro" onclick="removerLinhaPedido('+i+','+c+','+l+')">✕</button>' : '<span></span>') +
-               '</div>';
-        });
-        h += '<button class="btn-claro" onclick="addLinhaPedido('+i+','+c+')">➕ Produto</button></div>';
-      });
-      h += '<button class="btn-claro" onclick="addCompartPedido('+i+')">➕ Compartimento</button>';
       h += '</div>';
     });
+
+    // ---- compartimentos: uma lista só, na ordem do tanque
+    const tq = tanquePorPlaca(pedido.tanque);
+    const usados = (pedido.comps||[]).filter(compUsado).length;
+    h += '<div class="grupo">';
+    h += '<h2>Compartimentos do tanque' + (tq ? ' — ' + escAttr(tq.placa) : '') + '</h2>';
+    h += '<p class="nota-dash">' +
+         (tq ? ('Este tanque tem <b>' + (tq.comps||[]).length + ' compartimentos</b> (' + somaComps(tq.comps).toLocaleString("pt-BR") + ' L no total). Os litros já vêm preenchidos — escolha só o produto de cada um. Compartimento sem produto <b>não entra na mensagem</b>.')
+             : 'Escolha o caminhão (ou o tanque) para os compartimentos abrirem prontos. Sem tanque cadastrado, dá para montar à mão aqui embaixo.') +
+         (pedido.destinos.length > 1 ? ' Com mais de um destino, diga em cada compartimento para qual deles ele vai.' : '') +
+         ' <b>' + usados + ' de ' + (pedido.comps||[]).length + '</b> com produto escolhido.</p>';
+
+    (pedido.comps||[]).forEach((comp, c) => {
+      const cheio = compUsado(comp);
+      h += '<div class="ped-comp' + (cheio ? '' : ' vazio') + '">';
+      h += '<div class="ped-comp-topo">' +
+           '<span class="ped-comp-tit">Compartimento ' + (c+1) + '</span>' +
+           (comp.cap ? '<span class="ped-comp-cap">cabe ' + Number(comp.cap).toLocaleString("pt-BR") + ' L</span>' : '');
+      if (pedido.destinos.length > 1){
+        h += '<span class="ped-comp-dest">vai para <select onchange="pedCompDestino('+c+', this.value)">' +
+             pedido.destinos.map((d, i) => '<option value="'+i+'"' + (comp.dest===i?' selected':'') + '>' +
+               escAttr(d.nome || ('Destino ' + (i+1))) + '</option>').join("") +
+             '</select></span>';
+      }
+      if ((pedido.comps||[]).length > 1){
+        h += '<button class="btn-claro" onclick="removerCompartPedido('+c+')" title="Remover compartimento">✕</button>';
+      }
+      h += '</div>';
+      comp.linhas.forEach((linha, l) => {
+        h += '<div class="ped-linha">' +
+             '<select onchange="pedLinhaCampo('+c+','+l+', \'prod\', this.value)">' + opcoesProdutoPedido(linha.prod) + '</select>' +
+             '<button class="btn-claro ped-passo" title="Tirar 5.000 litros" onclick="pedLitrosPasso('+c+','+l+',-1)">−</button>' +
+             '<input id="pedLit'+c+'_'+l+'" inputmode="numeric" maxlength="9" placeholder="litros" value="'+escAttr(linha.litros)+'" oninput="pedLinhaCampo('+c+','+l+', \'litros\', this.value)">' +
+             '<button class="btn-claro ped-passo" title="Somar 5.000 litros" onclick="pedLitrosPasso('+c+','+l+',1)">+</button>' +
+             (comp.linhas.length > 1 ? '<button class="btn-claro" onclick="removerLinhaPedido('+c+','+l+')">✕</button>' : '<span></span>') +
+             '</div>';
+      });
+      h += '<button class="btn-claro" onclick="addLinhaPedido('+c+')">➕ Produto</button></div>';
+    });
+    h += '<button class="btn-claro" onclick="addCompartPedido()">➕ Compartimento</button>';
+    h += '</div>';
+
     h += '<datalist id="pedClientesLista">' + clientesPedido.map(c => '<option value="'+escAttr(c.nome)+'">').join("") + '</datalist>';
     box.innerHTML = h;
   }
@@ -5289,8 +5426,10 @@ function montarTextoPedido(){
       }
       if (d.nome){ L.push(""); L.push(d.nome); }
     }
-    d.comps.forEach(comp => {
-      const linhas = comp.filter(x => x.prod && String(x.litros||"").trim());
+    // só os compartimentos deste destino, e só os que têm produto escolhido
+    (pedido.comps || []).forEach(comp => {
+      if ((comp.dest || 0) !== i) return;
+      const linhas = (comp.linhas || []).filter(x => x.prod && String(x.litros||"").trim());
       if (!linhas.length) return;
       L.push("");
       linhas.forEach(x => L.push(x.prod + " = " + fmtLitrosPedido(x.litros) + " litros"));
@@ -5374,13 +5513,14 @@ function montarCartaoPedido(){
     if (pedido.caminhao) h += cardLinhaResumo("Caminhão", pedido.caminhao);
     if (pedido.tanque) h += cardLinhaResumo("Tanque", pedido.tanque);
   }
-  pedido.destinos.forEach(d => {
+  pedido.destinos.forEach((d, i) => {
     h += '<div class="cardres-sec">⛽ ' + escAttr((d.nome||"DESTINO").toUpperCase()) +
          (d.cnpj ? ' <span class="un">' + escAttr(d.cnpj) + '</span>' : '') + '</div>';
-    d.comps.forEach((comp, c) => {
-      const linhas = comp.filter(x => x.prod && String(x.litros||"").trim());
-      if (!linhas.length) return;
-      if (d.comps.length > 1) h += '<div class="cardres-comp">Compartimento ' + (c+1) + '</div>';
+    // v176 - só os compartimentos deste destino, e só os que têm produto
+    const daqui = (pedido.comps || []).filter(comp => (comp.dest || 0) === i && compUsado(comp));
+    daqui.forEach((comp, c) => {
+      const linhas = (comp.linhas || []).filter(x => x.prod && String(x.litros||"").trim());
+      if (daqui.length > 1) h += '<div class="cardres-comp">Compartimento ' + (c+1) + '</div>';
       linhas.forEach(x => { h += cardLinhaResumo(x.prod, fmtLitrosPedido(x.litros) + " L"); });
     });
   });
@@ -6952,6 +7092,149 @@ function renderMotoristas(){
       '<button class="btn-claro" onclick="editarMotorista(\''+m.id+'\')">✏️ Editar</button>' +
       '</div>';
   }).join("");
+}
+
+/* ============== v176 - Full Transportadora: caminhões e tanques ==============
+   O pedido de carregamento precisa saber, do tanque, quantos compartimentos ele
+   tem e de que tamanho — é isso que abre a tela pronta para o motorista só
+   escolher o produto. Compartimentação conferida com o Tiago em 27/07/2026. */
+const COMPARTIMENTOS_PADRAO = {
+  "ROH0J42": [7000, 5000, 5000, 5000, 5000, 5000, 5000],            // 37.000 (Marcone)
+  "UJM6J70": [10000, 10000, 5000, 5000, 5000, 5000, 5000, 5000]     // 50.000 (Clécio Jean)
+};
+function semearFrota(){
+  const cams = [], tans = [];
+  motoristas.forEach(m => {
+    const pc = normPlaca(m.placaCaminhao), pt = normPlaca(m.placaTanque);
+    if (pc && !cams.some(c => c.placa === pc)) cams.push({ placa: pc, tanquePadrao: pt || "" });
+    if (pt && !tans.some(x => x.placa === pt)) tans.push({ placa: pt, comps: (COMPARTIMENTOS_PADRAO[pt] || []).slice() });
+  });
+  return { caminhoes: cams, tanques: tans };
+}
+function salvarFrota(){
+  if (!nuvemPronta) return;
+  docTransportadora.set({ caminhoes, tanques }, { merge:true }).catch(()=>{});
+}
+function tanquePorPlaca(p){ const q = normPlaca(p); return q ? (tanques.find(x => normPlaca(x.placa) === q) || null) : null; }
+function caminhaoPorPlaca(p){ const q = normPlaca(p); return q ? (caminhoes.find(x => normPlaca(x.placa) === q) || null) : null; }
+function compsDoTanque(p){ const tq = tanquePorPlaca(p); return (tq && Array.isArray(tq.comps)) ? tq.comps.slice() : []; }
+// "7000, 5000,5000" -> [7000,5000,5000] (ignora o que não for número)
+function lerComps(txt){
+  return String(txt || "").split(/[,;]+/).map(x => lerInteiro(x)).filter(v => v > 0);
+}
+function textoComps(lista){
+  return (lista || []).map(v => Number(v).toLocaleString("pt-BR")).join(", ");
+}
+function somaComps(lista){ return (lista || []).reduce((a, b) => a + (+b || 0), 0); }
+
+function adicionarCaminhao(){
+  const placa = normPlaca(document.getElementById("camPlaca").value);
+  const tanquePadrao = normPlaca((document.getElementById("camTanquePadrao") || {}).value);
+  if (!placa){ avisoAdmin("msgCaminhao", "Digite a placa do caminhão.", "erro"); return; }
+  if (caminhaoPorPlaca(placa)){ avisoAdmin("msgCaminhao", "Esse caminhão já está cadastrado.", "erro"); return; }
+  caminhoes.push({ placa, tanquePadrao });
+  salvarFrota();
+  document.getElementById("camPlaca").value = "";
+  avisoAdmin("msgCaminhao", "Caminhão " + placa + " cadastrado.", "ok");
+  renderFrota();
+}
+function adicionarTanque(){
+  const placa = normPlaca(document.getElementById("tanPlaca").value);
+  const comps = lerComps(document.getElementById("tanComps").value);
+  if (!placa){ avisoAdmin("msgTanque", "Digite a placa do tanque.", "erro"); return; }
+  if (tanquePorPlaca(placa)){ avisoAdmin("msgTanque", "Esse tanque já está cadastrado.", "erro"); return; }
+  if (!comps.length){ avisoAdmin("msgTanque", "Escreva os compartimentos, separados por vírgula.", "erro"); return; }
+  tanques.push({ placa, comps });
+  salvarFrota();
+  document.getElementById("tanPlaca").value = "";
+  document.getElementById("tanComps").value = "";
+  avisoAdmin("msgTanque", "Tanque " + placa + " cadastrado (" + textoComps(comps) + " = " + somaComps(comps).toLocaleString("pt-BR") + " L).", "ok");
+  renderFrota();
+}
+function editarCaminhao(p){ editandoCaminhao = p; renderFrota(); }
+function editarTanque(p){ editandoTanque = p; renderFrota(); }
+function cancelarEdicaoFrota(){ editandoCaminhao = null; editandoTanque = null; renderFrota(); }
+function confirmarEdicaoCaminhao(p){
+  const c = caminhaoPorPlaca(p); if (!c) return;
+  c.tanquePadrao = normPlaca((document.getElementById("camE_tanque") || {}).value);
+  editandoCaminhao = null; salvarFrota(); renderFrota();
+  avisoAdmin("msgCaminhao", "Caminhão " + c.placa + " atualizado.", "ok");
+}
+function confirmarEdicaoTanque(p){
+  const tq = tanquePorPlaca(p); if (!tq) return;
+  const comps = lerComps((document.getElementById("tanE_comps") || {}).value);
+  if (!comps.length){ avisoAdmin("msgTanque", "Escreva pelo menos um compartimento.", "erro"); return; }
+  tq.comps = comps;
+  editandoTanque = null; salvarFrota(); renderFrota();
+  avisoAdmin("msgTanque", "Tanque " + tq.placa + " agora tem " + comps.length + " compartimentos (" + somaComps(comps).toLocaleString("pt-BR") + " L).", "ok");
+}
+function removerCaminhao(p){
+  caminhoes = caminhoes.filter(c => normPlaca(c.placa) !== normPlaca(p));
+  editandoCaminhao = null; salvarFrota(); renderFrota();
+}
+function removerTanque(p){
+  tanques = tanques.filter(x => normPlaca(x.placa) !== normPlaca(p));
+  caminhoes.forEach(c => { if (normPlaca(c.tanquePadrao) === normPlaca(p)) c.tanquePadrao = ""; });
+  editandoTanque = null; salvarFrota(); renderFrota();
+}
+function opcoesTanqueHtml(sel, comVazio){
+  return (comVazio ? '<option value="">— sem tanque padrão —</option>' : '') +
+    tanques.map(x => '<option value="' + escAttr(x.placa) + '"' + (normPlaca(x.placa) === normPlaca(sel) ? ' selected' : '') + '>' +
+      escAttr(x.placa) + ' (' + somaComps(x.comps).toLocaleString("pt-BR") + ' L)</option>').join("");
+}
+function renderFrota(){
+  const selNovo = document.getElementById("camTanquePadrao");
+  if (selNovo) selNovo.innerHTML = opcoesTanqueHtml(selNovo.value, true);
+
+  const lc = document.getElementById("listaCaminhoes");
+  if (lc){
+    lc.innerHTML = !caminhoes.length
+      ? '<p class="nota-dash">Nenhum caminhão cadastrado ainda.</p>'
+      : ('<div class="usr-item usr-head"><span class="mot-campo">Caminhão</span><span class="mot-campo">Tanque de sempre</span><span class="usr-head-btn"></span></div>' +
+        caminhoes.map(c => {
+          const tq = tanquePorPlaca(c.tanquePadrao);
+          const rot = tq ? (tq.placa + " (" + somaComps(tq.comps).toLocaleString("pt-BR") + " L)") : "—";
+          if (editandoCaminhao === c.placa){
+            return '<div class="usr-item editando">' +
+              '<label class="mot-campo" data-lbl="Caminhão"><input value="' + escAttr(c.placa) + '" readonly></label>' +
+              '<label class="mot-campo" data-lbl="Tanque de sempre"><select id="camE_tanque">' + opcoesTanqueHtml(c.tanquePadrao, true) + '</select></label>' +
+              '<button class="btn-verde" onclick="confirmarEdicaoCaminhao(\'' + escAspas(c.placa) + '\')">✓ Confirmar</button>' +
+              '<button class="btn-claro" onclick="cancelarEdicaoFrota()">Cancelar</button>' +
+              '<button class="btn-claro" onclick="removerCaminhao(\'' + escAspas(c.placa) + '\')">🗑 Remover</button>' +
+              '</div>';
+          }
+          return '<div class="usr-item">' +
+            '<label class="mot-campo" data-lbl="Caminhão"><input value="' + escAttr(c.placa) + '" readonly></label>' +
+            '<label class="mot-campo" data-lbl="Tanque de sempre"><input value="' + escAttr(rot) + '" readonly></label>' +
+            '<button class="btn-claro" onclick="editarCaminhao(\'' + escAspas(c.placa) + '\')">✏️ Editar</button>' +
+            '</div>';
+        }).join(""));
+  }
+
+  const lt = document.getElementById("listaTanques");
+  if (lt){
+    lt.innerHTML = !tanques.length
+      ? '<p class="nota-dash">Nenhum tanque cadastrado ainda.</p>'
+      : ('<div class="usr-item usr-head"><span class="mot-campo">Tanque</span><span class="mot-campo">Compartimentos</span><span class="mot-campo">Total</span><span class="usr-head-btn"></span></div>' +
+        tanques.map(x => {
+          if (editandoTanque === x.placa){
+            return '<div class="usr-item editando">' +
+              '<label class="mot-campo" data-lbl="Tanque"><input value="' + escAttr(x.placa) + '" readonly></label>' +
+              '<label class="mot-campo" data-lbl="Compartimentos"><input id="tanE_comps" maxlength="120" value="' + escAttr(textoComps(x.comps)) + '" placeholder="7000, 5000, 5000"></label>' +
+              '<label class="mot-campo" data-lbl="Total"><input value="' + somaComps(x.comps).toLocaleString("pt-BR") + ' L" readonly></label>' +
+              '<button class="btn-verde" onclick="confirmarEdicaoTanque(\'' + escAspas(x.placa) + '\')">✓ Confirmar</button>' +
+              '<button class="btn-claro" onclick="cancelarEdicaoFrota()">Cancelar</button>' +
+              '<button class="btn-claro" onclick="removerTanque(\'' + escAspas(x.placa) + '\')">🗑 Remover</button>' +
+              '</div>';
+          }
+          return '<div class="usr-item">' +
+            '<label class="mot-campo" data-lbl="Tanque"><input value="' + escAttr(x.placa) + '" readonly></label>' +
+            '<label class="mot-campo" data-lbl="Compartimentos"><input value="' + escAttr(textoComps(x.comps)) + '" readonly></label>' +
+            '<label class="mot-campo" data-lbl="Total"><input value="' + somaComps(x.comps).toLocaleString("pt-BR") + ' L" readonly></label>' +
+            '<button class="btn-claro" onclick="editarTanque(\'' + escAspas(x.placa) + '\')">✏️ Editar</button>' +
+            '</div>';
+        }).join(""));
+  }
 }
 
 /* ===================== Full Transportadora: Puxadas ===================== */
