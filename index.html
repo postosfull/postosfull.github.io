@@ -4444,7 +4444,7 @@ function renderAnalise(){
   const quando = a.criadoEm ? (fmtDataCurta(String(a.criadoEm).slice(0,10)) + (anaHoraCurta(a.criadoEm) ? " às " + anaHoraCurta(a.criadoEm) : "")) : fmtDataCurta(anaSel);
   html += '<p class="ana-rodape">Escrito pelo Claude em ' + escAttr(quando) +
           (a.por ? " (" + escAttr(a.por) + ")" : "") + ', a partir dos números que estão no app. ' +
-          'É uma leitura para chamar atenção, não um laudo: confira no Petros antes de decidir.</p>';
+          'É uma leitura para chamar atenção, não um laudo: confira ' + (sigla === "transp" ? "no Infleet e nos CT-e" : "no Petros") + ' antes de decidir.</p>';
 
   box.innerHTML = html;
 }
