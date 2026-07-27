@@ -486,6 +486,14 @@
   .ped-linha select,.ped-linha input{border:1px solid var(--borda);border-radius:8px;padding:8px;font-size:.9rem;background:var(--superficie);color:var(--txt);width:100%}
   .cardres-comp{font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 2px}
   @media (max-width:520px){ .ped-linha{grid-template-columns:1fr 34px 78px 34px 30px;gap:4px} }
+  .evo-svg{width:100%;height:auto;max-height:320px;display:block}
+  .evo-grade{stroke:var(--borda);stroke-width:1}
+  .evo-barra{fill:var(--verde)}
+  .evo-barra.parcial{opacity:.5}
+  .evo-valor{font-size:11px;font-weight:700;fill:var(--txt)}
+  .evo-mes{font-size:11px;fill:var(--cinza)}
+  .evo-eixo{font-size:10px;fill:var(--cinza)}
+  .evo-parcial{font-size:9px;fill:var(--cinza)}
   .res-tab{table-layout:fixed;width:100%;min-width:0;max-width:430px}   /* min-width:0 anula o table{min-width:1100px} global */
   .res-tab th:first-child, .res-tab td:first-child{width:52%}
   .res-tab th:last-child,  .res-tab td:last-child{width:48%;text-align:right}
@@ -1559,6 +1567,21 @@
   <div class="config" id="painelDash">
     <div class="grupo">
       <div id="conteudoPetros"></div>
+      <h2>📈 Evolução das vendas</h2>
+      <p class="nota-dash">Compare mês a mês. Nos postos o gráfico mostra <b>litros vendidos</b>; nas conveniências, <b>faturamento</b>. O mês em andamento aparece mais claro, marcado como parcial.</p>
+      <div class="desc-form" style="max-width:700px;margin-bottom:10px">
+        <div class="desc-campo"><label>Empresa</label><select id="evoEmpresa" onchange="onEvoFiltro()"></select></div>
+        <div class="desc-campo"><label>Período</label><select id="evoPeriodo" onchange="onEvoFiltro()">
+          <option value="3">Últimos 3 meses</option>
+          <option value="6">Últimos 6 meses</option>
+          <option value="12">Últimos 12 meses</option>
+        </select></div>
+        <div class="desc-campo"><label>&nbsp;</label><button class="btn-claro" onclick="salvarPadraoEvolucao()">⭐ Usar como padrão</button></div>
+      </div>
+      <div id="evolucaoBox"></div>
+      <p class="nota-dash" id="evoMsg"></p>
+    </div>
+    <div class="grupo">
       <h2>Evolução de preços e margens</h2>
       <div class="dash-toggles">
         <span class="dash-toggles-rot">Mostrar:</span>
@@ -1841,6 +1864,10 @@ const docPermEventos = db.collection("config").doc("permissoesEventos"); // quem
 const colDocumentos = db.collection("documentos");                // documentos/licenças com vencimento (Central de Vencimentos)
 const colArquivos = db.collection("arquivos");                    // metadados dos arquivos (licenças/contratos) guardados no Firebase Storage
 const colResumoDiario = db.collection("resumoDiario");             // um doc por dia: litros por posto + faturamento por loja
+const colVendasMensais = db.collection("vendasMensais");           // um doc por mês (AAAA-MM): litros por posto + faturamento por loja
+let vendasMensais = {};                // "AAAA-MM" -> {postos:{...}, lojas:{...}, parcial}
+let evolucaoPadrao = { empresa:"posto:teresina", meses:3 };   // o que abre por padrão no card
+let escutaVendasMensais = null;
 let resumosDia = {};                   // "AAAA-MM-DD" -> {postos:[...], lojas:[...], coletadoEm}
 let escutaResumos = null;
 const docInfleetFrota = db.collection("config").doc("infleetFrota"); // foto da frota vinda do APP Infleet (rastreamento)
@@ -2261,6 +2288,7 @@ function aoMudarLogin(usuario){
     if (escutaTransportadora){ escutaTransportadora(); escutaTransportadora = null; }
     if (escutaPuxadas){ escutaPuxadas(); escutaPuxadas = null; }
     if (escutaResumos){ escutaResumos(); escutaResumos = null; }
+    if (escutaVendasMensais){ escutaVendasMensais(); escutaVendasMensais = null; }
     if (escutaInfFrota){ escutaInfFrota(); escutaInfFrota = null; }
     if (escutaInfAbast){ escutaInfAbast(); escutaInfAbast = null; }
     if (escutaDescontos){ escutaDescontos(); escutaDescontos = null; }
@@ -3447,6 +3475,11 @@ function iniciarSync(){
       const d = snap.data();
       if (d.listas && Array.isArray(d.listas.posto) && Array.isArray(d.listas.distribuidora)) listas = d.listas;
       if (isFinite(d.fretePadrao)) fretePadrao = d.fretePadrao;
+      if (d.evolucaoPadrao && d.evolucaoPadrao.empresa){
+        evolucaoPadrao = { empresa: d.evolucaoPadrao.empresa, meses: +d.evolucaoPadrao.meses || 3 };
+        const se = document.getElementById("evoEmpresa"), sp = document.getElementById("evoPeriodo");
+        if (se && sp && !evoTocado){ se.value = evolucaoPadrao.empresa; sp.value = String(evolucaoPadrao.meses); renderEvolucao(); }
+      }
       try {
         localStorage.setItem(CHAVE_LISTAS, JSON.stringify(listas));
         localStorage.setItem(CHAVE_FRETE, String(fretePadrao));
@@ -3559,6 +3592,15 @@ function iniciarSync(){
     puxadas = lista;
     const pp = document.getElementById("painelPuxadas");
     if (pp && pp.classList.contains("aberto")) renderPuxadas();
+  }, ()=>{});
+
+  // Evolução das vendas (um doc por mês)
+  escutaVendasMensais = colVendasMensais.onSnapshot(snap => {
+    const m = {};
+    snap.forEach(d => m[d.id] = d.data() || {});
+    vendasMensais = m;
+    const pd = document.getElementById("painelDash");
+    if (pd && pd.classList.contains("aberto")) renderEvolucao();
   }, ()=>{});
 
   // Resumo diário (vendas do dia anterior: litros nos postos, faturamento nas lojas)
@@ -4168,6 +4210,109 @@ function alternarSimular(){
   const bs = document.getElementById("btnSimular");
   if (bs) bs.classList.toggle("ativo", aberto);
   if (aberto) prepararSimulador();
+}
+
+/* ================== Evolução das vendas (Dashboard dos Postos) ================== */
+const EMPRESAS_EVO = [
+  { id:"posto:teresina", nome:"⛽ Posto Teresina",        grupo:"postos", chave:"teresina" },
+  { id:"posto:caxias",   nome:"⛽ Posto Caxias",          grupo:"postos", chave:"caxias" },
+  { id:"posto:dutra",    nome:"⛽ Posto Dutra",           grupo:"postos", chave:"dutra" },
+  { id:"loja:teresina",  nome:"🛒 Conveniência Teresina", grupo:"lojas",  chave:"teresina" },
+  { id:"loja:caxias",    nome:"🛒 Conveniência Caxias",   grupo:"lojas",  chave:"caxias" },
+  { id:"loja:dutra",     nome:"🛒 Conveniência Dutra",    grupo:"lojas",  chave:"dutra" }
+];
+let evoTocado = false;   // true depois que alguém mexe nos filtros (aí o padrão não sobrescreve)
+const MESES_CURTOS = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+function rotuloMesEvo(ym){
+  const a = String(ym).slice(0,4), m = parseInt(String(ym).slice(5,7),10);
+  return (MESES_CURTOS[m-1]||"") + "/" + a.slice(2);
+}
+function abreviaNumEvo(v){
+  const n = +v || 0;
+  if (n >= 1000000) return fmtBR(n/1000000, 2) + " mi";
+  if (n >= 1000) return fmtBR(n/1000, 0) + " mil";
+  return fmtBR(n, 0);
+}
+function onEvoFiltro(){ evoTocado = true; renderEvolucao(); }
+function popularSelectEvo(){
+  const sel = document.getElementById("evoEmpresa");
+  if (!sel || sel.options.length) return;
+  sel.innerHTML = EMPRESAS_EVO.map(e => '<option value="'+e.id+'">'+escAttr(e.nome)+'</option>').join("");
+  sel.value = evolucaoPadrao.empresa;
+  const sp = document.getElementById("evoPeriodo");
+  if (sp) sp.value = String(evolucaoPadrao.meses || 3);
+}
+function salvarPadraoEvolucao(){
+  const se = document.getElementById("evoEmpresa"), sp = document.getElementById("evoPeriodo");
+  const m = document.getElementById("evoMsg");
+  if (!se || !sp) return;
+  evolucaoPadrao = { empresa: se.value, meses: +sp.value || 3 };
+  if (nuvemPronta){
+    docConfig.set({ evolucaoPadrao }, {merge:true})
+      .then(()=> { if (m) m.textContent = "Pronto: este filtro passa a ser o que abre por padrão."; })
+      .catch(()=> { if (m) m.textContent = "Não consegui salvar o padrão agora."; });
+  } else if (m) { m.textContent = "Sem conexão com a nuvem — tente de novo em instantes."; }
+}
+function graficoBarrasEvo(itens, moeda){
+  const W = 720, H = 270, padL = 58, padR = 12, padT = 24, padB = 46;
+  const max = itens.reduce((a,i)=>Math.max(a, +i.valor||0), 0) || 1;
+  const larg = (W - padL - padR) / itens.length;
+  let s = '<svg viewBox="0 0 '+W+' '+H+'" class="evo-svg" preserveAspectRatio="xMidYMid meet">';
+  for (let g = 0; g <= 4; g++){
+    const y = padT + (H - padT - padB) * g / 4;
+    s += '<line x1="'+padL+'" y1="'+y.toFixed(1)+'" x2="'+(W-padR)+'" y2="'+y.toFixed(1)+'" class="evo-grade"/>';
+    s += '<text x="'+(padL-6)+'" y="'+(y+4).toFixed(1)+'" text-anchor="end" class="evo-eixo">'+abreviaNumEvo(max*(1-g/4))+'</text>';
+  }
+  itens.forEach((it, i) => {
+    const alt = (H - padT - padB) * ((+it.valor||0) / max);
+    const x = padL + i*larg + larg*0.18, w = larg*0.64, y = H - padB - alt;
+    s += '<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+Math.max(alt,1).toFixed(1)+'" rx="4" class="evo-barra'+(it.parcial?' parcial':'')+'"><title>'+escAttr(it.rotulo+": "+(moeda?("R$ "+fmtBR(it.valor,2)):(fmtLitros(it.valor)+" L")))+'</title></rect>';
+    s += '<text x="'+(x+w/2).toFixed(1)+'" y="'+(y-6).toFixed(1)+'" text-anchor="middle" class="evo-valor">'+abreviaNumEvo(it.valor)+'</text>';
+    s += '<text x="'+(x+w/2).toFixed(1)+'" y="'+(H-padB+17)+'" text-anchor="middle" class="evo-mes">'+escAttr(it.rotulo)+'</text>';
+    if (it.parcial) s += '<text x="'+(x+w/2).toFixed(1)+'" y="'+(H-padB+31)+'" text-anchor="middle" class="evo-parcial">parcial</text>';
+  });
+  s += '</svg>';
+  return s;
+}
+function renderEvolucao(){
+  popularSelectEvo();
+  const box = document.getElementById("evolucaoBox");
+  if (!box) return;
+  const se = document.getElementById("evoEmpresa"), sp = document.getElementById("evoPeriodo");
+  const emp = EMPRESAS_EVO.find(e => e.id === (se ? se.value : evolucaoPadrao.empresa)) || EMPRESAS_EVO[0];
+  const qtd = +(sp ? sp.value : evolucaoPadrao.meses) || 3;
+  const meses = Object.keys(vendasMensais).sort();
+  if (!meses.length){
+    box.innerHTML = '<p class="nota-dash">Ainda não temos o histórico mensal. Ele é montado na sincronização.</p>';
+    return;
+  }
+  const usar = meses.slice(-qtd);
+  const moeda = emp.grupo === "lojas";
+  const itens = usar.map(ym => {
+    const d = vendasMensais[ym] || {};
+    const bloco = d[emp.grupo] || {};
+    return { rotulo: rotuloMesEvo(ym), valor: +bloco[emp.chave] || 0, parcial: !!d.parcial };
+  });
+  let h = graficoBarrasEvo(itens, moeda);
+  // resumo embaixo do gráfico
+  const total = itens.reduce((a,i)=>a+i.valor, 0);
+  const fechados = itens.filter(i => !i.parcial);
+  const media = fechados.length ? (fechados.reduce((a,i)=>a+i.valor,0) / fechados.length) : 0;
+  const fmtV = v => moeda ? ("R$ " + fmtBR(v,2)) : (fmtLitros(v) + " L");
+  let variacao = "—";
+  if (itens.length >= 2){
+    const ult = itens[itens.length-1], ant = itens[itens.length-2];
+    if (ant.valor > 0){
+      const p = (ult.valor - ant.valor) / ant.valor * 100;
+      variacao = (p >= 0 ? "▲ " : "▼ ") + fmtBR(Math.abs(p),1) + "% vs " + ant.rotulo + (ult.parcial ? " (mês em andamento)" : "");
+    }
+  }
+  h += '<div class="resumo-dash" style="margin-top:12px">' +
+       '<div class="cartao-kpi"><span>Total do período</span><b>'+fmtV(total)+'</b></div>' +
+       '<div class="cartao-kpi"><span>Média por mês fechado</span><b>'+fmtV(media)+'</b></div>' +
+       '<div class="cartao-kpi"><span>Último mês</span><b>'+variacao+'</b></div>' +
+       '</div>';
+  box.innerHTML = h;
 }
 
 /* ================== Resumo do dia (vendas do dia anterior) ================== */
@@ -7914,7 +8059,7 @@ function alternarDash(){
   const aberto = abrirPainelExclusivo("painelDash");
   const bd = document.getElementById("btnDash");
   if (bd) bd.classList.toggle("ativo", aberto);
-  if (aberto) renderDashboard();
+  if (aberto){ renderDashboard(); renderEvolucao(); }
 }
 
 // Abre o Dashboard como painel inicial ao logar. Diferente de alternarDash(),
@@ -7924,6 +8069,7 @@ function abrirDashboardInicial(){
   const painel = document.getElementById("painelDash");
   if (painel && painel.classList.contains("aberto")){
     renderDashboard();   // já aberto: só garante os gráficos
+    renderEvolucao();
     return;
   }
   alternarDash();        // fechado: abre normalmente
