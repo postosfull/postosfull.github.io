@@ -1121,6 +1121,11 @@
   .comp-frete-row span{font-size:.8rem;color:var(--cinza);font-weight:600;flex:1 1 auto}
   .comp-frete-row input{max-width:130px;text-align:right;border:1px solid var(--borda);border-radius:6px;padding:8px;font-size:.9rem;background:var(--superficie);color:var(--txt)}
   .comp-acoes{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:16px 0}
+  /* v177 — lista de fretes dentro das Cotações do Dia */
+  .comp-fretes{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:0 18px}
+  .comp-fretes .comp-frete-row:last-child{border-bottom:none;padding-bottom:0;margin-bottom:0}
+  .comp-melhor-prod{font-weight:700;color:var(--verde)}
+  .comp-aviso-vibra{font-size:.76rem;color:var(--cinza);margin-top:10px}
 
   /* ================= CELULAR — retrato e telas estreitas ================= */
   @media (max-width: 640px){
@@ -1273,7 +1278,6 @@
     <button class="btn-claro" id="btnAnalise" onclick="alternarAnalise()"><span class="mi">🧠</span><span class="mt">Análise</span></button>
     <button class="btn-claro" id="btnInfleet" onclick="alternarInfleet()"><span class="mi">📡</span><span class="mt">APP Infleet</span></button>
     <button class="btn-claro" id="btnPedido" onclick="alternarPedido()"><span class="mi">📝</span><span class="mt">Pedido de carregamento</span></button>
-    <button class="btn-claro" id="btnComparativo" onclick="alternarComparativo()"><span class="mi">🚛</span><span class="mt">Comparativo de Preços</span></button>
     <button class="btn-claro" id="btnPuxadas" onclick="alternarPuxadas()"><span class="mi">🧾</span><span class="mt">Puxadas</span></button>
     <button class="btn-claro" id="btnCotacoes" onclick="alternarCotacoes()"><span class="mi">💲</span><span class="mt">Cotações do Dia</span></button>
     <button class="btn-claro" id="btnRelLoja" onclick="alternarRelLoja()"><span class="mi">🍫</span><span class="mt">Produtos e categorias</span></button>
@@ -1383,15 +1387,6 @@
     </div>
   </div>
 
-  <div class="config" id="painelComparativo">
-    <div class="grupo">
-      <h2>Comparativo de Preços</h2>
-      <p class="nota-dash">Compare o custo total do pedido do caminhão em cada distribuidora: informe os volumes e as cotações, e o app mostra em qual compensa fechar o pedido.</p>
-      <div id="conteudoComparativo"></div>
-      <canvas id="compCanvas" width="1080" height="1920" style="display:none"></canvas>
-    </div>
-  </div>
-
   <div class="config" id="painelPuxadas">
     <div id="boxPlacaPendente" style="display:none"></div>
     <div class="grupo">
@@ -1430,6 +1425,12 @@
         <span class="cot-status" id="cotStatus"></span>
       </div>
       <div id="conteudoCotacoes"></div>
+    </div>
+    <div class="grupo" id="grupoCompCot">
+      <h2>🚛 Onde compensa comprar</h2>
+      <p class="nota-dash">Com as cotações acima já preenchidas, basta informar quantos litros o caminhão vai puxar: o app soma produto + frete e mostra em qual distribuidora o pedido sai mais barato. A <b>Vibra</b> fica de fora porque é exclusiva do Posto Full Teresina — o comparativo é para os postos de Dutra e Caxias.</p>
+      <div id="conteudoCompCot"></div>
+      <canvas id="compCanvas" width="1080" height="1920" style="display:none"></canvas>
     </div>
   </div>
 
@@ -3619,8 +3620,6 @@ function iniciarSync(){
     cotacoesDia = (snap.exists && snap.data() && snap.data().dists) ? snap.data() : { dists: {} };
     const pc = document.getElementById("painelCotacoes");
     if (pc && pc.classList.contains("aberto") && cotDataSel === hojeISO()) carregarCotDia();
-    const pcomp = document.getElementById("painelComparativo");
-    if (pcomp && pcomp.classList.contains("aberto")) renderComparativo();
   }, ()=>{});
 
   // Resumo do Petros (card "Resultado no período" da rede)
@@ -3951,7 +3950,7 @@ function excluir(i){
 
 /* ================== Salvar / Carregar / Exportar ================== */
 // Painéis que ocupam a página; só um fica aberto por vez
-const PAINEIS = ["painelRegistros","painelDash","painelResumoDia","painelHistorico","painelSimular","painelDescontos","painelComparativo","painelPuxadas","painelCotacoes","painelInfleet","painelPedido","painelRelPosto","painelRelLoja","painelAnalise","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin"];
+const PAINEIS = ["painelRegistros","painelDash","painelResumoDia","painelHistorico","painelSimular","painelDescontos","painelPuxadas","painelCotacoes","painelInfleet","painelPedido","painelRelPosto","painelRelLoja","painelAnalise","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin"];
 function fecharTodosPaineis(exceto){
   PAINEIS.forEach(id => {
     const el = document.getElementById(id);
@@ -3976,8 +3975,6 @@ function fecharTodosPaineis(exceto){
   if (bs) bs.classList.toggle("ativo", document.getElementById("painelSimular").classList.contains("aberto"));
   const bdesc = document.getElementById("btnDescontos");
   if (bdesc) bdesc.classList.toggle("ativo", document.getElementById("painelDescontos").classList.contains("aberto"));
-  const bcomp = document.getElementById("btnComparativo");
-  if (bcomp) bcomp.classList.toggle("ativo", document.getElementById("painelComparativo").classList.contains("aberto"));
   const bpux = document.getElementById("btnPuxadas");
   if (bpux) bpux.classList.toggle("ativo", document.getElementById("painelPuxadas").classList.contains("aberto"));
   const bcot = document.getElementById("btnCotacoes");
@@ -4042,7 +4039,6 @@ const MENUS_APP = [
   {key:"relPosto",    btn:"btnRelPosto",    pan:"painelRelPosto",    emp:"postos", nome:"Relatórios do posto"},
   {key:"infleet",     btn:"btnInfleet",     pan:"painelInfleet",     emp:"transp", nome:"APP Infleet"},
   {key:"pedido",      btn:"btnPedido",      pan:"painelPedido",      emp:"transp", nome:"Pedido de carregamento"},
-  {key:"comparativo", btn:"btnComparativo", pan:"painelComparativo", emp:"transp", nome:"Comparativo de Preços"},
   {key:"cotacoes",    btn:"btnCotacoes",    pan:"painelCotacoes",    emp:"transp", nome:"Cotações do Dia"},
   {key:"puxadas",     btn:"btnPuxadas",     pan:"painelPuxadas",     emp:"transp", nome:"Puxadas"},
   {key:"relLoja",     btn:"btnRelLoja",     pan:"painelRelLoja",     emp:"conv",   nome:"Produtos e categorias"},
@@ -4070,6 +4066,9 @@ function menuPermitidoDe(email, key){
   // v133: "Vencimentos" e "Arquivos" viraram um menu só (Documentos).
   // Quem tinha permissão em qualquer um dos dois continua vendo o menu unificado.
   if (key === "vencimentos") return _menuPermBase(email, "vencimentos") || _menuPermBase(email, "arquivos");
+  // v177: o "Comparativo de Preços" virou uma seção dentro de "Cotações do Dia".
+  // Quem tinha permissão no comparativo continua enxergando o menu que o absorveu.
+  if (key === "cotacoes") return _menuPermBase(email, "cotacoes") || _menuPermBase(email, "comparativo");
   return _menuPermBase(email, key);
 }
 function _menuPermBase(email, key){
@@ -4125,7 +4124,7 @@ function abrirPrimeiroPermitido(){
 function abrirPainelInicial(){
   const s = siglaEmpresa(empresa);
   if (s === "transp" && menuPermitido("infleet")){ abrirInfleetInicial(); return; }
-  if (s === "transp" && menuPermitido("comparativo")){ abrirComparativoInicial(); return; }
+  if (s === "transp" && menuPermitido("cotacoes")){ abrirCotacoesInicial(); return; }
   if (s === "conv"   && menuPermitido("relLoja")){ abrirRelLojaInicial(); return; }
   if (s === "postos" && menuPermitido("dash")){ abrirDashboardInicial(); return; }
   abrirPrimeiroPermitido();
@@ -4170,10 +4169,10 @@ function alternarSeletorEmpresa(e){
   box.style.display = escondido ? "flex" : "none";
 }
 
-function abrirComparativoInicial(){
-  const painel = document.getElementById("painelComparativo");
-  if (painel && painel.classList.contains("aberto")){ renderComparativo(); return; }
-  alternarComparativo();
+function abrirCotacoesInicial(){
+  const painel = document.getElementById("painelCotacoes");
+  if (painel && painel.classList.contains("aberto")){ carregarCotDia(); return; }
+  alternarCotacoes();
 }
 function abrirInfleetInicial(){
   const painel = document.getElementById("painelInfleet");
@@ -5906,6 +5905,7 @@ function renderCotacoes(){
       : 'Você está vendo as cotações de <b>'+fmtDataCurta(cotDataSel)+'</b>. Para alterar um valor já salvo, toque em ✏️, digite e confirme em ✓.') +
     '</p>';
   cont.innerHTML = html;
+  renderCompCot();   // v177 — o comparativo vive logo abaixo e usa estas cotações
 }
 // Monta as linhas do resumo (todos os preços preenchidos do dia + variação vs. último registro)
 function resumoCotLinhas(){
@@ -6946,32 +6946,6 @@ function renderCalendario(){
     html += '<p class="cot-quem">🔄 Sincronizado em ' + fmtDataHora(new Date(avisosDia.atualizadoEm)) + '</p>';
   }
   cont.innerHTML = html;
-}
-
-/* ================== Comparativo de Preços ================== */
-let comparativo = null;
-const CHAVE_COMPARATIVO = "margens_comparativo";
-
-function comparativoCarregar(){
-  if (comparativo) return;
-  try {
-    const salvo = JSON.parse(localStorage.getItem(CHAVE_COMPARATIVO) || "null");
-    if (salvo && salvo.volumes && Array.isArray(salvo.distribuidoras)) {
-      comparativo = salvo;
-      if (!Array.isArray(comparativo.excluidos)) comparativo.excluidos = [];
-      return;
-    }
-  } catch (e) {}
-  const dists = opcoesDe("distribuidora").slice(0, 4);
-  comparativo = { volumes:{}, excluidos:[], distribuidoras: dists.map(nome => ({ nome, precos:{} })) };
-}
-function comparativoSalvar(){ try { localStorage.setItem(CHAVE_COMPARATIVO, JSON.stringify(comparativo)); } catch (e) {} }
-
-function alternarComparativo(){
-  const aberto = abrirPainelExclusivo("painelComparativo");
-  const b = document.getElementById("btnComparativo");
-  if (b) b.classList.toggle("ativo", aberto);
-  if (aberto) renderComparativo();
 }
 
 /* ===================== Full Transportadora: helpers ===================== */
@@ -8380,226 +8354,153 @@ function parsePrecoComp(s){
 function fmtPrecoComp(v){ return v ? v.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:4}) : ""; }
 function escAspas(s){ return String(s).replace(/'/g,"\\'"); }
 
-function renderComparativo(){
-  comparativoCarregar();
-  const todos = opcoesDe("combustivel");
-  const excluidos = todos.filter(c => (comparativo.excluidos||[]).indexOf(c) >= 0);
-  const combustiveis = todos.filter(c => excluidos.indexOf(c) < 0);
-  const cont = document.getElementById("conteudoComparativo");
+/* ============== Comparativo dentro das Cotações do Dia (v177) ==============
+   Antes era um menu separado, onde as cotações tinham de ser digitadas de novo.
+   Agora ele lê as cotações já lançadas no dia selecionado logo acima.
+   Ficam de fora: a VIBRA (exclusiva do Posto Full Teresina) e a GASOLINA
+   PODIUM (produto da Vibra) — o comparativo serve para Dutra e Caxias. */
+const CHAVE_COMPCOT = "margens_comp_cot";
+let compCot = null;
+
+function compCotCarregar(){
+  if (compCot) return;
+  try {
+    const s = JSON.parse(localStorage.getItem(CHAVE_COMPCOT) || "null");
+    if (s && typeof s === "object"){
+      compCot = {
+        volumes:   (s.volumes && typeof s.volumes === "object") ? s.volumes : {},
+        excluidos: Array.isArray(s.excluidos) ? s.excluidos : [],
+        fretes:    (s.fretes && typeof s.fretes === "object") ? s.fretes : {}
+      };
+      return;
+    }
+  } catch (e) {}
+  compCot = { volumes:{}, excluidos:[], fretes:{} };
+}
+function compCotSalvar(){ try { localStorage.setItem(CHAVE_COMPCOT, JSON.stringify(compCot)); } catch (e) {} }
+
+function distForaComp(nome){ return String(nome||"").trim().toLowerCase() === "vibra"; }
+function combForaComp(c){ return /podium/i.test(c); }
+function combsComp(){ return opcoesDe("combustivel").filter(c => !combForaComp(c)); }
+function distsComp(){ return opcoesDe("distribuidora").filter(n => !distForaComp(n)); }
+function precosDoDia(nome){
+  const d = (cotEdit && cotEdit.dists) ? cotEdit.dists[nome] : null;
+  return (d && d.precos) ? d.precos : {};
+}
+function freteCompCot(nome){
+  compCotCarregar();
+  const v = compCot.fretes[nome];
+  return (v !== undefined && v !== null && isFinite(v)) ? v : (isFinite(fretePadrao) ? fretePadrao : 0);
+}
+function temVolumeComp(){
+  compCotCarregar();
+  return Object.keys(compCot.volumes).some(c => (compCot.volumes[c]||0) > 0);
+}
+
+function renderCompCot(){
+  const cont = document.getElementById("conteudoCompCot");
   if (!cont) return;
+  compCotCarregar();
+  const todos = combsComp();
+  const excluidos = todos.filter(c => compCot.excluidos.indexOf(c) >= 0);
+  const combustiveis = todos.filter(c => excluidos.indexOf(c) < 0);
 
-  // Botões do topo: usar cotações do dia + zerar tudo (confirmação em dois toques)
-  const temCotacoesDia = Object.keys((cotacoesDia && cotacoesDia.dists) || {})
-    .some(n => cotacoesDia.dists[n] && cotacoesDia.dists[n].precos && Object.keys(cotacoesDia.dists[n].precos).length);
-  let html = '<div class="comp-topo">' +
-    (temCotacoesDia ? '<button class="btn-claro" onclick="usarCotacoesDia()">📥 Usar cotações do dia</button>' : '') +
-    (zerarCompPendente
-    ? '<button class="btn-claro comp-zerar zerar-confirma" onclick="zerarComp()">✓ Zerar tudo? Toque para confirmar</button>'
-    : '<button class="btn-claro comp-zerar" onclick="pedirZerarComp()">🧹 Nova cotação (zerar tudo)</button>') + '</div>';
+  let html = '';
+  if (temVolumeComp()){
+    html += '<div class="comp-topo"><button class="btn-claro comp-zerar" onclick="limparVolumesComp()">🧹 Limpar litros do pedido</button></div>';
+  }
 
-  // 1) Volumes do pedido
-  html += '<div class="comp-sec"><h3 class="comp-tit">1. Volumes do pedido (litros)</h3>';
-  html += '<p class="nota-dash">Informe quantos litros de cada produto o caminhão vai puxar. Toque no ✕ para tirar da cotação o produto que não entra neste pedido.</p>';
+  // 1) litros do pedido
+  html += '<div class="comp-sec"><h3 class="comp-tit">1. Litros do pedido</h3>';
+  html += '<p class="nota-dash">Quantos litros de cada produto o caminhão vai puxar. Toque no ✕ para tirar da conta o produto que não entra neste pedido.</p>';
   html += '<div class="comp-grid-vol">';
   combustiveis.forEach(c => {
-    const v = comparativo.volumes[c] || 0;
+    const v = compCot.volumes[c] || 0;
     html += '<div class="comp-vol-item"><div class="comp-vol-head"><label>'+c+'</label>' +
-      '<button class="comp-vol-x" title="Tirar '+c.replace(/"/g,'&quot;')+' desta cotação" onclick="excluirProdutoComp(\''+escAspas(c)+'\')">✕</button></div>' +
+      '<button class="comp-vol-x" title="Tirar '+escAttr(c)+' deste pedido" onclick="excluirProdutoCompCot(\''+escAspas(c)+'\')">✕</button></div>' +
       '<input type="text" inputmode="numeric" value="'+(v?fmtBR(v,0):'')+'" placeholder="0" ' +
-      'onchange="setVolumeComp(\''+escAspas(c)+'\', this.value)"></div>';
+      'onchange="setVolumeCompCot(\''+escAspas(c)+'\', this.value)"></div>';
   });
   html += '</div>';
   if (excluidos.length){
-    html += '<div class="comp-excluidos"><span>Fora desta cotação:</span>';
+    html += '<div class="comp-excluidos"><span>Fora deste pedido:</span>';
     excluidos.forEach(c => {
-      html += '<button class="comp-chip" title="Incluir '+c.replace(/"/g,'&quot;')+' de volta na cotação" onclick="incluirProdutoComp(\''+escAspas(c)+'\')">+ '+c+'</button>';
+      html += '<button class="comp-chip" title="Incluir '+escAttr(c)+' de volta" onclick="incluirProdutoCompCot(\''+escAspas(c)+'\')">+ '+c+'</button>';
     });
     html += '</div>';
   }
   html += '</div>';
 
-  const ativos = combustiveis.filter(c => (comparativo.volumes[c]||0) > 0);
-
-  // 2) Distribuidoras e cotações
-  html += '<div class="comp-sec"><h3 class="comp-tit">2. Cotações por distribuidora (R$/litro)</h3>';
-  if (!ativos.length) html += '<p class="nota-dash">Informe ao menos um volume acima para liberar os campos de cotação.</p>';
-  html += '<div class="comp-dists">';
-  const cadDists = opcoesDe("distribuidora");
-  comparativo.distribuidoras.forEach((d, idx) => {
-    const nomeAtual = String(d.nome||'').trim();
-    let campoNome;
-    if (distNomeManual[idx]){
-      // modo "digitar outro nome"
-      campoNome = '<input class="comp-dist-nome" id="compNomeManual'+idx+'" value="'+nomeAtual.replace(/"/g,'&quot;')+'" ' +
-        'placeholder="Digite o nome da distribuidora" onchange="confirmarNomeDistComp('+idx+', this.value)">';
-    } else {
-      // menu suspenso com as distribuidoras cadastradas nas Configurações
-      const usadosOutros = comparativo.distribuidoras
-        .filter((x,i) => i !== idx)
-        .map(x => String(x.nome||'').trim().toLowerCase());
-      let ops = '';
-      if (!nomeAtual) ops += '<option value="" selected>— Escolher distribuidora —</option>';
-      let achou = false;
-      cadDists.forEach(n => {
-        const nt = String(n).trim();
-        if (!nt || usadosOutros.indexOf(nt.toLowerCase()) >= 0) return; // já está em outro card
-        const sel = nomeAtual && nt.toLowerCase() === nomeAtual.toLowerCase();
-        if (sel) achou = true;
-        ops += '<option value="'+nt.replace(/"/g,'&quot;')+'"'+(sel?' selected':'')+'>'+nt+'</option>';
-      });
-      if (nomeAtual && !achou) ops = '<option value="'+nomeAtual.replace(/"/g,'&quot;')+'" selected>'+nomeAtual+'</option>' + ops;
-      ops += '<option value="__digitar__">✏️ Digitar outro nome…</option>';
-      campoNome = '<select class="comp-dist-nome" onchange="escolherNomeDistComp('+idx+', this.value)">'+ops+'</select>';
-    }
-    html += '<div class="comp-dist-card"><div class="comp-dist-head">' +
-      campoNome +
-      '<button class="comp-x" title="Remover distribuidora" onclick="removerDistComp('+idx+')">✕</button></div>';
-    html += '<div class="comp-frete-row"><span>Frete (R$/L)</span>' +
-      '<input type="text" inputmode="decimal" value="'+((d.frete!==undefined&&d.frete!==null)?fmtPrecoComp(d.frete):'')+'" ' +
-      'placeholder="'+(fretePadrao?fmtPrecoComp(fretePadrao):'0,00')+' (padrão)" oninput="setFreteComp('+idx+', this.value)"></div>';
-    if (ativos.length){
-      html += '<div class="comp-precos">';
-      ativos.forEach(c => {
-        const p = (d.precos && d.precos[c]) || 0;
-        html += '<div class="comp-preco-row"><span>'+c+'</span>' +
-          '<input type="text" inputmode="decimal" value="'+fmtPrecoComp(p)+'" placeholder="0,00" ' +
-          'oninput="setPrecoComp('+idx+', \''+escAspas(c)+'\', this.value)"></div>';
-      });
-      html += '</div>';
-    }
-    html += '</div>';
+  // 2) frete por distribuidora (fechado por padrão — quase sempre é o padrão mesmo)
+  const dists = distsComp();
+  const padraoTxt = fretePadrao ? fmtPrecoComp(fretePadrao) : '0,00';
+  html += '<div class="comp-sec"><details class="comp-detalhe"><summary>2. Frete por distribuidora — padrão R$ '+padraoTxt+'/L</summary>' +
+    '<p class="nota-dash">Deixe em branco para usar o frete padrão das Configurações. Preencha só quando o frete daquela distribuidora for diferente.</p>' +
+    '<div class="comp-fretes">';
+  dists.forEach(nome => {
+    const v = compCot.fretes[nome];
+    html += '<div class="comp-frete-row"><span>'+nome+'</span>' +
+      '<input type="text" inputmode="decimal" value="'+((v!==undefined&&v!==null)?fmtPrecoComp(v):'')+'" ' +
+      'placeholder="'+padraoTxt+' (padrão)" oninput="setFreteCompCot(\''+escAspas(nome)+'\', this.value)"></div>';
   });
-  html += '</div>';
-  html += '<button class="btn-claro comp-add" onclick="adicionarDistComp()">+ Adicionar distribuidora</button>';
-  // distribuidoras cadastradas no sistema que ainda não estão na cotação: um toque para adicionar
-  const nomesAtuais = comparativo.distribuidoras.map(d => String(d.nome||'').trim().toLowerCase());
-  const cadastradas = opcoesDe("distribuidora").filter(n => nomesAtuais.indexOf(String(n).trim().toLowerCase()) < 0);
-  if (cadastradas.length){
-    html += '<div class="comp-excluidos"><span>Cadastradas no sistema:</span>';
-    cadastradas.forEach(n => {
-      html += '<button class="comp-chip" title="Adicionar '+String(n).replace(/"/g,'&quot;')+' à cotação" onclick="adicionarDistCompNome(\''+escAspas(n)+'\')">+ '+n+'</button>';
-    });
-    html += '</div>';
-  }
-  html += '</div>';
+  html += '</div></details></div>';
 
-  // 3) Resultado
-  html += '<div class="comp-sec"><h3 class="comp-tit">3. Resultado — onde compensa comprar</h3><div id="comparativoResultado"></div></div>';
+  // 3) resultado
+  html += '<div class="comp-sec"><h3 class="comp-tit">3. Resultado — onde compensa comprar</h3><div id="compCotResultado"></div></div>';
 
   cont.innerHTML = html;
-  atualizarResultadoComp();
-  comparativoSalvar();
+  atualizarResultadoCompCot();
+  compCotSalvar();
 }
 
-function setVolumeComp(c, val){ comparativo.volumes[c] = parseVolComp(val); comparativoSalvar(); renderComparativo(); }
-
-/* Nome da distribuidora: menu suspenso com as cadastradas + opção de digitar */
-let distNomeManual = {};
-function escolherNomeDistComp(idx, val){
-  const d = comparativo.distribuidoras[idx]; if(!d) return;
-  if (val === '__digitar__'){
-    distNomeManual[idx] = true;
-    renderComparativo();
-    const el = document.getElementById('compNomeManual'+idx);
-    if (el) el.focus();
-    return;
-  }
-  d.nome = String(val).trim();
-  comparativoSalvar(); renderComparativo();
+function setVolumeCompCot(c, val){
+  compCotCarregar();
+  compCot.volumes[c] = parseVolComp(val);
+  compCotSalvar(); renderCompCot();
 }
-function confirmarNomeDistComp(idx, val){
-  const d = comparativo.distribuidoras[idx]; if(!d) return;
-  d.nome = String(val).trim();
-  if (d.nome) distNomeManual[idx] = false;  // com nome definido, volta a mostrar o menu
-  comparativoSalvar(); renderComparativo();
-}
-function setPrecoComp(idx, c, val){
-  const d = comparativo.distribuidoras[idx]; if(!d) return;
-  if (!d.precos) d.precos = {};
-  d.precos[c] = parsePrecoComp(val);
-  comparativoSalvar(); atualizarResultadoComp();
-}
-function setFreteComp(idx, val){
-  const d = comparativo.distribuidoras[idx]; if(!d) return;
+function setFreteCompCot(nome, val){
+  compCotCarregar();
   const raw = String(val).trim();
-  if (raw === "") delete d.frete;              // vazio = usa o frete padrão das Configurações
-  else d.frete = parsePrecoComp(val);
-  comparativoSalvar(); atualizarResultadoComp();
+  if (raw === "") delete compCot.fretes[nome];
+  else compCot.fretes[nome] = parsePrecoComp(val);
+  compCotSalvar(); atualizarResultadoCompCot();
 }
-function freteEfetivoComp(d){
-  return (d && d.frete !== undefined && d.frete !== null) ? d.frete : (isFinite(fretePadrao) ? fretePadrao : 0);
+function excluirProdutoCompCot(c){
+  compCotCarregar();
+  if (compCot.excluidos.indexOf(c) < 0) compCot.excluidos.push(c);
+  delete compCot.volumes[c];
+  compCotSalvar(); renderCompCot();
 }
-function adicionarDistComp(){ distNomeManual = {}; comparativo.distribuidoras.push({nome:"", precos:{}}); comparativoSalvar(); renderComparativo(); }
-function removerDistComp(idx){ distNomeManual = {}; comparativo.distribuidoras.splice(idx,1); comparativoSalvar(); renderComparativo(); }
-function excluirProdutoComp(c){
-  if (!Array.isArray(comparativo.excluidos)) comparativo.excluidos = [];
-  if (comparativo.excluidos.indexOf(c) < 0) comparativo.excluidos.push(c);
-  comparativoSalvar(); renderComparativo();
+function incluirProdutoCompCot(c){
+  compCotCarregar();
+  compCot.excluidos = compCot.excluidos.filter(x => x !== c);
+  compCotSalvar(); renderCompCot();
 }
-function incluirProdutoComp(c){
-  comparativo.excluidos = (comparativo.excluidos||[]).filter(x => x !== c);
-  comparativoSalvar(); renderComparativo();
-}
-function adicionarDistCompNome(nome){
-  distNomeManual = {};
-  comparativo.distribuidoras.push({ nome: nome, precos:{} });
-  comparativoSalvar(); renderComparativo();
+function limparVolumesComp(){
+  compCotCarregar();
+  compCot.volumes = {};
+  compCotSalvar(); renderCompCot();
 }
 
-/* Preenche o Comparativo com as Cotações do Dia salvas na nuvem */
-function usarCotacoesDia(){
-  const dists = (cotacoesDia && cotacoesDia.dists) || {};
-  const comCotacao = Object.keys(dists).filter(n => dists[n] && dists[n].precos && Object.keys(dists[n].precos).length);
-  if (!comCotacao.length) return;
-  comCotacao.forEach(nome => {
-    const alvoIdx = comparativo.distribuidoras.findIndex(d =>
-      String(d.nome||'').trim().toLowerCase() === String(nome).trim().toLowerCase());
-    if (alvoIdx >= 0){
-      const d = comparativo.distribuidoras[alvoIdx];
-      d.precos = Object.assign({}, d.precos || {}, dists[nome].precos);
-    } else {
-      comparativo.distribuidoras.push({ nome: nome, precos: Object.assign({}, dists[nome].precos) });
-    }
-  });
-  distNomeManual = {};
-  comparativoSalvar(); renderComparativo();
-}
-
-/* Zerar a cotação inteira (volumes, cotações, fretes e produtos excluídos) */
-let zerarCompPendente = false, timerZerarComp = null;
-function pedirZerarComp(){
-  zerarCompPendente = true;
-  clearTimeout(timerZerarComp);
-  timerZerarComp = setTimeout(()=>{ zerarCompPendente = false; renderComparativo(); }, 4000);
-  renderComparativo();
-}
-function zerarComp(){
-  clearTimeout(timerZerarComp);
-  zerarCompPendente = false;
-  distNomeManual = {};
-  const dists = opcoesDe("distribuidora").slice(0, 4);
-  comparativo = { volumes:{}, excluidos:[], distribuidoras: dists.map(nome => ({ nome, precos:{} })) };
-  comparativoSalvar(); renderComparativo();
-}
-
-function calcularComparativo(){
-  const combustiveis = opcoesDe("combustivel");
-  const excl = comparativo.excluidos || [];
-  const ativos = combustiveis.filter(c => excl.indexOf(c) < 0 && (comparativo.volumes[c]||0) > 0);
-  const dist = comparativo.distribuidoras.map(d => {
-    let custoProd = 0, completo = ativos.length > 0, litros = 0;
-    const sub = {};
+function calcularCompCot(){
+  compCotCarregar();
+  const excl = compCot.excluidos || [];
+  const ativos = combsComp().filter(c => excl.indexOf(c) < 0 && (compCot.volumes[c]||0) > 0);
+  const dist = distsComp().map(nome => {
+    const precos = precosDoDia(nome);
+    let custoProd = 0, completo = ativos.length > 0, litros = 0, temAlgum = false;
+    const sub = {}, faltando = [];
     ativos.forEach(c => {
-      const preco = (d.precos && d.precos[c]) || 0;
-      const vol = comparativo.volumes[c] || 0;
+      const preco = precos[c] || 0;
+      const vol = compCot.volumes[c] || 0;
       litros += vol;
-      if (preco > 0){ const s = preco*vol; sub[c]=s; custoProd += s; }
-      else { completo = false; sub[c]=null; }
+      if (preco > 0){ const s = preco*vol; sub[c] = s; custoProd += s; temAlgum = true; }
+      else { completo = false; sub[c] = null; faltando.push(c); }
     });
-    const frete = freteEfetivoComp(d);
+    const frete = freteCompCot(nome);
     const custoFrete = frete * litros;
-    const total = custoProd + custoFrete;
-    return { nome:(d.nome||"").trim()||"(sem nome)", custoProd, frete, custoFrete, litros, total, completo, sub };
+    return { nome, custoProd, frete, custoFrete, litros, total: custoProd + custoFrete,
+             completo, temAlgum, sub, faltando, precos };
   });
   const completos = dist.filter(d => d.completo);
   let melhor = null, pior = null;
@@ -8610,12 +8511,24 @@ function calcularComparativo(){
   return { ativos, dist, completos, melhor, pior };
 }
 
-function atualizarResultadoComp(){
-  const el = document.getElementById("comparativoResultado");
+function atualizarResultadoCompCot(){
+  const el = document.getElementById("compCotResultado");
   if (!el) return;
-  const r = calcularComparativo();
-  if (!r.ativos.length){ el.innerHTML = '<p class="nota-dash">Informe os volumes do pedido para ver o comparativo.</p>'; return; }
-  if (!r.completos.length){ el.innerHTML = '<p class="nota-dash">Preencha as cotações das distribuidoras para calcular o custo total de cada uma.</p>'; return; }
+  const r = calcularCompCot();
+
+  if (!r.ativos.length){
+    el.innerHTML = '<p class="nota-dash">Informe acima os litros do pedido para o app comparar as distribuidoras.</p>';
+    return;
+  }
+  if (!r.completos.length){
+    const parciais = r.dist.filter(d => d.temAlgum);
+    let m = '<p class="nota-dash">Nenhuma distribuidora tem a cotação completa dos produtos deste pedido em <b>'+fmtDataCurta(cotDataSel)+'</b>. Complete os preços nos cartões acima.</p>';
+    if (parciais.length){
+      m += '<p class="nota-dash">Falta: ' + parciais.map(d => d.nome+' ('+d.faltando.join(', ')+')').join(' · ') + '.</p>';
+    }
+    el.innerHTML = m;
+    return;
+  }
 
   let html = '<div class="comp-melhor">' +
     '<div class="comp-melhor-tag">✅ Melhor opção</div>' +
@@ -8643,22 +8556,31 @@ function atualizarResultadoComp(){
   });
   html += '</div>';
 
-  const incompletas = r.dist.filter(d => !d.completo && d.nome && d.nome !== "(sem nome)");
+  const incompletas = r.dist.filter(d => !d.completo && d.temAlgum);
   if (incompletas.length){
-    html += '<p class="nota-dash">⚠️ Ficaram fora do comparativo por falta de cotação: '+incompletas.map(d=>d.nome).join(", ")+'.</p>';
+    html += '<p class="nota-dash">⚠️ Ficaram fora por falta de cotação: ' +
+      incompletas.map(d => d.nome+' (sem '+d.faltando.join(', ')+')').join(' · ') + '.</p>';
+  }
+  const semNada = r.dist.filter(d => !d.temAlgum);
+  if (semNada.length){
+    html += '<p class="nota-dash">Sem cotação lançada hoje: ' + semNada.map(d=>d.nome).join(', ') + '.</p>';
   }
 
-  // compartilhar como imagem
   html += '<div class="comp-acoes"><button class="btn-verde" onclick="compartilharComparativo()">📲 Compartilhar como imagem</button>' +
     '<span class="sim-dica-share">Gera uma imagem pronta para enviar no WhatsApp e outros apps.</span></div>';
 
-  // detalhamento por produto
+  // detalhamento por produto — o menor preço de cada linha sai destacado
   html += '<details class="comp-detalhe"><summary>Ver detalhamento por produto</summary><div class="tabela-wrap"><table><thead><tr><th>Produto</th><th>Litros</th>';
   ordenadas.forEach(d => html += '<th>'+d.nome+'</th>');
   html += '</tr></thead><tbody>';
   r.ativos.forEach(c => {
-    html += '<tr><td>'+c+'</td><td>'+fmtBR(comparativo.volumes[c]||0,0)+'</td>';
-    ordenadas.forEach(d => html += '<td>R$ '+fmtBR(d.sub[c]||0,2)+'</td>');
+    const menor = Math.min.apply(null, ordenadas.map(d => d.sub[c]||0));
+    html += '<tr><td>'+c+'</td><td>'+fmtBR(compCot.volumes[c]||0,0)+'</td>';
+    ordenadas.forEach(d => {
+      const v = d.sub[c]||0;
+      const cls = (ordenadas.length > 1 && v === menor) ? ' class="comp-melhor-prod"' : '';
+      html += '<td'+cls+'>R$ '+fmtBR(v,2)+'</td>';
+    });
     html += '</tr>';
   });
   html += '<tr><td>Frete</td><td></td>';
@@ -8668,12 +8590,14 @@ function atualizarResultadoComp(){
   ordenadas.forEach(d => html += '<td><b>R$ '+fmtBR(d.total,2)+'</b></td>');
   html += '</tr></tbody></table></div></details>';
 
+  html += '<p class="comp-aviso-vibra">A Vibra e a Gasolina Podium não entram neste comparativo: são do Posto Full Teresina. Cotações do dia <b>'+fmtDataCurta(cotDataSel)+'</b>.</p>';
+
   el.innerHTML = html;
 }
 
 function desenharImagemComparativo(){
   return new Promise((resolve) => {
-    const r = calcularComparativo();
+    const r = calcularCompCot();
     const ordenadas = r.completos.slice().sort((a,b)=> a.total - b.total);
     const cv = document.getElementById("compCanvas");
     const W = cv.width, H = cv.height;
@@ -8691,7 +8615,7 @@ function desenharImagemComparativo(){
 
     function rodape(){
       ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.font = "600 40px Oswald, Arial, sans-serif";
-      ctx.fillText("POSTOS FULL  •  " + new Date().toLocaleDateString("pt-BR"), centro, H-90);
+      ctx.fillText("POSTOS FULL  •  " + fmtDataCurta(cotDataSel), centro, H-90);
     }
 
     function desenhar(){
@@ -8713,7 +8637,7 @@ function desenharImagemComparativo(){
       ctx.fillStyle = laranja; roundRect(ctx,bx,by,bw,bh,28); ctx.fill();
       ctx.textAlign = "center";
       ctx.fillStyle = "#1E1E1E"; ctx.font = "600 40px Oswald, Arial, sans-serif";
-      ctx.fillText("\u2713 MELHOR OPÇÃO", centro, by+78);
+      ctx.fillText("✓ MELHOR OPÇÃO", centro, by+78);
       ctx.fillStyle = "#fff"; ctx.font = "700 68px Poppins, Arial, sans-serif";
       ctx.fillText(melhor.nome.toUpperCase(), centro, by+165);
       ctx.font = "700 82px Poppins, Arial, sans-serif";
@@ -8724,7 +8648,13 @@ function desenharImagemComparativo(){
         const econ = pior.total - melhor.total, pct = econ/pior.total*100;
         ctx.fillStyle = "#fff"; ctx.font = "600 40px Poppins, Arial, sans-serif";
         ctx.fillText("Economia de até R$ " + fmt(econ,2) + " (" + fmt(pct,1) + "%)", centro, y);
-        y += 80;
+        y += 60;
+      }
+      const litrosTot = melhor.litros || 0;
+      if (litrosTot > 0){
+        ctx.fillStyle = "rgba(255,255,255,0.75)"; ctx.font = "400 34px Poppins, Arial, sans-serif";
+        ctx.fillText("Pedido de " + litrosTot.toLocaleString("pt-BR") + " litros (com frete)", centro, y);
+        y += 70;
       }
 
       // ranking
@@ -8762,7 +8692,7 @@ function desenharImagemComparativo(){
 }
 
 async function compartilharComparativo(){
-  const btn = document.querySelector("#comparativoResultado .comp-acoes button");
+  const btn = document.querySelector("#compCotResultado .comp-acoes button");
   const txt = btn ? btn.textContent : "";
   if (btn){ btn.textContent = "Gerando imagem…"; btn.disabled = true; }
   try {
@@ -9280,7 +9210,7 @@ function renderDashboard(){
 // Barrinha "Exportar PDF / Imprimir" no topo de cada menu de conteúdo (v113 — saiu da barra lateral)
 function instalarFerramentasPaineis(){
   const alvos = ["painelDash","painelRegistros","painelHistorico","painelSimular","painelDescontos",
-                 "painelComparativo","painelCotacoes","painelPuxadas","painelAvisos","painelCalendario","painelVencimentos",
+                 "painelCotacoes","painelPuxadas","painelAvisos","painelCalendario","painelVencimentos",
                  "painelConvVendas","painelConvCompras"];
   alvos.forEach(id => {
     const p = document.getElementById(id);
@@ -9301,7 +9231,6 @@ function painelVisivelInfo(){
     ["painelSimular",   "Simular Margens", "simulacao"],
     ["painelDescontos", "Descontos",   "descontos"],
     ["painelPuxadas",   "Puxadas",     "puxadas"],
-    ["painelComparativo", "Comparativo de Preços", "comparativo"],
     ["painelCotacoes",  "Cotações do Dia", "cotacoes"],
     ["painelConvVendas",  "Vendas e Margem da Loja", "vendas_loja"],
     ["painelConvCompras", "Compras e Fornecedores",  "compras"],
