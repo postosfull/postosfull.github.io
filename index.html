@@ -226,6 +226,9 @@
     border-radius:6px;font-size:.85rem;background:var(--verde-claro);
   }
   .filtro input:focus,.filtro select:focus{outline:2px solid var(--verde);outline-offset:-1px}
+  /* v178 — a mesma barra, quando mora dentro de um card do Dashboard */
+  .filtros.filtros-no-card{background:var(--superficie-2);border:1px solid var(--borda);
+    border-radius:10px;padding:12px 14px;margin:0 0 14px}
 
   /* ---------- Tabela ---------- */
   .tabela-wrap{
@@ -1309,14 +1312,14 @@
     </div>
   </header>
 
-  <div class="filtros">
+  <div id="filtrosSlotTopo"><div class="filtros">
     <div class="filtro"><label for="fDataIni">Data Inicial</label><input type="date" id="fDataIni" onchange="render()"></div>
     <div class="filtro"><label for="fDataFim">Data Final</label><input type="date" id="fDataFim" onchange="render()"></div>
     <div class="filtro"><label for="fPosto">Posto</label><select id="fPosto" onchange="render()"></select></div>
     <div class="filtro"><label for="fForma">Forma</label><select id="fForma" onchange="render()"></select></div>
     <div class="filtro"><label for="fComb">Combustível</label><select id="fComb" onchange="render()"></select></div>
     <div class="filtro" id="filtroDist"><label for="fDist">Distribuidora</label><select id="fDist" onchange="render()"></select></div>
-  </div>
+  </div></div>
 
   <div class="config" id="painelSimular">
     <div class="grupo">
@@ -1625,6 +1628,8 @@
     </div>
     <div class="grupo">
       <h2>Evolução de preços e margens</h2>
+      <p class="nota-dash">Os filtros abaixo valem só para os gráficos deste bloco.</p>
+      <div id="filtrosSlotDash"></div>
       <div class="dash-toggles">
         <span class="dash-toggles-rot">Mostrar:</span>
         <label class="dash-check"><input type="checkbox" id="chkVerCusto" onchange="renderDashboard()"> Evolução do preço de compra</label>
@@ -4219,10 +4224,16 @@ function atualizarFiltrosVisiveis(){
   if (!barra) return;
   const abertoP = pid => { const p = document.getElementById(pid); return !!(p && p.classList.contains("aberto")); };
   const usa = PAINEIS_COM_FILTROS.some(abertoP);
+  const noDash = abertoP("painelDash");
+  // v178: no Dashboard esses filtros só mexem no card "Evolução de preços e margens",
+  // então a barra vai morar dentro dele. Nos Lançamentos volta para o topo da página.
+  const casa = document.getElementById(noDash ? "filtrosSlotDash" : "filtrosSlotTopo");
+  if (casa && barra.parentElement !== casa) casa.appendChild(barra);
+  barra.classList.toggle("filtros-no-card", noDash);
   barra.style.display = usa ? "" : "none";
   // No Dashboard o filtro de Distribuidora não tem função — fica escondido só lá
   const fd = document.getElementById("filtroDist");
-  if (fd) fd.style.display = abertoP("painelDash") ? "none" : "";
+  if (fd) fd.style.display = noDash ? "none" : "";
 }
 
 function alternarRegistros(){
