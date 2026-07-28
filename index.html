@@ -1091,16 +1091,21 @@
   .cot-resumo-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
   .cot-share{background:#25D366;color:#fff;border:none;border-radius:8px;padding:9px 14px;font-size:.82rem;font-weight:700;cursor:pointer;white-space:nowrap}
   .cot-share:hover{filter:brightness(1.08)}
-  .cot-res-dist{margin-bottom:12px}
-  .cot-res-dist>b{font-size:.9rem;color:var(--txt)}
-  .cot-res-item{display:flex;align-items:center;gap:10px;justify-content:space-between;font-size:.82rem;padding:4px 0;border-bottom:1px dashed var(--borda)}
-  .cot-res-item .rc-nome{flex:1 1 auto;color:var(--txt);min-width:0}
-  .cot-res-item .rc-val{font-weight:700;color:var(--txt);white-space:nowrap}
-  .cot-res-item .rc-delta{font-size:.72rem;font-weight:700;min-width:70px;text-align:right;white-space:nowrap}
-  .cot-res-item .rc-delta.subiu{color:var(--vermelho)}
-  .cot-res-item .rc-delta.desceu{color:var(--verde)}
-  .cot-res-item .rc-delta.igual{color:var(--cinza)}
-  .cot-res-item .rc-delta.novo{color:var(--verde)}
+  /* v180 — o resumo virou cartões por distribuidora: o preço fica ao lado do produto,
+     em vez de uma linha larga com um vão no meio. */
+  .cotr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(238px,1fr));gap:10px}
+  .cotr-card{border:1px solid var(--borda);border-radius:10px;background:var(--superficie);padding:10px 12px}
+  .cotr-card-head{border-bottom:1px solid var(--borda);padding-bottom:5px;margin-bottom:6px}
+  .cotr-card-head b{font-size:.86rem;color:var(--verde)}
+  .cotr-linha{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:baseline;font-size:.8rem;padding:3px 0}
+  .cotr-nome{color:var(--cinza);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cotr-val{font-weight:700;color:var(--txt);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .rc-delta{font-size:.68rem;font-weight:700;white-space:nowrap;text-align:right}
+  .cotr-linha .rc-delta{min-width:50px}
+  .rc-delta.subiu{color:var(--vermelho)}
+  .rc-delta.desceu{color:var(--verde)}
+  .rc-delta.igual{color:var(--cinza)}
+  .rc-delta.novo{color:var(--verde)}
   .cot-btn{background:transparent;border:1px solid var(--borda);color:var(--cinza);border-radius:6px;padding:6px 0;width:34px;text-align:center;cursor:pointer;font-size:.9rem;line-height:1;flex:0 0 auto}
   .cot-btn:hover{border-color:var(--verde);color:var(--verde)}
   .cot-ok{color:var(--verde);border-color:var(--verde)}
@@ -5973,44 +5978,55 @@ function resumoCotHtml(){
   const grupos = resumoCotLinhas();
   if (!grupos.length) return "";
   let html = '<div class="cot-resumo"><div class="cot-resumo-head">' +
-    '<span class="comp-tit">📋 Resumo do dia — ' + fmtDataCurta(cotDataSel) + '</span>' +
-    '<button class="cot-share" onclick="compartilharResumoCot()">📲 Enviar no WhatsApp</button></div>';
+    '<span class="comp-tit">\ud83d\udccb Resumo do dia \u2014 ' + fmtDataCurta(cotDataSel) + '</span>' +
+    '<button class="cot-share" onclick="compartilharResumoCot()">\ud83d\udcf2 Enviar no WhatsApp</button></div>';
+  html += '<div class="cotr-grid">';
   grupos.forEach(g => {
-    html += '<div class="cot-res-dist"><b>' + g.dist + '</b>';
+    html += '<div class="cotr-card"><div class="cotr-card-head"><b>' + g.dist + '</b></div>';
     g.itens.forEach(it => {
-      let dh = '<span class="rc-delta novo">novo</span>';
-      if (it.dif !== null){
-        if (Math.abs(it.dif) < 0.00005) dh = '<span class="rc-delta igual">→ igual</span>';
-        else if (it.dif > 0) dh = '<span class="rc-delta subiu">▲ ' + fmtDelta(it.dif) + '</span>';
-        else dh = '<span class="rc-delta desceu">▼ ' + fmtDelta(it.dif) + '</span>';
-      }
-      html += '<div class="cot-res-item"><span class="rc-nome">' + it.comb + '</span>' +
-        '<span class="rc-val">R$ ' + fmtPrecoComp(it.valor) + '</span>' + dh + '</div>';
+      html += '<div class="cotr-linha"><span class="cotr-nome" title="' + escAttr(it.comb) + '">' + it.comb + '</span>' +
+        '<span class="cotr-val">' + fmtPrecoComp(it.valor) + '</span>' + deltaResumoHtml(it) + '</div>';
     });
     html += '</div>';
   });
-  html += '<p class="nota-dash" style="margin:6px 0 0;font-size:.72rem">Variação em relação ao último dia com registro (última puxada de preços).</p>';
+  html += '</div>';
+  html += '<p class="nota-dash" style="margin:8px 0 0;font-size:.72rem">Pre\u00e7os em R$/litro. A varia\u00e7\u00e3o \u00e9 em rela\u00e7\u00e3o ao \u00faltimo dia com registro.</p>';
   html += '</div>';
   return html;
+}
+// pastilha de varia\u00e7\u00e3o de um item do resumo
+function deltaResumoHtml(it){
+  if (it.dif === null) return '<span class="rc-delta novo">novo</span>';
+  if (Math.abs(it.dif) < 0.00005) return '<span class="rc-delta igual">igual</span>';
+  if (it.dif > 0) return '<span class="rc-delta subiu">\u25b2 ' + fmtDelta(it.dif) + '</span>';
+  return '<span class="rc-delta desceu">\u25bc ' + fmtDelta(it.dif) + '</span>';
+}
+// nome curto do combust\u00edvel s\u00f3 para a mensagem do WhatsApp
+function combCurtoCot(c){
+  return String(c || "")
+    .replace(/^Gasolina\s+/i, "")
+    .replace(/^Diesel\s+/i, "")
+    .replace(/^\u00d3leo\s+Diesel\s+/i, "")
+    .trim() || String(c || "");
 }
 function compartilharResumoCot(){
   const grupos = resumoCotLinhas();
   const st = document.getElementById("cotStatus");
   if (!grupos.length){ if (st){ st.textContent = "Nada preenchido para compartilhar."; st.className = "cot-status pend"; } return; }
-  let txt = '*Cotações Full — ' + fmtDataCurta(cotDataSel) + '*';
+  // v180 - mensagem compacta: sem marcador, sem "R$" repetido e com o nome curto do produto
+  let txt = '*Cota\u00e7\u00f5es Full \u2014 ' + fmtDataCurta(cotDataSel) + '*  (R$/L)';
   grupos.forEach(g => {
-    txt += '\n\n*' + g.dist + '*';
+    txt += '\n\n*' + g.dist.toUpperCase() + '*';
     g.itens.forEach(it => {
       let d = '';
-      if (it.dif !== null){
-        if (Math.abs(it.dif) < 0.00005) d = ' (igual)';
-        else if (it.dif > 0) d = ' (▲ +' + fmtDelta(it.dif) + ')';
-        else d = ' (▼ -' + fmtDelta(it.dif) + ')';
-      }
-      txt += '\n• ' + it.comb + ': R$ ' + fmtPrecoComp(it.valor) + d;
+      if (it.dif === null) d = ' novo';
+      else if (Math.abs(it.dif) < 0.00005) d = ' =';
+      else if (it.dif > 0) d = ' \u25b2' + fmtDelta(it.dif);
+      else d = ' \u25bc' + fmtDelta(it.dif);
+      txt += '\n' + combCurtoCot(it.comb) + ' ' + fmtPrecoComp(it.valor) + d;
     });
   });
-  txt += '\n\n_Variação vs. último dia com registro._';
+  txt += '\n\n_\u25b2\u25bc = varia\u00e7\u00e3o desde o \u00faltimo dia com registro._';
   window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank');
 }
 function persistirCotDia(){
