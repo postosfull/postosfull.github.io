@@ -759,6 +759,53 @@
   .rel-barra-val{flex:0 0 74px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
   .rel-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
   .rel-alerta{background:var(--erro-bg);border:1px solid var(--vermelho);color:var(--vermelho);border-radius:8px;padding:8px 10px;font-size:.84rem;margin-top:10px}
+  /* v183 — blocos de itens e tabelas recolhidas */
+  .rel-h4{margin:18px 0 2px;font-size:1rem}
+  .rel-det{margin-top:12px;border:1px solid var(--borda);border-radius:10px;padding:8px 12px;background:var(--superficie-2)}
+  .rel-det summary{cursor:pointer;font-size:.82rem;font-weight:600;color:var(--verde)}
+  .ilr-linha{margin:10px 0}
+  .ilr-topo{display:flex;justify-content:space-between;gap:10px;align-items:baseline;font-size:.87rem}
+  .ilr-nome{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ilr-val{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .ilr-val.ruim{color:var(--vermelho)}
+  .ilr-fundo{background:var(--superficie-2);border-radius:5px;height:9px;overflow:hidden;margin:4px 0 3px}
+  .ilr-cheia{display:block;background:var(--verde);height:100%;border-radius:5px}
+  .ilr-cheia.ruim{background:var(--vermelho)}
+  .ilr-sub{font-size:.75rem;color:var(--cinza)}
+  .ilr-clic{cursor:pointer;border-radius:8px;padding:4px 6px;margin:6px -6px}
+  .ilr-clic:hover{background:var(--superficie-2)}
+  .cat3-h5{margin:16px 0 2px;font-size:.95rem}
+  /* v183 — comparação entre lojas */
+  .cmp-destaque{background:var(--verde-claro);border:1px solid var(--verde);color:var(--txt);border-radius:10px;padding:10px 12px;font-size:.86rem;line-height:1.5;margin:12px 0}
+  .cmp-linha{cursor:pointer}
+  .rel-tab td.n small{display:block;font-size:.7rem;color:var(--cinza);font-weight:400}
+  .cmp-melhor{background:rgba(24,165,88,.12)}
+  .cmp-melhor b{color:#18a558}
+  .cmp-sem{color:var(--cinza)}
+  .cmp-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:10px;margin:10px 0 4px}
+  .cmp-card{border:1px solid var(--borda);border-radius:12px;padding:12px;background:var(--superficie-2)}
+  .cmp-card.melhor{border-color:#18a558;background:rgba(24,165,88,.08)}
+  .cmp-card.vazio{opacity:.6}
+  .cmp-card-nome{display:block;font-size:.74rem;font-weight:700;color:var(--cinza);text-transform:uppercase;letter-spacing:.3px}
+  .cmp-card>b{display:block;font-size:1.5rem;margin:4px 0 0;color:var(--txt)}
+  .cmp-card.melhor>b{color:#18a558}
+  .cmp-card-rot{display:block;font-size:.7rem;color:var(--cinza);margin-bottom:8px}
+  .cmp-card-l{display:flex;justify-content:space-between;gap:10px;font-size:.8rem;padding:2px 0}
+  .cmp-card-l span:last-child{font-weight:600;font-variant-numeric:tabular-nums}
+  .cmp-card-perda{margin-top:8px;font-size:.76rem;color:var(--vermelho);font-weight:600}
+  .cmp-card-ok{margin-top:8px;font-size:.76rem;color:#18a558;font-weight:600}
+  .cmp-h5{margin:14px 0 2px;font-size:.8rem;color:var(--cinza);text-transform:uppercase;letter-spacing:.3px}
+  .cmp-lider{background:#18a558}
+  .cmp-op-mob{display:none}
+  @media (max-width:620px){
+    .cmp-tab th:first-child,.cmp-tab td:first-child{white-space:normal;max-width:120px;font-size:.78rem}
+    .cmp-tab th,.cmp-tab td{padding:6px 6px}
+    .cmp-tab th:last-child,.cmp-tab td:last-child{display:none}
+    .cmp-op-mob{display:block;font-size:.68rem;font-weight:600;color:var(--vermelho);white-space:normal;margin-top:2px}
+    .cmp-cards{grid-template-columns:1fr}
+    .rel-barra-nome{flex:0 0 92px;font-size:.78rem}
+    .rel-barra-val{flex:0 0 66px;font-size:.78rem}
+  }
   /* v172 - menu Analise */
   .ana-resumo{background:var(--verde-claro);border-left:4px solid var(--verde);border-radius:0 10px 10px 0;padding:12px 14px;margin:12px 0 14px;font-size:.95rem;line-height:1.6}
   .ana-item{background:var(--superficie-2);border:1px solid var(--borda);border-left:4px solid var(--cinza);border-radius:10px;padding:10px 12px;margin:8px 0}
@@ -1538,13 +1585,14 @@
       <div class="evo-filtros">
         <div class="desc-campo"><label>Conveniência</label><select id="relLojaEmp" onchange="relLojaSel=this.value;renderRelLoja()"></select></div>
         <div class="desc-campo"><label>Mês</label><select id="relLojaMesSel" onchange="relLojaMes=this.value;renderRelLoja()"></select></div>
-        <div class="desc-campo"><label>Ordenar por</label><select id="relLojaOrd" onchange="relLojaOrdem=this.value;renderRelLoja()">
+        <div class="desc-campo" id="relLojaOrdLinha"><label>Ordenar tabelas por</label><select id="relLojaOrd" onchange="relLojaOrdem=this.value;renderRelLoja()">
           <option value="lb">Lucro bruto</option>
           <option value="receita">Faturamento</option>
           <option value="qtd">Quantidade vendida</option>
           <option value="margem">Margem %</option>
         </select></div>
       </div>
+      <div class="doc-tools" id="relLojaAbas"></div>
       <div id="relLojaBox"></div>
     </div>
   </div>
@@ -4639,7 +4687,192 @@ function blocoCombPosto(d){
   if (abaixo.length) h += '<div class="rel-alerta">⚠️ Abaixo da média do ano: '+escAttr(abaixo.join(", "))+'.</div>';
   return h;
 }
-/* ---------- Produtos e categorias (conveniência) ---------- */
+/* ================= v183 — Produtos e categorias: gráfico, blocos e comparação ================= */
+const ABAS_REL_LOJA = [["loja","🍫 Uma loja"],["comp","⚖️ Comparar lojas"]];
+let relLojaAba = "loja";
+let relLojaCat = "";          // "" = todas as categorias (aba comparar)
+
+function mudarAbaRelLoja(a){ relLojaAba = a; renderRelLoja(); }
+function escolherCatComp(nome){ relLojaCat = nome || ""; relLojaAba = "comp"; renderRelLoja(); }
+
+/* ---------- linhas em barra para os blocos de itens ---------- */
+function linhaBarraItem(nome, valor, pct, cls, sub, clicar){
+  return '<div class="ilr-linha'+(clicar?' ilr-clic" onclick="escolherCatComp(\''+escAspas(nome)+'\')':'')+'"><div class="ilr-topo"><span class="ilr-nome" title="'+escAttr(nome)+'">'+escAttr(nome)+'</span>' +
+    '<span class="ilr-val '+(cls||"")+'">'+valor+'</span></div>' +
+    '<div class="ilr-fundo"><div class="ilr-cheia '+(cls||"")+'" style="width:'+Math.max(2,Math.min(100,pct)).toFixed(1)+'%"></div></div>' +
+    '<div class="ilr-sub">'+sub+'</div></div>';
+}
+function blocosItensRelLoja(itens, margRef){
+  const val = (itens||[]).filter(x => (+x[2]||0) > 0);
+  if (!val.length) return "";
+  const topo = val.slice().sort((a,b) => (+b[2]||0) - (+a[2]||0));
+  const maxRec = +topo[0][2] || 1;
+  let h = '<h4 class="rel-h4">🏆 Campeões de venda</h4>';
+  h += '<p class="nota-dash">Os 10 itens que mais faturaram no mês.</p>';
+  topo.slice(0,10).forEach(x => {
+    const m = +x[5]||0;
+    h += linhaBarraItem(x[0], fmtR$0(x[2]), (+x[2]||0)/maxRec*100, "",
+      fmtBR(+x[1]||0,0) + ' un · lucro ' + fmtR$0(x[4]) + ' · margem <b class="' + (m < margRef ? 'rel-desce' : 'rel-sobe') + '">' + fmtPctRel(m) + '</b>');
+  });
+  // piores margens, só entre os que vendem de verdade
+  const corte = maxRec * 0.02;
+  const ruins = val.filter(x => (+x[2]||0) >= corte).sort((a,b) => (+a[5]||0) - (+b[5]||0)).slice(0,10);
+  if (ruins.length){
+    const perdaDe = x => (+x[2]||0) * Math.max(0, margRef - (+x[5]||0)) / 100;
+    const maxPerda = ruins.reduce((m,x) => Math.max(m, perdaDe(x)), 0) || 1;
+    h += '<h4 class="rel-h4">⚠️ Piores margens</h4>';
+    h += '<p class="nota-dash">Itens com venda relevante e margem abaixo do resto. A barra mostra quanto a loja deixou de ganhar por causa da margem baixa, comparado com a margem geral dela ('+fmtPctRel(margRef)+').</p>';
+    ruins.forEach(x => {
+      const m = +x[5]||0, perda = perdaDe(x);
+      h += linhaBarraItem(x[0], fmtPctRel(m), perda/maxPerda*100, "ruim",
+        fmtR$0(x[2]) + ' faturados · lucro ' + fmtR$0(x[4]) + (perda > 0 ? ' · deixou de ganhar <b class="rel-desce">' + fmtR$0(perda) + '</b>' : ''));
+    });
+  }
+  return h;
+}
+
+/* ---------- categorias: duas listas curtas ---------- */
+function listasCategoriasRelLoja(cat, margRef, totR){
+  const val = (cat||[]).filter(x => (+x[2]||0) > 0);
+  if (!val.length) return "";
+  const porLucro = val.slice().sort((a,b) => (+b[4]||0) - (+a[4]||0)).slice(0,6);
+  const maxL = Math.abs(+porLucro[0][4]) || 1;
+  let h = '<h5 class="cat3-h5">💰 Onde está o lucro</h5>';
+  h += '<p class="nota-dash">As 6 categorias que mais deram lucro bruto no mês. Toque numa delas para comparar com as outras lojas.</p>';
+  porLucro.forEach(x => {
+    const m = +x[5]||0;
+    h += linhaBarraItem(x[0], fmtR$0(x[4]), Math.abs(+x[4]||0)/maxL*100, "",
+      'faturou '+fmtR$0(x[2])+' ('+fmtPctRel((+x[2]||0)/totR*100)+' do total) · margem <b class="'+(m<margRef?'rel-desce':'rel-sobe')+'">'+fmtPctRel(m)+'</b>', true);
+  });
+  const perdaDe = x => (+x[2]||0) * Math.max(0, margRef - (+x[5]||0)) / 100;
+  const ruins = val.filter(x => (+x[2]||0) >= totR*0.015 && perdaDe(x) > 0)
+                   .sort((a,b) => perdaDe(b) - perdaDe(a)).slice(0,6);
+  if (ruins.length){
+    const maxP = perdaDe(ruins[0]) || 1;
+    h += '<h5 class="cat3-h5">⚠️ Onde a margem está baixa</h5>';
+    h += '<p class="nota-dash">Categorias com venda relevante e margem abaixo da média da loja ('+fmtPctRel(margRef)+'). A barra é quanto a loja deixou de ganhar por causa disso.</p>';
+    ruins.forEach(x => {
+      const m = +x[5]||0;
+      h += linhaBarraItem(x[0], fmtPctRel(m), perdaDe(x)/maxP*100, "ruim",
+        'faturou '+fmtR$0(x[2])+' · deixou de ganhar <b class="rel-desce">'+fmtR$0(perdaDe(x))+'</b>', true);
+    });
+  }
+  return h;
+}
+
+/* ---------- comparação entre as 3 lojas ---------- */
+function dadosCompLojas(mes){
+  const lojas = [], mapa = {};
+  UNIDADES_REL.forEach(u => {
+    const d = relLojas[u.chave + "_" + mes];
+    if (!d) return;
+    lojas.push({ chave:u.chave, nome:u.nome, margGeral: +((d.kpi||{}).margem)||0, ate: d.ate });
+    (d.cat || []).forEach(x => {
+      const nome = String(x[0]||"").trim();
+      if (!nome) return;
+      if (!mapa[nome]) mapa[nome] = {};
+      mapa[nome][u.chave] = { rec:+x[2]||0, lb:+x[4]||0, marg:+x[5]||0, qtd:+x[1]||0 };
+    });
+  });
+  const linhas = Object.keys(mapa).map(nome => {
+    const por = mapa[nome];
+    const comDado = lojas.filter(l => por[l.chave]);
+    const melhor = comDado.slice().sort((a,b) => por[b.chave].marg - por[a.chave].marg)[0];
+    const margMax = melhor ? por[melhor.chave].marg : 0;
+    let perda = 0;
+    comDado.forEach(l => { perda += por[l.chave].rec * Math.max(0, margMax - por[l.chave].marg) / 100; });
+    const recTot = comDado.reduce((a,l) => a + por[l.chave].rec, 0);
+    return { nome, por, comDado, melhor, margMax, perda, recTot };
+  });
+  return { lojas, linhas };
+}
+function blocoRelLojaComp(){
+  const mes = relLojaMes;
+  const { lojas, linhas } = dadosCompLojas(mes);
+  if (lojas.length < 2)
+    return '<p class="nota-dash">Para comparar é preciso ter os dados de pelo menos duas conveniências em '+rotuloMesRel(mes)+'. Peça ao Claude: "sincroniza os produtos da conveniência".</p>';
+  const nomes = [...linhas].sort((a,b) => b.recTot - a.recTot).map(l => l.nome);
+  if (relLojaCat && nomes.indexOf(relLojaCat) < 0) relLojaCat = "";
+  let h = '<p class="nota-dash">Mesma categoria, lado a lado nas '+lojas.length+' lojas — '+rotuloMesRel(mes)+'.</p>';
+  h += '<div class="evo-filtros"><div class="desc-campo"><label>Categoria</label><select id="relLojaCatSel" onchange="escolherCatComp(this.value)">' +
+       '<option value=""'+(relLojaCat?"":" selected")+'>Todas as categorias</option>' +
+       nomes.map(n => '<option value="'+escAttr(n)+'"'+(relLojaCat===n?" selected":"")+'>'+escAttr(n)+'</option>').join("") +
+       '</select></div></div>';
+  h += relLojaCat ? compUmaCategoria(linhas.find(l => l.nome === relLojaCat), lojas)
+                  : compTodasCategorias(linhas, lojas);
+  return h;
+}
+function compTodasCategorias(linhas, lojas){
+  const ord = linhas.slice().sort((a,b) => b.perda - a.perda);
+  const topo = ord[0];
+  let h = "";
+  if (topo && topo.perda > 0 && topo.melhor){
+    const piorL = topo.comDado.slice().sort((a,b) => topo.por[a.chave].marg - topo.por[b.chave].marg)[0];
+    h += '<div class="cmp-destaque">💡 <b>Maior oportunidade: '+escAttr(topo.nome)+'.</b> ' +
+      escAttr(topo.melhor.nome)+' faz '+fmtPctRel(topo.por[topo.melhor.chave].marg)+' de margem e '+escAttr(piorL.nome)+' faz '+fmtPctRel(topo.por[piorL.chave].marg)+
+      '. Nivelando pela melhor, o grupo ganharia mais <b>'+fmtR$0(topo.perda)+'</b> no mês só nessa categoria.</div>';
+  }
+  h += '<div class="rel-scroll"><table class="rel-tab cmp-tab"><thead><tr><th>Categoria</th>' +
+       lojas.map(l => '<th class="n">'+escAttr(l.nome)+'</th>').join("") +
+       '<th class="n">Deixou de ganhar</th></tr></thead><tbody>';
+  ord.slice(0, 20).forEach(l => {
+    h += '<tr class="cmp-linha" onclick="escolherCatComp(\''+escAspas(l.nome)+'\')"><td>'+escAttr(l.nome) +
+         (l.perda > 0 ? '<small class="cmp-op-mob">'+fmtR$0(l.perda)+' a ganhar</small>' : '') + '</td>';
+    lojas.forEach(u => {
+      const c = l.por[u.chave];
+      if (!c){ h += '<td class="n cmp-sem">—</td>'; return; }
+      const eMelhor = l.melhor && l.melhor.chave === u.chave && l.comDado.length > 1;
+      h += '<td class="n'+(eMelhor?' cmp-melhor':'')+'"><b>'+fmtPctRel(c.marg)+'</b><small>'+fmtR$0(c.rec)+'</small></td>';
+    });
+    h += '<td class="n'+(l.perda > 0 ? ' rel-desce' : '')+'">'+(l.perda > 0 ? fmtR$0(l.perda) : "—")+'</td></tr>';
+  });
+  h += '</tbody></table></div>';
+  h += '<p class="nota-dash">Ordenado pelo que mais dá para ganhar. Em cada linha, a célula verde é a loja com a melhor margem; "deixou de ganhar" é quanto as outras somariam de lucro no mês se chegassem nessa margem. Toque numa linha para ver a categoria em detalhe.</p>';
+  if (ord.length > 20) h += '<p class="nota-dash">Mostrando as 20 categorias de maior oportunidade, de '+ord.length+'.</p>';
+  return h;
+}
+function compUmaCategoria(l, lojas){
+  if (!l) return '<p class="nota-dash">Categoria sem dados no mês escolhido.</p>';
+  let h = '<h4 class="rel-h4">'+escAttr(l.nome)+'</h4>';
+  h += '<div class="cmp-cards">';
+  lojas.forEach(u => {
+    const c = l.por[u.chave];
+    const eMelhor = l.melhor && l.melhor.chave === u.chave && l.comDado.length > 1;
+    if (!c){
+      h += '<div class="cmp-card vazio"><span class="cmp-card-nome">'+escAttr(u.nome)+'</span><b>—</b><small>sem dados</small></div>';
+      return;
+    }
+    const perda = c.rec * Math.max(0, l.margMax - c.marg) / 100;
+    h += '<div class="cmp-card'+(eMelhor?' melhor':'')+'">' +
+      '<span class="cmp-card-nome">'+(eMelhor?'⭐ ':'')+escAttr(u.nome)+'</span>' +
+      '<b>'+fmtPctRel(c.marg)+'</b><span class="cmp-card-rot">margem</span>' +
+      '<div class="cmp-card-l"><span>Faturamento</span><span>'+fmtR$0(c.rec)+'</span></div>' +
+      '<div class="cmp-card-l"><span>Lucro bruto</span><span>'+fmtR$0(c.lb)+'</span></div>' +
+      '<div class="cmp-card-l"><span>Quantidade</span><span>'+fmtBR(c.qtd,0)+'</span></div>' +
+      (perda > 0 ? '<div class="cmp-card-perda">deixa de ganhar '+fmtR$0(perda)+'</div>'
+                 : '<div class="cmp-card-ok">é a melhor margem</div>') +
+      '</div>';
+  });
+  h += '</div>';
+  [["marg","Margem",v => fmtPctRel(v)],["rec","Faturamento",v => fmtR$0(v)],["lb","Lucro bruto",v => fmtR$0(v)]].forEach(m => {
+    const vals = lojas.map(u => l.por[u.chave] ? +l.por[u.chave][m[0]]||0 : 0);
+    const max = Math.max.apply(null, vals.concat([0])) || 1;
+    h += '<h5 class="cmp-h5">'+m[1]+'</h5>';
+    lojas.forEach((u,i) => {
+      if (!l.por[u.chave]) return;
+      const lider = vals[i] >= max && lojas.length > 1;
+      h += '<div class="rel-barra-linha"><span class="rel-barra-nome">'+escAttr(u.nome)+'</span>' +
+        '<span class="rel-barra-fundo"><span class="rel-barra-cheia'+(lider?' cmp-lider':'')+'" style="width:'+Math.max(1,vals[i]/max*100).toFixed(1)+'%"></span></span>' +
+        '<span class="rel-barra-val">'+m[2](vals[i])+'</span></div>';
+    });
+  });
+  if (l.perda > 0)
+    h += '<div class="cmp-destaque">Se todas tivessem a margem de <b>'+escAttr(l.melhor.nome)+'</b> ('+fmtPctRel(l.margMax)+'), o grupo ganharia mais <b>'+fmtR$0(l.perda)+'</b> por mês nesta categoria.</div>';
+  h += '<p class="nota-dash">Margem muito diferente entre lojas na mesma categoria costuma ser preço de venda, custo mal cadastrado ou fornecedor diferente.</p>';
+  return h;
+}
+
+/* ---------- tela ---------- */
 function alternarRelLoja(){
   const aberto = abrirPainelExclusivo("painelRelLoja");
   const b = document.getElementById("btnRelLoja");
@@ -4648,23 +4881,22 @@ function alternarRelLoja(){
 }
 function ordenaRelLoja(arr){
   const idx = { qtd:1, receita:2, lb:4, margem:5 }[relLojaOrdem] || 4;
-  return arr.slice().sort((a,b)=>(+b[idx]||0)-(+a[idx]||0));
+  return arr.slice().sort((a,b) => (+b[idx]||0) - (+a[idx]||0));
 }
-function renderRelLoja(){
-  const box = document.getElementById("relLojaBox");
-  if (!box) return;
-  preencherSelectRel("relLojaEmp", UNIDADES_REL.map(u=>u.chave), relLojaSel, c => (UNIDADES_REL.find(u=>u.chave===c)||{}).nome || c);
-  relLojaSel = (document.getElementById("relLojaEmp")||{}).value || relLojaSel;
-  const meses = mesesDisponiveis(relLojas, relLojaSel);
-  if (!meses.length){
-    preencherSelectRel("relLojaMesSel", [], "", null);
-    box.innerHTML = '<p class="nota-dash">Ainda não temos os dados desta conveniência. Eles são montados na sincronização — peça ao Claude: "sincroniza os produtos da conveniência".</p>';
-    return;
-  }
-  if (meses.indexOf(relLojaMes) < 0) relLojaMes = meses[0];
-  preencherSelectRel("relLojaMesSel", meses, relLojaMes, rotuloMesRel);
-  const d = relLojas[relLojaSel + "_" + relLojaMes] || {};
+function tabelaRelLoja(linhas, rotulo, totR){
+  let h = '<div class="rel-scroll"><table class="rel-tab"><thead><tr><th>'+rotulo+'</th><th class="n">Qtde</th><th class="n">Faturamento</th>' +
+    (totR ? '<th class="n">% do total</th>' : '') + '<th class="n">Lucro bruto</th><th class="n">Margem</th></tr></thead><tbody>';
+  ordenaRelLoja(linhas).forEach(x => {
+    const m = +x[5]||0;
+    h += '<tr><td>'+escAttr(x[0])+'</td><td class="n">'+fmtBR(+x[1]||0,0)+'</td><td class="n">'+fmtR$0(x[2])+'</td>' +
+      (totR ? '<td class="n">'+fmtPctRel((+x[2]||0)/totR*100)+'</td>' : '') +
+      '<td class="n">'+fmtR$0(x[4])+'</td><td class="n '+(m<25?'rel-desce':'')+'">'+fmtPctRel(m)+'</td></tr>';
+  });
+  return h + '</tbody></table></div>';
+}
+function blocoRelLojaUma(d){
   const k = d.kpi || {};
+  const margRef = +k.margem || 0;
   let h = "";
   if (d.ate) h += '<p class="nota-dash">Período: 1 a '+String(d.ate).slice(8,10)+' de '+rotuloMesRel(relLojaMes)+'.</p>';
   h += '<div class="rel-kpis">' +
@@ -4673,39 +4905,50 @@ function renderRelLoja(){
     '<div class="rel-kpi bom"><span>Lucro bruto</span><b>'+fmtR$0(k.lb)+'</b></div>' +
     '<div class="rel-kpi"><span>Margem</span><b>'+fmtPctRel(k.margem)+'</b></div>' +
     '<div class="rel-kpi"><span>Ticket médio</span><b>'+fmtR$(k.ticket)+'</b></div>' +
-    '<div class="rel-kpi"><span>Itens diferentes vendidos</span><b>'+fmtBR(k.mix,0)+'</b></div>' +
+    '<div class="rel-kpi"><span>Itens diferentes vendidos</span><b>'+fmtBR(+k.mix||0,0)+'</b></div>' +
     '</div>';
   const cat = d.cat || [], itens = d.itens || [];
   if (cat.length){
-    const totR = cat.reduce((a,x)=>a+(+x[2]||0), 0) || 1;
-    h += '<h4 style="margin:16px 0 0">Categorias</h4>';
-    h += '<div class="rel-scroll"><table class="rel-tab"><thead><tr><th>Categoria</th><th class="n">Qtde</th><th class="n">Faturamento</th><th class="n">% do total</th><th class="n">Lucro bruto</th><th class="n">Margem</th></tr></thead><tbody>';
-    ordenaRelLoja(cat).forEach(x => {
-      const m = +x[5]||0;
-      h += '<tr><td>'+escAttr(x[0])+'</td><td class="n">'+fmtBR(x[1],0)+'</td><td class="n">'+fmtR$0(x[2])+'</td><td class="n">'+fmtPctRel((+x[2]||0)/totR*100)+'</td>' +
-           '<td class="n">'+fmtR$0(x[4])+'</td><td class="n '+(m<25?'rel-desce':'')+'">'+fmtPctRel(m)+'</td></tr>';
-    });
-    h += '</tbody></table></div>';
+    const totR = cat.reduce((a,x) => a + (+x[2]||0), 0) || 1;
+    h += '<h4 class="rel-h4">Categorias</h4>';
+    h += listasCategoriasRelLoja(cat, margRef, totR);
+    h += '<details class="rel-det"><summary>Ver todas as '+cat.length+' categorias em tabela</summary>'+tabelaRelLoja(cat, "Categoria", totR)+'</details>';
   }
   if (itens.length){
-    h += '<h4 style="margin:18px 0 0">Itens mais vendidos</h4>';
-    h += '<div class="rel-scroll"><table class="rel-tab"><thead><tr><th>Item</th><th class="n">Qtde</th><th class="n">Faturamento</th><th class="n">Lucro bruto</th><th class="n">Margem</th></tr></thead><tbody>';
-    ordenaRelLoja(itens).forEach(x => {
-      const m = +x[5]||0;
-      h += '<tr><td>'+escAttr(x[0])+'</td><td class="n">'+fmtBR(x[1],0)+'</td><td class="n">'+fmtR$0(x[2])+'</td><td class="n">'+fmtR$0(x[4])+'</td><td class="n '+(m<25?'rel-desce':'')+'">'+fmtPctRel(m)+'</td></tr>';
-    });
-    h += '</tbody></table></div>';
-    const ruins = ordenaRelLoja(itens).filter(x => (+x[5]||0) < 25 && (+x[2]||0) > 0).slice(0,6).map(x=>x[0]);
-    if (ruins.length) h += '<div class="rel-alerta">⚠️ Vendem bem mas com margem abaixo de 25%: '+escAttr(ruins.join(", "))+'.</div>';
+    h += blocosItensRelLoja(itens, margRef);
+    h += '<details class="rel-det"><summary>Ver todos os '+itens.length+' itens em tabela</summary>'+tabelaRelLoja(itens, "Item", 0)+'</details>';
   }
   const hr = d.hora || [];
   if (hr.length){
-    const pico = hr.slice().sort((a,b)=>(+b[1]||0)-(+a[1]||0))[0];
-    h += '<h4 style="margin:18px 0 4px">Faturamento por hora</h4>';
+    const pico = hr.slice().sort((a,b) => (+b[1]||0) - (+a[1]||0))[0];
+    h += '<h4 class="rel-h4">Faturamento por hora</h4>';
     h += '<p class="nota-dash">Hora mais forte: <b>'+escAttr(pico[0])+'h</b> ('+fmtR$0(pico[1])+').</p>';
-    h += barrasRel(hr.map(x=>[x[0]+"h", Math.round(+x[1]||0)]));
+    h += barrasRel(hr.map(x => [x[0]+"h", Math.round(+x[1]||0)]));
   }
-  box.innerHTML = h;
+  return h;
+}
+function renderRelLoja(){
+  const box = document.getElementById("relLojaBox");
+  if (!box) return;
+  preencherSelectRel("relLojaEmp", UNIDADES_REL.map(u => u.chave), relLojaSel, c => (UNIDADES_REL.find(u => u.chave === c)||{}).nome || c);
+  relLojaSel = (document.getElementById("relLojaEmp")||{}).value || relLojaSel;
+  const abas = document.getElementById("relLojaAbas");
+  const meses = mesesDisponiveis(relLojas, relLojaSel);
+  if (!meses.length){
+    if (abas) abas.innerHTML = "";
+    preencherSelectRel("relLojaMesSel", [], "", null);
+    box.innerHTML = '<p class="nota-dash">Ainda não temos os dados desta conveniência. Eles são montados na sincronização — peça ao Claude: "sincroniza os produtos da conveniência".</p>';
+    return;
+  }
+  if (meses.indexOf(relLojaMes) < 0) relLojaMes = meses[0];
+  preencherSelectRel("relLojaMesSel", meses, relLojaMes, rotuloMesRel);
+  if (abas) abas.innerHTML = ABAS_REL_LOJA.map(a => '<button class="doc-chip'+(relLojaAba===a[0]?' ativo':'')+'" onclick="mudarAbaRelLoja(\''+a[0]+'\')">'+a[1]+'</button>').join("");
+  const cxEmp = document.getElementById("relLojaEmp");
+  const cxOrd = document.getElementById("relLojaOrdLinha");
+  if (cxEmp && cxEmp.parentElement) cxEmp.parentElement.style.display = (relLojaAba === "comp") ? "none" : "";
+  if (cxOrd) cxOrd.style.display = (relLojaAba === "comp") ? "none" : "";
+  if (relLojaAba === "comp"){ box.innerHTML = blocoRelLojaComp(); return; }
+  box.innerHTML = blocoRelLojaUma(relLojas[relLojaSel + "_" + relLojaMes] || {});
 }
 
 /* ================== Evolução das vendas (Dashboard dos Postos) ================== */
