@@ -705,7 +705,7 @@
   .cot-selo.hoje{background:var(--verde-claro);color:var(--verde)}
   .cot-selo.velha{background:var(--erro-bg);color:var(--vermelho)}
   .cot-selo.vazia{background:var(--superficie-2);color:var(--cinza);border:1px dashed var(--borda)}
-  .cot-quem{font-size:.72rem;color:var(--cinza);margin-top:10px}
+  .cot-quem{font-size:.68rem;color:var(--cinza);margin-top:7px}
   .cot-controles{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:4px 0 16px}
   .cot-data-lbl{display:flex;align-items:center;gap:8px;font-weight:600;font-size:.9rem}
   .cot-data-lbl input{padding:8px 10px;border:1px solid var(--borda);border-radius:8px;background:var(--superficie);color:var(--texto);font-size:.95rem}
@@ -1066,9 +1066,9 @@
     border:1px solid var(--borda);border-radius:6px;padding:8px;font-size:.9rem;
     background:var(--superficie);color:var(--txt);width:100%;
   }
-  .comp-dists{display:flex;flex-wrap:wrap;gap:12px}
-  .comp-dist-card{flex:1 1 240px;border:1px solid var(--borda);border-radius:10px;padding:12px;background:var(--superficie-2)}
-  .comp-dist-head{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+  .comp-dists{display:flex;flex-wrap:wrap;gap:10px}
+  .comp-dist-card{flex:1 1 258px;border:1px solid var(--borda);border-radius:10px;padding:10px 12px;background:var(--superficie-2)}
+  .comp-dist-head{display:flex;gap:8px;align-items:center;margin-bottom:7px;border-bottom:1px solid var(--borda);padding-bottom:6px}
   .comp-dist-nome{font-weight:600}
   select.comp-dist-nome{cursor:pointer;min-width:0;flex:1 1 auto}
   .comp-x{background:transparent;border:1px solid var(--borda);color:var(--cinza);border-radius:6px;padding:6px 10px;cursor:pointer;flex:0 0 auto;font-size:.8rem}
@@ -1077,15 +1077,18 @@
   .comp-preco-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
   .comp-preco-row span{font-size:.8rem;color:var(--txt);flex:1 1 auto}
   .comp-preco-row input{max-width:120px;text-align:right}
-  .cot-preco-campo{display:flex;align-items:center;gap:6px;flex:0 0 auto;justify-content:flex-end}
-  .cot-preco-campo input{width:110px;max-width:110px;flex:0 0 auto;text-align:right}
-  .cot-fuel{margin-bottom:2px}
-  .cot-fuel .comp-preco-row{flex-wrap:nowrap;align-items:flex-start}
-  .cot-fnome{min-width:0;overflow-wrap:anywhere}
-  .cot-delta{text-align:right;font-size:.7rem;font-weight:700;margin:0 0 4px;line-height:1.2}
+  /* v181 — cada combustível vira UMA linha: nome | preço | variação.
+     A grade fica no .comp-precos (e não em cada linha) para as colunas
+     ficarem alinhadas entre os combustíveis do mesmo cartão. */
+  .cot-grid{display:grid;grid-template-columns:1fr auto auto;gap:5px 7px;align-items:center}
+  .cot-fnome{font-size:.76rem;color:var(--txt);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cot-preco-campo{display:flex;align-items:center;gap:5px;justify-content:flex-end}
+  .cot-preco-campo input{width:92px;max-width:92px;flex:0 0 auto;text-align:right;padding:5px 7px;font-size:.82rem}
+  .cot-valor{font-size:.85rem;font-weight:700;color:var(--txt);font-variant-numeric:tabular-nums;white-space:nowrap;padding-right:2px}
+  .cot-delta{font-size:.68rem;font-weight:700;white-space:nowrap;text-align:right;line-height:1.2}
   .cot-delta.subiu{color:var(--vermelho)}
   .cot-delta.desceu{color:var(--verde)}
-  .cot-delta.igual{color:var(--cinza);font-weight:600}
+  .cot-delta.igual{color:var(--cinza)}
   /* Resumo do dia + compartilhar */
   .cot-resumo{margin-top:18px;border:1px solid var(--borda);border-radius:12px;padding:14px 16px;background:var(--superficie-2)}
   .cot-resumo-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
@@ -1106,7 +1109,7 @@
   .rc-delta.desceu{color:var(--verde)}
   .rc-delta.igual{color:var(--cinza)}
   .rc-delta.novo{color:var(--verde)}
-  .cot-btn{background:transparent;border:1px solid var(--borda);color:var(--cinza);border-radius:6px;padding:6px 0;width:34px;text-align:center;cursor:pointer;font-size:.9rem;line-height:1;flex:0 0 auto}
+  .cot-btn{background:transparent;border:1px solid var(--borda);color:var(--cinza);border-radius:6px;padding:4px 0;width:28px;text-align:center;cursor:pointer;font-size:.8rem;line-height:1.2;flex:0 0 auto}
   .cot-btn:hover{border-color:var(--verde);color:var(--verde)}
   .cot-ok{color:var(--verde);border-color:var(--verde)}
   .cot-ok:hover{background:var(--verde);color:#fff}
@@ -5834,10 +5837,15 @@ function fmtDataCurta(iso){
   const p = String(iso||"").split("-");
   return p.length === 3 ? p[2]+"/"+p[1]+"/"+p[0] : (iso||"");
 }
+let cotHistDe = "";   // v181 - de qual dia é o histórico que está na mão
 function carregarHistoricoAnterior(dataSel){
   // varre os dias ANTERIORES à data selecionada e guarda, por dist+combustível,
   // o valor do registro mais recente (o "último dia com registro")
-  cotHistorico = {};
+  // v181: só limpa na hora quando MUDA o dia. Salvar um preço redispara esta busca,
+  // e limpar antes fazia as pastilhas de variação piscarem (sumir e voltar).
+  if (cotHistDe !== dataSel) cotHistorico = {};
+  cotHistDe = dataSel;
+  const novo = {};
   try {
     db.collection("cotacoes").where("data", "<", dataSel).orderBy("data", "desc").limit(120).get().then(snap => {
       snap.forEach(doc => {
@@ -5848,13 +5856,14 @@ function carregarHistoricoAnterior(dataSel){
           Object.keys(precos).forEach(comb => {
             const v = precos[comb];
             if (v > 0){
-              if (!cotHistorico[nome]) cotHistorico[nome] = {};
+              if (!novo[nome]) novo[nome] = {};
               // ordem desc => o primeiro que aparece é o mais recente; não sobrescreve
-              if (cotHistorico[nome][comb] === undefined) cotHistorico[nome][comb] = { valor: v, data: dt };
+              if (novo[nome][comb] === undefined) novo[nome][comb] = { valor: v, data: dt };
             }
           });
         });
       });
+      cotHistorico = novo;
       renderCotacoes();
     }).catch(() => { cotHistorico = {}; });
   } catch(e){ cotHistorico = {}; }
@@ -5865,14 +5874,17 @@ function fmtDelta(v){
   while (dec.length < 2) dec += "0";
   return p[0] + "," + dec;
 }
+// v181 - pastilha curta ao lado do preco; a frase inteira fica no "title" (passar o mouse)
 function cotDeltaHtml(nome, comb, valorAtual){
   const prev = (cotHistorico[nome] && cotHistorico[nome][comb]) ? cotHistorico[nome][comb] : null;
-  if (!prev || !(valorAtual > 0)) return "";
+  if (!prev || !(valorAtual > 0)) return '<span class="cot-delta"></span>';
   const dif = Math.round((valorAtual - prev.valor) * 10000) / 10000;
   const ref = fmtDataCurta(prev.data).slice(0,5);
-  if (Math.abs(dif) < 0.00005) return '<div class="cot-delta igual">→ igual a ' + ref + '</div>';
-  if (dif > 0) return '<div class="cot-delta subiu">▲ R$ ' + fmtDelta(dif) + ' mais caro que ' + ref + '</div>';
-  return '<div class="cot-delta desceu">▼ R$ ' + fmtDelta(dif) + ' mais barato que ' + ref + '</div>';
+  if (Math.abs(dif) < 0.00005)
+    return '<span class="cot-delta igual" title="igual ao preço de ' + ref + '">igual</span>';
+  if (dif > 0)
+    return '<span class="cot-delta subiu" title="R$ ' + fmtDelta(dif) + ' mais caro que ' + ref + '">▲ ' + fmtDelta(dif) + '</span>';
+  return '<span class="cot-delta desceu" title="R$ ' + fmtDelta(dif) + ' mais barato que ' + ref + '">▼ ' + fmtDelta(dif) + '</span>';
 }
 function cotMostraPodium(nome){ return String(nome).toLowerCase() === "vibra"; }
 function renderCotacoes(){
@@ -5897,7 +5909,7 @@ function renderCotacoes(){
     html += '<div class="comp-dist-card"><div class="comp-dist-head">' +
       '<span class="cot-dist-nome">'+nome+'</span>';
     html += '<span class="cot-selo '+(temPreco?'hoje':'vazia')+'">'+(temPreco?'✓ lançada':'sem cotação')+'</span>';
-    html += '</div><div class="comp-precos">';
+    html += '</div><div class="comp-precos cot-grid">';
     combustiveis.forEach(c => {
       // Gasolina Podium só aparece no card da Vibra
       if (/podium/i.test(c) && !cotMostraPodium(nome)) return;
@@ -5923,15 +5935,13 @@ function renderCotacoes(){
         '</span>';
       } else {
         // valor já salvo — travado; para mudar, clicar em Editar
-        campo = '<span class="cot-preco-campo">' +
-          '<input type="text" class="cot-lock" value="'+fmtPrecoComp(p)+'" readonly>' +
+        campo = '<span class="cot-preco-campo travado">' +
+          '<b class="cot-valor">'+fmtPrecoComp(p)+'</b>' +
           '<button class="cot-btn cot-edit" title="Editar este preço" onclick="editarPreco(\''+en+'\',\''+ec+'\')">✏️</button>' +
         '</span>';
       }
-      html += '<div class="cot-fuel">' +
-        '<div class="comp-preco-row"><span class="cot-fnome">'+c+'</span>' + campo + '</div>' +
-        cotDeltaHtml(nome, c, p) +
-      '</div>';
+      html += '<span class="cot-fnome" title="'+escAttr(c)+'">'+c+'</span>' +
+        campo + cotDeltaHtml(nome, c, p);
     });
     html += '</div>';
     if (temPreco && d.por){
@@ -5943,7 +5953,7 @@ function renderCotacoes(){
   html += resumoCotHtml();
   html += '<p class="nota-dash" style="margin-top:14px">' +
     (ehHoje
-      ? 'O primeiro valor de cada combustível é lançado direto (salva ao sair do campo). Depois de salvo, o campo fica travado: para mudar, toque em ✏️, digite o novo valor e confirme em ✓ (ou ✕ para cancelar). Para conferir outro dia, escolha a data acima.'
+      ? 'O primeiro valor salva ao sair do campo. Depois, para mudar: ✏️ → digite → ✓ (ou ✕ para cancelar). A pastilha ao lado do preço compara com o último dia lançado — passe o mouse nela para ver de que dia.'
       : 'Você está vendo as cotações de <b>'+fmtDataCurta(cotDataSel)+'</b>. Para alterar um valor já salvo, toque em ✏️, digite e confirme em ✓.') +
     '</p>';
   cont.innerHTML = html;
