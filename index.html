@@ -1089,26 +1089,9 @@
   .cot-delta.subiu{color:var(--vermelho)}
   .cot-delta.desceu{color:var(--verde)}
   .cot-delta.igual{color:var(--cinza)}
-  /* Resumo do dia + compartilhar */
-  .cot-resumo{margin-top:18px;border:1px solid var(--borda);border-radius:12px;padding:14px 16px;background:var(--superficie-2)}
-  .cot-resumo-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
-  .cot-share{background:#25D366;color:#fff;border:none;border-radius:8px;padding:9px 14px;font-size:.82rem;font-weight:700;cursor:pointer;white-space:nowrap}
+  /* Enviar as cotações do dia no WhatsApp (v182: fica no topo do menu) */
+  .cot-share{background:#25D366;color:#fff;border:none;border-radius:8px;padding:8px 13px;font-size:.82rem;font-weight:700;cursor:pointer;white-space:nowrap}
   .cot-share:hover{filter:brightness(1.08)}
-  /* v180 — o resumo virou cartões por distribuidora: o preço fica ao lado do produto,
-     em vez de uma linha larga com um vão no meio. */
-  .cotr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(238px,1fr));gap:10px}
-  .cotr-card{border:1px solid var(--borda);border-radius:10px;background:var(--superficie);padding:10px 12px}
-  .cotr-card-head{border-bottom:1px solid var(--borda);padding-bottom:5px;margin-bottom:6px}
-  .cotr-card-head b{font-size:.86rem;color:var(--verde)}
-  .cotr-linha{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:baseline;font-size:.8rem;padding:3px 0}
-  .cotr-nome{color:var(--cinza);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .cotr-val{font-weight:700;color:var(--txt);font-variant-numeric:tabular-nums;white-space:nowrap}
-  .rc-delta{font-size:.68rem;font-weight:700;white-space:nowrap;text-align:right}
-  .cotr-linha .rc-delta{min-width:50px}
-  .rc-delta.subiu{color:var(--vermelho)}
-  .rc-delta.desceu{color:var(--verde)}
-  .rc-delta.igual{color:var(--cinza)}
-  .rc-delta.novo{color:var(--verde)}
   .cot-btn{background:transparent;border:1px solid var(--borda);color:var(--cinza);border-radius:6px;padding:4px 0;width:28px;text-align:center;cursor:pointer;font-size:.8rem;line-height:1.2;flex:0 0 auto}
   .cot-btn:hover{border-color:var(--verde);color:var(--verde)}
   .cot-ok{color:var(--verde);border-color:var(--verde)}
@@ -1439,6 +1422,7 @@
         <label class="cot-data-lbl">Dia:
           <input type="date" id="cotData" onchange="carregarCotDia()">
         </label>
+        <button class="cot-share" onclick="compartilharResumoCot()">📲 Enviar no WhatsApp</button>
         <span class="cot-status" id="cotStatus"></span>
       </div>
       <div id="conteudoCotacoes"></div>
@@ -5950,7 +5934,6 @@ function renderCotacoes(){
     html += '</div>';
   });
   html += '</div>';
-  html += resumoCotHtml();
   html += '<p class="nota-dash" style="margin-top:14px">' +
     (ehHoje
       ? 'O primeiro valor salva ao sair do campo. Depois, para mudar: ✏️ → digite → ✓ (ou ✕ para cancelar). A pastilha ao lado do preço compara com o último dia lançado — passe o mouse nela para ver de que dia.'
@@ -5983,33 +5966,6 @@ function resumoCotLinhas(){
     if (itens.length) grupos.push({ dist:nome, itens:itens });
   });
   return grupos;
-}
-function resumoCotHtml(){
-  const grupos = resumoCotLinhas();
-  if (!grupos.length) return "";
-  let html = '<div class="cot-resumo"><div class="cot-resumo-head">' +
-    '<span class="comp-tit">\ud83d\udccb Resumo do dia \u2014 ' + fmtDataCurta(cotDataSel) + '</span>' +
-    '<button class="cot-share" onclick="compartilharResumoCot()">\ud83d\udcf2 Enviar no WhatsApp</button></div>';
-  html += '<div class="cotr-grid">';
-  grupos.forEach(g => {
-    html += '<div class="cotr-card"><div class="cotr-card-head"><b>' + g.dist + '</b></div>';
-    g.itens.forEach(it => {
-      html += '<div class="cotr-linha"><span class="cotr-nome" title="' + escAttr(it.comb) + '">' + it.comb + '</span>' +
-        '<span class="cotr-val">' + fmtPrecoComp(it.valor) + '</span>' + deltaResumoHtml(it) + '</div>';
-    });
-    html += '</div>';
-  });
-  html += '</div>';
-  html += '<p class="nota-dash" style="margin:8px 0 0;font-size:.72rem">Pre\u00e7os em R$/litro. A varia\u00e7\u00e3o \u00e9 em rela\u00e7\u00e3o ao \u00faltimo dia com registro.</p>';
-  html += '</div>';
-  return html;
-}
-// pastilha de varia\u00e7\u00e3o de um item do resumo
-function deltaResumoHtml(it){
-  if (it.dif === null) return '<span class="rc-delta novo">novo</span>';
-  if (Math.abs(it.dif) < 0.00005) return '<span class="rc-delta igual">igual</span>';
-  if (it.dif > 0) return '<span class="rc-delta subiu">\u25b2 ' + fmtDelta(it.dif) + '</span>';
-  return '<span class="rc-delta desceu">\u25bc ' + fmtDelta(it.dif) + '</span>';
 }
 // nome curto do combust\u00edvel s\u00f3 para a mensagem do WhatsApp
 function combCurtoCot(c){
