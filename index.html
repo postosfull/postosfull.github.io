@@ -674,7 +674,7 @@
   }
 
   /* ---------- Painel admin ---------- */
-  .admin-form{display:flex;gap:8px;flex-wrap:wrap;max-width:560px}
+  .admin-form{display:flex;gap:8px;flex-wrap:wrap;max-width:560px;margin-bottom:18px}
   .admin-form input{
     flex:1;min-width:180px;padding:8px 10px;border:1px solid var(--borda);
     border-radius:6px;font-size:.85rem;
@@ -729,6 +729,10 @@
   .btn-claro.confirmar{background:var(--vermelho);color:#fff;border-color:transparent}
   .msg-admin.ok{color:var(--txt)}   /* legível também nos temas escuros */
   .mot-form input{flex:1 1 170px}
+  /* v179 — cadastro de motorista/frota ocupa a largura toda e respira antes da lista */
+  .mot-form,.cam-form{max-width:none}
+  .usr-lista{margin-top:2px}
+  .usr-item .mot-campo.curto{flex:1 1 128px}
   /* ===== Descontos ===== */
   .desc-controles{margin:2px 0 14px}
   .desc-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;align-items:end}
@@ -1171,6 +1175,8 @@
     .add-linha{ max-width:none; }
     .admin-form{ max-width:none; }
     .campo-nome{ max-width:none; }
+    /* v179 - no celular o botao de cadastrar fica sozinho na linha */
+    .mot-form button, .cam-form button{ flex:1 1 100%; }
   }
 
   /* ================= CELULAR muito estreito ================= */
@@ -1440,11 +1446,11 @@
   <div class="config" id="painelPedido">
     <div class="grupo">
       <h2>📝 Pedido de carregamento</h2>
-      <p class="nota-dash">Preencha os campos e o app monta a mensagem pronta para o grupo dos motoristas. Escolher o motorista já traz o CPF e as placas; escolher o caminhão já traz o tanque de sempre, e o tanque abre os compartimentos prontos — basta dizer o produto de cada um. Escolher o cliente já traz o CNPJ.</p>
+      <p class="nota-dash">Preencha os campos e o app monta a mensagem pronta para o grupo dos motoristas. Escolher o motorista já traz o nome completo, o CPF e as placas (o que você digitar aqui fica guardado no cadastro dele); escolher o caminhão já traz o tanque de sempre, e o tanque abre os compartimentos prontos — basta dizer o produto de cada um. Escolher o cliente já traz o CNPJ.</p>
       <div class="desc-form">
         <div class="desc-campo"><label>Motorista</label><select id="pedMotorista" onchange="onPedMotorista(this.value)"></select></div>
-        <div class="desc-campo"><label>Nome completo do motorista</label><input id="pedNomeMot" maxlength="60" placeholder="Nome como vai no pedido" oninput="pedCampo('motorista', this.value)"></div>
-        <div class="desc-campo"><label>CPF do motorista</label><input id="pedCpf" maxlength="18" placeholder="000.000.000-00" oninput="pedCampo('cpf', this.value)"></div>
+        <div class="desc-campo"><label>Nome completo do motorista</label><input id="pedNomeMot" maxlength="60" placeholder="Nome como vai no pedido" oninput="pedCampo('motorista', this.value)" onchange="pedSalvarCadMotorista()"></div>
+        <div class="desc-campo"><label>CPF do motorista</label><input id="pedCpf" maxlength="14" inputmode="numeric" placeholder="000.000.000-00" oninput="mascaraCPF(this);pedCampo('cpf', this.value)" onchange="pedSalvarCadMotorista()"></div>
         <div class="desc-campo"><label>Caminhão (placa)</label><select id="pedCaminhao" onchange="onPedCaminhao(this.value)"></select></div>
         <div class="desc-campo"><label>Tanque (placa)</label><select id="pedTanque" onchange="onPedTanque(this.value)"></select></div>
         <div class="desc-campo"><label>Carregamento (hora)</label><input id="pedHora" maxlength="10" placeholder="05h" oninput="pedCampo('hora', this.value)"></div>
@@ -1817,9 +1823,11 @@
     </div>
     <div class="grupo" id="grupoMotoristas" style="display:none">
       <h2>Motoristas e caminhões</h2>
-      <p class="nota-dash">Cadastre cada motorista com a placa do caminhão, a placa do tanque e a capacidade de carga (em litros). A placa do caminhão é o que liga cada CT-e ao motorista.</p>
+      <p class="nota-dash">Cadastre cada motorista com o nome completo, o CPF, a placa do caminhão, a placa do tanque e a capacidade de carga (em litros). O <b>nome</b> é o apelido curto que aparece nas listas; o <b>nome completo</b> e o <b>CPF</b> são os que entram no Pedido de carregamento. A placa do caminhão é o que liga cada CT-e ao motorista.</p>
       <div class="admin-form mot-form">
         <input id="motNome" maxlength="40" placeholder="Nome do motorista (ex.: Marcone)">
+        <input id="motNomeCompleto" maxlength="60" placeholder="Nome completo (como vai no pedido)">
+        <input id="motCpf" maxlength="14" inputmode="numeric" placeholder="CPF (000.000.000-00)" oninput="mascaraCPF(this)">
         <input id="motPlacaCaminhao" maxlength="10" placeholder="Placa - Caminhão (ex.: RSR4I66)">
         <input id="motPlacaTanque" maxlength="10" placeholder="Placa tanque (ex.: ROH0J42)">
         <input id="motCapacidade" inputmode="numeric" placeholder="Capacidade em litros (ex.: 37.000)" oninput="mascaraInteiro(this)">
@@ -5191,18 +5199,36 @@ function pedCampo(campo, valor){
   pedido[campo] = valor;
   atualizarTextoPedido();
 }
+// v179 — o que for digitado em "Nome completo"/"CPF" no pedido vira cadastro do motorista
+function pedSalvarCadMotorista(){
+  if (!pedido || !pedido.motoristaId) return;
+  const m = motoristas.find(x => x.id === pedido.motoristaId);
+  if (!m) return;
+  let mudou = false;
+  const nc  = String(pedido.motorista||"").trim();
+  const cpf = String(pedido.cpf||"").trim();
+  if (nc  && m.nomeCompleto !== nc ){ m.nomeCompleto = nc;  mudou = true; }
+  if (cpf && m.cpf          !== cpf){ m.cpf          = cpf; mudou = true; }
+  if (!mudou) return;
+  salvarMotoristas();
+  const pc = document.getElementById("painelConfig");
+  if (pc && pc.classList.contains("aberto")) renderMotoristas();
+}
 function onPedMotorista(id){
   if (!pedido) pedido = novoPedido();
   const m = motoristas.find(x => x.id === id);
   pedido.motoristaId = id;
+  // v179: trocar de motorista LIMPA o que era do anterior. Antes só substituía quando
+  // o novo tinha o dado cadastrado — e o CPF/placa do motorista de antes ficava no pedido.
   pedido.motorista = m ? (m.nomeCompleto || m.nome) : "";
+  pedido.cpf = (m && m.cpf) ? m.cpf : "";
   if (m){
-    if (m.cpf) pedido.cpf = m.cpf;
-    if (m.placaCaminhao) pedido.caminhao = normPlaca(m.placaCaminhao);
+    pedido.caminhao = m.placaCaminhao ? normPlaca(m.placaCaminhao) : "";
     // o tanque vem do cadastro do caminhão; o do motorista é a reserva
     const cam = caminhaoPorPlaca(pedido.caminhao);
     const tq = (cam && cam.tanquePadrao) ? cam.tanquePadrao : m.placaTanque;
-    if (tq){ pedido.tanque = normPlaca(tq); montarCompsPedido(pedido.tanque); }
+    pedido.tanque = tq ? normPlaca(tq) : "";
+    montarCompsPedido(pedido.tanque);
   }
   renderPedido(true);
 }
@@ -5477,7 +5503,7 @@ function salvarListasPedido(){
   if (m){
     if (pedido.cpf && m.cpf !== pedido.cpf){ m.cpf = pedido.cpf; dados.motoristas = motoristas; mudou = true; }
     const nc = String(pedido.motorista||"").trim();
-    if (nc && nc !== m.nome && m.nomeCompleto !== nc){ m.nomeCompleto = nc; dados.motoristas = motoristas; mudou = true; }
+    if (nc && m.nomeCompleto !== nc){ m.nomeCompleto = nc; dados.motoristas = motoristas; mudou = true; }
   }
   if (!mudou) return;
   dados.clientesPedido = clientesPedido;
@@ -6961,6 +6987,15 @@ function renderCalendario(){
 
 /* ===================== Full Transportadora: helpers ===================== */
 function escAttr(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+// v179 — CPF sai sempre no mesmo formato (000.000.000-00), digitando só os números
+function mascaraCPF(campo){
+  const d = String(campo.value||"").replace(/\D/g,"").slice(0,11);
+  let out = d;
+  if (d.length > 9)      out = d.slice(0,3)+"."+d.slice(3,6)+"."+d.slice(6,9)+"-"+d.slice(9);
+  else if (d.length > 6) out = d.slice(0,3)+"."+d.slice(3,6)+"."+d.slice(6);
+  else if (d.length > 3) out = d.slice(0,3)+"."+d.slice(3);
+  campo.value = out;
+}
 function mascaraInteiro(campo){
   let d = (campo.value||"").replace(/\D/g,"");
   d = d.replace(/^0+/,"") || "";
@@ -6985,15 +7020,42 @@ function salvarMotoristas(){
   docTransportadora.set({ motoristas }, { merge:true }).catch(()=>{});
 }
 
+/* v179 — desde a v176 o Pedido de carregamento escolhe o caminhão e o tanque
+   pela FROTA (bloco "Caminhões e tanques"), não pela placa escrita no motorista.
+   A semente só roda no primeiro acesso, então uma placa nova cadastrada aqui
+   ficava de fora daquelas listas. Esta função garante que ela entre. */
+function garantirFrotaDoMotorista(m){
+  if (!m) return;
+  const pc = normPlaca(m.placaCaminhao), pt = normPlaca(m.placaTanque);
+  let mudou = false;
+  if (pt && !tanques.some(t => normPlaca(t.placa) === pt)){
+    tanques.push({ placa: pt, comps: (COMPARTIMENTOS_PADRAO[pt] || []).slice() });
+    mudou = true;
+  }
+  if (pc && !caminhoes.some(c => normPlaca(c.placa) === pc)){
+    caminhoes.push({ placa: pc, tanquePadrao: pt || "" });
+    mudou = true;
+  }
+  if (!mudou) return;
+  salvarFrota();
+  if (typeof renderFrota === "function") renderFrota();
+}
+
 function adicionarMotorista(){
   const nome = document.getElementById("motNome").value.trim();
+  const nomeCompleto = document.getElementById("motNomeCompleto").value.trim();
+  const cpf = document.getElementById("motCpf").value.trim();
   const placaCaminhao = normPlaca(document.getElementById("motPlacaCaminhao").value);
   const placaTanque = normPlaca(document.getElementById("motPlacaTanque").value);
   const capacidade = lerInteiro(document.getElementById("motCapacidade").value);
   if (!nome){ avisoAdmin("msgMotorista","Digite o nome do motorista.","erro"); return; }
-  motoristas.push({ id:"m_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,6), nome, placaCaminhao, placaTanque, capacidade });
+  const novo = { id:"m_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,6), nome, nomeCompleto, cpf, placaCaminhao, placaTanque, capacidade };
+  motoristas.push(novo);
   salvarMotoristas();
+  garantirFrotaDoMotorista(novo);
   document.getElementById("motNome").value="";
+  document.getElementById("motNomeCompleto").value="";
+  document.getElementById("motCpf").value="";
   document.getElementById("motPlacaCaminhao").value="";
   document.getElementById("motPlacaTanque").value="";
   document.getElementById("motCapacidade").value="";
@@ -7019,10 +7081,13 @@ function confirmarEdicaoMotorista(id){
   const nome = document.getElementById("motE_nome").value.trim();
   if (!nome){ avisoAdmin("msgMotorista","O nome não pode ficar vazio.","erro"); return; }
   m.nome = nome;
+  m.nomeCompleto = document.getElementById("motE_nomeCompleto").value.trim();
+  m.cpf = document.getElementById("motE_cpf").value.trim();
   m.placaCaminhao = normPlaca(document.getElementById("motE_placaCaminhao").value);
   m.placaTanque = normPlaca(document.getElementById("motE_placaTanque").value);
   m.capacidade = lerInteiro(document.getElementById("motE_capacidade").value);
   salvarMotoristas();
+  garantirFrotaDoMotorista(m);
   editandoMotorista = null; confirmarMotorista = null;
   avisoAdmin("msgMotorista","Alterações salvas.","ok");
   renderMotoristas();
@@ -7050,9 +7115,11 @@ function renderMotoristas(){
   }
   const cabecalho = '<div class="usr-item usr-head">' +
     '<span class="mot-campo">Motorista</span>' +
-    '<span class="mot-campo">Placa Caminhão</span>' +
-    '<span class="mot-campo">Placa Tanque</span>' +
-    '<span class="mot-campo">Capacidade</span>' +
+    '<span class="mot-campo">Nome completo</span>' +
+    '<span class="mot-campo curto">CPF</span>' +
+    '<span class="mot-campo curto">Placa Caminh\u00e3o</span>' +
+    '<span class="mot-campo curto">Placa Tanque</span>' +
+    '<span class="mot-campo curto">Capacidade</span>' +
     '<span class="usr-head-btn"></span>' +
     '</div>';
   cont.innerHTML = cabecalho + motoristas.map(m => {
@@ -7061,20 +7128,24 @@ function renderMotoristas(){
       const conf = confirmarMotorista === m.id;
       return '<div class="usr-item editando">' +
         '<label class="mot-campo" data-lbl="Motorista"><input id="motE_nome" maxlength="40" value="'+escAttr(m.nome)+'" placeholder="Nome"></label>' +
-        '<label class="mot-campo" data-lbl="Placa Caminhão"><input id="motE_placaCaminhao" maxlength="10" value="'+escAttr(m.placaCaminhao||"")+'" placeholder="Placa - Caminhão"></label>' +
-        '<label class="mot-campo" data-lbl="Placa Tanque"><input id="motE_placaTanque" maxlength="10" value="'+escAttr(m.placaTanque||"")+'" placeholder="Placa tanque"></label>' +
-        '<label class="mot-campo" data-lbl="Capacidade"><input id="motE_capacidade" inputmode="numeric" oninput="mascaraInteiro(this)" value="'+cap+'" placeholder="Litros"></label>' +
-        '<button class="btn-verde" onclick="confirmarEdicaoMotorista(\''+m.id+'\')">✓ Confirmar alterações</button>' +
+        '<label class="mot-campo" data-lbl="Nome completo"><input id="motE_nomeCompleto" maxlength="60" value="'+escAttr(m.nomeCompleto||"")+'" placeholder="Nome completo"></label>' +
+        '<label class="mot-campo curto" data-lbl="CPF"><input id="motE_cpf" maxlength="14" inputmode="numeric" oninput="mascaraCPF(this)" value="'+escAttr(m.cpf||"")+'" placeholder="000.000.000-00"></label>' +
+        '<label class="mot-campo curto" data-lbl="Placa Caminh\u00e3o"><input id="motE_placaCaminhao" maxlength="10" value="'+escAttr(m.placaCaminhao||"")+'" placeholder="Placa - Caminh\u00e3o"></label>' +
+        '<label class="mot-campo curto" data-lbl="Placa Tanque"><input id="motE_placaTanque" maxlength="10" value="'+escAttr(m.placaTanque||"")+'" placeholder="Placa tanque"></label>' +
+        '<label class="mot-campo curto" data-lbl="Capacidade"><input id="motE_capacidade" inputmode="numeric" oninput="mascaraInteiro(this)" value="'+cap+'" placeholder="Litros"></label>' +
+        '<button class="btn-verde" onclick="confirmarEdicaoMotorista(\''+m.id+'\')">\u2713 Confirmar altera\u00e7\u00f5es</button>' +
         '<button class="btn-claro" onclick="cancelarEdicaoMotorista()">Cancelar</button>' +
-        '<button class="btn-claro'+(conf?' confirmar':'')+'" onclick="removerMotorista(\''+m.id+'\')">'+(conf?'✓ confirmar?':'🗑 Remover')+'</button>' +
+        '<button class="btn-claro'+(conf?' confirmar':'')+'" onclick="removerMotorista(\''+m.id+'\')">'+(conf?'\u2713 confirmar?':'\ud83d\uddd1 Remover')+'</button>' +
         '</div>';
     }
     return '<div class="usr-item">' +
       '<label class="mot-campo" data-lbl="Motorista"><input value="'+escAttr(m.nome)+'" readonly></label>' +
-      '<label class="mot-campo" data-lbl="Placa Caminhão"><input value="'+escAttr(m.placaCaminhao||"")+'" readonly></label>' +
-      '<label class="mot-campo" data-lbl="Placa Tanque"><input value="'+escAttr(m.placaTanque||"")+'" readonly></label>' +
-      '<label class="mot-campo" data-lbl="Capacidade"><input value="'+cap+'" readonly></label>' +
-      '<button class="btn-claro" onclick="editarMotorista(\''+m.id+'\')">✏️ Editar</button>' +
+      '<label class="mot-campo" data-lbl="Nome completo"><input value="'+escAttr(m.nomeCompleto||"\u2014")+'" readonly></label>' +
+      '<label class="mot-campo curto" data-lbl="CPF"><input value="'+escAttr(m.cpf||"\u2014")+'" readonly></label>' +
+      '<label class="mot-campo curto" data-lbl="Placa Caminh\u00e3o"><input value="'+escAttr(m.placaCaminhao||"")+'" readonly></label>' +
+      '<label class="mot-campo curto" data-lbl="Placa Tanque"><input value="'+escAttr(m.placaTanque||"")+'" readonly></label>' +
+      '<label class="mot-campo curto" data-lbl="Capacidade"><input value="'+cap+'" readonly></label>' +
+      '<button class="btn-claro" onclick="editarMotorista(\''+m.id+'\')">\u270f\ufe0f Editar</button>' +
       '</div>';
   }).join("");
 }
