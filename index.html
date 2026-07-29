@@ -4481,10 +4481,9 @@ function renderOrdemMenus(){
   h += '<button class="btn-verde" onclick="definirOrdemPadrao(\'' + asp2(s) + '\')">\u2b50 Definir ordem padrão</button>';
   h += '<button class="btn-claro" onclick="voltarOrdemPadrao(\'' + asp2(s) + '\')">\u21a9 ' +
        (temPadrao ? 'Voltar ao padrão' : 'Voltar à ordem original') + '</button>';
-  if (temPadrao) h += '<button class="btn-claro" onclick="resetarOrdemMenus(\'' + asp2(s) + '\')">Ordem original do app</button>';
   h += '</div>';
   h += '<p class="nota-dash">' + (temPadrao
-        ? 'Esta empresa tem um padrão salvo. Mexa nas setas à vontade: o botão <b>Voltar ao padrão</b> desfaz tudo de uma vez.'
+        ? 'Esta empresa tem um padrão salvo. Mexa nas setas à vontade: o botão <b>Voltar ao padrão</b> desfaz tudo de uma vez e devolve essa ordem.'
         : 'Ainda não há padrão salvo para esta empresa. Quando a ordem estiver do seu jeito, clique em <b>Definir ordem padrão</b> para poder voltar a ela depois.') + '</p>';
   h += '<div class="msg-admin" id="msgOrdem"></div>';
   box.innerHTML = h;
