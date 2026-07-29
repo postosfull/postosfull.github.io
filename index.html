@@ -806,6 +806,37 @@
     .rel-barra-nome{flex:0 0 92px;font-size:.78rem}
     .rel-barra-val{flex:0 0 66px;font-size:.78rem}
   }
+  /* v185 - menus Caixas e Despesas */
+  .cxi-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0 6px}
+  .cxi-card{background:var(--superficie-2);border:1px solid var(--borda);border-radius:10px;padding:12px 14px}
+  .cxi-nome{font-size:.8rem;color:var(--cinza);font-weight:600;margin-bottom:6px}
+  .cxi-hero{font-size:1.5rem;font-weight:700;line-height:1.1}
+  .cxi-heroleg{font-size:.72rem;color:var(--cinza);margin-bottom:6px}
+  .cxi-lin{display:flex;justify-content:space-between;font-size:.8rem;color:var(--cinza);margin-top:6px;padding-top:6px;border-top:1px solid var(--borda)}
+  .cxi-lin b{color:var(--txt);font-weight:600}
+  .cxi-liq b{color:var(--verde)}
+  .cxi-sub{font-size:.95rem;margin:18px 0 6px}
+  .cxi-graf{background:var(--superficie-2);border:1px solid var(--borda);border-radius:10px;padding:12px 14px}
+  .cxi-grupo{margin-bottom:10px}
+  .cxi-rot{font-size:.8rem;color:var(--cinza);font-weight:600;margin-bottom:4px}
+  .cxi-par{display:flex;align-items:center;gap:8px;margin-bottom:3px}
+  .cxi-q{font-size:.72rem;color:var(--cinza);min-width:62px}
+  .cxi-wrap{flex:1;display:block;min-width:0;height:13px}
+  .cxi-bar{display:block;height:13px;border-radius:0 4px 4px 0;background:var(--verde);min-width:2px}
+  .cxi-bar2{background:var(--cinza);opacity:.55}
+  .cxi-bar-alerta{background:#d03b3b}
+  .cxi-v{font-size:.78rem;font-weight:600;min-width:86px;text-align:right}
+  .cxi-v-alerta{color:#d03b3b}
+  .cxi-aviso{border-left:3px solid #fab219;padding-left:8px}
+  .dsp-rola{overflow-x:auto}
+  table.dsp-tab{min-width:0;font-size:.82rem}
+  table.dsp-tab th,table.dsp-tab td{padding:6px 6px;border-bottom:1px solid var(--borda);text-align:left}
+  table.dsp-tab th{font-size:.7rem;text-transform:uppercase;letter-spacing:.03em;color:var(--cinza)}
+  .dsp-r{text-align:right !important}
+  @media (max-width:640px){
+    .cxi-v{min-width:74px;font-size:.72rem}
+    .cxi-q{min-width:52px}
+  }
   /* v172 - menu Analise */
   .ana-resumo{background:var(--verde-claro);border-left:4px solid var(--verde);border-radius:0 10px 10px 0;padding:12px 14px;margin:12px 0 14px;font-size:.95rem;line-height:1.6}
   .ana-item{background:var(--superficie-2);border:1px solid var(--borda);border-left:4px solid var(--cinza);border-radius:10px;padding:10px 12px;margin:8px 0}
@@ -1322,6 +1353,8 @@
     <button class="btn-claro" id="btnSimular" onclick="alternarSimular()"><span class="mi">💰</span><span class="mt">Simular Margens</span></button>
     <button class="btn-claro" id="btnDescontos" onclick="alternarDescontos()"><span class="mi">🏷️</span><span class="mt">Descontos</span></button>
     <button class="btn-claro" id="btnRelPosto" onclick="alternarRelPosto()"><span class="mi">📑</span><span class="mt">Relatórios do posto</span></button>
+    <button class="btn-claro" id="btnCaixas" onclick="alternarCaixas()"><span class="mi">🧾</span><span class="mt">Caixas</span></button>
+    <button class="btn-claro" id="btnDespesas" onclick="alternarDespesas()"><span class="mi">💸</span><span class="mt">Despesas</span></button>
     <button class="btn-claro" id="btnAnalise" onclick="alternarAnalise()"><span class="mi">🧠</span><span class="mt">Análise</span></button>
     <button class="btn-claro" id="btnInfleet" onclick="alternarInfleet()"><span class="mi">📡</span><span class="mt">APP Infleet</span></button>
     <button class="btn-claro" id="btnPedido" onclick="alternarPedido()"><span class="mi">📝</span><span class="mt">Pedido de carregamento</span></button>
@@ -1564,6 +1597,30 @@
       </div>
       <div class="doc-tools" id="relPostoAbas"></div>
       <div id="relPostoBox"></div>
+    </div>
+  </div>
+
+  <div class="config" id="painelCaixas">
+    <div class="grupo">
+      <h2>🧾 Caixas dos postos</h2>
+      <p class="nota-dash">Quanto tempo o caixa leva para ser confirmado, e quanto sobra ou falta. Vem do Petros. Em mês ainda em andamento o percentual de confirmados é naturalmente menor — os últimos dias ainda não foram conferidos.</p>
+      <div class="evo-filtros">
+        <div class="desc-campo"><label>Mês</label><select id="cxiMes" onchange="cxiSel=this.value;renderCaixas()"></select></div>
+      </div>
+      <div id="cxiBox"></div>
+    </div>
+  </div>
+
+  <div class="config" id="painelDespesas">
+    <div class="grupo">
+      <h2>💸 Despesas mês a mês</h2>
+      <p class="nota-dash">Todas as despesas lançadas no Petros, por tipo e por mês. Serve para achar lançamento fora do padrão — aquele que cai num mês só e faz o resultado daquele mês parecer pior do que foi.</p>
+      <div class="evo-filtros">
+        <div class="desc-campo"><label>Ano</label><select id="dspAno" onchange="dspAnoSel=this.value;renderDespesas()"></select></div>
+        <div class="desc-campo"><label>Posto</label><select id="dspPosto" onchange="dspPostoSel=this.value;renderDespesas()"></select></div>
+        <div class="desc-campo"><label>Retiradas de sócios</label><select id="dspRet" onchange="dspComRet=(this.value==='1');renderDespesas()"><option value="1">Incluir</option><option value="0">Tirar da conta</option></select></div>
+      </div>
+      <div id="dspBox"></div>
     </div>
   </div>
 
@@ -1979,6 +2036,8 @@ const colArquivos = db.collection("arquivos");                    // metadados d
 const colResumoDiario = db.collection("resumoDiario");             // um doc por dia: litros por posto + faturamento por loja
 const colVendasMensais = db.collection("vendasMensais");
 const colRelPosto = db.collection("relatoriosPosto");      // v168 - relatórios mensais dos postos (Adaptive)
+const colCaixaInd = db.collection("caixaIndicadores");    // v185 - "2026-07" indicadores de caixa por posto
+const colDespesasAno = db.collection("despesasAno");      // v185 - "2026" despesas mes a mes por tipo
 const colAnalises = db.collection("analises");             // v172 - "postos_2026-07-28" / "conv_2026-07-28"
 const colRelLoja  = db.collection("relatoriosLoja");       // v168 - produtos/categorias das conveniências           // um doc por mês (AAAA-MM): litros por posto + faturamento por loja
 let vendasMensais = {};                // "AAAA-MM" -> {postos:{...}, lojas:{...}, parcial}
@@ -2023,6 +2082,8 @@ let documentos = [];                   // documentos/licenças com vencimento (c
 let escutaDocumentos = null;
 let relPostos = {}, relLojas = {};              // v168 - {"teresina_2026-07": {...}}
 let escutaRelPosto = null, escutaRelLoja = null;
+let caixaInd = {}, cxiSel = "";                 // v185 - {"2026-07": {...}}
+let despesasAno = {}, dspAnoSel = "", dspPostoSel = "todos", dspComRet = true;  // v185
 let analises = {}, anaSel = "";                 // v172 - {"postos_2026-07-28": {...}}
 let escutaAnalises = null;
 let relPostoSel = "teresina", relPostoMes = "", relPostoAba = "resultado";
@@ -3584,6 +3645,20 @@ function iniciarSync(){
     if (pa && pa.classList.contains("aberto")) renderAnalise();
   }, ()=>{});
 
+  // v185 - indicadores de caixa
+  colCaixaInd.onSnapshot(snap => {
+    const m = {}; snap.forEach(d => m[d.id] = Object.assign({ id: d.id }, d.data())); caixaInd = m;
+    const p = document.getElementById("painelCaixas");
+    if (p && p.classList.contains("aberto")) renderCaixas();
+  }, ()=>{});
+
+  // v185 - despesas mes a mes
+  colDespesasAno.onSnapshot(snap => {
+    const m = {}; snap.forEach(d => m[d.id] = Object.assign({ id: d.id }, d.data())); despesasAno = m;
+    const p = document.getElementById("painelDespesas");
+    if (p && p.classList.contains("aberto")) renderDespesas();
+  }, ()=>{});
+
   // Eventos do calendário criados no app
   escutaEventos = colEventos.onSnapshot(snap => {
     const l = []; snap.forEach(d => l.push(Object.assign({ id: d.id }, d.data()))); eventos = l;
@@ -4003,7 +4078,7 @@ function excluir(i){
 
 /* ================== Salvar / Carregar / Exportar ================== */
 // Painéis que ocupam a página; só um fica aberto por vez
-const PAINEIS = ["painelRegistros","painelDash","painelResumoDia","painelHistorico","painelSimular","painelDescontos","painelPuxadas","painelCotacoes","painelInfleet","painelPedido","painelRelPosto","painelRelLoja","painelAnalise","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin"];
+const PAINEIS = ["painelRegistros","painelDash","painelResumoDia","painelHistorico","painelSimular","painelDescontos","painelPuxadas","painelCotacoes","painelInfleet","painelPedido","painelRelPosto","painelRelLoja","painelCaixas","painelDespesas","painelAnalise","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin"];
 function fecharTodosPaineis(exceto){
   PAINEIS.forEach(id => {
     const el = document.getElementById(id);
@@ -4051,7 +4126,7 @@ function fecharTodosPaineis(exceto){
   const bcx = document.getElementById("btnCaixa");
   if (bcx) bcx.classList.toggle("ativo", document.getElementById("painelCaixa").classList.contains("aberto"));
   // v172 - estes tres faltavam: o botao ficava aceso depois de abrir outro menu
-  ["btnRelPosto:painelRelPosto","btnRelLoja:painelRelLoja","btnAnalise:painelAnalise"].forEach(par => {
+  ["btnRelPosto:painelRelPosto","btnRelLoja:painelRelLoja","btnAnalise:painelAnalise","btnCaixas:painelCaixas","btnDespesas:painelDespesas"].forEach(par => {
     const p = par.split(":"), b = document.getElementById(p[0]), pan = document.getElementById(p[1]);
     if (b && pan) b.classList.toggle("ativo", pan.classList.contains("aberto"));
   });
@@ -4090,6 +4165,8 @@ const MENUS_APP = [
   {key:"simular",     btn:"btnSimular",     pan:"painelSimular",     emp:"postos", nome:"Simular Margens"},
   {key:"descontos",   btn:"btnDescontos",   pan:"painelDescontos",   emp:"postos", nome:"Descontos"},
   {key:"relPosto",    btn:"btnRelPosto",    pan:"painelRelPosto",    emp:"postos", nome:"Relatórios do posto"},
+  {key:"caixas",      btn:"btnCaixas",      pan:"painelCaixas",      emp:"postos", nome:"Caixas"},
+  {key:"despesas",    btn:"btnDespesas",    pan:"painelDespesas",    emp:"postos", nome:"Despesas"},
   {key:"infleet",     btn:"btnInfleet",     pan:"painelInfleet",     emp:"transp", nome:"APP Infleet"},
   {key:"pedido",      btn:"btnPedido",      pan:"painelPedido",      emp:"transp", nome:"Pedido de carregamento"},
   {key:"cotacoes",    btn:"btnCotacoes",    pan:"painelCotacoes",    emp:"transp", nome:"Cotações do Dia"},
@@ -4486,6 +4563,183 @@ function anaDatasDe(sigla){
     .map(k => k.slice(sigla.length + 1))
     .sort().reverse();
 }
+/* ===================== v185 - MENU CAIXAS ===================== */
+const CXI_POSTOS = ["Teresina","Caxias","Dutra"];
+function cxiMesNome(id){
+  const p = String(id||"").split("-");
+  const M = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+  const i = parseInt(p[1],10) - 1;
+  return (M[i] || "") + "/" + (p[0]||"").slice(2);
+}
+function cxiNum(v){ const n = Number(v); return isFinite(n) ? n : 0; }
+function cxiDin(v){ return cxiNum(v).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function alternarCaixas(){
+  const aberto = abrirPainelExclusivo("painelCaixas");
+  const b = document.getElementById("btnCaixas");
+  if (b) b.classList.toggle("ativo", aberto);
+  if (aberto) renderCaixas();
+}
+function renderCaixas(){
+  const box = document.getElementById("cxiBox");
+  if (!box) return;
+  const meses = Object.keys(caixaInd).sort().reverse();
+  const sel = document.getElementById("cxiMes");
+  const linha = document.querySelector("#painelCaixas .evo-filtros");
+  if (!meses.length){
+    if (sel) sel.innerHTML = "";
+    if (linha) linha.style.display = "none";
+    box.innerHTML = '<div class="ana-vazio">Ainda não há indicadores de caixa gravados.<br>Eles são coletados do Petros junto com as vendas.</div>';
+    return;
+  }
+  if (linha) linha.style.display = "";
+  if (!cxiSel || meses.indexOf(cxiSel) < 0) cxiSel = meses[0];
+  if (sel) sel.innerHTML = meses.map(m => '<option value="'+m+'"'+(m===cxiSel?' selected':'')+'>'+escAttr(cxiMesNome(m))+'</option>').join("");
+
+  const d = caixaInd[cxiSel] || {};
+  const P = d.postos || {};
+  const idxAnt = meses.indexOf(cxiSel) + 1;
+  const ant = (idxAnt < meses.length) ? (caixaInd[meses[idxAnt]] || {}) : null;
+  const Pa = ant ? (ant.postos || {}) : {};
+
+  let maxDias = 0;
+  CXI_POSTOS.forEach(k => { maxDias = Math.max(maxDias, cxiNum((P[k]||{}).tempoDias), cxiNum((Pa[k]||{}).tempoDias)); });
+  if (maxDias <= 0) maxDias = 1;
+
+  let h = '';
+  if (d.parcial) h += '<p class="nota-dash cxi-aviso">\u26a0\ufe0f ' + escAttr(cxiMesNome(cxiSel)) + ' ainda está em andamento — os caixas dos últimos dias naturalmente ainda não foram confirmados. Para comparar de verdade, olhe o <b>tempo médio</b>.</p>';
+
+  h += '<div class="cxi-cards">';
+  CXI_POSTOS.forEach(k => {
+    const o = P[k] || {};
+    h += '<div class="cxi-card"><div class="cxi-nome">Posto Full ' + escAttr(k) + '</div>' +
+         '<div class="cxi-hero">' + escAttr(o.tempoTexto || "—") + '</div>' +
+         '<div class="cxi-heroleg">para confirmar um caixa</div>' +
+         '<div class="cxi-lin"><span>Caixas fechados</span><b>' + cxiNum(o.fechados).toFixed(0) + '%</b></div>' +
+         '<div class="cxi-lin"><span>Confirmados</span><b>' + cxiNum(o.confirmados).toFixed(1) + '%</b></div>' +
+         '<div class="cxi-lin"><span>Sobra</span><b>R$ ' + cxiDin(o.sobra) + '</b></div>' +
+         '<div class="cxi-lin"><span>Falta</span><b>R$ ' + cxiDin(o.falta) + '</b></div>' +
+         '<div class="cxi-lin cxi-liq"><span>Falta menos sobra</span><b>R$ ' + cxiDin(cxiNum(o.falta) - cxiNum(o.sobra)) + '</b></div>' +
+         '</div>';
+  });
+  h += '</div>';
+
+  h += '<h3 class="cxi-sub">Tempo até o caixa ser confirmado</h3><div class="cxi-graf">';
+  CXI_POSTOS.forEach(k => {
+    const o = P[k] || {}, oa = Pa[k] || {};
+    h += '<div class="cxi-grupo"><div class="cxi-rot">Posto Full ' + escAttr(k) + '</div>';
+    h += '<div class="cxi-par"><span class="cxi-q">' + escAttr(cxiMesNome(cxiSel)) + '</span>' +
+         '<span class="cxi-wrap"><span class="cxi-bar" style="width:' + (cxiNum(o.tempoDias)/maxDias*100).toFixed(1) + '%"></span></span>' +
+         '<span class="cxi-v">' + escAttr(o.tempoTexto || "—") + '</span></div>';
+    if (ant) h += '<div class="cxi-par"><span class="cxi-q">' + escAttr(cxiMesNome(meses[idxAnt])) + '</span>' +
+         '<span class="cxi-wrap"><span class="cxi-bar cxi-bar2" style="width:' + (cxiNum(oa.tempoDias)/maxDias*100).toFixed(1) + '%"></span></span>' +
+         '<span class="cxi-v">' + escAttr(oa.tempoTexto || "—") + '</span></div>';
+    h += '</div>';
+  });
+  h += '</div>';
+
+  let sf = 0, ff = 0;
+  CXI_POSTOS.forEach(k => { const o = P[k] || {}; sf += cxiNum(o.sobra); ff += cxiNum(o.falta); });
+  if (ff > sf) h += '<div class="ana-resumo">Somando os três postos, <b>falta R$ ' + cxiDin(ff - sf) + ' a mais do que sobra</b> em ' + escAttr(cxiMesNome(cxiSel)) + '. Se fosse só erro de digitação, sobra e falta tenderiam a se equilibrar.</div>';
+
+  h += '<p class="ana-rodape">Atualizado ' + escAttr(d.atualizadoEm ? String(d.atualizadoEm).slice(0,10).split("-").reverse().join("/") : "—") + '. Fonte: Painel Operacional do Petros.</p>';
+  box.innerHTML = h;
+}
+
+/* ===================== v185 - MENU DESPESAS ===================== */
+const DSP_MES = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+function dspDin(v){ const n = Number(v)||0; return n.toLocaleString("pt-BR",{minimumFractionDigits:0,maximumFractionDigits:0}); }
+function alternarDespesas(){
+  const aberto = abrirPainelExclusivo("painelDespesas");
+  const b = document.getElementById("btnDespesas");
+  if (b) b.classList.toggle("ativo", aberto);
+  if (aberto) renderDespesas();
+}
+function dspRetirada(nome){ return /RETIRADA/i.test(String(nome||"")); }
+function renderDespesas(){
+  const box = document.getElementById("dspBox");
+  if (!box) return;
+  const anos = Object.keys(despesasAno).sort().reverse();
+  const selA = document.getElementById("dspAno"), selP = document.getElementById("dspPosto"), selR = document.getElementById("dspRet");
+  const linha = document.querySelector("#painelDespesas .evo-filtros");
+  if (!anos.length){
+    if (selA) selA.innerHTML = "";
+    if (linha) linha.style.display = "none";
+    box.innerHTML = '<div class="ana-vazio">Ainda não há despesas gravadas.<br>Elas vêm do relatório do Petros.</div>';
+    return;
+  }
+  if (linha) linha.style.display = "";
+  if (!dspAnoSel || anos.indexOf(dspAnoSel) < 0) dspAnoSel = anos[0];
+  if (selA) selA.innerHTML = anos.map(a => '<option value="'+a+'"'+(a===dspAnoSel?' selected':'')+'>'+a+'</option>').join("");
+  if (selR) selR.value = dspComRet ? "1" : "0";
+
+  const d = despesasAno[dspAnoSel] || {};
+  const P = d.postos || {};
+  const nomes = CXI_POSTOS.filter(k => P[k]);
+  if (selP) selP.innerHTML = '<option value="todos"'+(dspPostoSel==="todos"?" selected":"")+'>Todos os postos</option>' +
+      nomes.map(k => '<option value="'+escAttr(k)+'"'+(k===dspPostoSel?" selected":"")+'>'+escAttr(k)+'</option>').join("");
+  if (dspPostoSel !== "todos" && nomes.indexOf(dspPostoSel) < 0) dspPostoSel = "todos";
+  const alvos = (dspPostoSel === "todos") ? nomes : [dspPostoSel];
+
+  // soma por mes e por categoria, respeitando o filtro de retiradas
+  const porMes = [0,0,0,0,0,0,0,0,0,0,0,0];
+  const cat = {};
+  alvos.forEach(k => {
+    const lst = (P[k] && P[k].categorias) ? P[k].categorias : [];
+    lst.forEach(c => {
+      if (!dspComRet && dspRetirada(c.nome)) return;
+      const ms = c.meses || [];
+      for (let i=0;i<12;i++) porMes[i] += Number(ms[i])||0;
+      if (!cat[c.nome]) cat[c.nome] = { nome:c.nome, total:0, porPosto:{} };
+      cat[c.nome].total += Number(c.total)||0;
+      cat[c.nome].porPosto[k] = (cat[c.nome].porPosto[k]||0) + (Number(c.total)||0);
+    });
+  });
+  const ult = porMes.reduce((acc,v,i) => v>0 ? i : acc, 0);
+  const max = Math.max.apply(null, porMes.concat([1]));
+
+  let h = '';
+  // picos: mes cuja despesa passa 40% da media dos demais
+  const cheios = porMes.slice(0, ult+1);
+  const picos = [];
+  cheios.forEach((v,i) => {
+    const outros = cheios.filter((_,j) => j!==i);
+    const med = outros.length ? outros.reduce((s,x)=>s+x,0)/outros.length : 0;
+    if (med > 0 && v > med*1.4) picos.push({ i:i, v:v, dif:v-med });
+  });
+  if (picos.length){
+    h += '<div class="ana-resumo"><b>Mês fora do padrão:</b> ' +
+      picos.map(p => DSP_MES[p.i] + ' (R$ ' + dspDin(p.v) + ', cerca de R$ ' + dspDin(p.dif) + ' acima da média dos outros meses)').join(" · ") +
+      '. Quando um lançamento que vale o ano inteiro cai num mês só, aquele mês parece péssimo e os vizinhos parecem bons demais.</div>';
+  }
+
+  h += '<h3 class="cxi-sub">Despesa por mês</h3><div class="cxi-graf">';
+  for (let i=0;i<=ult;i++){
+    const ehPico = picos.some(p => p.i===i);
+    h += '<div class="cxi-par"><span class="cxi-q">' + DSP_MES[i] + '</span>' +
+         '<span class="cxi-wrap"><span class="cxi-bar' + (ehPico?' cxi-bar-alerta':'') + '" style="width:' + (porMes[i]/max*100).toFixed(1) + '%"></span></span>' +
+         '<span class="cxi-v' + (ehPico?' cxi-v-alerta':'') + '">' + dspDin(porMes[i]) + '</span></div>';
+  }
+  h += '</div>';
+
+  const lista = Object.keys(cat).map(k => cat[k]).sort((a,b) => b.total - a.total);
+  const totGeral = lista.reduce((s,x) => s + x.total, 0);
+  h += '<h3 class="cxi-sub">Para onde vai o dinheiro</h3><div class="dsp-rola"><table class="dsp-tab"><thead><tr><th>Tipo de despesa</th>' +
+       (dspPostoSel === "todos" ? alvos.map(k => '<th class="dsp-r">'+escAttr(k)+'</th>').join("") : '') +
+       '<th class="dsp-r">Total</th><th class="dsp-r">%</th></tr></thead><tbody>';
+  lista.slice(0,25).forEach(c => {
+    h += '<tr><td>' + escAttr(c.nome) + '</td>' +
+      (dspPostoSel === "todos" ? alvos.map(k => '<td class="dsp-r">' + (c.porPosto[k] ? dspDin(c.porPosto[k]) : "—") + '</td>').join("") : '') +
+      '<td class="dsp-r"><b>' + dspDin(c.total) + '</b></td>' +
+      '<td class="dsp-r">' + (totGeral ? (c.total/totGeral*100).toFixed(1) : "0.0") + '%</td></tr>';
+  });
+  h += '</tbody></table></div>';
+  if (lista.length > 25) h += '<p class="nota-dash">Mostrando os 25 maiores de ' + lista.length + ' tipos.</p>';
+  if (!dspComRet) h += '<p class="nota-dash">As retiradas de sócios estão fora desta conta.</p>';
+
+  h += '<p class="ana-rodape">Atualizado ' + escAttr(d.atualizadoEm ? String(d.atualizadoEm).slice(0,10).split("-").reverse().join("/") : "—") + '. Fonte: Demonstrativo de Resultado Detalhado Mês a Mês (Petros).</p>';
+  box.innerHTML = h;
+}
+
 function alternarAnalise(){
   const aberto = abrirPainelExclusivo("painelAnalise");
   const b = document.getElementById("btnAnalise");
