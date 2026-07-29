@@ -822,9 +822,10 @@
   .cxi-par{display:flex;align-items:center;gap:8px;margin-bottom:3px}
   .cxi-q{font-size:.72rem;color:var(--cinza);min-width:62px}
   .cxi-wrap{flex:1;display:block;min-width:0;height:13px}
-  .cxi-bar{display:block;height:13px;border-radius:0 4px 4px 0;background:var(--verde);min-width:2px}
-  .cxi-bar2{background:var(--cinza);opacity:.55}
-  .cxi-bar-alerta{background:#d03b3b}
+  /* v186 - background-image tambem: o modo escuro forcado do Chrome apaga background-color das barras */
+  .cxi-bar{display:block;height:13px;border-radius:0 4px 4px 0;background:var(--verde);background-image:linear-gradient(var(--verde),var(--verde));min-width:2px}
+  .cxi-bar2{background:var(--cinza);background-image:linear-gradient(var(--cinza),var(--cinza));opacity:.55}
+  .cxi-bar-alerta{background:#d03b3b;background-image:linear-gradient(#d03b3b,#d03b3b)}
   .cxi-v{font-size:.78rem;font-weight:600;min-width:86px;text-align:right}
   .cxi-v-alerta{color:#d03b3b}
   .cxi-aviso{border-left:3px solid #fab219;padding-left:8px}
