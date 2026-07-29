@@ -806,6 +806,14 @@
     .rel-barra-nome{flex:0 0 92px;font-size:.78rem}
     .rel-barra-val{flex:0 0 66px;font-size:.78rem}
   }
+  /* v188 - ordem dos menus */
+  .ord-lista{display:flex;flex-direction:column;gap:4px;margin-top:8px}
+  .ord-item{display:flex;align-items:center;gap:10px;padding:6px 8px;border:1px solid var(--borda);border-radius:8px;background:var(--superficie-2)}
+  .ord-pos{font-size:.72rem;color:var(--cinza);min-width:20px;text-align:right}
+  .ord-nome{flex:1 1 auto;font-size:.88rem;min-width:0}
+  .ord-bts{display:flex;gap:4px;flex:0 0 auto}
+  .ord-bts button{padding:2px 9px;font-size:.85rem;line-height:1.3}
+  .ord-bts button[disabled]{opacity:.35}
   /* v187 - quem pode enviar avisos/tarefas */
   .pe-sub{font-weight:600;font-size:.9rem;margin:14px 0 6px}
   .pe-item{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--borda);flex-wrap:wrap}
@@ -1615,7 +1623,7 @@
 
   <div class="config" id="painelCaixas">
     <div class="grupo">
-      <h2>🧾 Caixas dos postos</h2>
+      <h2 id="cxiTitulo">🧾 Caixas dos postos</h2>
       <p class="nota-dash">Quanto tempo o caixa leva para ser confirmado, e quanto sobra ou falta. Vem do Petros. Em mês ainda em andamento o percentual de confirmados é naturalmente menor — os últimos dias ainda não foram conferidos.</p>
       <div class="evo-filtros">
         <div class="desc-campo"><label>Mês</label><select id="cxiMes" onchange="cxiSel=this.value;renderCaixas()"></select></div>
@@ -1626,11 +1634,11 @@
 
   <div class="config" id="painelDespesas">
     <div class="grupo">
-      <h2>💸 Despesas mês a mês</h2>
+      <h2 id="dspTitulo">💸 Despesas dos postos, mês a mês</h2>
       <p class="nota-dash">Todas as despesas lançadas no Petros, por tipo e por mês. Serve para achar lançamento fora do padrão — aquele que cai num mês só e faz o resultado daquele mês parecer pior do que foi.</p>
       <div class="evo-filtros">
         <div class="desc-campo"><label>Ano</label><select id="dspAno" onchange="dspAnoSel=this.value;renderDespesas()"></select></div>
-        <div class="desc-campo"><label>Posto</label><select id="dspPosto" onchange="dspPostoSel=this.value;renderDespesas()"></select></div>
+        <div class="desc-campo"><label>Unidade</label><select id="dspPosto" onchange="dspPostoSel=this.value;renderDespesas()"></select></div>
         <div class="desc-campo"><label>Retiradas de sócios</label><select id="dspRet" onchange="dspComRet=(this.value==='1');renderDespesas()"><option value="1">Incluir</option><option value="0">Tirar da conta</option></select></div>
       </div>
       <div id="dspBox"></div>
@@ -1795,6 +1803,21 @@
       <label class="cot-data-lbl">Funcionário: <select id="admSelAcesso" onchange="renderEditorAcesso()"></select></label>
       <div id="admEditorAcesso"></div>
     </div>
+    <div class="grupo" id="grupoPermEnvio" style="display:none">
+      <h2>🔔 Quem pode enviar avisos e tarefas</h2>
+      <p class="nota-dash">Quem estiver marcado aqui vê o formulário de envio na Caixa de entrada. Quem não estiver continua recebendo e concluindo tarefas normalmente — só não consegue criar. Administradores sempre podem. Este quadro só aparece para administradores.</p>
+      <div id="permEnvioBox"></div>
+    </div>
+    <div class="grupo" id="grupoOrdemMenus" style="display:none">
+      <h2>🔃 Ordem dos menus na barra lateral</h2>
+      <p class="nota-dash">Escolha a empresa e use as setas para subir ou descer cada menu. A mudança vale para todo mundo assim que a pessoa recarregar o app. Este quadro só aparece para administradores.</p>
+      <label class="cot-data-lbl">Empresa: <select id="ordemEmpSel" onchange="ordemEmpSel=this.value;renderOrdemMenus()">
+        <option value="postos">Postos Full</option>
+        <option value="conv">Full Conveniência</option>
+        <option value="transp">Full Transportadora</option>
+      </select></label>
+      <div id="ordemMenusBox"></div>
+    </div>
     <div class="grupo">
       <h2>Atividades por funcionário</h2>
       <p class="nota-dash">Veja o que cada funcionário fez no app. <b>Desfazer</b> reverte a alteração (quando possível); <b>Excluir</b> remove só o registro do histórico. As mais antigas podem ser trazidas em ⬇️ no menu Histórico.</p>
@@ -1876,11 +1899,6 @@
   </div>
 
   <div class="config" id="painelConfig">
-    <div class="grupo" id="grupoPermEnvio" style="display:none">
-      <h2>🔔 Quem pode enviar avisos e tarefas</h2>
-      <p class="nota-dash">Quem estiver marcado aqui vê o formulário de envio na Caixa de entrada. Quem não estiver continua recebendo e concluindo tarefas normalmente — só não consegue criar. Administradores sempre podem. Este quadro só aparece para administradores.</p>
-      <div id="permEnvioBox"></div>
-    </div>
     <div class="grupo">
       <h2>Postos</h2>
       <div class="chips" id="chipsPosto"></div>
@@ -2054,6 +2072,7 @@ const colArquivos = db.collection("arquivos");                    // metadados d
 const colResumoDiario = db.collection("resumoDiario");             // um doc por dia: litros por posto + faturamento por loja
 const colVendasMensais = db.collection("vendasMensais");
 const colRelPosto = db.collection("relatoriosPosto");      // v168 - relatórios mensais dos postos (Adaptive)
+const docOrdemMenus = db.collection("config").doc("ordemMenus");   // v188 - ordem dos botoes da barra
 const colCaixaInd = db.collection("caixaIndicadores");    // v185 - "2026-07" indicadores de caixa por posto
 const colDespesasAno = db.collection("despesasAno");      // v185 - "2026" despesas mes a mes por tipo
 const colAnalises = db.collection("analises");             // v172 - "postos_2026-07-28" / "conv_2026-07-28"
@@ -2146,6 +2165,8 @@ const ICONE_DOC = {"CNH":"\ud83e\udeaa","Licenciamento/IPVA":"\ud83d\ude97","Seg
 let permissoesTodos = {};              // {emailLower:{menuKey:bool} | {perfil:id} | {menus:{...}}} sincronizado da nuvem
 let escutaPermissoes = null;
 let perfisAcesso = {};                 // {id:{nome,menus:{key:true}}} sincronizado da nuvem
+let ordemMenus = {};                   // v188 - {postos:[key,...], conv:[...], transp:[...]}
+let ordemEmpSel = "postos";            // v188 - empresa escolhida na tela de ordenar
 let permissaoEnvioPerfil = {};         // v187 - {perfilId:true} quem pode enviar avisos/tarefas por perfil
 let escutaPerfisAcesso = null;
 let nuvemPronta = false;        // já recebemos o primeiro retrato da nuvem?
@@ -2963,7 +2984,7 @@ function alternarAdmin(){
   const aberto = abrirPainelExclusivo("painelAdmin");
   const bu = document.getElementById("btnUsuarios");
   if (bu) bu.classList.toggle("ativo", aberto);
-  if (aberto){ renderAdminUsuarios(); renderPerfisAcesso(); }
+  if (aberto){ renderAdminUsuarios(); renderPerfisAcesso(); renderPermEnvio(); renderOrdemMenus(); }
 }
 
 let admAcessoSel = "", admAtivSel = "", admPerfilSel = "", admOfflineSel = "";   // seleção dos seletores do Painel Admin (sobrevive aos re-renders)
@@ -3448,7 +3469,6 @@ function alternarConfig(){
 let confirmarRemocao = null;   // {chave, i} aguardando o segundo toque
 
 function renderConfig(){
-  renderPermEnvio();   // v187
   renderMotoristas();
   renderClientes();
   [["posto","chipsPosto"],["distribuidora","chipsDistribuidora"]].forEach(([chave,idChips])=>{
@@ -3725,8 +3745,8 @@ function iniciarSync(){
     const d = snap.exists ? (snap.data() || {}) : {};
     permissaoEnvio = (d && d.porUsuario) ? d.porUsuario : {};
     permissaoEnvioPerfil = (d && d.porPerfil) ? d.porPerfil : {};   // v187
-    const pCfg = document.getElementById("painelConfig");
-    if (pCfg && pCfg.classList.contains("aberto")) renderPermEnvio();
+    const pAdm2 = document.getElementById("painelAdmin");
+    if (pAdm2 && pAdm2.classList.contains("aberto")) renderPermEnvio();
     const pcx = document.getElementById("painelCaixa");
     if (pcx && pcx.classList.contains("aberto")) renderCaixa();
     const pAdm = document.getElementById("painelAdmin");
@@ -3760,6 +3780,15 @@ function iniciarSync(){
     const m = {}; snap.forEach(d => m[d.id] = Object.assign({ id: d.id }, d.data())); analises = m;
     const pa = document.getElementById("painelAnalise");
     if (pa && pa.classList.contains("aberto")) renderAnalise();
+  }, ()=>{});
+
+  // v188 - ordem dos menus da barra lateral
+  docOrdemMenus.onSnapshot(snap => {
+    const d = snap.exists ? (snap.data() || {}) : {};
+    ordemMenus = (d && d.porEmpresa) ? d.porEmpresa : {};
+    aplicarOrdemMenus();
+    const pA = document.getElementById("painelAdmin");
+    if (pA && pA.classList.contains("aberto")) renderOrdemMenus();
   }, ()=>{});
 
   // v185 - indicadores de caixa
@@ -4282,8 +4311,8 @@ const MENUS_APP = [
   {key:"simular",     btn:"btnSimular",     pan:"painelSimular",     emp:"postos", nome:"Simular Margens"},
   {key:"descontos",   btn:"btnDescontos",   pan:"painelDescontos",   emp:"postos", nome:"Descontos"},
   {key:"relPosto",    btn:"btnRelPosto",    pan:"painelRelPosto",    emp:"postos", nome:"Relatórios do posto"},
-  {key:"caixas",      btn:"btnCaixas",      pan:"painelCaixas",      emp:"postos", nome:"Caixas"},
-  {key:"despesas",    btn:"btnDespesas",    pan:"painelDespesas",    emp:"postos", nome:"Despesas"},
+  {key:"caixas",      btn:"btnCaixas",      pan:"painelCaixas",      emp:"postos|conv", nome:"Caixas"},
+  {key:"despesas",    btn:"btnDespesas",    pan:"painelDespesas",    emp:"postos|conv", nome:"Despesas"},
   {key:"infleet",     btn:"btnInfleet",     pan:"painelInfleet",     emp:"transp", nome:"APP Infleet"},
   {key:"pedido",      btn:"btnPedido",      pan:"painelPedido",      emp:"transp", nome:"Pedido de carregamento"},
   {key:"cotacoes",    btn:"btnCotacoes",    pan:"painelCotacoes",    emp:"transp", nome:"Cotações do Dia"},
@@ -4346,6 +4375,86 @@ function menuVisivelEmpresa(m, sigla){
   // "postos|conv" permite listar um menu em mais de uma empresa sem duplicar a entrada
   return String(m.emp).split("|").indexOf(s) >= 0;
 }
+// v188 - reordena os botoes da barra lateral conforme o que o admin salvou
+function aplicarOrdemMenus(){
+  const s = siglaEmpresa(empresa);
+  const ordem = (ordemMenus && ordemMenus[s]) ? ordemMenus[s] : null;
+  if (!ordem || !ordem.length) return;
+  const porKey = {};
+  MENUS_APP.forEach(m => { const b = document.getElementById(m.btn); if (b) porKey[m.key] = b; });
+  const primeiro = MENUS_APP.map(m => porKey[m.key]).filter(Boolean)[0];
+  if (!primeiro || !primeiro.parentNode) return;
+  const pai = primeiro.parentNode;
+  const ordenados = [];
+  ordem.forEach(k => { if (porKey[k]){ ordenados.push(porKey[k]); delete porKey[k]; } });
+  MENUS_APP.forEach(m => { if (porKey[m.key]) ordenados.push(porKey[m.key]); });   // novos entram no fim
+  const marca = document.createComment("ordem-menus");
+  pai.insertBefore(marca, primeiro);
+  const frag = document.createDocumentFragment();
+  ordenados.forEach(b => frag.appendChild(b));
+  pai.insertBefore(frag, marca);
+  pai.removeChild(marca);
+}
+// v188 - lista de menus de uma empresa, na ordem que esta valendo
+function menusDaEmpresa(s){
+  const base = MENUS_APP.filter(m => menuVisivelEmpresa(m, s));
+  const ordem = (ordemMenus && ordemMenus[s]) ? ordemMenus[s] : [];
+  const mapa = {}; base.forEach(m => mapa[m.key] = m);
+  const saida = [];
+  ordem.forEach(k => { if (mapa[k]){ saida.push(mapa[k]); delete mapa[k]; } });
+  base.forEach(m => { if (mapa[m.key]) saida.push(m); });
+  return saida;
+}
+function moverMenuOrdem(s, key, dir){
+  const lista = menusDaEmpresa(s).map(m => m.key);
+  const i = lista.indexOf(key);
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= lista.length) return;
+  lista.splice(j, 0, lista.splice(i, 1)[0]);
+  if (!ordemMenus) ordemMenus = {};
+  ordemMenus[s] = lista;
+  gravarOrdemMenus(); renderOrdemMenus(); aplicarOrdemMenus();
+}
+function resetarOrdemMenus(s){
+  if (!ordemMenus) ordemMenus = {};
+  delete ordemMenus[s];
+  gravarOrdemMenus(); renderOrdemMenus();
+  location.reload();   // a ordem padrao volta com o HTML original
+}
+function gravarOrdemMenus(){
+  docOrdemMenus.set({ porEmpresa: ordemMenus || {} })
+    .then(()=>{ if (typeof logAtividade === "function") logAtividade("menus", "Mudou a ordem dos menus", ""); })
+    .catch(()=>{});
+}
+function renderOrdemMenus(){
+  const grp = document.getElementById("grupoOrdemMenus");
+  const box = document.getElementById("ordemMenusBox");
+  if (!grp || !box) return;
+  const souAdmin = ehAdminAtual();
+  grp.style.display = souAdmin ? "" : "none";
+  if (!souAdmin){ box.innerHTML = ""; return; }
+  const sel = document.getElementById("ordemEmpSel");
+  if (sel && sel.value) ordemEmpSel = sel.value;
+  const s = ordemEmpSel || "postos";
+  if (sel) sel.value = s;
+  const lista = menusDaEmpresa(s);
+  const asp2 = (x) => String(x).replace(/'/g, "\\'");
+  let h = '<div class="ord-lista">';
+  lista.forEach((m, i) => {
+    h += '<div class="ord-item"><span class="ord-pos">' + (i+1) + '</span>' +
+         '<span class="ord-nome">' + escAttr(m.nome) + '</span>' +
+         '<span class="ord-bts">' +
+         '<button class="btn-claro" ' + (i === 0 ? 'disabled ' : '') +
+           'onclick="moverMenuOrdem(\'' + asp2(s) + '\',\'' + asp2(m.key) + '\',-1)" title="Subir">\u25b2</button>' +
+         '<button class="btn-claro" ' + (i === lista.length-1 ? 'disabled ' : '') +
+           'onclick="moverMenuOrdem(\'' + asp2(s) + '\',\'' + asp2(m.key) + '\',1)" title="Descer">\u25bc</button>' +
+         '</span></div>';
+  });
+  h += '</div>';
+  h += '<button class="btn-claro" style="margin-top:10px" onclick="resetarOrdemMenus(\'' + asp2(s) + '\')">Voltar à ordem original</button>';
+  box.innerHTML = h;
+}
+
 function aplicarVisibilidadeMenus(){
   instalarFerramentasPaineis();
   const s = siglaEmpresa(empresa);
@@ -4357,6 +4466,7 @@ function aplicarVisibilidadeMenus(){
   // Blocos das Configurações que só fazem sentido em uma empresa
   const gm = document.getElementById("grupoMotoristas"); if (gm) gm.style.display = (s === "transp") ? "" : "none";
   const gc = document.getElementById("grupoCaminhoes"); if (gc) gc.style.display = (s === "transp") ? "" : "none";
+  aplicarOrdemMenus();   // v188
   const gpv = document.getElementById("grupoPrecosVenda"); if (gpv) gpv.style.display = (s === "postos") ? "" : "none";
   const gcl = document.getElementById("grupoClientes"); if (gcl) gcl.style.display = (s === "postos") ? "" : "none";
 }
@@ -4682,6 +4792,9 @@ function anaDatasDe(sigla){
 }
 /* ===================== v185 - MENU CAIXAS ===================== */
 const CXI_POSTOS = ["Teresina","Caxias","Dutra"];
+// v188 - o mesmo menu serve Postos Full e Full Conveniencia; muda so o ramo dos dados e o rotulo
+function cxiRamo(){ return (siglaEmpresa(empresa) === "conv") ? "conveniencias" : "postos"; }
+function cxiRotulo(u){ return (cxiRamo() === "conveniencias" ? "Conveni\u00eancia " : "Posto Full ") + u; }
 function cxiMesNome(id){
   const p = String(id||"").split("-");
   const M = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
@@ -4712,11 +4825,14 @@ function renderCaixas(){
   if (!cxiSel || meses.indexOf(cxiSel) < 0) cxiSel = meses[0];
   if (sel) sel.innerHTML = meses.map(m => '<option value="'+m+'"'+(m===cxiSel?' selected':'')+'>'+escAttr(cxiMesNome(m))+'</option>').join("");
 
+  const ramo = cxiRamo();
+  const tit = document.getElementById("cxiTitulo");
+  if (tit) tit.textContent = (ramo === "conveniencias") ? "\ud83e\uddfe Caixas das conveni\u00eancias" : "\ud83e\uddfe Caixas dos postos";
   const d = caixaInd[cxiSel] || {};
-  const P = d.postos || {};
+  const P = d[ramo] || {};
   const idxAnt = meses.indexOf(cxiSel) + 1;
   const ant = (idxAnt < meses.length) ? (caixaInd[meses[idxAnt]] || {}) : null;
-  const Pa = ant ? (ant.postos || {}) : {};
+  const Pa = ant ? (ant[ramo] || {}) : {};
 
   let maxDias = 0;
   CXI_POSTOS.forEach(k => { maxDias = Math.max(maxDias, cxiNum((P[k]||{}).tempoDias), cxiNum((Pa[k]||{}).tempoDias)); });
@@ -4728,7 +4844,7 @@ function renderCaixas(){
   h += '<div class="cxi-cards">';
   CXI_POSTOS.forEach(k => {
     const o = P[k] || {};
-    h += '<div class="cxi-card"><div class="cxi-nome">Posto Full ' + escAttr(k) + '</div>' +
+    h += '<div class="cxi-card"><div class="cxi-nome">' + escAttr(cxiRotulo(k)) + '</div>' +
          '<div class="cxi-hero">' + escAttr(o.tempoTexto || "—") + '</div>' +
          '<div class="cxi-heroleg">para confirmar um caixa</div>' +
          '<div class="cxi-lin"><span>Caixas fechados</span><b>' + cxiNum(o.fechados).toFixed(0) + '%</b></div>' +
@@ -4743,7 +4859,7 @@ function renderCaixas(){
   h += '<h3 class="cxi-sub">Tempo até o caixa ser confirmado</h3><div class="cxi-graf">';
   CXI_POSTOS.forEach(k => {
     const o = P[k] || {}, oa = Pa[k] || {};
-    h += '<div class="cxi-grupo"><div class="cxi-rot">Posto Full ' + escAttr(k) + '</div>';
+    h += '<div class="cxi-grupo"><div class="cxi-rot">' + escAttr(cxiRotulo(k)) + '</div>';
     h += '<div class="cxi-par"><span class="cxi-q">' + escAttr(cxiMesNome(cxiSel)) + '</span>' +
          '<span class="cxi-wrap"><span class="cxi-bar" style="width:' + (cxiNum(o.tempoDias)/maxDias*100).toFixed(1) + '%"></span></span>' +
          '<span class="cxi-v">' + escAttr(o.tempoTexto || "—") + '</span></div>';
@@ -4789,10 +4905,13 @@ function renderDespesas(){
   if (selA) selA.innerHTML = anos.map(a => '<option value="'+a+'"'+(a===dspAnoSel?' selected':'')+'>'+a+'</option>').join("");
   if (selR) selR.value = dspComRet ? "1" : "0";
 
+  const ramo = cxiRamo();
+  const tit = document.getElementById("dspTitulo");
+  if (tit) tit.textContent = (ramo === "conveniencias") ? "\ud83d\udcb8 Despesas das conveni\u00eancias, m\u00eas a m\u00eas" : "\ud83d\udcb8 Despesas dos postos, m\u00eas a m\u00eas";
   const d = despesasAno[dspAnoSel] || {};
-  const P = d.postos || {};
+  const P = d[ramo] || {};
   const nomes = CXI_POSTOS.filter(k => P[k]);
-  if (selP) selP.innerHTML = '<option value="todos"'+(dspPostoSel==="todos"?" selected":"")+'>Todos os postos</option>' +
+  if (selP) selP.innerHTML = '<option value="todos"'+(dspPostoSel==="todos"?" selected":"")+'>' + (ramo === "conveniencias" ? "Todas as lojas" : "Todos os postos") + '</option>' +
       nomes.map(k => '<option value="'+escAttr(k)+'"'+(k===dspPostoSel?" selected":"")+'>'+escAttr(k)+'</option>').join("");
   if (dspPostoSel !== "todos" && nomes.indexOf(dspPostoSel) < 0) dspPostoSel = "todos";
   const alvos = (dspPostoSel === "todos") ? nomes : [dspPostoSel];
