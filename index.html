@@ -807,6 +807,7 @@
     .rel-barra-val{flex:0 0 66px;font-size:.78rem}
   }
   /* v188 - ordem dos menus */
+  .ord-acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
   .ord-lista{display:flex;flex-direction:column;gap:4px;margin-top:8px}
   .ord-item{display:flex;align-items:center;gap:10px;padding:6px 8px;border:1px solid var(--borda);border-radius:8px;background:var(--superficie-2)}
   .ord-pos{font-size:.72rem;color:var(--cinza);min-width:20px;text-align:right}
@@ -2166,6 +2167,7 @@ let permissoesTodos = {};              // {emailLower:{menuKey:bool} | {perfil:i
 let escutaPermissoes = null;
 let perfisAcesso = {};                 // {id:{nome,menus:{key:true}}} sincronizado da nuvem
 let ordemMenus = {};                   // v188 - {postos:[key,...], conv:[...], transp:[...]}
+let ordemPadrao = {};                  // v189 - a ordem que o Tiago salvou como referencia, por empresa
 let ordemEmpSel = "postos";            // v188 - empresa escolhida na tela de ordenar
 let permissaoEnvioPerfil = {};         // v187 - {perfilId:true} quem pode enviar avisos/tarefas por perfil
 let escutaPerfisAcesso = null;
@@ -3786,6 +3788,7 @@ function iniciarSync(){
   docOrdemMenus.onSnapshot(snap => {
     const d = snap.exists ? (snap.data() || {}) : {};
     ordemMenus = (d && d.porEmpresa) ? d.porEmpresa : {};
+    ordemPadrao = (d && d.padrao) ? d.padrao : {};   // v189
     aplicarOrdemMenus();
     const pA = document.getElementById("painelAdmin");
     if (pA && pA.classList.contains("aberto")) renderOrdemMenus();
@@ -4415,14 +4418,36 @@ function moverMenuOrdem(s, key, dir){
   ordemMenus[s] = lista;
   gravarOrdemMenus(); renderOrdemMenus(); aplicarOrdemMenus();
 }
+// v189 - guarda a ordem que esta na tela como a referencia desta empresa
+function definirOrdemPadrao(s){
+  if (!ordemPadrao) ordemPadrao = {};
+  if (!ordemMenus) ordemMenus = {};
+  const lista = menusDaEmpresa(s).map(m => m.key);
+  ordemPadrao[s] = lista.slice();
+  ordemMenus[s] = lista.slice();
+  gravarOrdemMenus(); renderOrdemMenus();
+  avisoAdmin("msgOrdem", "Pronto. Esta ordem virou o padrão desta empresa — o botão ao lado agora volta para ela.", "ok");
+}
+// v189 - volta para o padrao salvo; se nao houver padrao, volta para a ordem de fabrica
+function voltarOrdemPadrao(s){
+  if (ordemPadrao && ordemPadrao[s] && ordemPadrao[s].length){
+    if (!ordemMenus) ordemMenus = {};
+    ordemMenus[s] = ordemPadrao[s].slice();
+    gravarOrdemMenus(); renderOrdemMenus(); aplicarOrdemMenus();
+    avisoAdmin("msgOrdem", "Voltou para o padrão que você salvou.", "ok");
+    return;
+  }
+  resetarOrdemMenus(s);
+}
+// v189 - descarta tudo e volta para a ordem original do app
 function resetarOrdemMenus(s){
   if (!ordemMenus) ordemMenus = {};
   delete ordemMenus[s];
   gravarOrdemMenus(); renderOrdemMenus();
-  location.reload();   // a ordem padrao volta com o HTML original
+  location.reload();   // a ordem de fabrica volta com o HTML original
 }
 function gravarOrdemMenus(){
-  docOrdemMenus.set({ porEmpresa: ordemMenus || {} })
+  docOrdemMenus.set({ porEmpresa: ordemMenus || {}, padrao: ordemPadrao || {} })
     .then(()=>{ if (typeof logAtividade === "function") logAtividade("menus", "Mudou a ordem dos menus", ""); })
     .catch(()=>{});
 }
@@ -4433,8 +4458,8 @@ function renderOrdemMenus(){
   const souAdmin = ehAdminAtual();
   grp.style.display = souAdmin ? "" : "none";
   if (!souAdmin){ box.innerHTML = ""; return; }
+  // v189 - a variavel manda; o seletor so reflete (antes o select sobrescrevia a variavel)
   const sel = document.getElementById("ordemEmpSel");
-  if (sel && sel.value) ordemEmpSel = sel.value;
   const s = ordemEmpSel || "postos";
   if (sel) sel.value = s;
   const lista = menusDaEmpresa(s);
@@ -4451,7 +4476,17 @@ function renderOrdemMenus(){
          '</span></div>';
   });
   h += '</div>';
-  h += '<button class="btn-claro" style="margin-top:10px" onclick="resetarOrdemMenus(\'' + asp2(s) + '\')">Voltar à ordem original</button>';
+  const temPadrao = !!(ordemPadrao && ordemPadrao[s] && ordemPadrao[s].length);
+  h += '<div class="ord-acoes">';
+  h += '<button class="btn-verde" onclick="definirOrdemPadrao(\'' + asp2(s) + '\')">\u2b50 Definir ordem padrão</button>';
+  h += '<button class="btn-claro" onclick="voltarOrdemPadrao(\'' + asp2(s) + '\')">\u21a9 ' +
+       (temPadrao ? 'Voltar ao padrão' : 'Voltar à ordem original') + '</button>';
+  if (temPadrao) h += '<button class="btn-claro" onclick="resetarOrdemMenus(\'' + asp2(s) + '\')">Ordem original do app</button>';
+  h += '</div>';
+  h += '<p class="nota-dash">' + (temPadrao
+        ? 'Esta empresa tem um padrão salvo. Mexa nas setas à vontade: o botão <b>Voltar ao padrão</b> desfaz tudo de uma vez.'
+        : 'Ainda não há padrão salvo para esta empresa. Quando a ordem estiver do seu jeito, clique em <b>Definir ordem padrão</b> para poder voltar a ela depois.') + '</p>';
+  h += '<div class="msg-admin" id="msgOrdem"></div>';
   box.innerHTML = h;
 }
 
