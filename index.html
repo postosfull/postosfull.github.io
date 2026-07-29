@@ -806,6 +806,18 @@
     .rel-barra-nome{flex:0 0 92px;font-size:.78rem}
     .rel-barra-val{flex:0 0 66px;font-size:.78rem}
   }
+  /* v187 - quem pode enviar avisos/tarefas */
+  .pe-sub{font-weight:600;font-size:.9rem;margin:14px 0 6px}
+  .pe-item{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--borda);flex-wrap:wrap}
+  .pe-nome{display:flex;flex-direction:column;font-size:.85rem;min-width:0;flex:1 1 auto}
+  .pe-perfil{font-size:.7rem;color:var(--cinza)}
+  .pe-nome .usr-tag{align-self:flex-start;width:auto;display:inline-block}
+  .pe-sel{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+  .pe-sel select{font-size:.8rem}
+  .pe-tag{font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:99px;border:1px solid var(--borda);white-space:nowrap}
+  .pe-sim{color:var(--verde)}
+  .pe-nao{color:var(--cinza)}
+  @media (max-width:640px){ .pe-item{align-items:flex-start} .pe-sel{width:100%;justify-content:space-between} }
   /* v185 - menus Caixas e Despesas */
   .cxi-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0 6px}
   .cxi-card{background:var(--superficie-2);border:1px solid var(--borda);border-radius:10px;padding:12px 14px}
@@ -1864,6 +1876,11 @@
   </div>
 
   <div class="config" id="painelConfig">
+    <div class="grupo" id="grupoPermEnvio" style="display:none">
+      <h2>🔔 Quem pode enviar avisos e tarefas</h2>
+      <p class="nota-dash">Quem estiver marcado aqui vê o formulário de envio na Caixa de entrada. Quem não estiver continua recebendo e concluindo tarefas normalmente — só não consegue criar. Administradores sempre podem. Este quadro só aparece para administradores.</p>
+      <div id="permEnvioBox"></div>
+    </div>
     <div class="grupo">
       <h2>Postos</h2>
       <div class="chips" id="chipsPosto"></div>
@@ -2129,6 +2146,7 @@ const ICONE_DOC = {"CNH":"\ud83e\udeaa","Licenciamento/IPVA":"\ud83d\ude97","Seg
 let permissoesTodos = {};              // {emailLower:{menuKey:bool} | {perfil:id} | {menus:{...}}} sincronizado da nuvem
 let escutaPermissoes = null;
 let perfisAcesso = {};                 // {id:{nome,menus:{key:true}}} sincronizado da nuvem
+let permissaoEnvioPerfil = {};         // v187 - {perfilId:true} quem pode enviar avisos/tarefas por perfil
 let escutaPerfisAcesso = null;
 let nuvemPronta = false;        // já recebemos o primeiro retrato da nuvem?
 let escutaLancamentos = null;   // cancelador do listener em tempo real
@@ -2529,17 +2547,111 @@ function aoMudarLogin(usuario){
 }
 
 /* ---------- Caixa de entrada (avisos e tarefas) ---------- */
+// v187 - qual perfil de acesso esta pessoa segue (ou "" se ela tem menus proprios)
+function perfilDoUsuario(email){
+  const r = normPerm(permissoesTodos[(email||"").toLowerCase()]);
+  return (r && r.perfil) ? r.perfil : "";
+}
+// v187 - ordem: admin > escolha individual (sim/nao) > perfil > nao pode
 function podeEnviarRecadosDe(email){
   email = (email||"").toLowerCase();
   if ((typeof ADMINS!=="undefined") && ADMINS.includes(email)) return true;
-  return !!(permissaoEnvio && permissaoEnvio[email] === true);
+  if (permissaoEnvio && permissaoEnvio[email] === true) return true;
+  if (permissaoEnvio && permissaoEnvio[email] === false) return false;
+  const p = perfilDoUsuario(email);
+  return !!(p && permissaoEnvioPerfil && permissaoEnvioPerfil[p] === true);
+}
+// v187 - de onde veio a resposta, para explicar na tela
+function origemEnvioDe(email){
+  email = (email||"").toLowerCase();
+  if ((typeof ADMINS!=="undefined") && ADMINS.includes(email)) return "admin";
+  if (permissaoEnvio && permissaoEnvio[email] === true) return "sim";
+  if (permissaoEnvio && permissaoEnvio[email] === false) return "nao";
+  return "perfil";
 }
 function podeEnviarRecados(){ return podeEnviarRecadosDe(usuarioAtual); }
 function setPermEnvio(email, on){
   email = (email||"").toLowerCase();
   if (!permissaoEnvio) permissaoEnvio = {};
-  if (on) permissaoEnvio[email] = true; else delete permissaoEnvio[email];
-  docPermEnvio.set({ porUsuario: permissaoEnvio }).catch(()=>{});
+  if (on) permissaoEnvio[email] = true; else permissaoEnvio[email] = false;   // v187 - "nao" agora e explicito
+  gravarPermEnvio();
+}
+// v187 - "" = seguir o perfil, "sim" = pode, "nao" = nao pode
+function setPermEnvioModo(email, modo){
+  email = (email||"").toLowerCase();
+  if (!permissaoEnvio) permissaoEnvio = {};
+  if (modo === "sim") permissaoEnvio[email] = true;
+  else if (modo === "nao") permissaoEnvio[email] = false;
+  else delete permissaoEnvio[email];
+  gravarPermEnvio(); renderPermEnvio();
+}
+function setPermEnvioPerfil(id, on){
+  if (!permissaoEnvioPerfil) permissaoEnvioPerfil = {};
+  if (on) permissaoEnvioPerfil[id] = true; else delete permissaoEnvioPerfil[id];
+  gravarPermEnvio(); renderPermEnvio();
+}
+function gravarPermEnvio(){
+  docPermEnvio.set({ porUsuario: permissaoEnvio || {}, porPerfil: permissaoEnvioPerfil || {} })
+    .then(()=>{ if (typeof logAtividade === "function") logAtividade("permissao", "Mudou quem pode enviar avisos/tarefas", ""); })
+    .catch(()=>{});
+}
+// v187 - a tela de Configuracoes: quem pode enviar aviso/tarefa (so admin ve)
+function renderPermEnvio(){
+  const grp = document.getElementById("grupoPermEnvio");
+  const box = document.getElementById("permEnvioBox");
+  if (!grp || !box) return;
+  const souAdmin = ehAdminAtual();
+  grp.style.display = souAdmin ? "" : "none";
+  if (!souAdmin){ box.innerHTML = ""; return; }
+
+  const asp2 = (s) => String(s).replace(/'/g, "\\'");
+  let h = '';
+
+  const ids = Object.keys(perfisAcesso || {});
+  h += '<div class="pe-sub">Por perfil de acesso</div>';
+  if (!ids.length){
+    h += '<p class="nota-dash">Nenhum perfil criado ainda. Os perfis ficam no Painel Administrativo.</p>';
+  } else {
+    h += '<div class="usr-perm-grid">';
+    ids.forEach(id => {
+      const nome = (perfisAcesso[id] && perfisAcesso[id].nome) ? perfisAcesso[id].nome : id;
+      const on = permissaoEnvioPerfil[id] === true;
+      h += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked ' : '') +
+           'onchange="setPermEnvioPerfil(\'' + asp2(id) + '\', this.checked)"> ' + escAttr(nome) + '</label>';
+    });
+    h += '</div>';
+  }
+
+  const emails = Object.keys(Object.assign({}, perfis || {}, permissoesTodos || {}))
+    .map(e => String(e).toLowerCase()).filter((e,i,a) => e && a.indexOf(e) === i).sort();
+  h += '<div class="pe-sub">Pessoa por pessoa</div>';
+  h += '<p class="nota-dash">Deixe em <b>Seguir o perfil</b> para usar a regra de cima. Use <b>Pode</b> ou <b>Não pode</b> só quando quiser abrir uma exceção para alguém.</p>';
+  if (!emails.length){
+    h += '<p class="nota-dash">Nenhum funcionário cadastrado ainda.</p>';
+  } else {
+    emails.forEach(e => {
+      const ehAdmin = (typeof ADMINS!=="undefined") && ADMINS.includes(e);
+      const nome = (perfis && perfis[e] && perfis[e] !== e) ? perfis[e] : e;
+      const modo = origemEnvioDe(e);
+      const pode = podeEnviarRecadosDe(e);
+      const pid = perfilDoUsuario(e);
+      const pnome = (pid && perfisAcesso[pid] && perfisAcesso[pid].nome) ? perfisAcesso[pid].nome : (pid || "sem perfil");
+      h += '<div class="pe-item"><span class="pe-nome">' + escAttr(nome) +
+           (ehAdmin ? ' <span class="usr-tag">admin</span>' : '') +
+           '<span class="pe-perfil">' + escAttr(pnome) + '</span></span>';
+      if (ehAdmin){
+        h += '<span class="pe-sel"><span class="pe-tag pe-sim">sempre pode</span></span>';
+      } else {
+        h += '<span class="pe-sel"><select onchange="setPermEnvioModo(\'' + asp2(e) + '\', this.value)">' +
+             '<option value=""' + (modo === "perfil" ? " selected" : "") + '>Seguir o perfil</option>' +
+             '<option value="sim"' + (modo === "sim" ? " selected" : "") + '>Pode enviar</option>' +
+             '<option value="nao"' + (modo === "nao" ? " selected" : "") + '>Não pode</option>' +
+             '</select><span class="pe-tag ' + (pode ? 'pe-sim' : 'pe-nao') + '">' + (pode ? 'pode enviar' : 'não envia') + '</span></span>';
+      }
+      h += '</div>';
+    });
+  }
+  box.innerHTML = h;
 }
 function recadoVisivelParaMim(r){
   const u = (usuarioAtual||"").toLowerCase();
@@ -2990,7 +3102,7 @@ function renderAdminUsuarios(){
       'onclick="enviarResetUsuario(\'' + asp(e) + '\')">🔑 Trocar senha</button>' +
       '</div>';
     html += '<div class="usr-envio"><label class="usr-envio-lbl"><input type="checkbox" ' +
-      ((ehAdmin || permissaoEnvio[e] === true) ? 'checked ' : '') + (ehAdmin ? 'disabled ' : '') +
+      (podeEnviarRecadosDe(e) ? 'checked ' : '') + (ehAdmin ? 'disabled ' : '') +
       'onchange="setPermEnvio(\'' + asp(e) + '\', this.checked)"> Pode enviar avisos/tarefas</label>' +
       (ehAdmin ? ' <span style="font-size:.7rem;color:var(--cinza)">(admin sempre pode)</span>' : '') + '</div>';
   });
@@ -3336,6 +3448,7 @@ function alternarConfig(){
 let confirmarRemocao = null;   // {chave, i} aguardando o segundo toque
 
 function renderConfig(){
+  renderPermEnvio();   // v187
   renderMotoristas();
   renderClientes();
   [["posto","chipsPosto"],["distribuidora","chipsDistribuidora"]].forEach(([chave,idChips])=>{
@@ -3611,6 +3724,9 @@ function iniciarSync(){
   escutaPermEnvio = docPermEnvio.onSnapshot(snap => {
     const d = snap.exists ? (snap.data() || {}) : {};
     permissaoEnvio = (d && d.porUsuario) ? d.porUsuario : {};
+    permissaoEnvioPerfil = (d && d.porPerfil) ? d.porPerfil : {};   // v187
+    const pCfg = document.getElementById("painelConfig");
+    if (pCfg && pCfg.classList.contains("aberto")) renderPermEnvio();
     const pcx = document.getElementById("painelCaixa");
     if (pcx && pcx.classList.contains("aberto")) renderCaixa();
     const pAdm = document.getElementById("painelAdmin");
