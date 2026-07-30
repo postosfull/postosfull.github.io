@@ -855,6 +855,16 @@
   table.dsp-tab th,table.dsp-tab td{padding:6px 6px;border-bottom:1px solid var(--borda);text-align:left}
   table.dsp-tab th{font-size:.7rem;text-transform:uppercase;letter-spacing:.03em;color:var(--cinza)}
   .dsp-r{text-align:right !important}
+  /* v194 - lancamentos fora da curva */
+  .fdc-caixa{border:1px solid var(--borda);border-left:4px solid var(--verde);border-radius:10px;padding:10px 12px;margin:14px 0;background:var(--superficie-2);background-image:linear-gradient(var(--superficie-2),var(--superficie-2))}
+  .fdc-topo{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+  .fdc-bts{display:flex;flex-wrap:wrap;gap:6px}
+  .fdc-lista{margin:8px 0 4px;padding-left:18px;font-size:.86rem}
+  .fdc-lista li{margin:3px 0}
+  .fdc-obs{color:var(--cinza);font-size:.8rem}
+  .fdc-res{margin-top:8px;padding-top:8px;border-top:1px solid var(--borda);font-size:.9rem}
+  .fdc-bom{color:var(--verde)}
+  .fdc-ruim{color:#c0392b}
   /* v192 - ordenacao das abas do menu Relatorios */
   .rel-ord-bt{margin-left:auto}
   .ord-abas{border:1px solid var(--borda);border-radius:10px;padding:10px;margin:8px 0;background:var(--superficie-2);background-image:linear-gradient(var(--superficie-2),var(--superficie-2))}
@@ -2166,6 +2176,7 @@ let ordemAbasRel = {}, abaRelAtual = "", ordAbasAberto = false;  // v192
 let analises = {}, anaSel = "";                 // v172 - {"postos_2026-07-28": {...}}
 let escutaAnalises = null;
 let relPostoSel = "teresina", relPostoMes = "", relPostoAba = "resultado";
+let relSemFora = false, relSemRetiradas = false;   // v194 - ajustes do resultado
 let relLojaSel = "teresina", relLojaMes = "", relLojaOrdem = "lb";
 let docFormAberto = false, editandoDoc = null;
 let confirmarExclDoc = null, timerExclDoc = null;
@@ -4816,7 +4827,7 @@ function alternarSimular(){
 
 /* ================== v168 - Relatórios do posto e da conveniência (Adaptive) ================== */
 // Firestore não guarda lista dentro de lista: as tabelas vêm como texto JSON.
-const CAMPOS_LISTA_REL = ["aten","hora","comb","lbm","receb","cat","itens"];
+const CAMPOS_LISTA_REL = ["aten","hora","comb","lbm","receb","cat","itens","despDet"];  // v194
 function normalizaRel(o){
   if (!o) return o;
   CAMPOS_LISTA_REL.forEach(k => {
@@ -5590,18 +5601,101 @@ function renderRelPosto(){
   else h += blocoCombPosto(d);
   box.innerHTML = h;
 }
+/* ===================== v194 - LANCAMENTOS FORA DA CURVA ===================== */
+/* Compara cada linha de despesa do mes com a media da MESMA linha nos outros
+   meses do mesmo posto. Sobrando muito, vira "fora da curva". Retiradas de socios
+   sao tratadas a parte, porque nao sao despesa de operacao. */
+function relDespDetDe(posto, mes){
+  const d = relPostos[posto + "_" + mes];
+  const l = d && d.despDet;
+  return Array.isArray(l) ? l : [];
+}
+function ehRetiradaRel(nome){ return /RETIRADA/i.test(String(nome || "")); }
+function foraDaCurvaRel(posto, mes){
+  const atual = relDespDetDe(posto, mes);
+  const soma = {}, cont = {};
+  Object.keys(relPostos).forEach(k => {
+    if (k.indexOf(posto + "_") !== 0) return;
+    const m = k.slice(posto.length + 1);
+    if (m === mes) return;
+    relDespDetDe(posto, m).forEach(x => {
+      const n = String(x[0] || "");
+      soma[n] = (soma[n] || 0) + (Number(x[1]) || 0);
+      cont[n] = (cont[n] || 0) + 1;
+    });
+  });
+  const fora = [], ret = [];
+  atual.forEach(x => {
+    const n = String(x[0] || ""), v = Number(x[1]) || 0;
+    if (ehRetiradaRel(n)){ ret.push({ nome:n, valor:v }); return; }
+    const media = cont[n] ? soma[n] / cont[n] : 0;
+    const excesso = v - media;
+    // regua escolhida pelo Tiago em 30/07: o DOBRO da media E pelo menos R$ 20 mil de excesso.
+    // Medido nos 7 meses x 3 postos, isso marca 5 linhas em 21 meses (so o que distorce o mes).
+    if (v > media * 2 && excesso >= 20000) fora.push({ nome:n, valor:v, media:media, excesso:excesso });
+  });
+  fora.sort((a, b) => b.excesso - a.excesso);
+  return { fora: fora, ret: ret,
+           totalFora: fora.reduce((sm, x) => sm + x.excesso, 0),
+           totalRet: ret.reduce((sm, x) => sm + x.valor, 0) };
+}
+function alternarSemFora(){ relSemFora = !relSemFora; renderRelPosto(); }
+function alternarSemRetiradas(){ relSemRetiradas = !relSemRetiradas; renderRelPosto(); }
+function blocoAjusteResultado(d){
+  const a = foraDaCurvaRel(relPostoSel, relPostoMes);
+  if (!a.fora.length && !a.ret.length) return { html:"", desp:(+d.res.desp||0), ll:(+d.res.ll||0), mexeu:false };
+  const tiraF = relSemFora ? a.totalFora : 0;
+  const tiraR = relSemRetiradas ? a.totalRet : 0;
+  const desp = (+d.res.desp || 0) - tiraF - tiraR;
+  const ll = (+d.res.lb || 0) - desp + (+d.res.varEst || 0);
+  let h = '<div class="fdc-caixa">';
+  h += '<div class="fdc-topo"><b>Lançamentos fora do padrão deste mês</b>' +
+       '<span class="fdc-bts">' +
+       (a.fora.length ? '<button class="doc-chip' + (relSemFora ? ' ativo' : '') + '" onclick="alternarSemFora()">' +
+          (relSemFora ? '✓ ' : '') + 'Tirar da conta</button>' : '') +
+       (a.ret.length ? '<button class="doc-chip' + (relSemRetiradas ? ' ativo' : '') + '" onclick="alternarSemRetiradas()">' +
+          (relSemRetiradas ? '✓ ' : '') + 'Tirar as retiradas de sócios</button>' : '') +
+       '</span></div>';
+  if (a.fora.length){
+    h += '<ul class="fdc-lista">';
+    a.fora.forEach(x => {
+      h += '<li><b>' + escAttr(x.nome) + '</b> — ' + fmtR$0(x.valor) +
+           (x.media > 0 ? ' <span class="fdc-obs">(média dos outros meses: ' + fmtR$0(x.media) +
+              ' · <b>' + fmtR$0(x.excesso) + ' acima</b>)</span>'
+                        : ' <span class="fdc-obs">(não aparece em nenhum outro mês)</span>') + '</li>';
+    });
+    h += '</ul>';
+  }
+  if (a.ret.length) h += '<p class="fdc-obs">Retiradas de sócios no mês: <b>' + fmtR$0(a.totalRet) +
+      '</b> — não são despesa da operação, são distribuição de lucro.</p>';
+  if (tiraF || tiraR){
+    h += '<div class="fdc-res">Sem ' +
+      [tiraF ? 'o excesso fora da curva' : null, tiraR ? 'as retiradas de sócios' : null].filter(Boolean).join(' e ') +
+      ', o mês fecharia com <b class="' + (ll >= 0 ? 'fdc-bom' : 'fdc-ruim') + '">' + fmtR$0(ll) + '</b>' +
+      ' de lucro líquido, no lugar de ' + fmtR$0(+d.res.ll || 0) + '.</div>';
+  } else {
+    h += '<p class="fdc-obs">Os números acima <b>incluem</b> esses lançamentos. Use os botões para ver o mês sem eles.</p>';
+  }
+  h += '</div>';
+  return { html:h, desp:desp, ll:ll, mexeu: !!(tiraF || tiraR) };
+}
+
 function blocoResultadoPosto(d){
   const r = d.res;
   if (!r) return '<p class="nota-dash">Sem o resultado deste mês.</p>';
   const perdeu = (+r.varEst||0) < 0;
+  const aj = blocoAjusteResultado(d);          // v194
+  const despMostra = aj.mexeu ? aj.desp : (+r.desp||0);
+  const llMostra   = aj.mexeu ? aj.ll   : (+r.ll||0);
   let h = '<div class="rel-kpis">' +
     '<div class="rel-kpi"><span>Volume vendido</span><b>'+fmtL(r.vol)+'</b></div>' +
     '<div class="rel-kpi"><span>Faturamento</span><b>'+fmtR$0((+r.comb||0)+(+r.outros||0)+(+r.outrasRec||0))+'</b></div>' +
     '<div class="rel-kpi"><span>Lucro bruto</span><b>'+fmtR$0(r.lb)+'</b></div>' +
-    '<div class="rel-kpi"><span>Despesas</span><b>'+fmtR$0(r.desp)+'</b></div>' +
-    '<div class="rel-kpi '+((+r.ll||0)>=0?'bom':'ruim')+'"><span>Lucro líquido</span><b>'+fmtR$0(r.ll)+'</b></div>' +
+    '<div class="rel-kpi"><span>Despesas'+(aj.mexeu?' (ajustada)':'')+'</span><b>'+fmtR$0(despMostra)+'</b></div>' +
+    '<div class="rel-kpi '+(llMostra>=0?'bom':'ruim')+'"><span>Lucro líquido'+(aj.mexeu?' (ajustado)':'')+'</span><b>'+fmtR$0(llMostra)+'</b></div>' +
     '<div class="rel-kpi '+(perdeu?'ruim':'')+'"><span>Variação de estoque</span><b>'+fmtR$0(r.varEst)+'</b></div>' +
     '</div>';
+  if (aj.mexeu) h += '<p class="nota-dash">A tabela abaixo mostra os valores <b>como estão lançados no Petros</b>. O ajuste aparece nos quadros acima e no quadro do fim.</p>';
   h += '<div class="rel-scroll"><table class="rel-tab"><thead><tr><th>Linha</th><th class="n">Valor</th><th class="n">Por litro</th></tr></thead><tbody>';
   const litros = +r.vol || 1;
   const linha = (nome, valor, porLitro, moeda) => '<tr><td>'+nome+'</td><td class="n">'+(moeda===false?fmtL(valor):fmtR$(valor))+'</td><td class="n">'+(porLitro==null?"—":("R$ "+fmtBR(porLitro,3)))+'</td></tr>';
@@ -5615,6 +5709,7 @@ function blocoResultadoPosto(d){
   h += '<tr><td>Variação de estoque</td><td class="n">'+fmtR$(r.varEst)+'</td><td class="n">'+((+r.vol||0) ? ("R$ "+fmtBR((+r.varEst||0)/(+r.vol||1),3)) : "—")+'</td></tr>';
   h += linha("<b>Lucro líquido</b>", r.ll, r.llL);
   h += '</tbody></table></div>';
+  h += aj.html;                                  // v194
   if (perdeu) h += '<div class="rel-alerta">⚠️ A variação de estoque do mês está negativa em '+fmtR$(Math.abs(+r.varEst||0))+'. Vale conferir aferições, vazamentos e as entradas de nota.</div>';
   return h;
 }
