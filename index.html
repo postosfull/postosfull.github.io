@@ -4990,7 +4990,7 @@ const ABAS_REL_UNIF = [
   { k:"z:desp",      n:"💸 Despesas",           painel:"painelRelPetros", aba:"desp",      emp:"postos|conv" },
   { k:"z:tanques",   n:"🛢️ Tanques",            painel:"painelRelPetros", aba:"tanques",   emp:"postos" },
   { k:"z:colab",     n:"🙋 Colaboradores",      painel:"painelRelPetros", aba:"colab",     emp:"postos|conv" },
-  { k:"z:aprazo",    n:"📄 A Prazo",            painel:"painelRelPetros", aba:"aprazo",    emp:"postos|conv" }
+  { k:"z:aprazo",    n:"📄 A Prazo",            painel:"painelRelPetros", aba:"aprazo",    emp:"postos" }   // v193: a loja nao vende a prazo
 ];
 function tituloRel(){
   return "📑 Relatórios — " + (siglaEmpresa(empresa) === "conv" ? "Full Conveniência" : "Postos Full");
@@ -5241,7 +5241,7 @@ function rpzBlocoDre(D){
   h += card("Lucro líquido", "R$ " + rpzDin0(ll), ll < 0 ? "rpz-neg" : "rpz-pos");
   h += '</div>';
   if (vVe < 0) h += '<div class="ana-resumo"><b>Atenção:</b> a variação de estoque está negativa em R$ ' + rpzDin0(Math.abs(vVe)) + ' — saiu mais produto do que a venda explica.</div>';
-  h += '<p class="nota-dash">Este é o resultado contábil do Petros (Demonstrativo de Resultado). Ele <b>não bate exatamente</b> com a aba <b>Resultado do mês</b>: aquela vem dos painéis do Adaptive, costuma cobrir menos dias e conta o lucro bruto já com as outras receitas dentro. Para comparar, confira antes o período de cada uma.</p>';
+  h += '<p class="nota-dash">Mesma fonte da aba <b>Resultado do mês</b> (o Demonstrativo de Resultado do Petros). Se os números diferirem, é só o período: esta aba mostra o intervalo escolhido aqui em cima, e aquela mostra o mês inteiro.</p>';
 
   const tab = (titulo, cols, linhas) => {
     if (!linhas.length) return "";
@@ -5580,7 +5580,10 @@ function renderRelPosto(){
   document.getElementById("relPostoAbas").innerHTML = barraAbasRel();
   renderOrdemAbasRel();
   let h = "";
-  if (d.ate) h += '<p class="nota-dash">Período: 1 a '+String(d.ate).slice(8,10)+' de '+rotuloMesRel(relPostoMes)+'.</p>';
+  // v193 - a aba Resultado vem do DRE e pode cobrir mais dias que as outras
+  const fimAba = (relPostoAba === "resultado" && d.resAte) ? d.resAte : d.ate;
+  if (fimAba) h += '<p class="nota-dash">Período: 1 a ' + String(fimAba).slice(8,10) + ' de ' + rotuloMesRel(relPostoMes) + '.' +
+    ((relPostoAba === "resultado" && d.resFonte === "dre") ? ' Fonte: Demonstrativo de Resultado do Petros — a mesma da aba <b>Resultado do período</b>.' : '') + '</p>';
   if (relPostoAba === "resultado") h += blocoResultadoPosto(d);
   else if (relPostoAba === "caixa") h += blocoCaixaPosto(d);
   else if (relPostoAba === "equipe") h += blocoEquipePosto(d);
