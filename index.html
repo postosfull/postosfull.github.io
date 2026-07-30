@@ -917,6 +917,8 @@
   /* v192 - ordenacao das abas do menu Relatorios */
   .rel-ord-bt{margin-left:auto}
   .ord-abas{border:1px solid var(--borda);border-radius:10px;padding:10px;margin:8px 0;background:var(--superficie-2);background-image:linear-gradient(var(--superficie-2),var(--superficie-2))}
+  #dashOrdBarra{margin:0 0 4px}                      /* v200 - barra do "Ordenar cards" */
+  #painelDash .ord-cards-box:empty{display:none}
   /* v191 - Relatorios Petros */
   .rpz-cards{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
   .rpz-card{flex:1 1 130px;min-width:130px;border:1px solid var(--borda);border-radius:10px;padding:8px 10px;background:var(--superficie);background-image:linear-gradient(var(--superficie),var(--superficie))}
@@ -1858,8 +1860,20 @@
   </div>
 
   <div class="config" id="painelDash">
+    <div class="doc-tools" id="dashOrdBarra"></div>
+    <div class="ord-cards-box"></div>
+
     <div class="grupo" id="dashGrpVendasDia">
       <div id="conteudoPetros"></div>
+    </div>
+
+    <div class="grupo" id="dashGrpResultadoP">
+      <h2>💵 Resultado do mês</h2>
+      <p class="nota-dash">Quanto cada posto vendeu, quanto sobrou de lucro bruto, quanto gastou e quanto sobrou no fim. Vem do Demonstrativo de Resultado do Petros — os mesmos números do menu Relatórios.</p>
+      <div class="evo-filtros">
+        <div class="desc-campo"><label>Mês</label><select id="dpsMes" onchange="dpsMesSel=this.value;renderDashPostosResultado()"></select></div>
+      </div>
+      <div id="dpsResBox"></div>
     </div>
 
     <div class="grupo" id="dashGrpResultado">
@@ -2239,6 +2253,7 @@ const colVendasMensais = db.collection("vendasMensais");
 const colRelPosto = db.collection("relatoriosPosto");      // v168 - relatórios mensais dos postos (Adaptive)
 const docOrdemMenus = db.collection("config").doc("ordemMenus");   // v188 - ordem dos botoes da barra
 const docOrdemAbasRel = db.collection("config").doc("ordemAbasRel"); // v192 - ordem das abas dentro do menu Relatorios
+const docOrdemCardsDash = db.collection("config").doc("ordemCardsDash"); // v200 - ordem dos cards do Dashboard
 const colCaixaInd = db.collection("caixaIndicadores");    // v185 - "2026-07" indicadores de caixa por posto
 const colDespesasAno = db.collection("despesasAno");      // v185 - "2026" despesas mes a mes por tipo
 const colRelPetros   = db.collection("relatoriosPetros"); // v191 - relatorios do Adaptive (Mapa Anual, DRE, despesas, tanques, colaboradores, a prazo)
@@ -2291,6 +2306,8 @@ let relPostos = {}, relLojas = {};              // v168 - {"teresina_2026-07": {
 let escutaRelPosto = null, escutaRelLoja = null;
 let caixaInd = {}, cxiSel = "";                 // v185 - {"2026-07": {...}}
 let dcvMesSel = "", dcvLojaSel = "teresina";     // v198 - filtros do Dashboard da Conveniencia
+let dpsMesSel = "";                              // v200 - mes do Resultado do mes dos Postos
+let ordemCardsDash = {}, ordCardsAberto = false; // v200 - ordem dos cards do Dashboard
 let despesasAno = {}, dspAnoSel = "", dspPostoSel = "todos", dspComRet = true;  // v185
 let relPetros = {}, rpzAba = "mapa", rpzUnidSel = "teresina", rpzPerSel = "";  // v191
 let ordemAbasRel = {}, abaRelAtual = "", ordAbasAberto = false;  // v192
@@ -3960,6 +3977,7 @@ function iniciarSync(){
     const m = {}; snap.forEach(d => m[d.id] = normalizaRel(Object.assign({ id: d.id }, d.data()))); relPostos = m;
     const pr = document.getElementById("painelRelPosto");
     if (pr && pr.classList.contains("aberto")) renderRelPosto();
+    atualizarDashPostos();                                   // v200
   }, ()=>{});
   escutaRelLoja = colRelLoja.onSnapshot(snap => {
     const m = {}; snap.forEach(d => m[d.id] = normalizaRel(Object.assign({ id: d.id }, d.data()))); relLojas = m;
@@ -4008,6 +4026,14 @@ function iniciarSync(){
     if (pz && pz.classList.contains("aberto")) renderRelPetros();
   }, ()=>{});
 
+  // v200 - ordem dos cards do Dashboard
+  docOrdemCardsDash.onSnapshot(d => {
+    const v = d && d.exists ? d.data() : null;
+    ordemCardsDash = (v && v.porEmpresa) ? v.porEmpresa : {};
+    const pd = document.getElementById("painelDash");
+    if (pd && pd.classList.contains("aberto")){ aplicarOrdemCardsDash(); renderOrdemCardsDash(); }
+  }, ()=>{});
+
   // v191 - relatorios do Petros
   colRelPetros.onSnapshot(snap => {
     const m = {}; snap.forEach(d => m[d.id] = Object.assign({ id: d.id }, d.data())); relPetros = m;
@@ -4016,6 +4042,7 @@ function iniciarSync(){
     const pr = document.getElementById("painelRelPosto");   // v197 - o Resultado do mes tambem le o DRE
     if (pr && pr.classList.contains("aberto")) renderRelPosto();
     atualizarDashConv();                                     // v198
+    atualizarDashPostos();                                   // v200
   }, ()=>{});
 
   // Eventos do calendário criados no app
@@ -6324,9 +6351,10 @@ function abreviaNumEvo(v){
   return fmtBR(n, 0);
 }
 function onEvoFiltro(){ evoTocado = true; renderEvolucao(); }
-// v199 - na Full Conveniencia o seletor so' oferece as tres lojas
+// v200 - o seletor so' oferece as unidades da empresa aberta
 function empresasEvoDaEmpresa(){
-  return dashEhConv() ? EMPRESAS_EVO.filter(e => e.grupo === "lojas") : EMPRESAS_EVO;
+  const g = dashEhConv() ? "lojas" : "postos";
+  return EMPRESAS_EVO.filter(e => e.grupo === g);
 }
 function popularSelectEvo(){
   const sel = document.getElementById("evoEmpresa");
@@ -10994,39 +11022,37 @@ function renderPetrosResumo(){
   const dataRef = (p && p.atualizadoEm) ? new Date(p.atualizadoEm) : new Date();
   const horaColeta = (p && p.atualizadoEm) ? ' (até às '+dataRef.toLocaleTimeString("pt-BR").slice(0,5)+')' : '';
   let html = '<div class="pet-sec"><h3 class="comp-tit">Vendas do dia — '+dataRef.toLocaleDateString("pt-BR")+horaColeta+'</h3>';
-  const soLojas = dashEhConv();                 // v199 - na Conveniencia o card so' fala da loja
-  if (!p || (soLojas ? !p.conveniencias : (!p.postos && !p.conveniencias))){
+  // v200 - cada empresa ve' SO' os proprios numeros
+  const soLojas = dashEhConv();
+  if (!p || (soLojas ? !p.conveniencias : !p.postos)){
     return html + '<p class="nota-dash">Ainda sem dados do Petros. A sincronização diária preenche esta área automaticamente.</p></div>';
   }
   const ordem = ["Teresina","Caxias","Pres Dutra"];       // ordem escolhida pelo Tiago
   const rotulo = n => n === "Pres Dutra" ? "Dutra" : n;
 
-  // Bloco dos postos (v199 - nao entra no Dashboard da Conveniencia)
-  let blocoPostos = soLojas ? "" : '<div class="pet-bloco"><h4 class="pet-bloco-tit">⛽ Postos Full</h4><div class="pet-grid">';
-  if (!soLojas) ordem.forEach(n => {
-    const d = (p.postos||{})[n]; if (!d) return;
-    blocoPostos += '<div class="pet-card"><h4>'+rotulo(n)+'</h4><div class="pet-linhas">' +
-      '<div class="pet-l"><span>Volume</span><b>'+fmtBR(d.volume||0,0)+' L</b></div>' +
-      '<div class="pet-l"><span>Lucro Líquido</span><b>R$ '+fmtBR(d.lucroLiquido||0,2)+'</b></div>' +
-      '<div class="pet-l"><span>Lucro Bruto/L</span><b>R$ '+fmtBR(d.lucroBrutoL||0,4)+'</b></div>' +
-      '<div class="pet-l"><span>Lucro Líquido/L</span><b>R$ '+fmtBR(d.lucroLiquidoL||0,4)+'</b></div>' +
-      '</div></div>';
-  });
-  if (!soLojas) blocoPostos += '</div></div>';
-
-  // Bloco das lojas
-  let blocoLojas = '<div class="pet-bloco"><h4 class="pet-bloco-tit">🛒 Full Conveniência</h4><div class="pet-grid">';
-  ordem.forEach(n => {
-    const d = (p.conveniencias||{})[n]; if (!d) return;
-    blocoLojas += '<div class="pet-card"><h4>'+rotulo(n)+'</h4><div class="pet-linhas">' +
-      '<div class="pet-l"><span>Vendas</span><b>R$ '+fmtBR(d.outros||0,2)+'</b></div>' +
-      '<div class="pet-l"><span>Lucro Líquido</span><b>R$ '+fmtBR(d.lucroLiquido||0,2)+'</b></div>' +
-      '</div></div>';
-  });
-  blocoLojas += '</div></div>';
-
-  // v199 - na Full Conveniencia sai so' a loja; nos Postos saem os dois, o posto primeiro
-  html += soLojas ? blocoLojas : (blocoPostos + blocoLojas);
+  if (soLojas){
+    html += '<div class="pet-bloco"><h4 class="pet-bloco-tit">🛒 Full Conveniência</h4><div class="pet-grid">';
+    ordem.forEach(n => {
+      const d = (p.conveniencias||{})[n]; if (!d) return;
+      html += '<div class="pet-card"><h4>'+rotulo(n)+'</h4><div class="pet-linhas">' +
+        '<div class="pet-l"><span>Vendas</span><b>R$ '+fmtBR(d.outros||0,2)+'</b></div>' +
+        '<div class="pet-l"><span>Lucro Líquido</span><b>R$ '+fmtBR(d.lucroLiquido||0,2)+'</b></div>' +
+        '</div></div>';
+    });
+    html += '</div></div>';
+  } else {
+    html += '<div class="pet-bloco"><h4 class="pet-bloco-tit">⛽ Postos Full</h4><div class="pet-grid">';
+    ordem.forEach(n => {
+      const d = (p.postos||{})[n]; if (!d) return;
+      html += '<div class="pet-card"><h4>'+rotulo(n)+'</h4><div class="pet-linhas">' +
+        '<div class="pet-l"><span>Volume</span><b>'+fmtBR(d.volume||0,0)+' L</b></div>' +
+        '<div class="pet-l"><span>Lucro Líquido</span><b>R$ '+fmtBR(d.lucroLiquido||0,2)+'</b></div>' +
+        '<div class="pet-l"><span>Lucro Bruto/L</span><b>R$ '+fmtBR(d.lucroBrutoL||0,4)+'</b></div>' +
+        '<div class="pet-l"><span>Lucro Líquido/L</span><b>R$ '+fmtBR(d.lucroLiquidoL||0,4)+'</b></div>' +
+        '</div></div>';
+    });
+    html += '</div></div>';
+  }
   html += '<p class="pet-info">' +
     (p.atualizadoEm ? '🔄 Atualizado em ' + fmtDataHora(new Date(p.atualizadoEm)) + ' • ' : '') +
     'Sincronização automática diária. Para atualizar agora, peça ao Claude: "sincroniza o Petros".</p>';
@@ -11039,9 +11065,178 @@ function renderPetrosResumo(){
    proprio; ajustarBlocosDash() liga e desliga o que nao serve para a empresa
    aberta. Os Caixas, que eram menu, agora sao um bloco daqui (nas duas). */
 function dashEhConv(){ return siglaEmpresa(empresa) === "conv"; }
+/* ===================== v200 - ORDEM DOS CARDS DO DASHBOARD =====================
+   Mesma receita da ordem dos menus (v188) e das abas dos Relatorios (v192):
+   a lista de fabrica manda, config/ordemCardsDash sobrepoe, e card novo que nao
+   esteja na lista salva entra no FIM — nunca desaparece. */
+const CARDS_DASH = [
+  { k:"vendasDia",  id:"dashGrpVendasDia",  n:"🏁 Vendas do dia",                  emp:"postos|conv" },
+  { k:"resultadoP", id:"dashGrpResultadoP", n:"💵 Resultado do mês",               emp:"postos" },
+  { k:"resultado",  id:"dashGrpResultado",  n:"💵 Resultado do mês",               emp:"conv" },
+  { k:"despesas",   id:"dashGrpDespesas",   n:"💸 Despesas do mês contra a média", emp:"conv" },
+  { k:"evolucao",   id:"dashGrpEvolucao",   n:"📈 Evolução das vendas",            emp:"postos|conv" },
+  { k:"caixas",     id:"dashGrpCaixas",     n:"🧾 Caixas",                         emp:"postos|conv" },
+  { k:"categorias", id:"dashGrpCategorias", n:"🍫 Onde está o lucro da loja",      emp:"conv" },
+  { k:"comparar",   id:"dashGrpComparar",   n:"⚖️ As três lojas na mesma categoria",        emp:"conv" },
+  { k:"ifood",      id:"dashGrpIfood",      n:"🛵 iFood",                          emp:"conv" },
+  { k:"precos",     id:"dashGrpPrecos",     n:"📉 Evolução de preços e margens",   emp:"postos" }
+];
+function cardsDashDaEmpresa(s){
+  s = s || siglaEmpresa(empresa);
+  const base = CARDS_DASH.filter(c => String(c.emp).split("|").indexOf(s) >= 0);
+  const ordem = (ordemCardsDash && ordemCardsDash[s]) ? ordemCardsDash[s] : [];
+  const mapa = {}; base.forEach(c => mapa[c.k] = c);
+  const saida = [];
+  ordem.forEach(k => { if (mapa[k]){ saida.push(mapa[k]); delete mapa[k]; } });
+  base.forEach(c => { if (mapa[c.k]) saida.push(c); });   // card novo nunca some
+  return saida;
+}
+function aplicarOrdemCardsDash(){
+  const pai = document.getElementById("painelDash");
+  if (!pai) return;
+  const querida = cardsDashDaEmpresa().map(c => c.id);
+  // so' mexe no DOM se a ordem estiver diferente: mover no' derruba foco e selecao
+  const atual = [].slice.call(pai.children).filter(e => querida.indexOf(e.id) >= 0).map(e => e.id);
+  if (atual.join(",") === querida.join(",")) return;
+  querida.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) pai.appendChild(el);        // a barra de ferramentas e a de ordenar ficam antes e nao se mexem
+  });
+}
+function moverCardDash(k, dir){
+  const s = siglaEmpresa(empresa);
+  const lista = cardsDashDaEmpresa(s).map(c => c.k);
+  const i = lista.indexOf(k), j = i + dir;
+  if (i < 0 || j < 0 || j >= lista.length) return;
+  lista.splice(j, 0, lista.splice(i, 1)[0]);
+  if (!ordemCardsDash) ordemCardsDash = {};
+  ordemCardsDash[s] = lista;
+  docOrdemCardsDash.set({ porEmpresa: ordemCardsDash })
+    .then(() => { if (typeof logAtividade === "function") logAtividade("menus", "Mudou a ordem dos cards do Dashboard", s); })
+    .catch(()=>{});
+  aplicarOrdemCardsDash(); renderOrdemCardsDash();
+}
+function resetarOrdemCardsDash(){
+  const s = siglaEmpresa(empresa);
+  if (!ordemCardsDash) ordemCardsDash = {};
+  delete ordemCardsDash[s];
+  docOrdemCardsDash.set({ porEmpresa: ordemCardsDash }).catch(()=>{});
+  aplicarOrdemCardsDash(); renderOrdemCardsDash();
+}
+function alternarOrdemCardsDash(){ ordCardsAberto = !ordCardsAberto; renderBarraOrdenarCards(); renderOrdemCardsDash(); }
+function renderBarraOrdenarCards(){
+  const b = document.getElementById("dashOrdBarra");
+  if (!b) return;
+  const adm = ehAdminAtual();
+  b.style.display = adm ? "" : "none";
+  b.innerHTML = adm ? ('<button class="doc-chip rel-ord-bt' + (ordCardsAberto ? ' ativo' : '') +
+    '" onclick="alternarOrdemCardsDash()" title="Mudar a ordem dos cards desta tela">⚙️ Ordenar cards</button>') : "";
+}
+function renderOrdemCardsDash(){
+  const caixa = document.querySelector("#painelDash .ord-cards-box");
+  if (!caixa) return;
+  if (!ordCardsAberto || !ehAdminAtual()){ caixa.innerHTML = ""; return; }
+  const s = siglaEmpresa(empresa);
+  const lista = cardsDashDaEmpresa(s);
+  let h = '<div class="ord-abas"><p class="nota-dash">Arrume os cards na ordem que você preferir. Vale para ' +
+    (s === "conv" ? "a Full Conveniência" : "os Postos Full") + ' e todo mundo passa a ver assim.</p><div class="ord-lista">';
+  lista.forEach((c, i) => {
+    h += '<div class="ord-item"><span class="ord-pos">' + (i+1) + '</span>' +
+         '<span class="ord-nome">' + c.n + '</span>' +
+         '<span class="ord-bts">' +
+         '<button class="btn-claro" ' + (i === 0 ? 'disabled ' : '') + 'onclick="moverCardDash(\'' + c.k + '\',-1)" title="Subir">\u25b2</button>' +
+         '<button class="btn-claro" ' + (i === lista.length-1 ? 'disabled ' : '') + 'onclick="moverCardDash(\'' + c.k + '\',1)" title="Descer">\u25bc</button>' +
+         '</span></div>';
+  });
+  h += '</div><div class="ord-acoes"><button class="btn-claro" onclick="resetarOrdemCardsDash()">\u21a9 Voltar à ordem original</button>' +
+       '<button class="btn-claro" onclick="alternarOrdemCardsDash()">\u2713 Pronto</button></div></div>';
+  caixa.innerHTML = h;
+}
+
+/* ===================== v200 - RESULTADO DO MES DOS POSTOS =====================
+   Mesma conta da aba "Resultado do mes" do menu Relatorios (v197): quando existe o
+   DRE do mes em relatoriosPetros, ele manda; senao vale o "res" de relatoriosPosto.
+   A diferenca e' que aqui a funcao nao depende do posto/mes escolhidos naquele menu. */
+function dpsResDe(posto, mes){
+  const d = relPostos[posto + "_" + mes];
+  const base = (d && d.res) ? d.res : null;
+  if (!base) return null;
+  const doc = relPetros["dre_postos_" + posto + "_" + mes];
+  const D = doc ? rpzLista(doc) : null;
+  if (!D || !D.desp) return { res: base, ate: d.resAte || d.ate };
+  const comb = rpzSoma(D.comb, 4), custoComb = rpzSoma(D.comb, 5);
+  const outros = rpzSoma(D.prod, 4), custoOutros = rpzSoma(D.prod, 5);
+  const outrasRec = rpzSoma(D.rec, 2), desp = rpzSoma(D.desp, 2), varEst = rpzSoma(D.varEst, 1);
+  const lb = (comb + outros + outrasRec) - (custoComb + custoOutros);
+  const litros = +base.vol || 0;
+  return { res: { vol: base.vol, comb: comb, outros: outros, outrasRec: outrasRec, desp: desp,
+                  varEst: varEst, lb: lb, ll: lb - desp + varEst,
+                  llL: litros ? (lb - desp + varEst) / litros : 0 },
+           ate: doc.ate || d.resAte || d.ate };
+}
+function dpsMeses(){
+  const m = {};
+  Object.keys(relPostos || {}).forEach(k => { const p = String(k).split("_"); if (p[1]) m[p[1]] = 1; });
+  return Object.keys(m).sort().reverse();
+}
+function renderDashPostosResultado(){
+  const box = document.getElementById("dpsResBox");
+  if (!box) return;
+  const meses = dpsMeses();
+  if (!dpsMesSel || meses.indexOf(dpsMesSel) < 0) dpsMesSel = meses[0] || "";
+  preencherSelectRel("dpsMes", meses, dpsMesSel, rotuloMesRel);
+  const linha = document.querySelector("#dashGrpResultadoP .evo-filtros");
+  if (!dpsMesSel){
+    if (linha) linha.style.display = "none";
+    box.innerHTML = '<div class="ana-vazio">Ainda n\u00e3o temos os relat\u00f3rios dos postos.<br>Eles s\u00e3o montados na sincroniza\u00e7\u00e3o.</div>';
+    return;
+  }
+  if (linha) linha.style.display = "";
+  let h = '<div class="pet-grid">', achou = false, tVol = 0, tLb = 0, tDesp = 0, tLl = 0, ate = "";
+  UNIDADES_REL.forEach(u => {
+    const r = dpsResDe(u.chave, dpsMesSel);
+    if (!r || !r.res) return;
+    achou = true;
+    const x = r.res;
+    tVol += (+x.vol || 0); tLb += (+x.lb || 0); tDesp += (+x.desp || 0); tLl += (+x.ll || 0);
+    if (r.ate && r.ate > ate) ate = r.ate;
+    h += '<div class="pet-card"><h4>' + escAttr(u.nome) + '</h4><div class="pet-linhas">' +
+      '<div class="pet-l"><span>Volume vendido</span><b>' + fmtBR(+x.vol || 0, 0) + ' L</b></div>' +
+      '<div class="pet-l"><span>Lucro bruto</span><b>' + fmtR$0(x.lb) + '</b></div>' +
+      '<div class="pet-l"><span>Despesas</span><b>' + fmtR$0(x.desp) + '</b></div>' +
+      '<div class="pet-l"><span>Lucro l\u00edquido</span><b class="' + ((+x.ll || 0) < 0 ? "rpz-neg" : "rpz-pos") + '">' + fmtR$0(x.ll) + '</b></div>' +
+      '<div class="pet-l"><span>Lucro l\u00edquido/L</span><b class="' + ((+x.llL || 0) < 0 ? "rpz-neg" : "rpz-pos") + '">R$ ' + fmtBR(+x.llL || 0, 4) + '</b></div>' +
+      '</div></div>';
+  });
+  h += '</div>';
+  if (!achou){
+    box.innerHTML = '<div class="ana-vazio">Ainda n\u00e3o temos os n\u00fameros de ' + escAttr(rotuloMesRel(dpsMesSel)) + '.</div>';
+    return;
+  }
+  h += '<div class="resumo-dash" style="margin-top:12px">' +
+       '<div class="cartao-kpi"><span>Os tr\u00eas postos juntos</span><b>' + fmtBR(tVol, 0) + ' L</b></div>' +
+       '<div class="cartao-kpi"><span>Lucro bruto somado</span><b>' + fmtR$0(tLb) + '</b></div>' +
+       '<div class="cartao-kpi"><span>Despesas somadas</span><b>' + fmtR$0(tDesp) + '</b></div>' +
+       '<div class="cartao-kpi"><span>Lucro l\u00edquido da rede</span><b>' + fmtR$0(tLl) + '</b></div>' +
+       '<div class="cartao-kpi"><span>Lucro l\u00edquido/L da rede</span><b>R$ ' + fmtBR(tVol ? tLl / tVol : 0, 4) + '</b></div>' +
+       '</div>';
+  h += '<p class="ana-rodape">' + (ate ? ('Per\u00edodo: 1 a ' + String(ate).slice(8,10) + ' de ' + rotuloMesRel(dpsMesSel) + '. ') : '') +
+       'Fonte: Demonstrativo de Resultado do Petros \u2014 a mesma do menu Relat\u00f3rios. O detalhe linha a linha (e o ajuste dos lan\u00e7amentos fora do padr\u00e3o) fica l\u00e1.</p>';
+  box.innerHTML = h;
+}
+// chamada pelos onSnapshot: so' faz trabalho se o Dashboard dos Postos estiver na tela
+function atualizarDashPostos(){
+  const p = document.getElementById("painelDash");
+  if (p && p.classList.contains("aberto") && !dashEhConv()) renderDashPostosResultado();
+}
+
 function ajustarBlocosDash(){
   const conv = dashEhConv();
+  aplicarOrdemCardsDash();                 // v200
+  renderBarraOrdenarCards();               // v200
+  renderOrdemCardsDash();                  // v200
   const ver = (id, on) => { const e = document.getElementById(id); if (e) e.style.display = on ? "" : "none"; };
+  ver("dashGrpResultadoP", !conv);
   ver("dashGrpResultado",  conv);
   ver("dashGrpDespesas",   conv);
   ver("dashGrpCategorias", conv);
@@ -11052,7 +11247,7 @@ function ajustarBlocosDash(){
   const ex = document.getElementById("evoExplica");
   if (ex) ex.innerHTML = conv
     ? 'Compare o <b>faturamento</b> das conveniências mês a mês. O mês em andamento aparece mais claro, marcado como parcial. Passe o mouse (ou toque, no celular) em cima de um mês para ver os números em detalhe.'
-    : 'Compare mês a mês. Nos postos o gráfico mostra <b>litros vendidos</b>; nas conveniências, <b>faturamento</b>. O mês em andamento aparece mais claro, marcado como parcial. Passe o mouse (ou toque, no celular) em cima de um mês para ver os números em detalhe.';
+    : 'Compare os <b>litros vendidos</b> pelos postos mês a mês. O mês em andamento aparece mais claro, marcado como parcial. Passe o mouse (ou toque, no celular) em cima de um mês para ver os números em detalhe.';
 }
 // chamada pelos onSnapshot: so' faz trabalho se o Dashboard da Conveniencia estiver na tela
 function atualizarDashConv(){
@@ -11309,6 +11504,7 @@ function renderDashboard(){
   if (alvoPetros) alvoPetros.innerHTML = renderPetrosResumo();
   renderCaixas();                            // v198 - os caixas viraram bloco daqui
   if (dashEhConv()){ renderDashConv(); return; }
+  renderDashPostosResultado();               // v200
   const alvo = document.getElementById("conteudoDash");
   const chkC = document.getElementById("chkVerCusto");
   const chkM = document.getElementById("chkVerMargem");
