@@ -771,6 +771,8 @@
   .pet-l{display:flex;justify-content:space-between;gap:10px;font-size:.85rem}
   .pet-l span{color:var(--cinza)}
   .pet-l b{color:var(--txt);white-space:nowrap}
+  .pet-l b.rpz-pos{color:#18a558}   /* v198 - lucro liquido positivo em verde (licao da v197) */
+  .pet-l b.rpz-neg{color:#c0392b}
   .pet-info{font-size:.72rem;color:var(--cinza);margin-top:10px}
   /* Full Transportadora — Motoristas e Puxadas */
   .btn-claro.confirmar{background:var(--vermelho);color:#fff;border-color:transparent}
@@ -1454,7 +1456,6 @@
     <button class="btn-claro" id="btnSimular" onclick="alternarSimular()"><span class="mi">💰</span><span class="mt">Simular Margens</span></button>
     <button class="btn-claro" id="btnDescontos" onclick="alternarDescontos()"><span class="mi">🏷️</span><span class="mt">Descontos</span></button>
     <button class="btn-claro" id="btnRelPosto" onclick="alternarRelatorios()"><span class="mi">📑</span><span class="mt">Relatórios</span></button>
-    <button class="btn-claro" id="btnCaixas" onclick="alternarCaixas()"><span class="mi">🧾</span><span class="mt">Caixas</span></button>
     <button class="btn-claro" id="btnDespesas" onclick="alternarDespesas()"><span class="mi">💸</span><span class="mt">Despesas</span></button>
     <button class="btn-claro" id="btnAnalise" onclick="alternarAnalise()"><span class="mi">🧠</span><span class="mt">Análise</span></button>
     <button class="btn-claro" id="btnInfleet" onclick="alternarInfleet()"><span class="mi">📡</span><span class="mt">APP Infleet</span></button>
@@ -1742,17 +1743,6 @@
     </div>
   </div>
 
-  <div class="config" id="painelCaixas">
-    <div class="grupo">
-      <h2 id="cxiTitulo">🧾 Caixas dos postos</h2>
-      <p class="nota-dash">Quanto tempo o caixa leva para ser confirmado, e quanto sobra ou falta. Vem do Petros. Em mês ainda em andamento o percentual de confirmados é naturalmente menor — os últimos dias ainda não foram conferidos.</p>
-      <div class="evo-filtros">
-        <div class="desc-campo"><label>Mês</label><select id="cxiMes" onchange="cxiSel=this.value;renderCaixas()"></select></div>
-      </div>
-      <div id="cxiBox"></div>
-    </div>
-  </div>
-
   <div class="config" id="painelDespesas">
     <div class="grupo">
       <h2 id="dspTitulo">💸 Despesas dos postos, mês a mês</h2>
@@ -1868,8 +1858,26 @@
   </div>
 
   <div class="config" id="painelDash">
-    <div class="grupo">
+    <div class="grupo" id="dashGrpVendasDia">
       <div id="conteudoPetros"></div>
+    </div>
+
+    <div class="grupo" id="dashGrpResultado">
+      <h2>💵 Resultado do mês</h2>
+      <p class="nota-dash">O que cada conveniência faturou no mês, quanto custou a mercadoria e quanto sobrou. Vem dos relatórios do Petros — os mesmos números do menu Relatórios.</p>
+      <div class="evo-filtros">
+        <div class="desc-campo"><label>Mês</label><select id="dcvMes" onchange="dcvMesSel=this.value;renderDashConv()"></select></div>
+      </div>
+      <div id="dcvResBox"></div>
+    </div>
+
+    <div class="grupo" id="dashGrpDespesas">
+      <h2>💸 Despesas do mês contra a média</h2>
+      <p class="nota-dash">Compara a despesa do mês escolhido com a média dos outros meses do mesmo ano. Serve para achar o mês em que caiu um lançamento fora do padrão. As retiradas de sócios ficam de fora da conta.</p>
+      <div id="dcvDspBox"></div>
+    </div>
+
+    <div class="grupo" id="dashGrpEvolucao">
       <h2>📈 Evolução das vendas</h2>
       <p class="nota-dash">Compare mês a mês. Nos postos o gráfico mostra <b>litros vendidos</b>; nas conveniências, <b>faturamento</b>. O mês em andamento aparece mais claro, marcado como parcial. Passe o mouse (ou toque, no celular) em cima de um mês para ver os números em detalhe.</p>
       <div class="evo-filtros">
@@ -1885,7 +1893,39 @@
       <div id="evolucaoBox"></div>
       <p class="nota-dash" id="evoMsg"></p>
     </div>
-    <div class="grupo">
+
+    <div class="grupo" id="dashGrpCaixas">
+      <h2 id="cxiTitulo">🧾 Caixas dos postos</h2>
+      <p class="nota-dash">Quanto tempo o caixa leva para ser confirmado, e quanto sobra ou falta. Vem do Petros. Em mês ainda em andamento o percentual de confirmados é naturalmente menor — os últimos dias ainda não foram conferidos.</p>
+      <div class="evo-filtros">
+        <div class="desc-campo"><label>Mês</label><select id="cxiMes" onchange="cxiSel=this.value;renderCaixas()"></select></div>
+      </div>
+      <div id="cxiBox"></div>
+    </div>
+
+    <div class="grupo" id="dashGrpCategorias">
+      <h2>🍫 Onde está o lucro da loja</h2>
+      <p class="nota-dash">As categorias e os itens que mais deram lucro no mês. A lista completa fica no menu Produtos e categorias.</p>
+      <div class="evo-filtros">
+        <div class="desc-campo"><label>Conveniência</label><select id="dcvCatLoja" onchange="dcvLojaSel=this.value;renderDashConv()"></select></div>
+        <div class="desc-campo"><label>Mês</label><select id="dcvCatMes" onchange="dcvMesSel=this.value;renderDashConv()"></select></div>
+      </div>
+      <div id="dcvCatBox"></div>
+    </div>
+
+    <div class="grupo" id="dashGrpComparar">
+      <h2>⚖️ As três lojas na mesma categoria</h2>
+      <p class="nota-dash">Onde uma loja vende com margem bem menor que a outra na mesma categoria. "Deixou de ganhar" é quanto o grupo somaria de lucro no mês se todas chegassem à margem da melhor.</p>
+      <div id="dcvCmpBox"></div>
+    </div>
+
+    <div class="grupo" id="dashGrpIfood">
+      <h2>🛵 iFood</h2>
+      <p class="nota-dash">O essencial do Portal do Parceiro. O detalhe (repasses, avaliações, dia a dia) fica no menu iFood.</p>
+      <div id="dcvIfdBox"></div>
+    </div>
+
+    <div class="grupo" id="dashGrpPrecos">
       <h2>Evolução de preços e margens</h2>
       <p class="nota-dash">Os filtros abaixo valem só para os gráficos deste bloco.</p>
       <div id="filtrosSlotDash"></div>
@@ -2250,6 +2290,7 @@ let escutaDocumentos = null;
 let relPostos = {}, relLojas = {};              // v168 - {"teresina_2026-07": {...}}
 let escutaRelPosto = null, escutaRelLoja = null;
 let caixaInd = {}, cxiSel = "";                 // v185 - {"2026-07": {...}}
+let dcvMesSel = "", dcvLojaSel = "teresina";     // v198 - filtros do Dashboard da Conveniencia
 let despesasAno = {}, dspAnoSel = "", dspPostoSel = "todos", dspComRet = true;  // v185
 let relPetros = {}, rpzAba = "mapa", rpzUnidSel = "teresina", rpzPerSel = "";  // v191
 let ordemAbasRel = {}, abaRelAtual = "", ordAbasAberto = false;  // v192
@@ -3924,6 +3965,7 @@ function iniciarSync(){
     const m = {}; snap.forEach(d => m[d.id] = normalizaRel(Object.assign({ id: d.id }, d.data()))); relLojas = m;
     const pl = document.getElementById("painelRelLoja");
     if (pl && pl.classList.contains("aberto")) renderRelLoja();
+    atualizarDashConv();                                     // v198 - Dashboard da Conveniencia
   }, ()=>{});
 
   // v172 - analises escritas pelo Claude nas rotinas
@@ -3945,7 +3987,7 @@ function iniciarSync(){
   // v185 - indicadores de caixa
   colCaixaInd.onSnapshot(snap => {
     const m = {}; snap.forEach(d => m[d.id] = Object.assign({ id: d.id }, d.data())); caixaInd = m;
-    const p = document.getElementById("painelCaixas");
+    const p = document.getElementById("painelDash");        // v198 - os caixas moram no Dashboard
     if (p && p.classList.contains("aberto")) renderCaixas();
   }, ()=>{});
 
@@ -3954,6 +3996,7 @@ function iniciarSync(){
     const m = {}; snap.forEach(d => m[d.id] = Object.assign({ id: d.id }, d.data())); despesasAno = m;
     const p = document.getElementById("painelDespesas");
     if (p && p.classList.contains("aberto")) renderDespesas();
+    atualizarDashConv();                                     // v198
   }, ()=>{});
 
   // v192 - ordem das abas do menu Relatorios
@@ -3972,6 +4015,7 @@ function iniciarSync(){
     if (p && p.classList.contains("aberto")) renderRelPetros();
     const pr = document.getElementById("painelRelPosto");   // v197 - o Resultado do mes tambem le o DRE
     if (pr && pr.classList.contains("aberto")) renderRelPosto();
+    atualizarDashConv();                                     // v198
   }, ()=>{});
 
   // Eventos do calendário criados no app
@@ -4206,6 +4250,7 @@ function iniciarSync(){
     ifoodDados = snap.exists ? (snap.data() || null) : null;
     const pf = document.getElementById("painelIfood");
     if (pf && pf.classList.contains("aberto")) renderIfood();
+    atualizarDashConv();                                     // v198
   }, ()=>{});
 
   // Notificações (avisos das agendas Google dos postos)
@@ -4400,7 +4445,7 @@ function excluir(i){
 
 /* ================== Salvar / Carregar / Exportar ================== */
 // Painéis que ocupam a página; só um fica aberto por vez
-const PAINEIS = ["painelRegistros","painelDash","painelResumoDia","painelHistorico","painelSimular","painelDescontos","painelPuxadas","painelCotacoes","painelInfleet","painelIfood","painelPedido","painelRelPosto","painelRelLoja","painelCaixas","painelDespesas","painelRelPetros","painelAnalise","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin"];
+const PAINEIS = ["painelRegistros","painelDash","painelResumoDia","painelHistorico","painelSimular","painelDescontos","painelPuxadas","painelCotacoes","painelInfleet","painelIfood","painelPedido","painelRelPosto","painelRelLoja","painelDespesas","painelRelPetros","painelAnalise","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin"];
 function fecharTodosPaineis(exceto){
   PAINEIS.forEach(id => {
     const el = document.getElementById(id);
@@ -4448,7 +4493,7 @@ function fecharTodosPaineis(exceto){
   const bcx = document.getElementById("btnCaixa");
   if (bcx) bcx.classList.toggle("ativo", document.getElementById("painelCaixa").classList.contains("aberto"));
   // v172 - estes tres faltavam: o botao ficava aceso depois de abrir outro menu
-  ["btnRelLoja:painelRelLoja","btnAnalise:painelAnalise","btnCaixas:painelCaixas","btnDespesas:painelDespesas","btnIfood:painelIfood"].forEach(par => {
+  ["btnRelLoja:painelRelLoja","btnAnalise:painelAnalise","btnDespesas:painelDespesas","btnIfood:painelIfood"].forEach(par => {
     const p = par.split(":"), b = document.getElementById(p[0]), pan = document.getElementById(p[1]);
     if (b && pan) b.classList.toggle("ativo", pan.classList.contains("aberto"));
   });
@@ -4492,14 +4537,13 @@ let empresa = "postos";
 const CHAVE_EMPRESA = "margens_empresa";
 // Registro central dos menus (para empresa + permissões por usuário)
 const MENUS_APP = [
-  {key:"dash",        btn:"btnDash",        pan:"painelDash",        emp:"postos", nome:"Dashboard"},
+  {key:"dash",        btn:"btnDash",        pan:"painelDash",        emp:"postos|conv", nome:"Dashboard"},   // v198 - a Conveniencia ganhou Dashboard
   {key:"resumoDia",   btn:"btnResumoDia",   pan:"painelResumoDia",   emp:"postos|conv", nome:"Resumo do dia"},
   {key:"registros",   btn:"btnRegistros",   pan:"painelRegistros",   emp:"postos", nome:"Lançamentos"},
   {key:"historico",   btn:"btnHistorico",   pan:"painelHistorico",   emp:"postos", nome:"Histórico"},
   {key:"simular",     btn:"btnSimular",     pan:"painelSimular",     emp:"postos", nome:"Simular Margens"},
   {key:"descontos",   btn:"btnDescontos",   pan:"painelDescontos",   emp:"postos", nome:"Descontos"},
   {key:"relPosto",    btn:"btnRelPosto",    pan:"painelRelPosto",    emp:"postos|conv", nome:"Relatórios"},
-  {key:"caixas",      btn:"btnCaixas",      pan:"painelCaixas",      emp:"postos|conv", nome:"Caixas"},
   {key:"despesas",    btn:"btnDespesas",    pan:"painelDespesas",    emp:"postos|conv", nome:"Despesas"},
   {key:"infleet",     btn:"btnInfleet",     pan:"painelInfleet",     emp:"transp", nome:"APP Infleet"},
   {key:"pedido",      btn:"btnPedido",      pan:"painelPedido",      emp:"transp", nome:"Pedido de carregamento"},
@@ -4536,6 +4580,8 @@ function menuPermitidoDe(email, key){
   if (key === "cotacoes") return _menuPermBase(email, "cotacoes") || _menuPermBase(email, "comparativo");
   // v192: "Relatorios do posto" e "Relatorios Petros" viraram o menu unico "Relatorios".
   if (key === "relPosto") return _menuPermBase(email, "relPosto") || _menuPermBase(email, "relPetros");
+  // v198: o menu "Caixas" virou um bloco dentro do Dashboard.
+  if (key === "dash") return _menuPermBase(email, "dash") || _menuPermBase(email, "caixas");
   return _menuPermBase(email, key);
 }
 function _menuPermBase(email, key){
@@ -4766,8 +4812,9 @@ function abrirPainelInicial(){
   const s = siglaEmpresa(empresa);
   if (s === "transp" && menuPermitido("infleet")){ abrirInfleetInicial(); return; }
   if (s === "transp" && menuPermitido("cotacoes")){ abrirCotacoesInicial(); return; }
+  // v198 - a Conveniencia tambem abre no Dashboard (antes abria em Produtos e categorias)
+  if ((s === "conv" || s === "postos") && menuPermitido("dash")){ abrirDashboardInicial(); return; }
   if (s === "conv"   && menuPermitido("relLoja")){ abrirRelLojaInicial(); return; }
-  if (s === "postos" && menuPermitido("dash")){ abrirDashboardInicial(); return; }
   abrirPrimeiroPermitido();
 }
 // Se o painel aberto não for mais permitido, troca para um permitido
@@ -5087,18 +5134,12 @@ function cxiMesNome(id){
 }
 function cxiNum(v){ const n = Number(v); return isFinite(n) ? n : 0; }
 function cxiDin(v){ return cxiNum(v).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2}); }
-function alternarCaixas(){
-  const aberto = abrirPainelExclusivo("painelCaixas");
-  const b = document.getElementById("btnCaixas");
-  if (b) b.classList.toggle("ativo", aberto);
-  if (aberto) renderCaixas();
-}
 function renderCaixas(){
   const box = document.getElementById("cxiBox");
   if (!box) return;
   const meses = Object.keys(caixaInd).sort().reverse();
   const sel = document.getElementById("cxiMes");
-  const linha = document.querySelector("#painelCaixas .evo-filtros");
+  const linha = document.querySelector("#dashGrpCaixas .evo-filtros");
   if (!meses.length){
     if (sel) sel.innerHTML = "";
     if (linha) linha.style.display = "none";
@@ -5156,7 +5197,7 @@ function renderCaixas(){
 
   let sf = 0, ff = 0;
   CXI_POSTOS.forEach(k => { const o = P[k] || {}; sf += cxiNum(o.sobra); ff += cxiNum(o.falta); });
-  if (ff > sf) h += '<div class="ana-resumo">Somando os três postos, <b>falta R$ ' + cxiDin(ff - sf) + ' a mais do que sobra</b> em ' + escAttr(cxiMesNome(cxiSel)) + '. Se fosse só erro de digitação, sobra e falta tenderiam a se equilibrar.</div>';
+  if (ff > sf) h += '<div class="ana-resumo">Somando as três unidades, <b>falta R$ ' + cxiDin(ff - sf) + ' a mais do que sobra</b> em ' + escAttr(cxiMesNome(cxiSel)) + '. Se fosse só erro de digitação, sobra e falta tenderiam a se equilibrar.</div>';
 
   h += '<p class="ana-rodape">Atualizado ' + escAttr(d.atualizadoEm ? String(d.atualizadoEm).slice(0,10).split("-").reverse().join("/") : "—") + '. Fonte: Painel Operacional do Petros.</p>';
   box.innerHTML = h;
@@ -10940,29 +10981,32 @@ function renderPetrosResumo(){
   const ordem = ["Teresina","Caxias","Pres Dutra"];       // ordem escolhida pelo Tiago
   const rotulo = n => n === "Pres Dutra" ? "Dutra" : n;
 
-  // Card 1 — Postos Full
-  html += '<div class="pet-bloco"><h4 class="pet-bloco-tit">⛽ Postos Full</h4><div class="pet-grid">';
+  // Bloco dos postos
+  let blocoPostos = '<div class="pet-bloco"><h4 class="pet-bloco-tit">⛽ Postos Full</h4><div class="pet-grid">';
   ordem.forEach(n => {
     const d = (p.postos||{})[n]; if (!d) return;
-    html += '<div class="pet-card"><h4>'+rotulo(n)+'</h4><div class="pet-linhas">' +
+    blocoPostos += '<div class="pet-card"><h4>'+rotulo(n)+'</h4><div class="pet-linhas">' +
       '<div class="pet-l"><span>Volume</span><b>'+fmtBR(d.volume||0,0)+' L</b></div>' +
       '<div class="pet-l"><span>Lucro Líquido</span><b>R$ '+fmtBR(d.lucroLiquido||0,2)+'</b></div>' +
       '<div class="pet-l"><span>Lucro Bruto/L</span><b>R$ '+fmtBR(d.lucroBrutoL||0,4)+'</b></div>' +
       '<div class="pet-l"><span>Lucro Líquido/L</span><b>R$ '+fmtBR(d.lucroLiquidoL||0,4)+'</b></div>' +
       '</div></div>';
   });
-  html += '</div></div>';
+  blocoPostos += '</div></div>';
 
-  // Card 2 — Full Conveniência
-  html += '<div class="pet-bloco"><h4 class="pet-bloco-tit">🛒 Full Conveniência</h4><div class="pet-grid">';
+  // Bloco das lojas
+  let blocoLojas = '<div class="pet-bloco"><h4 class="pet-bloco-tit">🛒 Full Conveniência</h4><div class="pet-grid">';
   ordem.forEach(n => {
     const d = (p.conveniencias||{})[n]; if (!d) return;
-    html += '<div class="pet-card"><h4>'+rotulo(n)+'</h4><div class="pet-linhas">' +
+    blocoLojas += '<div class="pet-card"><h4>'+rotulo(n)+'</h4><div class="pet-linhas">' +
       '<div class="pet-l"><span>Vendas</span><b>R$ '+fmtBR(d.outros||0,2)+'</b></div>' +
       '<div class="pet-l"><span>Lucro Líquido</span><b>R$ '+fmtBR(d.lucroLiquido||0,2)+'</b></div>' +
       '</div></div>';
   });
-  html += '</div></div>';
+  blocoLojas += '</div></div>';
+
+  // v198 - na Full Conveniencia a loja aparece primeiro
+  html += dashEhConv() ? (blocoLojas + blocoPostos) : (blocoPostos + blocoLojas);
   html += '<p class="pet-info">' +
     (p.atualizadoEm ? '🔄 Atualizado em ' + fmtDataHora(new Date(p.atualizadoEm)) + ' • ' : '') +
     'Sincronização automática diária. Para atualizar agora, peça ao Claude: "sincroniza o Petros".</p>';
@@ -10970,7 +11014,276 @@ function renderPetrosResumo(){
   return html;
 }
 
+/* ===================== v198 - DASHBOARD DA FULL CONVENIENCIA =====================
+   O Dashboard passou a ser de DUAS empresas. Cada bloco e' um ".grupo" com id
+   proprio; ajustarBlocosDash() liga e desliga o que nao serve para a empresa
+   aberta. Os Caixas, que eram menu, agora sao um bloco daqui (nas duas). */
+function dashEhConv(){ return siglaEmpresa(empresa) === "conv"; }
+function ajustarBlocosDash(){
+  const conv = dashEhConv();
+  const ver = (id, on) => { const e = document.getElementById(id); if (e) e.style.display = on ? "" : "none"; };
+  ver("dashGrpResultado",  conv);
+  ver("dashGrpDespesas",   conv);
+  ver("dashGrpCategorias", conv);
+  ver("dashGrpComparar",   conv);
+  ver("dashGrpIfood",      conv);
+  ver("dashGrpPrecos",    !conv);
+}
+// chamada pelos onSnapshot: so' faz trabalho se o Dashboard da Conveniencia estiver na tela
+function atualizarDashConv(){
+  const p = document.getElementById("painelDash");
+  if (p && p.classList.contains("aberto") && dashEhConv()) renderDashConv();
+}
+function dcvMeses(){
+  const s = {};
+  Object.keys(relLojas || {}).forEach(k => { const p = String(k).split("_"); if (p[1]) s[p[1]] = 1; });
+  return Object.keys(s).sort().reverse();
+}
+// DRE da loja no mes (relatoriosPetros). Sem DRE gravado, devolve null e a tela nao mostra despesa.
+function dcvDre(unid, mes){
+  const doc = relPetros["dre_conv_" + unid + "_" + mes];
+  const D = doc ? rpzLista(doc) : null;
+  if (!D || !D.desp) return null;
+  const vProd = rpzSoma(D.prod, 4), cProd = rpzSoma(D.prod, 5);
+  const vComb = rpzSoma(D.comb, 4), cComb = rpzSoma(D.comb, 5);
+  const vRec  = rpzSoma(D.rec, 2), vDesp = rpzSoma(D.desp, 2), vVe = rpzSoma(D.varEst, 1);
+  const lb = (vProd + vComb + vRec) - (cProd + cComb);
+  return { desp: vDesp, ll: lb - vDesp + vVe };
+}
+function renderDashConv(){
+  const meses = dcvMeses();
+  if (!dcvMesSel || meses.indexOf(dcvMesSel) < 0) dcvMesSel = meses[0] || "";
+  preencherSelectRel("dcvMes", meses, dcvMesSel, rotuloMesRel);
+  preencherSelectRel("dcvCatMes", meses, dcvMesSel, rotuloMesRel);
+  preencherSelectRel("dcvCatLoja", UNIDADES_REL.map(u => u.chave), dcvLojaSel,
+                     c => (UNIDADES_REL.find(u => u.chave === c) || {}).nome || c);
+  dcvLojaSel = (document.getElementById("dcvCatLoja") || {}).value || dcvLojaSel;
+  renderDashConvResultado();
+  renderDashConvDespesas();
+  renderDashConvCategorias();
+  renderDashConvComparar();
+  renderDashConvIfood();
+}
+/* Despesas do mes contra a media dos outros meses do ano (fonte: despesasAno) */
+function renderDashConvDespesas(){
+  const box = document.getElementById("dcvDspBox");
+  if (!box) return;
+  const ano = String(dcvMesSel || "").slice(0, 4);
+  const mi = parseInt(String(dcvMesSel || "").slice(5, 7), 10) - 1;
+  const d = despesasAno[ano];
+  const P = d ? (d.conveniencias || {}) : null;
+  if (!P || !Object.keys(P).length || !(mi >= 0)){
+    box.innerHTML = '<div class="ana-vazio">Ainda n\u00e3o temos as despesas das conveni\u00eancias de ' + escAttr(ano || "\u2014") + '.<br>Elas v\u00eam do relat\u00f3rio do Petros.</div>';
+    return;
+  }
+  // soma por mes, por loja, sem as retiradas de socios
+  const porLoja = {}, geral = new Array(12).fill(0);
+  CXI_POSTOS.forEach(k => {
+    if (!P[k]) return;
+    const ms = new Array(12).fill(0);
+    ((P[k].categorias) || []).forEach(c => {
+      if (dspRetirada(c.nome)) return;
+      const l = c.meses || [];
+      for (let i = 0; i < 12; i++){ ms[i] += Number(l[i]) || 0; }
+    });
+    porLoja[k] = ms;
+    for (let i = 0; i < 12; i++) geral[i] += ms[i];
+  });
+  const ult = geral.reduce((acc, v, i) => v > 0 ? i : acc, 0);
+  const media = arr => {
+    const outros = [];
+    for (let i = 0; i <= ult; i++){ if (i !== mi && arr[i] > 0) outros.push(arr[i]); }
+    return outros.length ? outros.reduce((a, b) => a + b, 0) / outros.length : 0;
+  };
+  const mG = media(geral), vG = geral[mi] || 0;
+  if (!vG && !mG){
+    box.innerHTML = '<div class="ana-vazio">Sem despesa lan\u00e7ada em ' + escAttr(rotuloMesRel(dcvMesSel)) + '.</div>';
+    return;
+  }
+  const difG = mG ? (vG - mG) / mG * 100 : 0;
+  const clsG = (difG > 40) ? "rpz-neg" : (difG < -10 ? "rpz-pos" : "");
+  let h = '<div class="resumo-dash">' +
+    '<div class="cartao-kpi"><span>Despesas em ' + escAttr(rotuloMesRel(dcvMesSel)) + '</span><b>R$ ' + dspDin(vG) + '</b></div>' +
+    '<div class="cartao-kpi"><span>M\u00e9dia dos outros meses</span><b>R$ ' + dspDin(mG) + '</b></div>' +
+    '<div class="cartao-kpi"><span>Diferen\u00e7a</span><b class="' + clsG + '">' +
+      (difG >= 0 ? "+" : "\u2212") + fmtBR(Math.abs(difG), 1) + '%</b></div>' +
+    '</div>';
+  const nomes = CXI_POSTOS.filter(k => porLoja[k]);
+  const maxV = Math.max.apply(null, nomes.map(k => Math.max(porLoja[k][mi] || 0, media(porLoja[k]))).concat([1]));
+  h += '<h3 class="cxi-sub">Loja por loja</h3><div class="cxi-graf">';
+  nomes.forEach(k => {
+    const v = porLoja[k][mi] || 0, m = media(porLoja[k]);
+    const dif = m ? (v - m) / m * 100 : 0;
+    const alerta = (m > 0 && v > m * 1.4);
+    h += '<div class="cxi-grupo"><div class="cxi-rot">Conveni\u00eancia ' + escAttr(k) +
+         (m ? (' \u00b7 <b class="' + (alerta ? "rel-desce" : "") + '">' + (dif >= 0 ? "+" : "\u2212") + fmtBR(Math.abs(dif), 1) + '%</b> vs a m\u00e9dia') : '') + '</div>';
+    h += '<div class="cxi-par"><span class="cxi-q">' + escAttr(rotuloMesRel(dcvMesSel)) + '</span>' +
+         '<span class="cxi-wrap"><span class="cxi-bar' + (alerta ? " cxi-bar-alerta" : "") + '" style="width:' + (v / maxV * 100).toFixed(1) + '%"></span></span>' +
+         '<span class="cxi-v' + (alerta ? " cxi-v-alerta" : "") + '">R$ ' + dspDin(v) + '</span></div>';
+    h += '<div class="cxi-par"><span class="cxi-q">m\u00e9dia</span>' +
+         '<span class="cxi-wrap"><span class="cxi-bar cxi-bar2" style="width:' + (m / maxV * 100).toFixed(1) + '%"></span></span>' +
+         '<span class="cxi-v">R$ ' + dspDin(m) + '</span></div></div>';
+  });
+  h += '</div>';
+  if (mi === ult) h += '<p class="nota-dash">\u26a0\ufe0f ' + escAttr(rotuloMesRel(dcvMesSel)) +
+    ' \u00e9 o \u00faltimo m\u00eas com lan\u00e7amento \u2014 se ainda estiver em andamento, \u00e9 natural que fique abaixo da m\u00e9dia.</p>';
+  else if (difG > 40) h += '<div class="ana-resumo">A despesa de ' + escAttr(rotuloMesRel(dcvMesSel)) +
+    ' est\u00e1 <b>R$ ' + dspDin(vG - mG) + ' acima da m\u00e9dia</b> dos outros meses. Vale abrir o menu Despesas e ver qual tipo puxou o m\u00eas para cima.</div>';
+  h += '<p class="ana-rodape">Fonte: Demonstrativo de Resultado Detalhado M\u00eas a M\u00eas do Petros.</p>';
+  box.innerHTML = h;
+}
+/* As tres lojas na mesma categoria (reaproveita dadosCompLojas do menu Produtos e categorias) */
+function renderDashConvComparar(){
+  const box = document.getElementById("dcvCmpBox");
+  if (!box) return;
+  const r = dadosCompLojas(dcvMesSel);
+  const lojas = r.lojas, linhas = r.linhas;
+  if (lojas.length < 2){
+    box.innerHTML = '<div class="ana-vazio">Para comparar \u00e9 preciso ter os dados de pelo menos duas lojas em ' +
+                    escAttr(rotuloMesRel(dcvMesSel)) + '.</div>';
+    return;
+  }
+  const ord = linhas.filter(l => l.comDado.length > 1).sort((a, b) => b.perda - a.perda);
+  if (!ord.length){
+    box.innerHTML = '<div class="ana-vazio">Nenhuma categoria aparece em duas lojas ao mesmo tempo neste m\u00eas.</div>';
+    return;
+  }
+  const topo = ord[0];
+  let h = "";
+  if (topo.perda > 0 && topo.melhor){
+    const pior = topo.comDado.slice().sort((a, b) => topo.por[a.chave].marg - topo.por[b.chave].marg)[0];
+    h += '<div class="cmp-destaque">💡 <b>Maior oportunidade: ' + escAttr(topo.nome) + '.</b> ' +
+      escAttr(topo.melhor.nome) + ' faz ' + fmtPctRel(topo.por[topo.melhor.chave].marg) + ' de margem e ' +
+      escAttr(pior.nome) + ' faz ' + fmtPctRel(topo.por[pior.chave].marg) + '. Nivelando pela melhor, o grupo ganharia mais <b>' +
+      fmtR$0(topo.perda) + '</b> no m\u00eas s\u00f3 nessa categoria.</div>';
+  }
+  h += '<div class="rel-scroll"><table class="rel-tab cmp-tab"><thead><tr><th>Categoria</th>' +
+       lojas.map(l => '<th class="n">' + escAttr(l.nome) + '</th>').join("") +
+       '<th class="n">Deixou de ganhar</th></tr></thead><tbody>';
+  ord.slice(0, 5).forEach(l => {
+    h += '<tr><td>' + escAttr(l.nome) + (l.perda > 0 ? '<small class="cmp-op-mob">' + fmtR$0(l.perda) + ' a ganhar</small>' : '') + '</td>';
+    lojas.forEach(u => {
+      const c = l.por[u.chave];
+      if (!c){ h += '<td class="n cmp-sem">\u2014</td>'; return; }
+      const eMelhor = l.melhor && l.melhor.chave === u.chave && l.comDado.length > 1;
+      h += '<td class="n' + (eMelhor ? " cmp-melhor" : "") + '"><b>' + fmtPctRel(c.marg) + '</b><small>' + fmtR$0(c.rec) + '</small></td>';
+    });
+    h += '<td class="n' + (l.perda > 0 ? " rel-desce" : "") + '">' + (l.perda > 0 ? fmtR$0(l.perda) : "\u2014") + '</td></tr>';
+  });
+  h += '</tbody></table></div>';
+  h += '<p class="ana-rodape">As 5 categorias de maior oportunidade em ' + escAttr(rotuloMesRel(dcvMesSel)) +
+       ', de ' + ord.length + '. A c\u00e9lula destacada \u00e9 a loja de melhor margem. A lista inteira, categoria por categoria, fica na aba <b>Comparar lojas</b> do menu Produtos e categorias.</p>';
+  box.innerHTML = h;
+}
+function renderDashConvResultado(){
+  const box = document.getElementById("dcvResBox");
+  if (!box) return;
+  const linha = document.querySelector("#dashGrpResultado .evo-filtros");
+  if (!dcvMesSel){
+    if (linha) linha.style.display = "none";
+    box.innerHTML = '<div class="ana-vazio">Ainda n\u00e3o temos os n\u00fameros das conveni\u00eancias.<br>Eles s\u00e3o montados na sincroniza\u00e7\u00e3o.</div>';
+    return;
+  }
+  if (linha) linha.style.display = "";
+  let h = '<div class="pet-grid">', achou = false, tRec = 0, tLb = 0, ate = "";
+  UNIDADES_REL.forEach(u => {
+    const d = relLojas[u.chave + "_" + dcvMesSel];
+    const k = d && d.kpi;
+    if (!k) return;
+    achou = true;
+    tRec += (+k.receita || 0); tLb += (+k.lb || 0);
+    if (d.ate && d.ate > ate) ate = d.ate;
+    const dre = dcvDre(u.chave, dcvMesSel);
+    h += '<div class="pet-card"><h4>' + escAttr(u.nome) + '</h4><div class="pet-linhas">' +
+      '<div class="pet-l"><span>Faturamento</span><b>' + fmtR$0(k.receita) + '</b></div>' +
+      '<div class="pet-l"><span>Lucro bruto</span><b>' + fmtR$0(k.lb) + '</b></div>' +
+      '<div class="pet-l"><span>Margem</span><b>' + fmtPctRel(k.margem) + '</b></div>' +
+      '<div class="pet-l"><span>Ticket m\u00e9dio</span><b>' + fmtR$(k.ticket) + '</b></div>' +
+      (dre ? ('<div class="pet-l"><span>Despesas</span><b>' + fmtR$0(dre.desp) + '</b></div>' +
+              '<div class="pet-l"><span>Lucro l\u00edquido</span><b class="' + (dre.ll < 0 ? "rpz-neg" : "rpz-pos") + '">' + fmtR$0(dre.ll) + '</b></div>') : '') +
+      '</div></div>';
+  });
+  h += '</div>';
+  if (!achou){
+    box.innerHTML = '<div class="ana-vazio">Ainda n\u00e3o temos os n\u00fameros de ' + escAttr(rotuloMesRel(dcvMesSel)) + '.</div>';
+    return;
+  }
+  h += '<div class="resumo-dash" style="margin-top:12px">' +
+       '<div class="cartao-kpi"><span>As tr\u00eas lojas juntas</span><b>' + fmtR$0(tRec) + '</b></div>' +
+       '<div class="cartao-kpi"><span>Lucro bruto somado</span><b>' + fmtR$0(tLb) + '</b></div>' +
+       '<div class="cartao-kpi"><span>Margem da rede</span><b>' + fmtPctRel(tRec ? (tLb / tRec * 100) : 0) + '</b></div>' +
+       '</div>';
+  h += '<p class="ana-rodape">' + (ate ? ('Per\u00edodo: 1 a ' + String(ate).slice(8,10) + ' de ' + rotuloMesRel(dcvMesSel) + '. ') : '') +
+       'Fonte: relat\u00f3rios do Petros. As despesas e o lucro l\u00edquido s\u00f3 aparecem nos meses com o Demonstrativo de Resultado gravado.</p>';
+  box.innerHTML = h;
+}
+function renderDashConvCategorias(){
+  const box = document.getElementById("dcvCatBox");
+  if (!box) return;
+  const d = relLojas[dcvLojaSel + "_" + dcvMesSel];
+  const cat = (d && d.cat ? d.cat : []).filter(x => (+x[2] || 0) > 0);
+  if (!cat.length){
+    box.innerHTML = '<div class="ana-vazio">Ainda n\u00e3o temos as categorias desta loja neste m\u00eas.</div>';
+    return;
+  }
+  const margRef = +((d.kpi || {}).margem) || 0;
+  const totR = cat.reduce((a, x) => a + (+x[2] || 0), 0) || 1;
+  const porLucro = cat.slice().sort((a, b) => (+b[4] || 0) - (+a[4] || 0)).slice(0, 5);
+  const maxL = Math.abs(+porLucro[0][4]) || 1;
+  let h = '<h4 class="rel-h4">💰 As 5 categorias que mais deram lucro</h4>';
+  porLucro.forEach(x => {
+    const m = +x[5] || 0;
+    h += linhaBarraItem(x[0], fmtR$0(x[4]), Math.abs(+x[4] || 0) / maxL * 100, "",
+      'faturou ' + fmtR$0(x[2]) + ' (' + fmtPctRel((+x[2] || 0) / totR * 100) + ' do total) \u00b7 margem <b class="' +
+      (m < margRef ? "rel-desce" : "rel-sobe") + '">' + fmtPctRel(m) + '</b>', false);
+  });
+  const itens = (d.itens || []).filter(x => (+x[2] || 0) > 0).sort((a, b) => (+b[2] || 0) - (+a[2] || 0)).slice(0, 5);
+  if (itens.length){
+    const maxR = +itens[0][2] || 1;
+    h += '<h4 class="rel-h4">🏆 Os 5 itens que mais faturaram</h4>';
+    itens.forEach(x => {
+      const m = +x[5] || 0;
+      h += linhaBarraItem(x[0], fmtR$0(x[2]), (+x[2] || 0) / maxR * 100, "",
+        fmtBR(+x[1] || 0, 0) + ' un \u00b7 lucro ' + fmtR$0(x[4]) + ' \u00b7 margem <b class="' +
+        (m < margRef ? "rel-desce" : "rel-sobe") + '">' + fmtPctRel(m) + '</b>', false);
+    });
+  }
+  h += '<p class="ana-rodape">' + (d.ate ? ('Per\u00edodo: 1 a ' + String(d.ate).slice(8,10) + ' de ' + rotuloMesRel(dcvMesSel) + '. ') : '') +
+       'Margem m\u00e9dia da loja: ' + fmtPctRel(margRef) + '.</p>';
+  box.innerHTML = h;
+}
+function renderDashConvIfood(){
+  const box = document.getElementById("dcvIfdBox");
+  if (!box) return;
+  const d = ifoodDados;
+  if (!d){ box.innerHTML = '<div class="ana-vazio">Ainda n\u00e3o temos os dados do iFood.</div>'; return; }
+  const st = d.status || {}, ab = (st.aberta !== false);
+  const a = d.avaliacoes || {}, c = d.cancel || {}, t7 = d.d7 || null, dia = d.dia || null;
+  let h = '<p class="ifd-status ' + (ab ? "ok" : "nao") + '">\u25CF ' +
+          escAttr(st.titulo || (ab ? "Loja aberta" : "Loja fechada")) + '</p>';
+  h += '<div class="resumo-dash">';
+  if (dia) h += '<div class="cartao-kpi"><span>Pedidos hoje</span><b>' + ifdNum(dia.pedidos) + '</b></div>' +
+                '<div class="cartao-kpi"><span>Vendas hoje</span><b>' + ifdRS(dia.valor) + '</b></div>';
+  if (t7) h += '<div class="cartao-kpi"><span>Pedidos em 7 dias</span><b>' + ifdNum(t7.pedidos) + '</b></div>' +
+               '<div class="cartao-kpi"><span>Vendas em 7 dias</span><b>' + ifdRS(t7.valor) + '</b></div>';
+  if (a.nota !== undefined && a.nota !== null)
+    h += '<div class="cartao-kpi"><span>Nota da loja</span><b>' + fmtBR(ifdNum(a.nota), 1) + ' <small>de 5</small></b></div>';
+  if (c.pctLojaMes !== undefined && c.pctLojaMes !== null)
+    h += '<div class="cartao-kpi"><span>Cancelamento da loja</span><b>' + ifdPct(c.pctLojaMes) +
+         ' <small>meta: at\u00e9 ' + ifdPct((c.meta === undefined || c.meta === null) ? 0.05 : c.meta, 0) + '</small></b></div>';
+  h += '</div>';
+  if (!ab) h += '<p class="ifd-alerta">A loja est\u00e1 fora do ar no iFood \u2014 nenhum cliente consegue pedir agora.</p>';
+  h += ifdRodape();
+  box.innerHTML = h;
+}
+
 function renderDashboard(){
+  ajustarBlocosDash();                       // v198
+  // Vendas do dia (Petros) - primeira coisa do Dashboard, nas duas empresas
+  const alvoPetros = document.getElementById("conteudoPetros");
+  if (alvoPetros) alvoPetros.innerHTML = renderPetrosResumo();
+  renderCaixas();                            // v198 - os caixas viraram bloco daqui
+  if (dashEhConv()){ renderDashConv(); return; }
   const alvo = document.getElementById("conteudoDash");
   const chkC = document.getElementById("chkVerCusto");
   const chkM = document.getElementById("chkVerMargem");
@@ -10978,10 +11291,6 @@ function renderDashboard(){
   const verCusto     = !chkC  || chkC.checked;
   const verMargem    = !chkM  || chkM.checked;
   const verMargemPct = !chkMP || chkMP.checked;
-
-  // Resultado no período (Petros) — primeira coisa do Dashboard, acima dos gráficos
-  const alvoPetros = document.getElementById("conteudoPetros");
-  if (alvoPetros) alvoPetros.innerHTML = renderPetrosResumo();
 
   if (!verCusto && !verMargem && !verMargemPct){
     alvo.innerHTML = '<div class="dash-vazio">Marque ao menos um gráfico em “Mostrar” acima.</div>';
@@ -11484,7 +11793,7 @@ async function exportarPDF(){
     await carregarBibliotecasPDF();
     if (info.id === "painelRegistros"){
       exportarPDFTabela(nome);                              // tabela (autoTable, texto real)
-    } else if (info.id === "painelDash" && podeVetorizarPDF()){
+    } else if (info.id === "painelDash" && document.querySelectorAll("#painelDash .bloco-comb").length && podeVetorizarPDF()){
       await exportarPDFDashboardVetorial(info, nome);       // dashboard vetorial (texto real + gráficos vetoriais)
     } else if (info.id === "painelCalendario"){
       await exportarPDFPainel(info, nome);                  // calendário: imagem (é uma grade visual de dias)
