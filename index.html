@@ -921,7 +921,7 @@
   .rpz-card span{display:block;font-size:.68rem;text-transform:uppercase;letter-spacing:.03em;color:var(--cinza)}
   .rpz-card b{display:block;font-size:1.02rem;margin-top:2px}
   .rpz-neg{color:#c0392b}
-  .rpz-pos{color:var(--verde)}
+  .rpz-pos{color:#18a558}
   .rpz-rola{overflow-x:auto}
   table.rpz-tab{min-width:0;font-size:.8rem;width:100%}
   table.rpz-tab th,table.rpz-tab td{padding:5px 6px;border-bottom:1px solid var(--borda);text-align:left;white-space:nowrap}
@@ -3970,6 +3970,8 @@ function iniciarSync(){
     const m = {}; snap.forEach(d => m[d.id] = Object.assign({ id: d.id }, d.data())); relPetros = m;
     const p = document.getElementById("painelRelPetros");
     if (p && p.classList.contains("aberto")) renderRelPetros();
+    const pr = document.getElementById("painelRelPosto");   // v197 - o Resultado do mes tambem le o DRE
+    if (pr && pr.classList.contains("aberto")) renderRelPosto();
   }, ()=>{});
 
   // Eventos do calendário criados no app
@@ -5742,6 +5744,31 @@ function alternarRelPosto(){
   if (b) b.classList.toggle("ativo", aberto);
   if (aberto) renderRelPosto();
 }
+/* v197 - UMA FONTE SO PARA O LUCRO LIQUIDO.
+   O "res" guardado em relatoriosPosto e uma fotografia do DRE tirada numa hora;
+   a aba "Resultado do periodo" le o DRE gravado em relatoriosPetros, que pode ter
+   sido coletado noutra hora do MESMO dia. Com o mes ainda aberto, as vendas que
+   entraram entre as duas coletas faziam o lucro liquido divergir (em 30/07:
+   R$ 369,90 em Teresina, R$ 212,30 em Caxias, R$ 454,09 em Pres. Dutra).
+   Quando existe o DRE do mes, ele passa a mandar nas DUAS abas.
+   Os litros continuam vindo do painel — o DRE nao traz volume. */
+function resDoMesRel(d){
+  const base = (d && d.res) ? d.res : null;
+  const doc = relPetros["dre_" + siglaEmpresa(empresa) + "_" + relPostoSel + "_" + relPostoMes];
+  const D = doc ? rpzLista(doc) : null;
+  if (!base || !D || !D.desp) return { res: base, ate: (d || {}).resAte, doDre: !!(d && d.resFonte === "dre") };
+  const comb = rpzSoma(D.comb, 4), custoComb = rpzSoma(D.comb, 5);
+  const outros = rpzSoma(D.prod, 4), custoOutros = rpzSoma(D.prod, 5);
+  const outrasRec = rpzSoma(D.rec, 2), desp = rpzSoma(D.desp, 2), varEst = rpzSoma(D.varEst, 1);
+  const lb = (comb + outros + outrasRec) - (custoComb + custoOutros);
+  const ll = lb - desp + varEst;
+  const litros = +base.vol || 0;
+  return { res: { vol: base.vol, comb: comb, outros: outros, outrasRec: outrasRec,
+                  custoComb: custoComb, custoOutros: custoOutros, desp: desp, varEst: varEst,
+                  lb: lb, ll: ll,
+                  lbL: litros ? lb / litros : 0, despL: litros ? desp / litros : 0, llL: litros ? ll / litros : 0 },
+           ate: doc.ate || (d || {}).resAte, doDre: true };
+}
 function mudarAbaRelPosto(a){ relPostoAba = a; renderRelPosto(); }
 function renderRelPosto(){
   const box = document.getElementById("relPostoBox");
@@ -5765,10 +5792,12 @@ function renderRelPosto(){
   renderOrdemAbasRel();
   let h = "";
   // v193 - a aba Resultado vem do DRE e pode cobrir mais dias que as outras
-  const fimAba = (relPostoAba === "resultado" && d.resAte) ? d.resAte : d.ate;
+  // v197 - e, quando o DRE do mes existe, ela le os numeros DELE
+  const uni = (relPostoAba === "resultado") ? resDoMesRel(d) : null;
+  const fimAba = (relPostoAba === "resultado") ? ((uni && uni.ate) || d.resAte || d.ate) : d.ate;
   if (fimAba) h += '<p class="nota-dash">Período: 1 a ' + String(fimAba).slice(8,10) + ' de ' + rotuloMesRel(relPostoMes) + '.' +
-    ((relPostoAba === "resultado" && d.resFonte === "dre") ? ' Fonte: Demonstrativo de Resultado do Petros — a mesma da aba <b>Resultado do período</b>.' : '') + '</p>';
-  if (relPostoAba === "resultado") h += blocoResultadoPosto(d);
+    ((relPostoAba === "resultado" && ((uni && uni.doDre) || d.resFonte === "dre")) ? ' Fonte: Demonstrativo de Resultado do Petros — a mesma da aba <b>Resultado do período</b>.' : '') + '</p>';
+  if (relPostoAba === "resultado") h += blocoResultadoPosto(d, uni);
   else if (relPostoAba === "caixa") h += blocoCaixaPosto(d);
   else if (relPostoAba === "equipe") h += blocoEquipePosto(d);
   else h += blocoCombPosto(d);
@@ -5814,13 +5843,14 @@ function foraDaCurvaRel(posto, mes){
 }
 function alternarSemFora(){ relSemFora = !relSemFora; renderRelPosto(); }
 function alternarSemRetiradas(){ relSemRetiradas = !relSemRetiradas; renderRelPosto(); }
-function blocoAjusteResultado(d){
+function blocoAjusteResultado(d, r){
+  const rr = r || (d && d.res) || {};                 // v197 - o res pode vir do DRE
   const a = foraDaCurvaRel(relPostoSel, relPostoMes);
-  if (!a.fora.length && !a.ret.length) return { html:"", desp:(+d.res.desp||0), ll:(+d.res.ll||0), mexeu:false };
+  if (!a.fora.length && !a.ret.length) return { html:"", desp:(+rr.desp||0), ll:(+rr.ll||0), mexeu:false };
   const tiraF = relSemFora ? a.totalFora : 0;
   const tiraR = relSemRetiradas ? a.totalRet : 0;
-  const desp = (+d.res.desp || 0) - tiraF - tiraR;
-  const ll = (+d.res.lb || 0) - desp + (+d.res.varEst || 0);
+  const desp = (+rr.desp || 0) - tiraF - tiraR;
+  const ll = (+rr.lb || 0) - desp + (+rr.varEst || 0);
   let h = '<div class="fdc-caixa">';
   h += '<div class="fdc-topo"><b>Lançamentos fora do padrão deste mês</b>' +
        '<span class="fdc-bts">' +
@@ -5845,7 +5875,7 @@ function blocoAjusteResultado(d){
     h += '<div class="fdc-res">Sem ' +
       [tiraF ? 'o excesso fora da curva' : null, tiraR ? 'as retiradas de sócios' : null].filter(Boolean).join(' e ') +
       ', o mês fecharia com <b class="' + (ll >= 0 ? 'fdc-bom' : 'fdc-ruim') + '">' + fmtR$0(ll) + '</b>' +
-      ' de lucro líquido, no lugar de ' + fmtR$0(+d.res.ll || 0) + '.</div>';
+      ' de lucro líquido, no lugar de ' + fmtR$0(+rr.ll || 0) + '.</div>';
   } else {
     h += '<p class="fdc-obs">Os números acima <b>incluem</b> esses lançamentos. Use os botões para ver o mês sem eles.</p>';
   }
@@ -5853,11 +5883,12 @@ function blocoAjusteResultado(d){
   return { html:h, desp:desp, ll:ll, mexeu: !!(tiraF || tiraR) };
 }
 
-function blocoResultadoPosto(d){
-  const r = d.res;
+function blocoResultadoPosto(d, uni){
+  const u = uni || resDoMesRel(d);             // v197 - mesma fonte da aba Resultado do periodo
+  const r = u.res;
   if (!r) return '<p class="nota-dash">Sem o resultado deste mês.</p>';
   const perdeu = (+r.varEst||0) < 0;
-  const aj = blocoAjusteResultado(d);          // v194
+  const aj = blocoAjusteResultado(d, r);       // v194
   const despMostra = aj.mexeu ? aj.desp : (+r.desp||0);
   const llMostra   = aj.mexeu ? aj.ll   : (+r.ll||0);
   let h = '<div class="rel-kpis">' +
