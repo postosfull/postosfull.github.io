@@ -3054,7 +3054,7 @@ function alternarRecadoFeitos(){
 }
 function recadoCardHtml(r, feito){
   const tipoTag = r.tipo==="aviso" ? '<span class="rec-tag aviso">📣 Aviso</span>' : '<span class="rec-tag tarefa">✅ Tarefa</span>';
-  const quando = fmtPresencaHa(r.criadoEm);
+  const quando = fmtHaTempo(r.criadoEm);        // v201 - "" quando nao se sabe, em vez de "nunca entrou"
   const dest = r.paraTodos ? "para todos" : ("para " + (Array.isArray(r.para)?r.para.map(nomeUsuarioDe).join(", "):""));
   const podeExcluir = ehAdminAtual() || (r.de||"").toLowerCase()===(usuarioAtual||"").toLowerCase();
   const confExcl = confirmarExclRecado===r.id;
@@ -3067,7 +3067,7 @@ function recadoCardHtml(r, feito){
   }
   if (podeExcluir && !caixaAberta) acoes += '<button class="btn-claro' + (confExcl?' confirmar':'') + '" onclick="excluirRecado(\'' + escAspas(r.id) + '\')">' + (confExcl?'✓ confirmar?':'🗑') + '</button>';
   const tagExige = (r.exigeComprovante && r.tipo!=="aviso") ? '<span class="rec-tag exige">📎 Comprovante</span>' : '';
-  const rodapeFeito = feito ? ('<div class="rec-feito">✓ Concluída por ' + escAttr(r.concluidaNome||r.concluidaPor||"") + ' ' + escAttr(fmtPresencaHa(r.concluidaEm)) + '</div>') : '';
+  const rodapeFeito = feito ? ('<div class="rec-feito">✓ Concluída por ' + escAttr(r.concluidaNome||r.concluidaPor||"") + ' ' + escAttr(fmtHaTempo(r.concluidaEm)) + '</div>') : '';
   return '<div class="rec-card' + (feito?' feito':'') + '">' +
     '<div class="rec-topo">' + tipoTag + tagExige + '<span class="rec-quando">' + escAttr(quando) + '</span></div>' +
     '<div class="rec-titulo">' + escAttr(r.titulo||"") + '</div>' +
@@ -3151,8 +3151,31 @@ function iniciarPresenca(){
     document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") baterPresenca(); });
   }
 }
-function fmtPresencaHa(ms){
-  if (!ms) return "nunca entrou";
+/* v201 - "quando" pode chegar de quatro jeitos:
+   numero (Date.now(), gravado pelo app), TEXTO ISO com Z (gravado pelas rotinas),
+   Timestamp do Firestore, ou Date. Antes so' o numero funcionava: com texto,
+   Date.now() - texto dava NaN e a tela escrevia "ha NaN dias".
+   Devolve 0 quando nao da' para entender — quem chama decide o que mostrar. */
+function msDeQuando(v){
+  if (v === null || v === undefined || v === "") return 0;
+  if (typeof v === "number") return isFinite(v) ? v : 0;
+  if (typeof v === "object"){
+    if (typeof v.toDate === "function"){ try { return v.toDate().getTime(); } catch(e){ return 0; } }
+    if (typeof v.seconds === "number") return v.seconds * 1000;
+    if (typeof v.getTime === "function"){ const t = v.getTime(); return isFinite(t) ? t : 0; }
+    return 0;
+  }
+  const txt = String(v).trim();
+  if (!txt) return 0;
+  if (/^\d+$/.test(txt)) return Number(txt);                       // numero que veio como texto
+  // texto SO' com a data: ler como meia-noite local (senao volta um dia no Brasil)
+  if (/^\d{4}-\d{2}-\d{2}$/.test(txt)) return new Date(txt + "T00:00:00").getTime();
+  const t = Date.parse(txt);
+  return isFinite(t) ? t : 0;
+}
+function fmtHaTempo(v, seVazio){
+  const ms = msDeQuando(v);
+  if (!ms) return (seVazio === undefined ? "" : seVazio);
   const s = Math.floor((Date.now() - ms) / 1000);
   if (s < 60) return "agora mesmo";
   const min = Math.floor(s / 60);
@@ -3162,6 +3185,7 @@ function fmtPresencaHa(ms){
   const d = Math.floor(h / 24);
   return "há " + d + (d === 1 ? " dia" : " dias");
 }
+function fmtPresencaHa(ms){ return fmtHaTempo(ms, "nunca entrou"); }
 function usuarioOnline(email){
   const t = presencaMap[email] || 0;
   return !!(t && (Date.now() - t) < ONLINE_MS);
@@ -3339,7 +3363,8 @@ function renderOfflineInfo(){
   const nome = (perfis[e] && perfis[e] !== e) ? perfis[e] : e;
   const t = presencaMap[e] || 0;
   if (!t){ cont.innerHTML = '<div class="off-info"><span class="pres off"><span class="dot"></span></span> <b>' + escAttr(nome) + '</b> — nunca acessou o app. <span class="off-email">' + escAttr(e) + '</span></div>'; return; }
-  cont.innerHTML = '<div class="off-info"><span class="pres off"><span class="dot"></span></span> <b>' + escAttr(nome) + '</b> — último acesso <b>' + escAttr(fmtPresencaHa(t)) + '</b> <span class="off-abs">(' + escAttr(fmtDataHora(new Date(t))) + ')</span> <span class="off-email">' + escAttr(e) + '</span></div>';
+  const msAc = msDeQuando(t);   // v201
+  cont.innerHTML = '<div class="off-info"><span class="pres off"><span class="dot"></span></span> <b>' + escAttr(nome) + '</b> — último acesso <b>' + escAttr(fmtPresencaHa(t)) + '</b>' + (msAc ? (' <span class="off-abs">(' + escAttr(fmtDataHora(new Date(msAc))) + ')</span>') : '') + ' <span class="off-email">' + escAttr(e) + '</span></div>';
 }
 const permAbertos = new Set();   // e-mails cujo editor de menus está aberto (para sobreviver a re-desenhos)
 function alternarPermUsuario(email){
@@ -3942,7 +3967,7 @@ function iniciarSync(){
   escutaRecados = colRecados.onSnapshot(snap => {
     const arr = [];
     snap.forEach(doc => arr.push(Object.assign({ id: doc.id }, doc.data() || {})));
-    arr.sort((a,b) => (b.criadoEm || 0) - (a.criadoEm || 0));
+    arr.sort((a,b) => msDeQuando(b.criadoEm) - msDeQuando(a.criadoEm));   // v201 - com texto ISO dava NaN e a ordem saia ao acaso
     recados = arr;
     atualizarBadgeCaixa();
     const pcx = document.getElementById("painelCaixa");
