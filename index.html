@@ -530,6 +530,38 @@
   }
   .inf-sumido{color:var(--vermelho);font-size:.78rem;font-weight:600}
   .inf-linha-sumida td:first-child{border-left:3px solid var(--vermelho)}
+  /* iFood (Full Conveniencia) */
+  .ifd-tab{min-width:0}
+  .ifd-status{font-weight:700;font-size:1.05rem;margin:0 0 8px}
+  .ifd-status.ok{color:var(--verde)}
+  .ifd-status.nao{color:var(--vermelho)}
+  .ifd-checks{list-style:none;padding:0;margin:0 0 10px}
+  .ifd-checks li{font-size:.85rem;margin:3px 0;color:var(--txt)}
+  .ifd-checks li.nao{color:var(--vermelho);font-weight:600}
+  .ifd-var{font-size:.72rem;font-weight:700;white-space:nowrap}
+  .ifd-var.sobe{color:var(--verde)}
+  .ifd-var.desce{color:var(--vermelho)}
+  .ifd-atencao{color:var(--vermelho);font-weight:600}
+  .ifd-alerta{border:1px solid var(--vermelho);border-left:4px solid var(--vermelho);border-radius:8px;
+    padding:9px 12px;margin-top:10px;font-size:.85rem;color:var(--txt);
+    background:var(--superficie-2);background-image:linear-gradient(var(--superficie-2),var(--superficie-2))}
+  .ifd-barras{display:flex;flex-direction:column;gap:5px;margin:6px 0 10px}
+  .ifd-barra-linha{display:flex;align-items:center;gap:9px;font-size:.8rem}
+  .ifd-barra-dia{min-width:58px;color:var(--cinza);font-weight:600;white-space:nowrap}
+  .ifd-barra{display:block;flex:1 1 auto;height:12px;border-radius:6px;overflow:hidden;
+    background:var(--superficie-2);background-image:linear-gradient(var(--superficie-2),var(--superficie-2));
+    border:1px solid var(--borda)}
+  .ifd-barra-cheia{display:block;height:100%;border-radius:6px;min-width:0;
+    background:var(--verde);background-image:linear-gradient(var(--verde),var(--verde))}
+  .ifd-barra-val{min-width:86px;text-align:right;color:var(--txt);font-weight:600;white-space:nowrap}
+  .ifd-estrelas{color:#E8A33D}
+  .ifd-conta td{font-size:.86rem}
+  .ifd-conta td:last-child{text-align:right;white-space:nowrap;font-weight:600}
+  .ifd-conta .ifd-conta-total td{background:var(--superficie-2);font-weight:700;font-size:.95rem}
+  @media (max-width:640px){
+    .ifd-barra-dia{min-width:46px;font-size:.74rem}
+    .ifd-barra-val{min-width:74px;font-size:.74rem}
+  }
   .resumo-dash .sobe{color:var(--vermelho)}
   .resumo-dash .desce{color:#1B7A3D}
   .dash-toggles{
@@ -1415,6 +1447,7 @@
     <button class="btn-claro" id="btnPuxadas" onclick="alternarPuxadas()"><span class="mi">🧾</span><span class="mt">Puxadas</span></button>
     <button class="btn-claro" id="btnCotacoes" onclick="alternarCotacoes()"><span class="mi">💲</span><span class="mt">Cotações do Dia</span></button>
     <button class="btn-claro" id="btnRelLoja" onclick="alternarRelLoja()"><span class="mi">🍫</span><span class="mt">Produtos e categorias</span></button>
+    <button class="btn-claro" id="btnIfood" onclick="alternarIfood()"><span class="mi">🍔</span><span class="mt">iFood</span></button>
     <button class="btn-claro" id="btnCalendario" onclick="alternarCalendario()"><span class="mi">📅</span><span class="mt">Calendário</span></button>
     <button class="btn-claro" id="btnVencimentos" onclick="alternarVencimentos()"><span class="mi">📁</span><span class="mt">Documentos</span></button>
     <button class="btn-claro" id="btnCaixa" onclick="alternarCaixa()"><span class="mi">📥</span><span class="mt">Caixa de entrada</span><span class="menu-badge" id="badgeCaixa" style="display:none">0</span></button>
@@ -1626,6 +1659,38 @@
         <button class="btn-claro" onclick="mudarMesInfleet(1)">Próximo mês ▶</button>
       </div>
       <div id="infleetAbastBox"></div>
+    </div>
+  </div>
+
+  <div class="config" id="painelIfood">
+    <div class="grupo">
+      <h2>🍔 iFood</h2>
+      <p class="nota-dash">A loja da Full Conveniência no iFood: <b id="ifdLojaNome">—</b>. O botão abaixo abre o Portal do Parceiro em uma aba nova — é preciso ter login próprio no iFood.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px">
+        <button class="btn-verde" onclick="abrirIfood()">🔗 Abrir o Portal do iFood</button>
+        <button class="btn-claro" onclick="copiarLinkIfood()">📋 Copiar o endereço</button>
+      </div>
+      <p class="nota-dash" id="ifdMsg" style="margin-top:8px"></p>
+    </div>
+    <div class="grupo">
+      <h2>🚦 Status da loja</h2>
+      <p class="nota-dash">Se a loja estava aberta e conectada à rede do iFood na última vez que o app conversou com o portal.</p>
+      <div id="ifoodStatusBox"></div>
+    </div>
+    <div class="grupo">
+      <h2>💳 Vendas</h2>
+      <p class="nota-dash">Pedidos concluídos, quanto entrou e o ticket médio, no dia e nos últimos 7 e 30 dias.</p>
+      <div id="ifoodVendasBox"></div>
+    </div>
+    <div class="grupo">
+      <h2>🏦 Faturamento e repasses — <span id="ifdMesRotulo">—</span></h2>
+      <p class="nota-dash">O que a loja vendeu no mês, o que o iFood desconta e quando o dinheiro cai na conta.</p>
+      <div id="ifoodFinBox"></div>
+    </div>
+    <div class="grupo">
+      <h2>⭐ Avaliações e cancelamentos</h2>
+      <p class="nota-dash">A nota que os clientes deram à loja e quanto dos pedidos acabou cancelado.</p>
+      <div id="ifoodNotaBox"></div>
     </div>
   </div>
 
@@ -2139,6 +2204,9 @@ let infAbastecimentos = [];            // abastecimentos importados do Infleet (
 let mesInfleet = null;                 // mês mostrado no bloco de abastecimentos (AAAA-MM)
 let escutaInfFrota = null;
 let escutaInfAbast = null;
+const docIfood = db.collection("config").doc("ifood");   // foto do Portal do Parceiro do iFood (Full Conveniencia)
+let ifoodDados = null;                 // {atualizadoEm, por, loja, status, dia, d7, d30, serie, cancel, aberto, faturamento, repasses, avaliacoes}
+let escutaIfood = null;
 let usuarioAtual = "";                 // e-mail de quem está logado (para o histórico)
 let nomeUsuario = "";                  // nome amigável do usuário logado
 let perfis = {};                       // mapa e-mail -> nome, sincronizado da nuvem
@@ -2597,6 +2665,7 @@ function aoMudarLogin(usuario){
     if (escutaVendasMensais){ escutaVendasMensais(); escutaVendasMensais = null; }
     if (escutaInfFrota){ escutaInfFrota(); escutaInfFrota = null; }
     if (escutaInfAbast){ escutaInfAbast(); escutaInfAbast = null; }
+    if (escutaIfood){ escutaIfood(); escutaIfood = null; }
     if (escutaDescontos){ escutaDescontos(); escutaDescontos = null; }
     if (escutaDescontosMes){ escutaDescontosMes(); escutaDescontosMes = null; }
     if (escutaPrecosVenda){ escutaPrecosVenda(); escutaPrecosVenda = null; }
@@ -4103,6 +4172,13 @@ function iniciarSync(){
     if (pi && pi.classList.contains("aberto")) renderInfleet();
   }, ()=>{});
 
+  // iFood - foto do Portal do Parceiro (Full Conveniencia)
+  escutaIfood = docIfood.onSnapshot(snap => {
+    ifoodDados = snap.exists ? (snap.data() || null) : null;
+    const pf = document.getElementById("painelIfood");
+    if (pf && pf.classList.contains("aberto")) renderIfood();
+  }, ()=>{});
+
   // Notificações (avisos das agendas Google dos postos)
   escutaAvisos = docAvisos.onSnapshot(snap => {
     avisosDia = snap.exists ? (snap.data() || null) : null;
@@ -4295,7 +4371,7 @@ function excluir(i){
 
 /* ================== Salvar / Carregar / Exportar ================== */
 // Painéis que ocupam a página; só um fica aberto por vez
-const PAINEIS = ["painelRegistros","painelDash","painelResumoDia","painelHistorico","painelSimular","painelDescontos","painelPuxadas","painelCotacoes","painelInfleet","painelPedido","painelRelPosto","painelRelLoja","painelCaixas","painelDespesas","painelRelPetros","painelAnalise","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin"];
+const PAINEIS = ["painelRegistros","painelDash","painelResumoDia","painelHistorico","painelSimular","painelDescontos","painelPuxadas","painelCotacoes","painelInfleet","painelIfood","painelPedido","painelRelPosto","painelRelLoja","painelCaixas","painelDespesas","painelRelPetros","painelAnalise","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin"];
 function fecharTodosPaineis(exceto){
   PAINEIS.forEach(id => {
     const el = document.getElementById(id);
@@ -4343,7 +4419,7 @@ function fecharTodosPaineis(exceto){
   const bcx = document.getElementById("btnCaixa");
   if (bcx) bcx.classList.toggle("ativo", document.getElementById("painelCaixa").classList.contains("aberto"));
   // v172 - estes tres faltavam: o botao ficava aceso depois de abrir outro menu
-  ["btnRelLoja:painelRelLoja","btnAnalise:painelAnalise","btnCaixas:painelCaixas","btnDespesas:painelDespesas"].forEach(par => {
+  ["btnRelLoja:painelRelLoja","btnAnalise:painelAnalise","btnCaixas:painelCaixas","btnDespesas:painelDespesas","btnIfood:painelIfood"].forEach(par => {
     const p = par.split(":"), b = document.getElementById(p[0]), pan = document.getElementById(p[1]);
     if (b && pan) b.classList.toggle("ativo", pan.classList.contains("aberto"));
   });
@@ -4394,6 +4470,7 @@ const MENUS_APP = [
   {key:"cotacoes",    btn:"btnCotacoes",    pan:"painelCotacoes",    emp:"transp", nome:"Cotações do Dia"},
   {key:"puxadas",     btn:"btnPuxadas",     pan:"painelPuxadas",     emp:"transp", nome:"Puxadas"},
   {key:"relLoja",     btn:"btnRelLoja",     pan:"painelRelLoja",     emp:"conv",   nome:"Produtos e categorias"},
+  {key:"ifood",       btn:"btnIfood",       pan:"painelIfood",       emp:"conv",   nome:"iFood"},
   {key:"analise",     btn:"btnAnalise",     pan:"painelAnalise",     emp:"postos|conv|transp", nome:"Análise"},
   {key:"calendario",  btn:"btnCalendario",  pan:"painelCalendario",  emp:"ambos",  nome:"Calendário"},
   {key:"vencimentos", btn:"btnVencimentos", pan:"painelVencimentos", emp:"ambos",  nome:"Documentos"},
@@ -6933,6 +7010,235 @@ async function gerarImagemPedido(){
     const msg = (e && e.name === "AbortError") ? "Envio cancelado." : ("Não consegui gerar a imagem: " + (e && e.message ? e.message : e));
     if (m) m.textContent = msg;
   }
+}
+
+/* ================== iFood - Portal do Parceiro (Full Conveniencia) ================== */
+const URL_IFOOD = "https://portal.ifood.com.br/home";
+const IFD_SIT = { SUCCEED:"Pago", PAID:"Pago", SCHEDULED:"Agendado", OPEN_PERIOD:"Em aberto",
+                  CANCELLED:"Cancelado", CANCELED:"Cancelado" };
+const IFD_VAZIO = '<p class="nota-dash">Ainda n\u00e3o temos nada do iFood por aqui. Pe\u00e7a ao Claude: \u201csincroniza o iFood\u201d.</p>';
+
+function alternarIfood(){
+  const aberto = abrirPainelExclusivo("painelIfood");
+  const b = document.getElementById("btnIfood");
+  if (b) b.classList.toggle("ativo", aberto);
+  if (aberto) renderIfood();
+}
+function abrirIfood(){ abrirSiteExterno(URL_IFOOD, "Portal do iFood", "ifdMsg"); }
+function copiarLinkIfood(){ copiarEnderecoExterno(URL_IFOOD, "ifdMsg"); }
+
+function ifdNum(v){ const n = +v; return isFinite(n) ? n : 0; }
+function ifdRS(v){ return "R$ " + fmtBR(ifdNum(v), 2); }
+function ifdPct(v, casas){ return fmtBR(ifdNum(v)*100, (casas === undefined ? 1 : casas)) + "%"; }
+// Seta de comparacao com o periodo anterior (o iFood manda 0,15 = +15%)
+function ifdVar(v){
+  if (v === null || v === undefined || !isFinite(+v)) return "";
+  const n = +v;
+  if (n === 0) return '<br><span class="ifd-var">0%</span>';
+  const cls = (n > 0) ? "sobe" : "desce";
+  const seta = (n > 0) ? "\u25B2" : "\u25BC";
+  return '<br><span class="ifd-var ' + cls + '">' + seta + " " + fmtBR(Math.abs(n)*100, 1) + "%</span>";
+}
+function ifdDia(iso){ const s = String(iso||""); return (s.length < 10) ? "\u2014" : (s.slice(8,10)+"/"+s.slice(5,7)); }
+function ifdQuando(iso){
+  const s = String(iso||"");
+  if (s.length < 10) return "";
+  const h = s.slice(11,16);
+  return s.slice(8,10)+"/"+s.slice(5,7)+(h ? (" \u00e0s "+h) : "");
+}
+function ifdRodape(){
+  const d = ifoodDados;
+  if (!d || !d.atualizadoEm) return "";
+  return '<p class="nota-dash">\u00daltima conversa com o iFood: ' + escAttr(ifdQuando(d.atualizadoEm)) +
+         (d.por ? (" \u00b7 " + escAttr(d.por)) : "") + '.</p>';
+}
+
+function renderIfood(){
+  const d = ifoodDados;
+  const n = document.getElementById("ifdLojaNome");
+  if (n) n.textContent = (d && d.loja && d.loja.nome) ? d.loja.nome : "\u2014";
+  const m = document.getElementById("ifdMesRotulo");
+  if (m) m.textContent = (d && d.faturamento && d.faturamento.mes) ? fmtMesRotulo(d.faturamento.mes) : "\u2014";
+  renderIfdStatus(); renderIfdVendas(); renderIfdFin(); renderIfdNota();
+}
+
+function renderIfdStatus(){
+  const box = document.getElementById("ifoodStatusBox");
+  if (!box) return;
+  const d = ifoodDados;
+  if (!d || !d.status){ box.innerHTML = IFD_VAZIO; return; }
+  const s = d.status, ab = (s.aberta !== false);
+  let h = '<p class="ifd-status ' + (ab ? "ok" : "nao") + '">' + (ab ? "\u25CF" : "\u25CF") + " " +
+          escAttr(s.titulo || (ab ? "Loja aberta" : "Loja fechada")) + '</p>';
+  const itens = s.itens || [];
+  if (itens.length){
+    h += '<ul class="ifd-checks">';
+    itens.forEach(function(it){
+      h += '<li class="' + (it.ok ? "ok" : "nao") + '">' + (it.ok ? "\u2714" : "\u2716") + " " +
+           escAttr(it.titulo || "") +
+           (it.sub ? (' <span class="nota-dash">' + escAttr(it.sub) + '</span>') : "") + '</li>';
+    });
+    h += '</ul>';
+  }
+  if (!ab) h += '<p class="ifd-alerta">A loja est\u00e1 fora do ar no iFood \u2014 nenhum cliente consegue pedir agora.</p>';
+  const lj = d.loja || {};
+  if (lj.endereco || lj.id){
+    h += '<p class="nota-dash">' + escAttr(lj.endereco || "") +
+         (lj.id ? (" \u00b7 loja n\u00ba " + escAttr(lj.id)) : "") + '</p>';
+  }
+  const ap = d.aberto;
+  if (ap && (ifdNum(ap.horas) || ifdNum(ap.minutos))){
+    const rec = ifdNum(ap.recomendado) || 20;
+    const poucas = ifdNum(ap.horas) < rec;
+    h += '<p class="nota-dash' + (poucas ? " ifd-atencao" : "") + '">Nos \u00faltimos 7 dias a loja ficou aberta <b>' +
+         ifdNum(ap.horas) + "h" + (ifdNum(ap.minutos) ? (" " + ifdNum(ap.minutos) + "min") : "") +
+         '</b>. O iFood recomenda pelo menos ' + rec + 'h por semana.</p>';
+  }
+  h += ifdRodape();
+  box.innerHTML = h;
+}
+
+function renderIfdVendas(){
+  const box = document.getElementById("ifoodVendasBox");
+  if (!box) return;
+  const d = ifoodDados;
+  if (!d){ box.innerHTML = IFD_VAZIO; return; }
+  const dia = d.dia || {};
+  let h = '<div class="resumo-dash">' +
+    '<div class="cartao-kpi"><span>Pedidos hoje</span><b>' + ifdNum(dia.pedidos) + '</b></div>' +
+    '<div class="cartao-kpi"><span>Vendas hoje</span><b>' + ifdRS(dia.valor) + '</b></div>' +
+    '<div class="cartao-kpi"><span>Ticket m\u00e9dio hoje</span><b>' + ifdRS(dia.ticket) + '</b></div>' +
+  '</div>';
+  h += '<p class="nota-dash">O dia do iFood vai das 5h de hoje \u00e0s 4h59 de amanh\u00e3' +
+       (dia.atualizadoEm ? (", medido \u00e0s " + escAttr(String(dia.atualizadoEm).slice(11,16))) : "") + '.</p>';
+
+  const linhas = [["\u00daltimos 7 dias", d.d7], ["\u00daltimos 30 dias", d.d30]].filter(function(p){ return !!p[1]; });
+  if (linhas.length){
+    h += '<div class="tabela-wrap"><table class="pux-tab pux-lista ifd-tab"><thead><tr><th>Per\u00edodo</th>' +
+         '<th>Pedidos</th><th>Vendas</th><th>Ticket m\u00e9dio</th><th>Clientes novos</th></tr></thead><tbody>';
+    linhas.forEach(function(p){
+      const t = p[1];
+      h += '<tr>' +
+        '<td data-lbl="Per\u00edodo"><b>' + p[0] + '</b><br><span class="nota-dash">' +
+          escAttr(ifdDia(t.de) + " a " + ifdDia(t.ate)) + '</span></td>' +
+        '<td data-lbl="Pedidos">' + ifdNum(t.pedidos) + ifdVar(t.pedidosVar) + '</td>' +
+        '<td data-lbl="Vendas">' + ifdRS(t.valor) + ifdVar(t.valorVar) + '</td>' +
+        '<td data-lbl="Ticket m\u00e9dio">' + ifdRS(t.ticket) + ifdVar(t.ticketVar) + '</td>' +
+        '<td data-lbl="Clientes novos">' + ifdNum(t.novosClientes) + '</td>' +
+      '</tr>';
+    });
+    h += '</tbody></table></div><p class="nota-dash">A seta compara com o per\u00edodo anterior do mesmo tamanho.</p>';
+  }
+
+  const serie = d.serie || [];
+  if (serie.length){
+    let maior = 1;
+    serie.forEach(function(x){ if (ifdNum(x.valor) > maior) maior = ifdNum(x.valor); });
+    h += '<p class="nota-dash"><b>Dia a dia</b></p><div class="ifd-barras">';
+    serie.forEach(function(x){
+      const pc = Math.round(ifdNum(x.valor) / maior * 100);
+      h += '<div class="ifd-barra-linha"><span class="ifd-barra-dia">' + escAttr(x.dia || "") + '</span>' +
+           '<span class="ifd-barra"><span class="ifd-barra-cheia" style="width:' + pc + '%"></span></span>' +
+           '<span class="ifd-barra-val">' + ifdRS(x.valor) + '</span></div>';
+    });
+    h += '</div>';
+  }
+  box.innerHTML = h;
+}
+
+function renderIfdFin(){
+  const box = document.getElementById("ifoodFinBox");
+  if (!box) return;
+  const d = ifoodDados;
+  if (!d || !d.faturamento){ box.innerHTML = IFD_VAZIO; return; }
+  const f = d.faturamento, r = d.repasses || {};
+  let h = '<div class="resumo-dash">' +
+    '<div class="cartao-kpi"><span>Vendas no m\u00eas</span><b>' + ifdRS(f.vendas) + '</b></div>' +
+    '<div class="cartao-kpi"><span>Faturamento l\u00edquido</span><b>' + ifdRS(f.liquido) + '</b></div>' +
+    '<div class="cartao-kpi"><span>J\u00e1 recebido</span><b>' + ifdRS(r.recebido) + '</b></div>' +
+    '<div class="cartao-kpi"><span>Ainda a receber</span><b>' + ifdRS(r.aReceber) + '</b></div>' +
+  '</div>';
+  h += '<div class="tabela-wrap"><table class="pux-tab ifd-tab ifd-conta"><tbody>' +
+    '<tr><td>Valor das vendas</td><td>' + ifdRS(f.vendas) + '</td></tr>' +
+    '<tr><td>Taxas e comiss\u00f5es do iFood</td><td>' + ifdRS(f.taxas) + '</td></tr>' +
+    '<tr><td>Servi\u00e7os e promo\u00e7\u00f5es</td><td>' + ifdRS(f.promocoes) + '</td></tr>' +
+    (ifdNum(f.ajustes) ? ('<tr><td>Ajustes</td><td>' + ifdRS(f.ajustes) + '</td></tr>') : "") +
+    '<tr class="ifd-conta-total"><td>Faturamento do m\u00eas</td><td>' + ifdRS(f.liquido) + '</td></tr>' +
+  '</tbody></table></div>';
+  const desc = Math.abs(ifdNum(f.taxas) + ifdNum(f.promocoes) + Math.min(0, ifdNum(f.ajustes)));
+  if (ifdNum(f.vendas) > 0){
+    h += '<p class="nota-dash">De cada R$ 100 vendidos no iFood, ' +
+         ifdRS(desc / ifdNum(f.vendas) * 100) + ' ficaram com o iFood em taxas, comiss\u00f5es e promo\u00e7\u00f5es.</p>';
+  }
+  const lista = r.lista || [];
+  if (lista.length){
+    h += '<p class="nota-dash"><b>Repasses do m\u00eas</b></p>';
+    h += '<div class="tabela-wrap"><table class="pux-tab pux-lista pux-resumo ifd-tab"><thead><tr>' +
+         '<th>Cai na conta</th><th>Vendas de</th><th>Situa\u00e7\u00e3o</th><th>Valor</th></tr></thead><tbody>';
+    lista.forEach(function(x){
+      h += '<tr>' +
+        '<td data-lbl="Cai na conta"><b>' + escAttr(fmtDataCurta(x.pagamento)) + '</b></td>' +
+        '<td data-lbl="Vendas de">' + escAttr(ifdDia(x.de) + " a " + ifdDia(x.ate)) + '</td>' +
+        '<td data-lbl="Situa\u00e7\u00e3o">' + escAttr(IFD_SIT[x.situacao] || x.situacao || "\u2014") + '</td>' +
+        '<td data-lbl="Valor">' + ifdRS(x.valor) + '</td>' +
+      '</tr>';
+    });
+    h += '<tr class="pux-total"><td data-lbl="Cai na conta">Total do m\u00eas</td>' +
+         '<td data-lbl="Vendas de">\u2014</td><td data-lbl="Situa\u00e7\u00e3o">' +
+         escAttr(ifdRS(r.recebido) + " j\u00e1 na conta") + '</td><td data-lbl="Valor">' + ifdRS(r.total) + '</td></tr>';
+    h += '</tbody></table></div>';
+  }
+  if (ifdNum(r.retido) > 0) h += '<p class="ifd-alerta">O iFood est\u00e1 retendo ' + ifdRS(r.retido) + ' deste m\u00eas.</p>';
+  box.innerHTML = h;
+}
+
+function renderIfdNota(){
+  const box = document.getElementById("ifoodNotaBox");
+  if (!box) return;
+  const d = ifoodDados;
+  if (!d){ box.innerHTML = IFD_VAZIO; return; }
+  const a = d.avaliacoes || {}, c = d.cancel || {};
+  const meta = (c.meta === undefined || c.meta === null) ? 0.05 : ifdNum(c.meta);
+  const temNota = (a.nota !== undefined && a.nota !== null);
+  const temCanc = (c.pctLojaMes !== undefined && c.pctLojaMes !== null);
+  let h = '<div class="resumo-dash">';
+  if (temNota){
+    h += '<div class="cartao-kpi"><span>Nota da loja</span><b>' + fmtBR(ifdNum(a.nota), 1) + ' <small>de 5</small></b></div>' +
+         '<div class="cartao-kpi"><span>Avalia\u00e7\u00f5es</span><b>' + ifdNum(a.total) + ' <small>em 90 dias</small></b></div>';
+  }
+  if (temCanc){
+    h += '<div class="cartao-kpi"><span>Cancelamento da loja</span><b>' + ifdPct(c.pctLojaMes) +
+         ' <small>meta: at\u00e9 ' + ifdPct(meta, 0) + '</small></b></div>';
+  }
+  if (c.qtd30 !== undefined && c.qtd30 !== null){
+    h += '<div class="cartao-kpi"><span>Pedidos cancelados</span><b>' + ifdNum(c.qtd30) + ' <small>em 30 dias</small></b></div>';
+  }
+  h += '</div>';
+  if (!temNota && !temCanc && (c.qtd30 === undefined || c.qtd30 === null)){ box.innerHTML = IFD_VAZIO; return; }
+
+  const est = a.estrelas || [];
+  if (est.length){
+    let tot = 0;
+    est.forEach(function(x){ tot += ifdNum(x.n); });
+    if (!tot) tot = 1;
+    h += '<div class="ifd-barras">';
+    est.slice().reverse().forEach(function(x){
+      const pc = Math.round(ifdNum(x.n) / tot * 100);
+      h += '<div class="ifd-barra-linha"><span class="ifd-barra-dia ifd-estrelas">' + escAttr(x.e) + " \u2605</span>" +
+           '<span class="ifd-barra"><span class="ifd-barra-cheia" style="width:' + pc + '%"></span></span>' +
+           '<span class="ifd-barra-val">' + ifdNum(x.n) + '</span></div>';
+    });
+    h += '</div>';
+    if (a.de || a.ate){
+      h += '<p class="nota-dash">Avalia\u00e7\u00f5es de ' + escAttr(fmtDataCurta(a.de)) + ' a ' + escAttr(fmtDataCurta(a.ate)) + '.</p>';
+    }
+  }
+  if (temCanc && ifdNum(c.pctLojaMes) > meta){
+    h += '<p class="ifd-alerta">Os cancelamentos de responsabilidade da loja est\u00e3o em <b>' + ifdPct(c.pctLojaMes) + '</b>' +
+         (c.pctLojaPeriodo ? (" (" + escAttr(c.pctLojaPeriodo) + ")") : "") +
+         ', acima da meta de ' + ifdPct(meta, 0) + ' do iFood. Passar da meta faz a loja aparecer menos nas buscas do aplicativo.</p>';
+  }
+  box.innerHTML = h;
 }
 
 /* ================== APP Infleet (Full Transportadora) ================== */
