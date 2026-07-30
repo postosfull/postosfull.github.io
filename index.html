@@ -1879,7 +1879,7 @@
 
     <div class="grupo" id="dashGrpEvolucao">
       <h2>📈 Evolução das vendas</h2>
-      <p class="nota-dash">Compare mês a mês. Nos postos o gráfico mostra <b>litros vendidos</b>; nas conveniências, <b>faturamento</b>. O mês em andamento aparece mais claro, marcado como parcial. Passe o mouse (ou toque, no celular) em cima de um mês para ver os números em detalhe.</p>
+      <p class="nota-dash" id="evoExplica">Compare mês a mês. Nos postos o gráfico mostra <b>litros vendidos</b>; nas conveniências, <b>faturamento</b>. O mês em andamento aparece mais claro, marcado como parcial. Passe o mouse (ou toque, no celular) em cima de um mês para ver os números em detalhe.</p>
       <div class="evo-filtros">
         <div class="desc-campo"><label>Empresa</label><select id="evoEmpresa" onchange="onEvoFiltro()"></select></div>
         <div class="desc-campo"><label>Período</label><select id="evoPeriodo" onchange="onEvoFiltro()">
@@ -4085,7 +4085,11 @@ function iniciarSync(){
       if (d.evolucaoPadrao && d.evolucaoPadrao.empresa){
         evolucaoPadrao = { empresa: d.evolucaoPadrao.empresa, meses: +d.evolucaoPadrao.meses || 3, comparar: !!d.evolucaoPadrao.comparar };
         const se = document.getElementById("evoEmpresa"), sp = document.getElementById("evoPeriodo"), cc = document.getElementById("evoComparar");
-        if (se && sp && !evoTocado){ se.value = evolucaoPadrao.empresa; sp.value = String(evolucaoPadrao.meses); if (cc) cc.checked = !!evolucaoPadrao.comparar; renderEvolucao(); }
+        // v199 - so' aplica a empresa do padrao se ela estiver na lista da empresa aberta
+        if (se && sp && !evoTocado){
+          if ([...se.options].some(o => o.value === evolucaoPadrao.empresa)) se.value = evolucaoPadrao.empresa;
+          sp.value = String(evolucaoPadrao.meses); if (cc) cc.checked = !!evolucaoPadrao.comparar; renderEvolucao();
+        }
       }
       try {
         localStorage.setItem(CHAVE_LISTAS, JSON.stringify(listas));
@@ -6320,15 +6324,29 @@ function abreviaNumEvo(v){
   return fmtBR(n, 0);
 }
 function onEvoFiltro(){ evoTocado = true; renderEvolucao(); }
+// v199 - na Full Conveniencia o seletor so' oferece as tres lojas
+function empresasEvoDaEmpresa(){
+  return dashEhConv() ? EMPRESAS_EVO.filter(e => e.grupo === "lojas") : EMPRESAS_EVO;
+}
 function popularSelectEvo(){
   const sel = document.getElementById("evoEmpresa");
-  if (!sel || sel.options.length) return;
-  sel.innerHTML = EMPRESAS_EVO.map(e => '<option value="'+e.id+'">'+escAttr(e.nome)+'</option>').join("");
-  sel.value = evolucaoPadrao.empresa;
-  const sp = document.getElementById("evoPeriodo");
-  if (sp) sp.value = String(evolucaoPadrao.meses || 3);
-  const cc = document.getElementById("evoComparar");
-  if (cc) cc.checked = !!evolucaoPadrao.comparar;
+  if (!sel) return;
+  const lista = empresasEvoDaEmpresa();
+  const assinatura = lista.map(e => e.id).join(",");
+  const primeiraVez = !sel.getAttribute("data-evo-lista");
+  if (!primeiraVez && sel.getAttribute("data-evo-lista") === assinatura) return;   // nada mudou
+  const atual = sel.value;
+  sel.innerHTML = lista.map(e => '<option value="'+e.id+'">'+escAttr(e.nome)+'</option>').join("");
+  sel.setAttribute("data-evo-lista", assinatura);
+  // mantem a escolha se ela ainda existir; senao cai no padrao salvo; senao na primeira da lista
+  sel.value = lista.some(e => e.id === atual) ? atual
+            : (lista.some(e => e.id === evolucaoPadrao.empresa) ? evolucaoPadrao.empresa : lista[0].id);
+  if (primeiraVez){
+    const sp = document.getElementById("evoPeriodo");
+    if (sp) sp.value = String(evolucaoPadrao.meses || 3);
+    const cc = document.getElementById("evoComparar");
+    if (cc) cc.checked = !!evolucaoPadrao.comparar;
+  }
 }
 function salvarPadraoEvolucao(){
   const se = document.getElementById("evoEmpresa"), sp = document.getElementById("evoPeriodo");
@@ -6452,7 +6470,8 @@ function renderEvolucao(){
   if (!box) return;
   const se = document.getElementById("evoEmpresa"), sp = document.getElementById("evoPeriodo");
   const cc = document.getElementById("evoComparar");
-  const emp = EMPRESAS_EVO.find(e => e.id === (se ? se.value : evolucaoPadrao.empresa)) || EMPRESAS_EVO[0];
+  const lista = empresasEvoDaEmpresa();   // v199
+  const emp = lista.find(e => e.id === (se ? se.value : evolucaoPadrao.empresa)) || lista[0];
   const qtd = +(sp ? sp.value : evolucaoPadrao.meses) || 3;
   const comparar = !!(cc && cc.checked);
   const meses = Object.keys(vendasMensais).sort();
@@ -10975,15 +10994,16 @@ function renderPetrosResumo(){
   const dataRef = (p && p.atualizadoEm) ? new Date(p.atualizadoEm) : new Date();
   const horaColeta = (p && p.atualizadoEm) ? ' (até às '+dataRef.toLocaleTimeString("pt-BR").slice(0,5)+')' : '';
   let html = '<div class="pet-sec"><h3 class="comp-tit">Vendas do dia — '+dataRef.toLocaleDateString("pt-BR")+horaColeta+'</h3>';
-  if (!p || (!p.postos && !p.conveniencias)){
+  const soLojas = dashEhConv();                 // v199 - na Conveniencia o card so' fala da loja
+  if (!p || (soLojas ? !p.conveniencias : (!p.postos && !p.conveniencias))){
     return html + '<p class="nota-dash">Ainda sem dados do Petros. A sincronização diária preenche esta área automaticamente.</p></div>';
   }
   const ordem = ["Teresina","Caxias","Pres Dutra"];       // ordem escolhida pelo Tiago
   const rotulo = n => n === "Pres Dutra" ? "Dutra" : n;
 
-  // Bloco dos postos
-  let blocoPostos = '<div class="pet-bloco"><h4 class="pet-bloco-tit">⛽ Postos Full</h4><div class="pet-grid">';
-  ordem.forEach(n => {
+  // Bloco dos postos (v199 - nao entra no Dashboard da Conveniencia)
+  let blocoPostos = soLojas ? "" : '<div class="pet-bloco"><h4 class="pet-bloco-tit">⛽ Postos Full</h4><div class="pet-grid">';
+  if (!soLojas) ordem.forEach(n => {
     const d = (p.postos||{})[n]; if (!d) return;
     blocoPostos += '<div class="pet-card"><h4>'+rotulo(n)+'</h4><div class="pet-linhas">' +
       '<div class="pet-l"><span>Volume</span><b>'+fmtBR(d.volume||0,0)+' L</b></div>' +
@@ -10992,7 +11012,7 @@ function renderPetrosResumo(){
       '<div class="pet-l"><span>Lucro Líquido/L</span><b>R$ '+fmtBR(d.lucroLiquidoL||0,4)+'</b></div>' +
       '</div></div>';
   });
-  blocoPostos += '</div></div>';
+  if (!soLojas) blocoPostos += '</div></div>';
 
   // Bloco das lojas
   let blocoLojas = '<div class="pet-bloco"><h4 class="pet-bloco-tit">🛒 Full Conveniência</h4><div class="pet-grid">';
@@ -11005,8 +11025,8 @@ function renderPetrosResumo(){
   });
   blocoLojas += '</div></div>';
 
-  // v198 - na Full Conveniencia a loja aparece primeiro
-  html += dashEhConv() ? (blocoLojas + blocoPostos) : (blocoPostos + blocoLojas);
+  // v199 - na Full Conveniencia sai so' a loja; nos Postos saem os dois, o posto primeiro
+  html += soLojas ? blocoLojas : (blocoPostos + blocoLojas);
   html += '<p class="pet-info">' +
     (p.atualizadoEm ? '🔄 Atualizado em ' + fmtDataHora(new Date(p.atualizadoEm)) + ' • ' : '') +
     'Sincronização automática diária. Para atualizar agora, peça ao Claude: "sincroniza o Petros".</p>';
@@ -11028,6 +11048,11 @@ function ajustarBlocosDash(){
   ver("dashGrpComparar",   conv);
   ver("dashGrpIfood",      conv);
   ver("dashGrpPrecos",    !conv);
+  // v199 - a explicacao do card de evolucao muda com a empresa
+  const ex = document.getElementById("evoExplica");
+  if (ex) ex.innerHTML = conv
+    ? 'Compare o <b>faturamento</b> das conveniências mês a mês. O mês em andamento aparece mais claro, marcado como parcial. Passe o mouse (ou toque, no celular) em cima de um mês para ver os números em detalhe.'
+    : 'Compare mês a mês. Nos postos o gráfico mostra <b>litros vendidos</b>; nas conveniências, <b>faturamento</b>. O mês em andamento aparece mais claro, marcado como parcial. Passe o mouse (ou toque, no celular) em cima de um mês para ver os números em detalhe.';
 }
 // chamada pelos onSnapshot: so' faz trabalho se o Dashboard da Conveniencia estiver na tela
 function atualizarDashConv(){
