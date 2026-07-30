@@ -855,6 +855,9 @@
   table.dsp-tab th,table.dsp-tab td{padding:6px 6px;border-bottom:1px solid var(--borda);text-align:left}
   table.dsp-tab th{font-size:.7rem;text-transform:uppercase;letter-spacing:.03em;color:var(--cinza)}
   .dsp-r{text-align:right !important}
+  /* v192 - ordenacao das abas do menu Relatorios */
+  .rel-ord-bt{margin-left:auto}
+  .ord-abas{border:1px solid var(--borda);border-radius:10px;padding:10px;margin:8px 0;background:var(--superficie-2);background-image:linear-gradient(var(--superficie-2),var(--superficie-2))}
   /* v191 - Relatorios Petros */
   .rpz-cards{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
   .rpz-card{flex:1 1 130px;min-width:130px;border:1px solid var(--borda);border-radius:10px;padding:8px 10px;background:var(--superficie);background-image:linear-gradient(var(--superficie),var(--superficie))}
@@ -1393,10 +1396,9 @@
     <button class="btn-claro" id="btnHistorico" onclick="alternarHistorico()"><span class="mi">🕐</span><span class="mt">Histórico</span></button>
     <button class="btn-claro" id="btnSimular" onclick="alternarSimular()"><span class="mi">💰</span><span class="mt">Simular Margens</span></button>
     <button class="btn-claro" id="btnDescontos" onclick="alternarDescontos()"><span class="mi">🏷️</span><span class="mt">Descontos</span></button>
-    <button class="btn-claro" id="btnRelPosto" onclick="alternarRelPosto()"><span class="mi">📑</span><span class="mt">Relatórios do posto</span></button>
+    <button class="btn-claro" id="btnRelPosto" onclick="alternarRelatorios()"><span class="mi">📑</span><span class="mt">Relatórios</span></button>
     <button class="btn-claro" id="btnCaixas" onclick="alternarCaixas()"><span class="mi">🧾</span><span class="mt">Caixas</span></button>
     <button class="btn-claro" id="btnDespesas" onclick="alternarDespesas()"><span class="mi">💸</span><span class="mt">Despesas</span></button>
-    <button class="btn-claro" id="btnRelPetros" onclick="alternarRelPetros()"><span class="mi">📈</span><span class="mt">Relatórios Petros</span></button>
     <button class="btn-claro" id="btnAnalise" onclick="alternarAnalise()"><span class="mi">🧠</span><span class="mt">Análise</span></button>
     <button class="btn-claro" id="btnInfleet" onclick="alternarInfleet()"><span class="mi">📡</span><span class="mt">APP Infleet</span></button>
     <button class="btn-claro" id="btnPedido" onclick="alternarPedido()"><span class="mi">📝</span><span class="mt">Pedido de carregamento</span></button>
@@ -1631,13 +1633,14 @@
 
   <div class="config" id="painelRelPosto">
     <div class="grupo">
-      <h2>📑 Relatórios do posto</h2>
-      <p class="nota-dash">Números que vêm do Petros/Adaptive: resultado do mês, fechamento de caixa, equipe e margem por combustível. Atualizados na sincronização.</p>
+      <h2 id="relTituloPosto">📑 Relatórios</h2>
+      <p class="nota-dash">Números que vêm do Petros/Adaptive. Use as abas para trocar de relatório.</p>
       <div class="evo-filtros">
         <div class="desc-campo"><label>Posto</label><select id="relPostoEmp" onchange="relPostoSel=this.value;renderRelPosto()"></select></div>
         <div class="desc-campo"><label>Mês</label><select id="relPostoMesSel" onchange="relPostoMes=this.value;renderRelPosto()"></select></div>
       </div>
       <div class="doc-tools" id="relPostoAbas"></div>
+      <div class="ord-abas-box"></div>
       <div id="relPostoBox"></div>
     </div>
   </div>
@@ -1668,13 +1671,14 @@
 
   <div class="config" id="painelRelPetros">
     <div class="grupo">
-      <h2 id="rpzTitulo">&#128200; Relat&oacute;rios Petros</h2>
-      <p class="nota-dash">Relat&oacute;rios que existem no Adaptive e n&atilde;o apareciam aqui. Os n&uacute;meros v&ecirc;m direto do Petros, sem digita&ccedil;&atilde;o no meio.</p>
+      <h2 id="rpzTitulo">&#128209; Relat&oacute;rios</h2>
+      <p class="nota-dash">N&uacute;meros que v&ecirc;m do Petros/Adaptive. Use as abas para trocar de relat&oacute;rio.</p>
       <div class="evo-filtros">
         <div class="desc-campo"><label>Unidade</label><select id="rpzUnid" onchange="rpzUnidSel=this.value;renderRelPetros()"></select></div>
         <div class="desc-campo" id="rpzPerLinha"><label>Per&iacute;odo</label><select id="rpzPer" onchange="rpzPerSel=this.value;renderRelPetros()"></select></div>
       </div>
       <div class="doc-tools" id="rpzAbas"></div>
+      <div class="ord-abas-box"></div>
       <div id="rpzBox"></div>
     </div>
   </div>
@@ -2107,6 +2111,7 @@ const colResumoDiario = db.collection("resumoDiario");             // um doc por
 const colVendasMensais = db.collection("vendasMensais");
 const colRelPosto = db.collection("relatoriosPosto");      // v168 - relatórios mensais dos postos (Adaptive)
 const docOrdemMenus = db.collection("config").doc("ordemMenus");   // v188 - ordem dos botoes da barra
+const docOrdemAbasRel = db.collection("config").doc("ordemAbasRel"); // v192 - ordem das abas dentro do menu Relatorios
 const colCaixaInd = db.collection("caixaIndicadores");    // v185 - "2026-07" indicadores de caixa por posto
 const colDespesasAno = db.collection("despesasAno");      // v185 - "2026" despesas mes a mes por tipo
 const colRelPetros   = db.collection("relatoriosPetros"); // v191 - relatorios do Adaptive (Mapa Anual, DRE, despesas, tanques, colaboradores, a prazo)
@@ -2157,6 +2162,7 @@ let escutaRelPosto = null, escutaRelLoja = null;
 let caixaInd = {}, cxiSel = "";                 // v185 - {"2026-07": {...}}
 let despesasAno = {}, dspAnoSel = "", dspPostoSel = "todos", dspComRet = true;  // v185
 let relPetros = {}, rpzAba = "mapa", rpzUnidSel = "teresina", rpzPerSel = "";  // v191
+let ordemAbasRel = {}, abaRelAtual = "", ordAbasAberto = false;  // v192
 let analises = {}, anaSel = "";                 // v172 - {"postos_2026-07-28": {...}}
 let escutaAnalises = null;
 let relPostoSel = "teresina", relPostoMes = "", relPostoAba = "resultado";
@@ -3843,6 +3849,15 @@ function iniciarSync(){
     if (p && p.classList.contains("aberto")) renderDespesas();
   }, ()=>{});
 
+  // v192 - ordem das abas do menu Relatorios
+  docOrdemAbasRel.onSnapshot(d => {
+    const v = d && d.exists ? d.data() : null;
+    ordemAbasRel = (v && v.porEmpresa) ? v.porEmpresa : {};
+    const pp = document.getElementById("painelRelPosto"), pz = document.getElementById("painelRelPetros");
+    if (pp && pp.classList.contains("aberto")) renderRelPosto();
+    if (pz && pz.classList.contains("aberto")) renderRelPetros();
+  }, ()=>{});
+
   // v191 - relatorios do Petros
   colRelPetros.onSnapshot(snap => {
     const m = {}; snap.forEach(d => m[d.id] = Object.assign({ id: d.id }, d.data())); relPetros = m;
@@ -4317,10 +4332,15 @@ function fecharTodosPaineis(exceto){
   const bcx = document.getElementById("btnCaixa");
   if (bcx) bcx.classList.toggle("ativo", document.getElementById("painelCaixa").classList.contains("aberto"));
   // v172 - estes tres faltavam: o botao ficava aceso depois de abrir outro menu
-  ["btnRelPosto:painelRelPosto","btnRelLoja:painelRelLoja","btnAnalise:painelAnalise","btnCaixas:painelCaixas","btnDespesas:painelDespesas","btnRelPetros:painelRelPetros"].forEach(par => {
+  ["btnRelLoja:painelRelLoja","btnAnalise:painelAnalise","btnCaixas:painelCaixas","btnDespesas:painelDespesas"].forEach(par => {
     const p = par.split(":"), b = document.getElementById(p[0]), pan = document.getElementById(p[1]);
     if (b && pan) b.classList.toggle("ativo", pan.classList.contains("aberto"));
   });
+  // v192 - um botao so ("Relatorios") acende para os DOIS paineis de relatorio
+  const brel = document.getElementById("btnRelPosto");
+  if (brel) brel.classList.toggle("ativo", ["painelRelPosto","painelRelPetros"].some(id => {
+    const e = document.getElementById(id); return e && e.classList.contains("aberto");
+  }));
 }
 
 /* ===== Menu lateral: abrir/fechar no celular ===== */
@@ -4355,10 +4375,9 @@ const MENUS_APP = [
   {key:"historico",   btn:"btnHistorico",   pan:"painelHistorico",   emp:"postos", nome:"Histórico"},
   {key:"simular",     btn:"btnSimular",     pan:"painelSimular",     emp:"postos", nome:"Simular Margens"},
   {key:"descontos",   btn:"btnDescontos",   pan:"painelDescontos",   emp:"postos", nome:"Descontos"},
-  {key:"relPosto",    btn:"btnRelPosto",    pan:"painelRelPosto",    emp:"postos", nome:"Relatórios do posto"},
+  {key:"relPosto",    btn:"btnRelPosto",    pan:"painelRelPosto",    emp:"postos|conv", nome:"Relatórios"},
   {key:"caixas",      btn:"btnCaixas",      pan:"painelCaixas",      emp:"postos|conv", nome:"Caixas"},
   {key:"despesas",    btn:"btnDespesas",    pan:"painelDespesas",    emp:"postos|conv", nome:"Despesas"},
-  {key:"relPetros",   btn:"btnRelPetros",   pan:"painelRelPetros",   emp:"postos|conv", nome:"Relatórios Petros"},
   {key:"infleet",     btn:"btnInfleet",     pan:"painelInfleet",     emp:"transp", nome:"APP Infleet"},
   {key:"pedido",      btn:"btnPedido",      pan:"painelPedido",      emp:"transp", nome:"Pedido de carregamento"},
   {key:"cotacoes",    btn:"btnCotacoes",    pan:"painelCotacoes",    emp:"transp", nome:"Cotações do Dia"},
@@ -4391,6 +4410,8 @@ function menuPermitidoDe(email, key){
   // v177: o "Comparativo de Preços" virou uma seção dentro de "Cotações do Dia".
   // Quem tinha permissão no comparativo continua enxergando o menu que o absorveu.
   if (key === "cotacoes") return _menuPermBase(email, "cotacoes") || _menuPermBase(email, "comparativo");
+  // v192: "Relatorios do posto" e "Relatorios Petros" viraram o menu unico "Relatorios".
+  if (key === "relPosto") return _menuPermBase(email, "relPosto") || _menuPermBase(email, "relPetros");
   return _menuPermBase(email, key);
 }
 function _menuPermBase(email, key){
@@ -4955,6 +4976,126 @@ function renderCaixas(){
   box.innerHTML = h;
 }
 
+/* ===================== v192 - MENU UNICO "RELATORIOS" ===================== */
+/* Junta as 4 abas de "Relatorios do posto" com as 6 de "Relatorios Petros" numa
+   barra so. Cada aba continua morando no seu painel; a barra e' que e' compartilhada.
+   Ordem editavel pelo admin, gravada em config/ordemAbasRel. */
+const ABAS_REL_UNIF = [
+  { k:"p:resultado", n:"💵 Resultado do mês",   painel:"painelRelPosto",  aba:"resultado", emp:"postos" },
+  { k:"p:caixa",     n:"🧾 Caixa",              painel:"painelRelPosto",  aba:"caixa",     emp:"postos" },
+  { k:"p:equipe",    n:"👷 Equipe e movimento", painel:"painelRelPosto",  aba:"equipe",    emp:"postos" },
+  { k:"p:comb",      n:"⛽ Combustíveis",       painel:"painelRelPosto",  aba:"comb",      emp:"postos" },
+  { k:"z:mapa",      n:"🗺️ Mapa Anual",         painel:"painelRelPetros", aba:"mapa",      emp:"postos|conv" },
+  { k:"z:dre",       n:"📊 Resultado do período", painel:"painelRelPetros", aba:"dre",     emp:"postos|conv" },
+  { k:"z:desp",      n:"💸 Despesas",           painel:"painelRelPetros", aba:"desp",      emp:"postos|conv" },
+  { k:"z:tanques",   n:"🛢️ Tanques",            painel:"painelRelPetros", aba:"tanques",   emp:"postos" },
+  { k:"z:colab",     n:"🙋 Colaboradores",      painel:"painelRelPetros", aba:"colab",     emp:"postos|conv" },
+  { k:"z:aprazo",    n:"📄 A Prazo",            painel:"painelRelPetros", aba:"aprazo",    emp:"postos|conv" }
+];
+function tituloRel(){
+  return "📑 Relatórios — " + (siglaEmpresa(empresa) === "conv" ? "Full Conveniência" : "Postos Full");
+}
+// abas desta empresa, ja na ordem que esta valendo
+function abasRelDaEmpresa(s){
+  s = s || siglaEmpresa(empresa);
+  const base = ABAS_REL_UNIF.filter(a => String(a.emp).split("|").indexOf(s) >= 0);
+  const ordem = (ordemAbasRel && ordemAbasRel[s]) ? ordemAbasRel[s] : [];
+  const mapa = {}; base.forEach(a => mapa[a.k] = a);
+  const saida = [];
+  ordem.forEach(k => { if (mapa[k]){ saida.push(mapa[k]); delete mapa[k]; } });
+  base.forEach(a => { if (mapa[a.k]) saida.push(a); });   // aba nova nunca some
+  return saida;
+}
+function abaRelValida(){
+  const abas = abasRelDaEmpresa();
+  if (!abas.length) return null;
+  if (!abas.some(a => a.k === abaRelAtual)) abaRelAtual = abas[0].k;
+  return ABAS_REL_UNIF.find(a => a.k === abaRelAtual);
+}
+function barraAbasRel(){
+  const abas = abasRelDaEmpresa();
+  abaRelValida();
+  let h = abas.map(a => '<button class="doc-chip' + (abaRelAtual === a.k ? ' ativo' : '') +
+    '" onclick="irParaAbaRel(\'' + a.k + '\')">' + a.n + '</button>').join("");
+  if (ehAdminAtual()) h += '<button class="doc-chip rel-ord-bt' + (ordAbasAberto ? ' ativo' : '') +
+    '" onclick="alternarOrdemAbasRel()" title="Mudar a ordem das abas">⚙️ Ordenar abas</button>';
+  return h;
+}
+function irParaAbaRel(k){
+  const t = ABAS_REL_UNIF.find(a => a.k === k);
+  if (!t) return;
+  abaRelAtual = k;
+  if (t.painel === "painelRelPosto") relPostoAba = t.aba;
+  else { if (rpzAba !== t.aba) rpzPerSel = ""; rpzAba = t.aba; }
+  const alvo = document.getElementById(t.painel);
+  if (!alvo) return;
+  if (!alvo.classList.contains("aberto")){
+    alvo.classList.add("aberto");
+    fecharTodosPaineis(t.painel);
+    atualizarFiltrosVisiveis();
+  }
+  if (t.painel === "painelRelPosto") renderRelPosto(); else renderRelPetros();
+}
+function relatoriosAberto(){
+  return ["painelRelPosto","painelRelPetros"].some(id => {
+    const e = document.getElementById(id); return e && e.classList.contains("aberto");
+  });
+}
+function alternarRelatorios(){
+  if (relatoriosAberto()){ fecharTodosPaineis(); ordAbasAberto = false; return; }
+  const t = abaRelValida();
+  if (!t) return;
+  irParaAbaRel(t.k);
+}
+/* --- ordenacao das abas (so admin) --- */
+function alternarOrdemAbasRel(){ ordAbasAberto = !ordAbasAberto; renderOrdemAbasRel(); recarregarBarraAbasRel(); }
+function recarregarBarraAbasRel(){
+  ["relPostoAbas","rpzAbas"].forEach(id => {
+    const e = document.getElementById(id);
+    if (e && e.innerHTML) e.innerHTML = barraAbasRel();
+  });
+}
+function moverAbaRel(k, dir){
+  const s = siglaEmpresa(empresa);
+  const lista = abasRelDaEmpresa(s).map(a => a.k);
+  const i = lista.indexOf(k), j = i + dir;
+  if (i < 0 || j < 0 || j >= lista.length) return;
+  lista.splice(j, 0, lista.splice(i, 1)[0]);
+  if (!ordemAbasRel) ordemAbasRel = {};
+  ordemAbasRel[s] = lista;
+  docOrdemAbasRel.set({ porEmpresa: ordemAbasRel })
+    .then(() => { if (typeof logAtividade === "function") logAtividade("menus", "Mudou a ordem das abas dos Relatórios", s); })
+    .catch(()=>{});
+  recarregarBarraAbasRel(); renderOrdemAbasRel();
+}
+function resetarOrdemAbasRel(){
+  const s = siglaEmpresa(empresa);
+  if (!ordemAbasRel) ordemAbasRel = {};
+  delete ordemAbasRel[s];
+  docOrdemAbasRel.set({ porEmpresa: ordemAbasRel }).catch(()=>{});
+  recarregarBarraAbasRel(); renderOrdemAbasRel();
+}
+function renderOrdemAbasRel(){
+  const caixas = document.querySelectorAll(".ord-abas-box");
+  if (!caixas.length) return;
+  if (!ordAbasAberto || !ehAdminAtual()){ caixas.forEach(c => { c.innerHTML = ""; }); return; }
+  const s = siglaEmpresa(empresa);
+  const lista = abasRelDaEmpresa(s);
+  let h = '<div class="ord-abas"><p class="nota-dash">Arrume as abas na ordem que você preferir. Vale para ' +
+    (s === "conv" ? "a Full Conveniência" : "os Postos Full") + ' e todo mundo passa a ver assim.</p><div class="ord-lista">';
+  lista.forEach((a, i) => {
+    h += '<div class="ord-item"><span class="ord-pos">' + (i+1) + '</span>' +
+         '<span class="ord-nome">' + a.n + '</span>' +
+         '<span class="ord-bts">' +
+         '<button class="btn-claro" ' + (i === 0 ? 'disabled ' : '') + 'onclick="moverAbaRel(\'' + a.k + '\',-1)" title="Subir">\u25b2</button>' +
+         '<button class="btn-claro" ' + (i === lista.length-1 ? 'disabled ' : '') + 'onclick="moverAbaRel(\'' + a.k + '\',1)" title="Descer">\u25bc</button>' +
+         '</span></div>';
+  });
+  h += '</div><div class="ord-acoes"><button class="btn-claro" onclick="resetarOrdemAbasRel()">\u21a9 Voltar à ordem original</button>' +
+       '<button class="btn-claro" onclick="alternarOrdemAbasRel()">\u2713 Pronto</button></div></div>';
+  caixas.forEach(c => { c.innerHTML = h; });
+}
+
 /* ===================== v191 - MENU RELATORIOS PETROS ===================== */
 const ABAS_REL_PETROS = [
   ["mapa",    "🗺️ Mapa Anual"],
@@ -4970,6 +5111,7 @@ function rpzAbasDaEmpresa(){
   return ABAS_REL_PETROS.filter(a => !(a[0] === "tanques" && sig !== "postos"));
 }
 function rpzDin(v, casas){ return fmtBR(Number(v)||0, casas == null ? 2 : casas); }
+function rpzDia(d){ return String(d || "").split("-").reverse().join("/"); }
 function rpzDin0(v){ return fmtBR(Number(v)||0, 0); }
 // o Petros manda alguns rotulos com caracteres de controle (ex.: \u0002 antes do combustivel)
 function rpzTxt(v){ return String(v == null ? "" : v).replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim(); }
@@ -5009,13 +5151,13 @@ function renderRelPetros(){
   if (!box) return;
   const sig = siglaEmpresa(empresa);
   const tit = document.getElementById("rpzTitulo");
-  if (tit) tit.innerHTML = "📈 Relatórios Petros — " + (sig === "conv" ? "Full Conveniência" : "Postos Full");
+  if (tit) tit.innerHTML = tituloRel();
 
   const abas = rpzAbasDaEmpresa();
   if (!abas.some(a => a[0] === rpzAba)) rpzAba = abas[0][0];
   const elAbas = document.getElementById("rpzAbas");
-  if (elAbas) elAbas.innerHTML = abas
-    .map(a => '<button class="doc-chip' + (rpzAba === a[0] ? ' ativo' : '') + '" onclick="mudarAbaRelPetros(\'' + a[0] + '\')">' + a[1] + '</button>').join("");
+  if (elAbas) elAbas.innerHTML = barraAbasRel();
+  renderOrdemAbasRel();
 
   preencherSelectRel("rpzUnid", UNIDADES_REL.map(u => u.chave), rpzUnidSel, c => (UNIDADES_REL.find(u => u.chave === c) || {}).nome || c);
   rpzUnidSel = (document.getElementById("rpzUnid") || {}).value || rpzUnidSel;
@@ -5036,12 +5178,13 @@ function renderRelPetros(){
   const doc = rpzDoc(rpzAba, rpzPerSel);
   const linhas = rpzLista(doc);
   let h = "";
-  if (rpzAba === "mapa")         h = rpzBlocoMapa(linhas);
-  else if (rpzAba === "dre")     h = rpzBlocoDre(linhas);
-  else if (rpzAba === "desp")    h = rpzBlocoDesp(linhas);
-  else if (rpzAba === "tanques") h = rpzBlocoTanques(linhas);
-  else if (rpzAba === "colab")   h = rpzBlocoColab(linhas);
-  else if (rpzAba === "aprazo")  h = rpzBlocoAprazo(linhas);
+  if (doc && doc.de && doc.ate) h += '<p class="nota-dash">Período: ' + rpzDia(doc.de) + ' a ' + rpzDia(doc.ate) + '.</p>';
+  if (rpzAba === "mapa")         h += rpzBlocoMapa(linhas);
+  else if (rpzAba === "dre")     h += rpzBlocoDre(linhas);
+  else if (rpzAba === "desp")    h += rpzBlocoDesp(linhas);
+  else if (rpzAba === "tanques") h += rpzBlocoTanques(linhas);
+  else if (rpzAba === "colab")   h += rpzBlocoColab(linhas);
+  else if (rpzAba === "aprazo")  h += rpzBlocoAprazo(linhas);
   const quando = doc && doc.atualizadoEm ? String(doc.atualizadoEm).slice(0,10).split("-").reverse().join("/") : "—";
   const FONTE = { mapa:"Mapa Anual de Resultados e Indicadores", dre:"Demonstrativo de Resultado no Período-Consolidado",
     desp:"Despesas Pagas no Período", tanques:"Perdas e Sobras na Medição dos Tanques",
@@ -5098,6 +5241,7 @@ function rpzBlocoDre(D){
   h += card("Lucro líquido", "R$ " + rpzDin0(ll), ll < 0 ? "rpz-neg" : "rpz-pos");
   h += '</div>';
   if (vVe < 0) h += '<div class="ana-resumo"><b>Atenção:</b> a variação de estoque está negativa em R$ ' + rpzDin0(Math.abs(vVe)) + ' — saiu mais produto do que a venda explica.</div>';
+  h += '<p class="nota-dash">Este é o resultado contábil do Petros (Demonstrativo de Resultado). Ele <b>não bate exatamente</b> com a aba <b>Resultado do mês</b>: aquela vem dos painéis do Adaptive, costuma cobrir menos dias e conta o lucro bruto já com as outras receitas dentro. Para comparar, confira antes o período de cada uma.</p>';
 
   const tab = (titulo, cols, linhas) => {
     if (!linhas.length) return "";
@@ -5418,11 +5562,14 @@ function mudarAbaRelPosto(a){ relPostoAba = a; renderRelPosto(); }
 function renderRelPosto(){
   const box = document.getElementById("relPostoBox");
   if (!box) return;
+  const titP = document.getElementById("relTituloPosto");
+  if (titP) titP.innerHTML = tituloRel();
   preencherSelectRel("relPostoEmp", UNIDADES_REL.map(u=>u.chave), relPostoSel, c => (UNIDADES_REL.find(u=>u.chave===c)||{}).nome || c);
   relPostoSel = (document.getElementById("relPostoEmp")||{}).value || relPostoSel;
   const meses = mesesDisponiveis(relPostos, relPostoSel);
   if (!meses.length){
-    document.getElementById("relPostoAbas").innerHTML = "";
+    document.getElementById("relPostoAbas").innerHTML = barraAbasRel();
+    renderOrdemAbasRel();
     preencherSelectRel("relPostoMesSel", [], "", null);
     box.innerHTML = '<p class="nota-dash">Ainda não temos os relatórios deste posto. Eles são montados na sincronização — peça ao Claude: "sincroniza os relatórios do posto".</p>';
     return;
@@ -5430,8 +5577,8 @@ function renderRelPosto(){
   if (meses.indexOf(relPostoMes) < 0) relPostoMes = meses[0];
   preencherSelectRel("relPostoMesSel", meses, relPostoMes, rotuloMesRel);
   const d = relPostos[relPostoSel + "_" + relPostoMes] || {};
-  document.getElementById("relPostoAbas").innerHTML = ABAS_REL_POSTO
-    .map(a => '<button class="doc-chip'+(relPostoAba===a[0]?' ativo':'')+'" onclick="mudarAbaRelPosto(\''+a[0]+'\')">'+a[1]+'</button>').join("");
+  document.getElementById("relPostoAbas").innerHTML = barraAbasRel();
+  renderOrdemAbasRel();
   let h = "";
   if (d.ate) h += '<p class="nota-dash">Período: 1 a '+String(d.ate).slice(8,10)+' de '+rotuloMesRel(relPostoMes)+'.</p>';
   if (relPostoAba === "resultado") h += blocoResultadoPosto(d);
@@ -5450,7 +5597,7 @@ function blocoResultadoPosto(d){
     '<div class="rel-kpi"><span>Lucro bruto</span><b>'+fmtR$0(r.lb)+'</b></div>' +
     '<div class="rel-kpi"><span>Despesas</span><b>'+fmtR$0(r.desp)+'</b></div>' +
     '<div class="rel-kpi '+((+r.ll||0)>=0?'bom':'ruim')+'"><span>Lucro líquido</span><b>'+fmtR$0(r.ll)+'</b></div>' +
-    '<div class="rel-kpi '+(perdeu?'ruim':'')+'"><span>Variação de estoque</span><b>'+fmtL(r.varEst)+'</b></div>' +
+    '<div class="rel-kpi '+(perdeu?'ruim':'')+'"><span>Variação de estoque</span><b>'+fmtR$0(r.varEst)+'</b></div>' +
     '</div>';
   h += '<div class="rel-scroll"><table class="rel-tab"><thead><tr><th>Linha</th><th class="n">Valor</th><th class="n">Por litro</th></tr></thead><tbody>';
   const litros = +r.vol || 1;
@@ -5462,10 +5609,10 @@ function blocoResultadoPosto(d){
   h += linha("Custo dos outros produtos", r.custoOutros, (+r.custoOutros||0)/litros);
   h += linha("<b>Lucro bruto</b>", r.lb, r.lbL);
   h += linha("Despesas", r.desp, r.despL);
-  h += '<tr><td>Variação de estoque</td><td class="n">'+fmtL(r.varEst)+'</td><td class="n">—</td></tr>';
+  h += '<tr><td>Variação de estoque</td><td class="n">'+fmtR$(r.varEst)+'</td><td class="n">'+((+r.vol||0) ? ("R$ "+fmtBR((+r.varEst||0)/(+r.vol||1),3)) : "—")+'</td></tr>';
   h += linha("<b>Lucro líquido</b>", r.ll, r.llL);
   h += '</tbody></table></div>';
-  if (perdeu) h += '<div class="rel-alerta">⚠️ A variação de estoque do mês está negativa em '+fmtL(Math.abs(+r.varEst||0))+'. Vale conferir aferições, vazamentos e as entradas de nota.</div>';
+  if (perdeu) h += '<div class="rel-alerta">⚠️ A variação de estoque do mês está negativa em '+fmtR$(Math.abs(+r.varEst||0))+'. Vale conferir aferições, vazamentos e as entradas de nota.</div>';
   return h;
 }
 function blocoCaixaPosto(d){
