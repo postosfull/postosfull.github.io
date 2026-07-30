@@ -176,7 +176,7 @@
   .menu-lateral:hover .mt{opacity:1}
   .menu-lateral .menu-tema{margin-top:auto}
   .menu-lateral .menu-sair{color:var(--vermelho)}
-  /* v193 - modo "ordenar menus" dentro da propria barra lateral */
+  /* v196 - modo "ordenar menus" dentro da propria barra lateral */
   .menu-lateral .menu-ordenar{margin-top:auto}
   .menu-lateral.tem-ordenar .menu-tema{margin-top:0}
   .menu-lateral.ordenando{width:258px;box-shadow:4px 0 18px rgba(0,0,0,.25)}
@@ -2300,7 +2300,7 @@ let escutaPermissoes = null;
 let perfisAcesso = {};                 // {id:{nome,menus:{key:true}}} sincronizado da nuvem
 let ordemMenus = {};                   // v188 - {postos:[key,...], conv:[...], transp:[...]}
 let ordemPadrao = {};                  // v189 - a ordem que o Tiago salvou como referencia, por empresa
-let modoOrdenar = false;               // v193 - a barra lateral esta em modo de ordenacao?
+let modoOrdenar = false;               // v196 - a barra lateral esta em modo de ordenacao?
 let permissaoEnvioPerfil = {};         // v187 - {perfilId:true} quem pode enviar avisos/tarefas por perfil
 let escutaPerfisAcesso = null;
 let nuvemPronta = false;        // já recebemos o primeiro retrato da nuvem?
@@ -3728,6 +3728,22 @@ function fmtDataHora(d){
   return d.toLocaleDateString("pt-BR") + " às " + d.toLocaleTimeString("pt-BR").slice(0,5);
 }
 
+/* v196 - hora que veio como texto ISO ("2026-07-30T13:07:00Z") tem de ser CONVERTIDA
+   para o fuso de quem esta olhando. Recortar com slice() mostra a hora de Londres:
+   era o bug que deixava o Infleet e o iFood 3 horas adiantados. Devolve "dd/mm as HH:MM".
+   Texto so com a data ("2026-07-30") NAO e' convertido de proposito - new Date() leria
+   como meia-noite em UTC e voltaria um dia no Brasil. */
+function fmtQuandoLocal(iso){
+  const s = String(iso||"");
+  if (s.length < 10) return "";
+  const dataCrua = s.slice(8,10)+"/"+s.slice(5,7);
+  if (s.length < 16 || s.indexOf("T") < 0) return dataCrua;
+  const d = new Date(s);
+  if (isNaN(d.getTime())) return dataCrua + " às " + s.slice(11,16);
+  const p = n => String(n).padStart(2,"0");
+  return p(d.getDate())+"/"+p(d.getMonth()+1)+" às "+p(d.getHours())+":"+p(d.getMinutes());
+}
+
 function atualizarInfoSync(){
   const el = document.getElementById("infoUltimaSync");
   if (el) el.textContent = ultimaSync ? "Última sincronização: " + fmtDataHora(ultimaSync) : "Ainda não sincronizado";
@@ -3923,7 +3939,7 @@ function iniciarSync(){
     ordemMenus = (d && d.porEmpresa) ? d.porEmpresa : {};
     ordemPadrao = (d && d.padrao) ? d.padrao : {};   // v189
     aplicarOrdemMenus();
-    renderSetasOrdem();   // v193 - se estiver ordenando, redesenha as setas
+    renderSetasOrdem();   // v196 - se estiver ordenando, redesenha as setas
   }, ()=>{});
 
   // v185 - indicadores de caixa
@@ -4451,7 +4467,7 @@ function alternarMenuLateral(){
   if (f) f.style.display = abre ? "block" : "none";
 }
 function fecharMenuLateral(){
-  if (modoOrdenar) alternarModoOrdenar();   // v193 - fechar a barra conclui a ordenacao
+  if (modoOrdenar) alternarModoOrdenar();   // v196 - fechar a barra conclui a ordenacao
   const m = document.getElementById("menuLateral");
   const f = document.getElementById("menuFundo");
   if (m) m.classList.remove("aberto");
@@ -4460,7 +4476,7 @@ function fecharMenuLateral(){
 // Tocar em qualquer item do menu fecha o painel (no computador não tem efeito)
 (function(){
   const m = document.getElementById("menuLateral");
-  // v193 - o botao de ordenar e os controles da ordenacao nao fecham a barra:
+  // v196 - o botao de ordenar e os controles da ordenacao nao fecham a barra:
   // e' clicando neles que o Tiago entra e sai do modo, sem perder a tela de vista.
   if (m) m.addEventListener("click", e => {
     if (!e.target.closest("button")) return;
@@ -4621,7 +4637,7 @@ function gravarOrdemMenus(){
     .then(()=>{ if (typeof logAtividade === "function") logAtividade("menus", "Mudou a ordem dos menus", ""); })
     .catch(()=>{});
 }
-/* ===== v193 - ordenar os menus pela propria barra lateral =====
+/* ===== v196 - ordenar os menus pela propria barra lateral =====
    Antes isso morava num quadro do Painel Administrativo. Agora o admin clica em
    "↕ Ordenar menus" no rodape da barra, as setas aparecem nos proprios botoes e
    ele ve a ordem mudando ao vivo. Vale sempre para a empresa que esta aberta. */
@@ -4724,7 +4740,7 @@ function aplicarVisibilidadeMenus(){
   // Blocos das Configurações que só fazem sentido em uma empresa
   const gm = document.getElementById("grupoMotoristas"); if (gm) gm.style.display = (s === "transp") ? "" : "none";
   const gc = document.getElementById("grupoCaminhoes"); if (gc) gc.style.display = (s === "transp") ? "" : "none";
-  // v193 - o botao de ordenar a barra e' so do admin
+  // v196 - o botao de ordenar a barra e' so do admin
   const podeOrd = ehAdminAtual();
   const btOrd = document.getElementById("btnOrdenarMenus");
   if (btOrd) btOrd.style.display = podeOrd ? "" : "none";
@@ -4732,7 +4748,7 @@ function aplicarVisibilidadeMenus(){
   if (barraLat) barraLat.classList.toggle("tem-ordenar", podeOrd);
   if (!podeOrd && modoOrdenar) alternarModoOrdenar();
   aplicarOrdemMenus();   // v188
-  renderSetasOrdem();    // v193 - so faz algo se estiver em modo de ordenacao
+  renderSetasOrdem();    // v196 - so faz algo se estiver em modo de ordenacao
   const gpv = document.getElementById("grupoPrecosVenda"); if (gpv) gpv.style.display = (s === "postos") ? "" : "none";
   const gcl = document.getElementById("grupoClientes"); if (gcl) gcl.style.display = (s === "postos") ? "" : "none";
 }
@@ -6498,7 +6514,7 @@ function renderResumoDia(){
        '<div class="cartao-kpi"><span>Postos no mês</span><b>'+fmtLitros(ac.litros)+' L <small>em '+ac.dias+' dia'+(ac.dias===1?'':'s')+'</small></b></div>'+
        '<div class="cartao-kpi"><span>Conveniências no mês</span><b>R$ '+fmtBR(ac.fat,2)+'</b></div>'+
        '</div>';
-  if (r.coletadoEm) h += '<p class="nota-dash">Coletado em '+String(r.coletadoEm).slice(8,10)+'/'+String(r.coletadoEm).slice(5,7)+' às '+String(r.coletadoEm).slice(11,16)+'.</p>';
+  if (r.coletadoEm) h += '<p class="nota-dash">Coletado em '+fmtQuandoLocal(r.coletadoEm)+'.</p>';   // v196 - convertia nada, mostrava a hora UTC
   box.innerHTML = h;
   if (pre) pre.textContent = montarTextoResumo(dia).split("\n").filter(l => l.trim() !== "```").join("\n");
 }
@@ -7121,10 +7137,7 @@ function ifdVar(v){
 }
 function ifdDia(iso){ const s = String(iso||""); return (s.length < 10) ? "\u2014" : (s.slice(8,10)+"/"+s.slice(5,7)); }
 function ifdQuando(iso){
-  const s = String(iso||"");
-  if (s.length < 10) return "";
-  const h = s.slice(11,16);
-  return s.slice(8,10)+"/"+s.slice(5,7)+(h ? (" \u00e0s "+h) : "");
+  return fmtQuandoLocal(iso);   // v196 - convertia nada, mostrava a hora UTC
 }
 function ifdRodape(){
   const d = ifoodDados;
@@ -7190,7 +7203,7 @@ function renderIfdVendas(){
     '<div class="cartao-kpi"><span>Ticket m\u00e9dio hoje</span><b>' + ifdRS(dia.ticket) + '</b></div>' +
   '</div>';
   h += '<p class="nota-dash">O dia do iFood vai das 5h de hoje \u00e0s 4h59 de amanh\u00e3' +
-       (dia.atualizadoEm ? (", medido \u00e0s " + escAttr(String(dia.atualizadoEm).slice(11,16))) : "") + '.</p>';
+       (dia.atualizadoEm ? (", medido \u00e0s " + escAttr(String(fmtQuandoLocal(dia.atualizadoEm)).slice(-5))) : "") + '.</p>';
 
   const linhas = [["\u00daltimos 7 dias", d.d7], ["\u00daltimos 30 dias", d.d30]].filter(function(p){ return !!p[1]; });
   if (linhas.length){
@@ -7361,11 +7374,7 @@ function renderInfleet(){ renderInfFrota(); renderInfAbast(); }
 
 // "2026-07-26T02:23" -> "26/07 às 02:23"
 function fmtQuandoInf(iso){
-  const s = String(iso||"");
-  if (s.length < 10) return "—";
-  const dia = s.slice(8,10)+"/"+s.slice(5,7);
-  const hora = s.slice(11,16);
-  return hora ? (dia+" às "+hora) : dia;
+  return fmtQuandoLocal(iso) || "—";   // v196 - convertia nada, mostrava a hora UTC
 }
 function nomeCombInf(c){
   const m = { DIESEL_S10:"Diesel S10", DIESEL_S500:"Diesel S500", DIESEL:"Diesel", ARLA_32:"Arla 32",
