@@ -855,6 +855,25 @@
   table.dsp-tab th,table.dsp-tab td{padding:6px 6px;border-bottom:1px solid var(--borda);text-align:left}
   table.dsp-tab th{font-size:.7rem;text-transform:uppercase;letter-spacing:.03em;color:var(--cinza)}
   .dsp-r{text-align:right !important}
+  /* v191 - Relatorios Petros */
+  .rpz-cards{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+  .rpz-card{flex:1 1 130px;min-width:130px;border:1px solid var(--borda);border-radius:10px;padding:8px 10px;background:var(--superficie);background-image:linear-gradient(var(--superficie),var(--superficie))}
+  .rpz-card span{display:block;font-size:.68rem;text-transform:uppercase;letter-spacing:.03em;color:var(--cinza)}
+  .rpz-card b{display:block;font-size:1.02rem;margin-top:2px}
+  .rpz-neg{color:#c0392b}
+  .rpz-pos{color:var(--verde)}
+  .rpz-rola{overflow-x:auto}
+  table.rpz-tab{min-width:0;font-size:.8rem;width:100%}
+  table.rpz-tab th,table.rpz-tab td{padding:5px 6px;border-bottom:1px solid var(--borda);text-align:left;white-space:nowrap}
+  table.rpz-tab th{font-size:.66rem;text-transform:uppercase;letter-spacing:.03em;color:var(--cinza)}
+  .rpz-r{text-align:right !important}
+  .rpz-sec{font-weight:700;background:var(--verde-claro);background-image:linear-gradient(var(--verde-claro),var(--verde-claro));color:var(--verde)}
+  .rpz-tot td{font-weight:700}
+  .rpz-nome{max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  @media (max-width:640px){
+    table.rpz-tab{font-size:.72rem}
+    .rpz-nome{max-width:118px}
+  }
   @media (max-width:640px){
     .cxi-v{min-width:74px;font-size:.72rem}
     .cxi-q{min-width:52px}
@@ -1377,6 +1396,7 @@
     <button class="btn-claro" id="btnRelPosto" onclick="alternarRelPosto()"><span class="mi">📑</span><span class="mt">Relatórios do posto</span></button>
     <button class="btn-claro" id="btnCaixas" onclick="alternarCaixas()"><span class="mi">🧾</span><span class="mt">Caixas</span></button>
     <button class="btn-claro" id="btnDespesas" onclick="alternarDespesas()"><span class="mi">💸</span><span class="mt">Despesas</span></button>
+    <button class="btn-claro" id="btnRelPetros" onclick="alternarRelPetros()"><span class="mi">📈</span><span class="mt">Relatórios Petros</span></button>
     <button class="btn-claro" id="btnAnalise" onclick="alternarAnalise()"><span class="mi">🧠</span><span class="mt">Análise</span></button>
     <button class="btn-claro" id="btnInfleet" onclick="alternarInfleet()"><span class="mi">📡</span><span class="mt">APP Infleet</span></button>
     <button class="btn-claro" id="btnPedido" onclick="alternarPedido()"><span class="mi">📝</span><span class="mt">Pedido de carregamento</span></button>
@@ -1643,6 +1663,19 @@
         <div class="desc-campo"><label>Retiradas de sócios</label><select id="dspRet" onchange="dspComRet=(this.value==='1');renderDespesas()"><option value="1">Incluir</option><option value="0">Tirar da conta</option></select></div>
       </div>
       <div id="dspBox"></div>
+    </div>
+  </div>
+
+  <div class="config" id="painelRelPetros">
+    <div class="grupo">
+      <h2 id="rpzTitulo">&#128200; Relat&oacute;rios Petros</h2>
+      <p class="nota-dash">Relat&oacute;rios que existem no Adaptive e n&atilde;o apareciam aqui. Os n&uacute;meros v&ecirc;m direto do Petros, sem digita&ccedil;&atilde;o no meio.</p>
+      <div class="evo-filtros">
+        <div class="desc-campo"><label>Unidade</label><select id="rpzUnid" onchange="rpzUnidSel=this.value;renderRelPetros()"></select></div>
+        <div class="desc-campo" id="rpzPerLinha"><label>Per&iacute;odo</label><select id="rpzPer" onchange="rpzPerSel=this.value;renderRelPetros()"></select></div>
+      </div>
+      <div class="doc-tools" id="rpzAbas"></div>
+      <div id="rpzBox"></div>
     </div>
   </div>
 
@@ -2076,6 +2109,7 @@ const colRelPosto = db.collection("relatoriosPosto");      // v168 - relatórios
 const docOrdemMenus = db.collection("config").doc("ordemMenus");   // v188 - ordem dos botoes da barra
 const colCaixaInd = db.collection("caixaIndicadores");    // v185 - "2026-07" indicadores de caixa por posto
 const colDespesasAno = db.collection("despesasAno");      // v185 - "2026" despesas mes a mes por tipo
+const colRelPetros   = db.collection("relatoriosPetros"); // v191 - relatorios do Adaptive (Mapa Anual, DRE, despesas, tanques, colaboradores, a prazo)
 const colAnalises = db.collection("analises");             // v172 - "postos_2026-07-28" / "conv_2026-07-28"
 const colRelLoja  = db.collection("relatoriosLoja");       // v168 - produtos/categorias das conveniências           // um doc por mês (AAAA-MM): litros por posto + faturamento por loja
 let vendasMensais = {};                // "AAAA-MM" -> {postos:{...}, lojas:{...}, parcial}
@@ -2122,6 +2156,7 @@ let relPostos = {}, relLojas = {};              // v168 - {"teresina_2026-07": {
 let escutaRelPosto = null, escutaRelLoja = null;
 let caixaInd = {}, cxiSel = "";                 // v185 - {"2026-07": {...}}
 let despesasAno = {}, dspAnoSel = "", dspPostoSel = "todos", dspComRet = true;  // v185
+let relPetros = {}, rpzAba = "mapa", rpzUnidSel = "teresina", rpzPerSel = "";  // v191
 let analises = {}, anaSel = "";                 // v172 - {"postos_2026-07-28": {...}}
 let escutaAnalises = null;
 let relPostoSel = "teresina", relPostoMes = "", relPostoAba = "resultado";
@@ -3808,6 +3843,13 @@ function iniciarSync(){
     if (p && p.classList.contains("aberto")) renderDespesas();
   }, ()=>{});
 
+  // v191 - relatorios do Petros
+  colRelPetros.onSnapshot(snap => {
+    const m = {}; snap.forEach(d => m[d.id] = Object.assign({ id: d.id }, d.data())); relPetros = m;
+    const p = document.getElementById("painelRelPetros");
+    if (p && p.classList.contains("aberto")) renderRelPetros();
+  }, ()=>{});
+
   // Eventos do calendário criados no app
   escutaEventos = colEventos.onSnapshot(snap => {
     const l = []; snap.forEach(d => l.push(Object.assign({ id: d.id }, d.data()))); eventos = l;
@@ -4227,7 +4269,7 @@ function excluir(i){
 
 /* ================== Salvar / Carregar / Exportar ================== */
 // Painéis que ocupam a página; só um fica aberto por vez
-const PAINEIS = ["painelRegistros","painelDash","painelResumoDia","painelHistorico","painelSimular","painelDescontos","painelPuxadas","painelCotacoes","painelInfleet","painelPedido","painelRelPosto","painelRelLoja","painelCaixas","painelDespesas","painelAnalise","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin"];
+const PAINEIS = ["painelRegistros","painelDash","painelResumoDia","painelHistorico","painelSimular","painelDescontos","painelPuxadas","painelCotacoes","painelInfleet","painelPedido","painelRelPosto","painelRelLoja","painelCaixas","painelDespesas","painelRelPetros","painelAnalise","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin"];
 function fecharTodosPaineis(exceto){
   PAINEIS.forEach(id => {
     const el = document.getElementById(id);
@@ -4275,7 +4317,7 @@ function fecharTodosPaineis(exceto){
   const bcx = document.getElementById("btnCaixa");
   if (bcx) bcx.classList.toggle("ativo", document.getElementById("painelCaixa").classList.contains("aberto"));
   // v172 - estes tres faltavam: o botao ficava aceso depois de abrir outro menu
-  ["btnRelPosto:painelRelPosto","btnRelLoja:painelRelLoja","btnAnalise:painelAnalise","btnCaixas:painelCaixas","btnDespesas:painelDespesas"].forEach(par => {
+  ["btnRelPosto:painelRelPosto","btnRelLoja:painelRelLoja","btnAnalise:painelAnalise","btnCaixas:painelCaixas","btnDespesas:painelDespesas","btnRelPetros:painelRelPetros"].forEach(par => {
     const p = par.split(":"), b = document.getElementById(p[0]), pan = document.getElementById(p[1]);
     if (b && pan) b.classList.toggle("ativo", pan.classList.contains("aberto"));
   });
@@ -4316,6 +4358,7 @@ const MENUS_APP = [
   {key:"relPosto",    btn:"btnRelPosto",    pan:"painelRelPosto",    emp:"postos", nome:"Relatórios do posto"},
   {key:"caixas",      btn:"btnCaixas",      pan:"painelCaixas",      emp:"postos|conv", nome:"Caixas"},
   {key:"despesas",    btn:"btnDespesas",    pan:"painelDespesas",    emp:"postos|conv", nome:"Despesas"},
+  {key:"relPetros",   btn:"btnRelPetros",   pan:"painelRelPetros",   emp:"postos|conv", nome:"Relatórios Petros"},
   {key:"infleet",     btn:"btnInfleet",     pan:"painelInfleet",     emp:"transp", nome:"APP Infleet"},
   {key:"pedido",      btn:"btnPedido",      pan:"painelPedido",      emp:"transp", nome:"Pedido de carregamento"},
   {key:"cotacoes",    btn:"btnCotacoes",    pan:"painelCotacoes",    emp:"transp", nome:"Cotações do Dia"},
@@ -4910,6 +4953,295 @@ function renderCaixas(){
 
   h += '<p class="ana-rodape">Atualizado ' + escAttr(d.atualizadoEm ? String(d.atualizadoEm).slice(0,10).split("-").reverse().join("/") : "—") + '. Fonte: Painel Operacional do Petros.</p>';
   box.innerHTML = h;
+}
+
+/* ===================== v191 - MENU RELATORIOS PETROS ===================== */
+const ABAS_REL_PETROS = [
+  ["mapa",    "🗺️ Mapa Anual"],
+  ["dre",     "💵 Resultado do Período"],
+  ["desp",    "💸 Despesas"],
+  ["tanques", "⛽ Tanques"],
+  ["colab",   "👷 Colaboradores"],
+  ["aprazo",  "🧾 A Prazo"]
+];
+// Tanques so existe em posto (a conveniencia nao tem tanque)
+function rpzAbasDaEmpresa(){
+  const sig = siglaEmpresa(empresa);
+  return ABAS_REL_PETROS.filter(a => !(a[0] === "tanques" && sig !== "postos"));
+}
+function rpzDin(v, casas){ return fmtBR(Number(v)||0, casas == null ? 2 : casas); }
+function rpzDin0(v){ return fmtBR(Number(v)||0, 0); }
+// o Petros manda alguns rotulos com caracteres de controle (ex.: \u0002 antes do combustivel)
+function rpzTxt(v){ return String(v == null ? "" : v).replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim(); }
+function rpzLista(o){
+  if (!o) return [];
+  if (typeof o.dados === "string"){ try { return JSON.parse(o.dados); } catch(e){ return []; } }
+  return o.dados || [];
+}
+function rpzDoc(tipo, periodo){
+  const sig = siglaEmpresa(empresa);
+  if (tipo === "tanques") return relPetros["tanques_todos_" + periodo];
+  return relPetros[tipo + "_" + sig + "_" + rpzUnidSel + "_" + periodo];
+}
+// periodos disponiveis para a aba/empresa/unidade atuais
+function rpzPeriodos(tipo){
+  const sig = siglaEmpresa(empresa);
+  const pre = (tipo === "tanques") ? "tanques_todos_" : (tipo + "_" + sig + "_" + rpzUnidSel + "_");
+  return Object.keys(relPetros).filter(k => k.indexOf(pre) === 0)
+    .map(k => k.slice(pre.length)).sort().reverse();
+}
+function rpzRotuloPeriodo(p){
+  const MES = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+  if (/^\d{4}$/.test(p)) return p;
+  if (/^\d{4}-\d{2}$/.test(p)){ const a = p.split("-"); return MES[(+a[1])-1] + "/" + a[0]; }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(p)) return p.split("-").reverse().join("/");
+  return p;
+}
+function mudarAbaRelPetros(a){ rpzAba = a; rpzPerSel = ""; renderRelPetros(); }
+function alternarRelPetros(){
+  const aberto = abrirPainelExclusivo("painelRelPetros");
+  const b = document.getElementById("btnRelPetros");
+  if (b) b.classList.toggle("ativo", aberto);
+  if (aberto) renderRelPetros();
+}
+function renderRelPetros(){
+  const box = document.getElementById("rpzBox");
+  if (!box) return;
+  const sig = siglaEmpresa(empresa);
+  const tit = document.getElementById("rpzTitulo");
+  if (tit) tit.innerHTML = "📈 Relatórios Petros — " + (sig === "conv" ? "Full Conveniência" : "Postos Full");
+
+  const abas = rpzAbasDaEmpresa();
+  if (!abas.some(a => a[0] === rpzAba)) rpzAba = abas[0][0];
+  const elAbas = document.getElementById("rpzAbas");
+  if (elAbas) elAbas.innerHTML = abas
+    .map(a => '<button class="doc-chip' + (rpzAba === a[0] ? ' ativo' : '') + '" onclick="mudarAbaRelPetros(\'' + a[0] + '\')">' + a[1] + '</button>').join("");
+
+  preencherSelectRel("rpzUnid", UNIDADES_REL.map(u => u.chave), rpzUnidSel, c => (UNIDADES_REL.find(u => u.chave === c) || {}).nome || c);
+  rpzUnidSel = (document.getElementById("rpzUnid") || {}).value || rpzUnidSel;
+  const unLinha = document.getElementById("rpzUnid");
+  if (unLinha && unLinha.parentNode) unLinha.parentNode.style.display = (rpzAba === "tanques") ? "none" : "";
+
+  const pers = rpzPeriodos(rpzAba);
+  const perLinha = document.getElementById("rpzPerLinha");
+  if (!pers.length){
+    if (perLinha) perLinha.style.display = "none";
+    box.innerHTML = '<div class="ana-vazio">Ainda não há dados deste relatório.<br>Eles vêm do Adaptive/Petros.</div>';
+    return;
+  }
+  if (perLinha) perLinha.style.display = "";
+  if (!rpzPerSel || pers.indexOf(rpzPerSel) < 0) rpzPerSel = pers[0];
+  preencherSelectRel("rpzPer", pers, rpzPerSel, rpzRotuloPeriodo);
+
+  const doc = rpzDoc(rpzAba, rpzPerSel);
+  const linhas = rpzLista(doc);
+  let h = "";
+  if (rpzAba === "mapa")         h = rpzBlocoMapa(linhas);
+  else if (rpzAba === "dre")     h = rpzBlocoDre(linhas);
+  else if (rpzAba === "desp")    h = rpzBlocoDesp(linhas);
+  else if (rpzAba === "tanques") h = rpzBlocoTanques(linhas);
+  else if (rpzAba === "colab")   h = rpzBlocoColab(linhas);
+  else if (rpzAba === "aprazo")  h = rpzBlocoAprazo(linhas);
+  const quando = doc && doc.atualizadoEm ? String(doc.atualizadoEm).slice(0,10).split("-").reverse().join("/") : "—";
+  const FONTE = { mapa:"Mapa Anual de Resultados e Indicadores", dre:"Demonstrativo de Resultado no Período-Consolidado",
+    desp:"Despesas Pagas no Período", tanques:"Perdas e Sobras na Medição dos Tanques",
+    colab:"2.02 - Saldo de Colaboradores", aprazo:"Vendas a Prazo em Aberto - Geral" };
+  h += '<p class="ana-rodape">Atualizado ' + escAttr(quando) + '. Fonte: ' + escAttr(FONTE[rpzAba] || "") + ' (Petros).</p>';
+  box.innerHTML = h;
+}
+
+/* --- Mapa Anual: [sessao, sub, tipo, ordem, totalizador, casas, m1..m12, ano] --- */
+const RPZ_MES3 = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+function rpzBlocoMapa(ls){
+  if (!ls.length) return '<div class="ana-vazio">Sem linhas neste ano.</div>';
+  const ord = ls.slice().sort((a,b) => (Number(a[3])||0) - (Number(b[3])||0));
+  let h = '<p class="nota-dash">O ano inteiro numa tela: cada linha do resultado mês a mês, do jeito que o Petros calcula.</p>';
+  h += '<div class="rpz-rola"><table class="rpz-tab"><thead><tr><th>Linha</th>' +
+       RPZ_MES3.map(m => '<th class="rpz-r">' + m + '</th>').join("") + '<th class="rpz-r">Ano</th></tr></thead><tbody>';
+  let sec = null;
+  ord.forEach(r => {
+    const sessao = rpzTxt(r[0]), sub = rpzTxt(r[1]), casas = Number(r[5]) || 0, tot = (r[4] === "S");
+    if (sessao !== sec){
+      sec = sessao;
+      h += '<tr class="rpz-sec"><td colspan="' + (RPZ_MES3.length + 2) + '">' + escAttr(sessao) + '</td></tr>';
+    }
+    h += '<tr' + (tot ? ' class="rpz-tot"' : '') + '><td class="rpz-nome">' + escAttr(sub || sessao) + '</td>';
+    for (let i = 0; i < 12; i++){
+      const v = Number(r[6 + i]) || 0;
+      h += '<td class="rpz-r' + (v < 0 ? ' rpz-neg' : '') + '">' + (v === 0 ? "—" : rpzDin(v, casas)) + '</td>';
+    }
+    const va = Number(r[18]) || 0;
+    h += '<td class="rpz-r' + (va < 0 ? ' rpz-neg' : '') + '"><b>' + (va === 0 ? "—" : rpzDin(va, casas)) + '</b></td></tr>';
+  });
+  h += '</tbody></table></div><p class="nota-dash">Role a tabela para o lado para ver todos os meses.</p>';
+  return h;
+}
+
+/* --- Resultado do Periodo (consolidado) --- */
+function rpzSoma(ls, col){ return (ls || []).reduce((s, r) => s + (Number(r[col]) || 0), 0); }
+function rpzBlocoDre(D){
+  if (!D || !D.desp) return '<div class="ana-vazio">Sem dados neste período.</div>';
+  const comb = D.comb || [], prod = D.prod || [], rec = D.rec || [], desp = D.desp || [], det = D.despDet || [], ve = D.varEst || [];
+  const vComb = rpzSoma(comb, 4), cComb = rpzSoma(comb, 5);
+  const vProd = rpzSoma(prod, 4), cProd = rpzSoma(prod, 5);
+  const vRec = rpzSoma(rec, 2), vDesp = rpzSoma(desp, 2), vVe = rpzSoma(ve, 1);
+  const lb = (vComb + vProd) - (cComb + cProd);
+  const ll = lb + vRec - vDesp + vVe;
+  const card = (r, v, cls) => '<div class="rpz-card"><span>' + r + '</span><b class="' + (cls || "") + '">' + v + '</b></div>';
+  let h = '<div class="rpz-cards">';
+  h += card("Vendas", "R$ " + rpzDin0(vComb + vProd));
+  h += card("Custo", "R$ " + rpzDin0(cComb + cProd));
+  h += card("Lucro bruto", "R$ " + rpzDin0(lb), lb < 0 ? "rpz-neg" : "rpz-pos");
+  h += card("Outras receitas", "R$ " + rpzDin0(vRec));
+  h += card("Despesas", "R$ " + rpzDin0(vDesp));
+  h += card("Variação de estoque", "R$ " + rpzDin0(vVe), vVe < 0 ? "rpz-neg" : "");
+  h += card("Lucro líquido", "R$ " + rpzDin0(ll), ll < 0 ? "rpz-neg" : "rpz-pos");
+  h += '</div>';
+  if (vVe < 0) h += '<div class="ana-resumo"><b>Atenção:</b> a variação de estoque está negativa em R$ ' + rpzDin0(Math.abs(vVe)) + ' — saiu mais produto do que a venda explica.</div>';
+
+  const tab = (titulo, cols, linhas) => {
+    if (!linhas.length) return "";
+    let t = '<h3 class="cxi-sub">' + titulo + '</h3><div class="rpz-rola"><table class="rpz-tab"><thead><tr>' +
+      cols.map((c, i) => '<th' + (i ? ' class="rpz-r"' : '') + '>' + c + '</th>').join("") + '</tr></thead><tbody>';
+    linhas.forEach(l => {
+      t += '<tr>' + l.map((v, i) => i ? '<td class="rpz-r' + ((Number(v) || 0) < 0 ? ' rpz-neg' : '') + '">' + rpzDin0(v) + '</td>'
+                                      : '<td class="rpz-nome">' + escAttr(rpzTxt(v || "")) + '</td>').join("") + '</tr>';
+    });
+    return t + '</tbody></table></div>';
+  };
+  h += tab("Combustíveis", ["Produto", "Bruto", "Desconto", "Acréscimo", "Líquido", "Custo"], comb.map(r => [r[0], r[1], r[2], r[3], r[4], r[5]]));
+  h += tab("Outros produtos", ["Categoria", "Bruto", "Desconto", "Acréscimo", "Líquido", "Custo"], prod.map(r => [r[0], r[1], r[2], r[3], r[4], r[5]]));
+  h += tab("Outras receitas", ["Receita", "Valor"], rec.map(r => [(r[1] || r[0]), r[2]]));
+  h += tab("Despesas por categoria", ["Categoria", "Valor"], desp.map(r => [r[1] || r[0], r[2]]).sort((a, b) => (Number(b[1]) || 0) - (Number(a[1]) || 0)));
+  if (det.length){
+    h += '<details class="rel-det"><summary>Despesa detalhada (' + det.length + ' linhas)</summary>' +
+      tab("", ["Despesa", "Valor"], det.map(r => [r[2] || r[1], r[3]]).sort((a, b) => (Number(b[1]) || 0) - (Number(a[1]) || 0))) + '</details>';
+  }
+  return h;
+}
+
+/* --- Despesas: [categoria, cod, tipo, valor] --- */
+function rpzBlocoDesp(ls){
+  if (!ls.length) return '<div class="ana-vazio">Sem despesas neste período.</div>';
+  const ord = ls.slice().sort((a, b) => (Number(b[3]) || 0) - (Number(a[3]) || 0));
+  const tot = ord.reduce((sm, r) => sm + (Number(r[3]) || 0), 0);
+  const max = Math.max.apply(null, ord.map(r => Number(r[3]) || 0).concat([1]));
+  let h = '<div class="rpz-cards"><div class="rpz-card"><span>Total pago no período</span><b>R$ ' + rpzDin0(tot) + '</b></div>' +
+          '<div class="rpz-card"><span>Tipos de despesa</span><b>' + ord.length + '</b></div></div>';
+  h += '<h3 class="cxi-sub">Maiores tipos</h3><div class="cxi-graf">';
+  ord.slice(0, 12).forEach(r => {
+    const v = Number(r[3]) || 0;
+    h += '<div class="cxi-par"><span class="cxi-q">' + escAttr(rpzTxt(r[2] || "").slice(0, 22)) + '</span>' +
+         '<span class="cxi-wrap"><span class="cxi-bar" style="width:' + (v / max * 100).toFixed(1) + '%"></span></span>' +
+         '<span class="cxi-v">' + rpzDin0(v) + '</span></div>';
+  });
+  h += '</div>';
+  h += '<h3 class="cxi-sub">Todos os tipos</h3><div class="rpz-rola"><table class="rpz-tab"><thead><tr><th>Tipo</th><th>Categoria</th><th class="rpz-r">Valor</th><th class="rpz-r">%</th></tr></thead><tbody>';
+  ord.forEach(r => {
+    const v = Number(r[3]) || 0;
+    h += '<tr><td class="rpz-nome">' + escAttr(rpzTxt(r[2] || "")) + '</td><td class="rpz-nome">' + escAttr(rpzTxt(r[0] || "")) + '</td>' +
+         '<td class="rpz-r">' + rpzDin0(v) + '</td><td class="rpz-r">' + (tot ? (v / tot * 100).toFixed(1) : "0.0") + '%</td></tr>';
+  });
+  h += '</tbody></table></div>';
+  return h;
+}
+
+/* --- Tanques: [empresa, tanque, comprada, vendida, variacao, pct, custo] --- */
+function rpzBlocoTanques(ls){
+  if (!ls.length) return '<div class="ana-vazio">Sem medição neste período.</div>';
+  const totCusto = ls.reduce((sm, r) => sm + (Number(r[6]) || 0), 0);
+  const perdas = ls.filter(r => (Number(r[6]) || 0) < 0);
+  let h = '<div class="rpz-cards">';
+  h += '<div class="rpz-card"><span>Resultado no período</span><b class="' + (totCusto < 0 ? "rpz-neg" : "rpz-pos") + '">R$ ' + rpzDin(totCusto) + '</b></div>';
+  h += '<div class="rpz-card"><span>Tanques com perda</span><b>' + perdas.length + ' de ' + ls.length + '</b></div></div>';
+  const pior = ls.slice().sort((a, b) => (Number(a[6]) || 0) - (Number(b[6]) || 0))[0];
+  if (pior && (Number(pior[6]) || 0) < 0){
+    h += '<div class="ana-resumo"><b>Maior perda:</b> ' + escAttr(rpzTxt(pior[1] || "")) + ' em ' + escAttr(rpzTxt(pior[0] || "")) +
+         ' — ' + rpzDin(pior[4], 3) + ' L (' + rpzDin(pior[5], 2) + '%), cerca de R$ ' + rpzDin(Math.abs(Number(pior[6]) || 0)) + '.</div>';
+  }
+  h += '<div class="rpz-rola"><table class="rpz-tab"><thead><tr><th>Unidade</th><th>Tanque</th><th class="rpz-r">Comprado (L)</th><th class="rpz-r">Vendido (L)</th><th class="rpz-r">Variação (L)</th><th class="rpz-r">%</th><th class="rpz-r">R$</th></tr></thead><tbody>';
+  ls.slice().sort((a, b) => (Number(a[6]) || 0) - (Number(b[6]) || 0)).forEach(r => {
+    const vr = Number(r[4]) || 0, rs = Number(r[6]) || 0;
+    h += '<tr><td class="rpz-nome">' + escAttr(rpzTxt(r[0] || "").replace(/^POSTO FULL - /, "")) + '</td><td class="rpz-nome">' + escAttr(rpzTxt(r[1] || "")) + '</td>' +
+         '<td class="rpz-r">' + rpzDin0(r[2]) + '</td><td class="rpz-r">' + rpzDin0(r[3]) + '</td>' +
+         '<td class="rpz-r' + (vr < 0 ? ' rpz-neg' : '') + '">' + rpzDin(vr, 3) + '</td>' +
+         '<td class="rpz-r' + (vr < 0 ? ' rpz-neg' : '') + '">' + rpzDin(r[5], 2) + '%</td>' +
+         '<td class="rpz-r' + (rs < 0 ? ' rpz-neg' : '') + '">' + rpzDin(rs) + '</td></tr>';
+  });
+  h += '</tbody></table></div><p class="nota-dash">Variação negativa = saiu mais combustível do que a venda explica. Pode ser evaporação, medição ou vazamento.</p>';
+  return h;
+}
+
+/* --- Colaboradores: [codigo, nome, saldo] --- */
+function rpzBlocoColab(ls){
+  if (!ls.length) return '<div class="ana-vazio">Sem saldos nesta data.</div>';
+  const ord = ls.slice().sort((a, b) => (Number(b[2]) || 0) - (Number(a[2]) || 0));
+  const tot = ord.reduce((sm, r) => sm + (Number(r[2]) || 0), 0);
+  let h = '<div class="rpz-cards"><div class="rpz-card"><span>Saldo total</span><b>R$ ' + rpzDin(tot) + '</b></div>' +
+          '<div class="rpz-card"><span>Pessoas</span><b>' + ord.length + '</b></div></div>';
+  h += '<div class="rpz-rola"><table class="rpz-tab"><thead><tr><th>Cód.</th><th>Colaborador</th><th class="rpz-r">Saldo</th></tr></thead><tbody>';
+  ord.forEach(r => {
+    const v = Number(r[2]) || 0;
+    h += '<tr><td>' + escAttr(rpzTxt(r[0] || "")) + '</td><td class="rpz-nome">' + escAttr(rpzTxt(r[1] || "")) + '</td>' +
+         '<td class="rpz-r' + (v < 0 ? ' rpz-neg' : '') + '">' + rpzDin(v) + '</td></tr>';
+  });
+  h += '</tbody></table></div>';
+  return h;
+}
+
+/* --- A Prazo: [cliente, titulo, parcela, emissao, vencimento, valor, tipo, cobranca] --- */
+function rpzBlocoAprazo(ls){
+  if (!ls.length) return '<div class="ana-vazio">Nenhum título a prazo em aberto.</div>';
+  const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+  const dia = 24 * 60 * 60 * 1000;
+  let tot = 0, vencido = 0, aVencer = 0;
+  const porCliente = {};
+  const faixas = [0, 0, 0, 0];   // ate 30 vencido, 31-90 vencido, 91+ vencido, a vencer
+  const linhas = ls.map(r => {
+    const v = Number(r[5]) || 0, vc = String(r[4] || "");
+    const d = vc ? new Date(vc + "T00:00:00") : null;
+    const atraso = d ? Math.floor((hoje - d) / dia) : 0;
+    tot += v;
+    if (atraso > 0){ vencido += v; faixas[atraso <= 30 ? 0 : (atraso <= 90 ? 1 : 2)] += v; }
+    else { aVencer += v; faixas[3] += v; }
+    const nome = rpzTxt(r[0]) || "—";
+    porCliente[nome] = (porCliente[nome] || 0) + v;
+    return { nome: nome, tit: r[1], parc: r[2], emis: r[3], venc: vc, val: v, atraso: atraso, cobr: r[7] };
+  });
+  let h = '<div class="rpz-cards">';
+  h += '<div class="rpz-card"><span>Total em aberto</span><b>R$ ' + rpzDin0(tot) + '</b></div>';
+  h += '<div class="rpz-card"><span>Vencido</span><b class="' + (vencido > 0 ? "rpz-neg" : "") + '">R$ ' + rpzDin0(vencido) + '</b></div>';
+  h += '<div class="rpz-card"><span>A vencer</span><b>R$ ' + rpzDin0(aVencer) + '</b></div>';
+  h += '<div class="rpz-card"><span>Títulos</span><b>' + linhas.length + '</b></div></div>';
+  const NOMES = ["Vencido até 30 dias", "Vencido 31 a 90 dias", "Vencido há mais de 90 dias", "Ainda a vencer"];
+  const maxF = Math.max.apply(null, faixas.concat([1]));
+  h += '<h3 class="cxi-sub">Como está dividido</h3><div class="cxi-graf">';
+  faixas.forEach((v, i) => {
+    h += '<div class="cxi-par"><span class="cxi-q">' + NOMES[i] + '</span>' +
+         '<span class="cxi-wrap"><span class="cxi-bar' + (i < 3 && v > 0 ? ' cxi-bar-alerta' : '') + '" style="width:' + (v / maxF * 100).toFixed(1) + '%"></span></span>' +
+         '<span class="cxi-v' + (i < 3 && v > 0 ? ' cxi-v-alerta' : '') + '">' + rpzDin0(v) + '</span></div>';
+  });
+  h += '</div>';
+  const clientes = Object.keys(porCliente).map(k => [k, porCliente[k]]).sort((a, b) => b[1] - a[1]);
+  h += '<h3 class="cxi-sub">Maiores clientes</h3><div class="rpz-rola"><table class="rpz-tab"><thead><tr><th>Cliente</th><th class="rpz-r">Em aberto</th><th class="rpz-r">%</th></tr></thead><tbody>';
+  clientes.slice(0, 15).forEach(c => {
+    h += '<tr><td class="rpz-nome">' + escAttr(c[0]) + '</td><td class="rpz-r">' + rpzDin0(c[1]) + '</td><td class="rpz-r">' + (tot ? (c[1] / tot * 100).toFixed(1) : "0.0") + '%</td></tr>';
+  });
+  h += '</tbody></table></div>';
+  if (clientes.length > 15) h += '<p class="nota-dash">Mostrando os 15 maiores de ' + clientes.length + ' clientes.</p>';
+  const venc = linhas.filter(l => l.atraso > 0).sort((a, b) => b.atraso - a.atraso);
+  if (venc.length){
+    h += '<details class="rel-det"><summary>Títulos vencidos (' + venc.length + ')</summary><div class="rpz-rola"><table class="rpz-tab"><thead><tr><th>Cliente</th><th>Título</th><th>Vencimento</th><th class="rpz-r">Dias</th><th class="rpz-r">Valor</th></tr></thead><tbody>';
+    venc.slice(0, 100).forEach(l => {
+      h += '<tr><td class="rpz-nome">' + escAttr(l.nome) + '</td><td>' + escAttr(rpzTxt(l.tit || "")) + '/' + escAttr(rpzTxt(l.parc || "")) + '</td>' +
+           '<td>' + escAttr(l.venc ? l.venc.split("-").reverse().join("/") : "—") + '</td>' +
+           '<td class="rpz-r rpz-neg">' + l.atraso + '</td><td class="rpz-r">' + rpzDin(l.val) + '</td></tr>';
+    });
+    h += '</tbody></table></div>';
+    if (venc.length > 100) h += '<p class="nota-dash">Mostrando os 100 mais atrasados.</p>';
+    h += '</details>';
+  }
+  return h;
 }
 
 /* ===================== v185 - MENU DESPESAS ===================== */
