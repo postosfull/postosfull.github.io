@@ -951,7 +951,8 @@
   .ren-inp:focus{outline:2px solid var(--verde);outline-offset:1px}
   .fin-sub{font-size:.72rem;color:var(--cinza);margin:-4px 0 6px 0;padding-left:2px}
   .ord-abas{border:1px solid var(--borda);border-radius:10px;padding:10px;margin:8px 0;background:var(--superficie-2);background-image:linear-gradient(var(--superficie-2),var(--superficie-2))}
-  #dashOrdBarra{margin:0 0 4px}                      /* v200 - barra do "Ordenar cards" */
+  #dashOrdBarra{margin:0 0 4px}                      /* v200 - reserva; desde a v209 o botao mora na .painel-tools */
+  #dashOrdBarra:empty{display:none}
   #painelDash .ord-cards-box:empty{display:none}
   /* v191 - Relatorios Petros */
   .rpz-cards{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
@@ -1055,7 +1056,10 @@
   .perfil-top{display:flex;gap:8px;align-items:center;margin-bottom:8px}
   .perfil-nome{flex:1 1 auto;border:1px solid var(--borda);border-radius:6px;padding:7px 9px;font-size:.92rem;font-weight:600;background:var(--superficie);color:var(--txt)}
   .perfil-x{color:var(--vermelho);flex:0 0 auto}
-  .painel-tools{display:flex;justify-content:flex-end;gap:8px;margin:0 0 10px}
+  .painel-tools{display:flex;justify-content:flex-end;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+  /* v209 - "Ordenar cards" na mesma linha, encostado à esquerda */
+  .painel-tools .pt-ord{margin-right:auto;display:flex;gap:8px}
+  .painel-tools .pt-ord:empty{display:none}
   .painel-tools .pt-btn{font-size:.78rem;padding:6px 12px;border:1px solid var(--borda);border-radius:7px;background:var(--superficie-2);color:var(--txt);cursor:pointer}
   .painel-tools .pt-btn:hover{border-color:var(--verde);color:var(--verde)}
   @media print{ .painel-tools{display:none} }
@@ -11695,12 +11699,27 @@ function resetarOrdemCardsDash(){
 }
 function alternarOrdemCardsDash(){ ordCardsAberto = !ordCardsAberto; renderBarraOrdenarCards(); renderOrdemCardsDash(); }
 function renderBarraOrdenarCards(){
-  const b = document.getElementById("dashOrdBarra");
-  if (!b) return;
   const adm = ehAdminAtual();
-  b.style.display = adm ? "" : "none";
-  b.innerHTML = adm ? ('<button class="doc-chip rel-ord-bt' + (ordCardsAberto ? ' ativo' : '') +
+  const bt = adm ? ('<button class="doc-chip rel-ord-bt' + (ordCardsAberto ? ' ativo' : '') +
     '" onclick="alternarOrdemCardsDash()" title="Mudar a ordem dos cards desta tela">⚙️ Ordenar cards</button>') : "";
+  const b = document.getElementById("dashOrdBarra");
+  // v209 - se o painel tem a barra "Exportar PDF / Imprimir", o botao vai para DENTRO dela,
+  // na mesma linha. A barra propria (#dashOrdBarra) so e' usada se aquela nao existir.
+  const tools = document.querySelector("#painelDash .painel-tools");
+  if (tools){
+    let vaga = tools.querySelector(".pt-ord");
+    if (!vaga){
+      vaga = document.createElement("span");
+      vaga.className = "pt-ord";
+      tools.insertBefore(vaga, tools.firstChild);
+    }
+    vaga.innerHTML = bt;
+    if (b){ b.innerHTML = ""; b.style.display = "none"; }
+    return;
+  }
+  if (!b) return;
+  b.style.display = adm ? "" : "none";
+  b.innerHTML = bt;
 }
 function renderOrdemCardsDash(){
   const caixa = document.querySelector("#painelDash .ord-cards-box");
