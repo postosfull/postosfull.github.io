@@ -11217,19 +11217,23 @@ function renderDashPostosResultado(){
     return;
   }
   if (linha) linha.style.display = "";
-  let h = '<div class="pet-grid">', achou = false, tVol = 0, tLb = 0, tDesp = 0, tLl = 0, ate = "";
+  let h = '<div class="pet-grid">', achou = false, tVol = 0, tLb = 0, tDesp = 0, tLl = 0, tVend = 0, ate = "";
   UNIDADES_REL.forEach(u => {
     const r = dpsResDe(u.chave, dpsMesSel);
     if (!r || !r.res) return;
     achou = true;
     const x = r.res;
-    tVol += (+x.vol || 0); tLb += (+x.lb || 0); tDesp += (+x.desp || 0); tLl += (+x.ll || 0);
+    // v202 - "vendas" = combustivel + outros produtos. Outras receitas NAO entram:
+    // sao eventuais (bonificacao, aluguel, juros) e distorceriam a comparacao entre meses.
+    const vend = (+x.comb || 0) + (+x.outros || 0);
+    tVol += (+x.vol || 0); tLb += (+x.lb || 0); tDesp += (+x.desp || 0); tLl += (+x.ll || 0); tVend += vend;
     if (r.ate && r.ate > ate) ate = r.ate;
     h += '<div class="pet-card"><h4>' + escAttr(u.nome) + '</h4><div class="pet-linhas">' +
       '<div class="pet-l"><span>Volume vendido</span><b>' + fmtBR(+x.vol || 0, 0) + ' L</b></div>' +
       '<div class="pet-l"><span>Lucro bruto</span><b>' + fmtR$0(x.lb) + '</b></div>' +
       '<div class="pet-l"><span>Despesas</span><b>' + fmtR$0(x.desp) + '</b></div>' +
       '<div class="pet-l"><span>Lucro l\u00edquido</span><b class="' + ((+x.ll || 0) < 0 ? "rpz-neg" : "rpz-pos") + '">' + fmtR$0(x.ll) + '</b></div>' +
+      (vend ? ('<div class="pet-l"><span>% sobre vendas</span><b class="' + ((+x.ll || 0) < 0 ? "rpz-neg" : "rpz-pos") + '">' + fmtPctRel((+x.ll || 0) / vend * 100, 2) + '</b></div>') : '') +
       '<div class="pet-l"><span>Lucro l\u00edquido/L</span><b class="' + ((+x.llL || 0) < 0 ? "rpz-neg" : "rpz-pos") + '">R$ ' + fmtBR(+x.llL || 0, 4) + '</b></div>' +
       '</div></div>';
   });
@@ -11244,8 +11248,10 @@ function renderDashPostosResultado(){
        '<div class="cartao-kpi"><span>Despesas somadas</span><b>' + fmtR$0(tDesp) + '</b></div>' +
        '<div class="cartao-kpi"><span>Lucro l\u00edquido da rede</span><b>' + fmtR$0(tLl) + '</b></div>' +
        '<div class="cartao-kpi"><span>Lucro l\u00edquido/L da rede</span><b>R$ ' + fmtBR(tVol ? tLl / tVol : 0, 4) + '</b></div>' +
+       (tVend ? ('<div class="cartao-kpi"><span>% sobre vendas da rede</span><b>' + fmtPctRel(tLl / tVend * 100, 2) + '</b></div>') : '') +
        '</div>';
   h += '<p class="ana-rodape">' + (ate ? ('Per\u00edodo: 1 a ' + String(ate).slice(8,10) + ' de ' + rotuloMesRel(dpsMesSel) + '. ') : '') +
+       'O <b>% sobre vendas</b> \u00e9 o lucro l\u00edquido dividido pelas vendas de combust\u00edvel e produtos (as outras receitas ficam de fora). ' +
        'Fonte: Demonstrativo de Resultado do Petros \u2014 a mesma do menu Relat\u00f3rios. O detalhe linha a linha (e o ajuste dos lan\u00e7amentos fora do padr\u00e3o) fica l\u00e1.</p>';
   box.innerHTML = h;
 }
@@ -11431,21 +11437,24 @@ function renderDashConvResultado(){
   }
   if (linha) linha.style.display = "";
   let h = '<div class="pet-grid">', achou = false, tRec = 0, tLb = 0, ate = "";
+  let nLojas = 0, nDre = 0, tLlC = 0, tRecDre = 0;   // v202
   UNIDADES_REL.forEach(u => {
     const d = relLojas[u.chave + "_" + dcvMesSel];
     const k = d && d.kpi;
     if (!k) return;
     achou = true;
-    tRec += (+k.receita || 0); tLb += (+k.lb || 0);
+    tRec += (+k.receita || 0); tLb += (+k.lb || 0); nLojas++;
     if (d.ate && d.ate > ate) ate = d.ate;
     const dre = dcvDre(u.chave, dcvMesSel);
+    if (dre){ nDre++; tLlC += (+dre.ll || 0); tRecDre += (+k.receita || 0); }   // v202
     h += '<div class="pet-card"><h4>' + escAttr(u.nome) + '</h4><div class="pet-linhas">' +
       '<div class="pet-l"><span>Faturamento</span><b>' + fmtR$0(k.receita) + '</b></div>' +
       '<div class="pet-l"><span>Lucro bruto</span><b>' + fmtR$0(k.lb) + '</b></div>' +
       '<div class="pet-l"><span>Margem</span><b>' + fmtPctRel(k.margem) + '</b></div>' +
       '<div class="pet-l"><span>Ticket m\u00e9dio</span><b>' + fmtR$(k.ticket) + '</b></div>' +
       (dre ? ('<div class="pet-l"><span>Despesas</span><b>' + fmtR$0(dre.desp) + '</b></div>' +
-              '<div class="pet-l"><span>Lucro l\u00edquido</span><b class="' + (dre.ll < 0 ? "rpz-neg" : "rpz-pos") + '">' + fmtR$0(dre.ll) + '</b></div>') : '') +
+              '<div class="pet-l"><span>Lucro l\u00edquido</span><b class="' + (dre.ll < 0 ? "rpz-neg" : "rpz-pos") + '">' + fmtR$0(dre.ll) + '</b></div>' +
+              ((+k.receita || 0) ? ('<div class="pet-l"><span>% sobre vendas</span><b class="' + (dre.ll < 0 ? "rpz-neg" : "rpz-pos") + '">' + fmtPctRel((+dre.ll || 0) / (+k.receita || 1) * 100) + '</b></div>') : '')) : '') +
       '</div></div>';
   });
   h += '</div>';
@@ -11457,9 +11466,12 @@ function renderDashConvResultado(){
        '<div class="cartao-kpi"><span>As tr\u00eas lojas juntas</span><b>' + fmtR$0(tRec) + '</b></div>' +
        '<div class="cartao-kpi"><span>Lucro bruto somado</span><b>' + fmtR$0(tLb) + '</b></div>' +
        '<div class="cartao-kpi"><span>Margem da rede</span><b>' + fmtPctRel(tRec ? (tLb / tRec * 100) : 0) + '</b></div>' +
+       ((nDre && nDre === nLojas && tRecDre) ? ('<div class="cartao-kpi"><span>Lucro l\u00edquido somado</span><b>' + fmtR$0(tLlC) + '</b></div>' +
+         '<div class="cartao-kpi"><span>% sobre vendas da rede</span><b>' + fmtPctRel(tLlC / tRecDre * 100) + '</b></div>') : '') +
        '</div>';
   h += '<p class="ana-rodape">' + (ate ? ('Per\u00edodo: 1 a ' + String(ate).slice(8,10) + ' de ' + rotuloMesRel(dcvMesSel) + '. ') : '') +
-       'Fonte: relat\u00f3rios do Petros. As despesas e o lucro l\u00edquido s\u00f3 aparecem nos meses com o Demonstrativo de Resultado gravado.</p>';
+       'Fonte: relat\u00f3rios do Petros. As despesas, o lucro l\u00edquido e o <b>% sobre vendas</b> (lucro l\u00edquido dividido pelo faturamento) ' +
+       's\u00f3 aparecem nos meses com o Demonstrativo de Resultado gravado.</p>';
   box.innerHTML = h;
 }
 function renderDashConvCategorias(){
