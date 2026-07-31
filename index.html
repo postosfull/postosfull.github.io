@@ -936,7 +936,12 @@
   .fdc-lista li{margin:3px 0}
   .fdc-obs{color:var(--cinza);font-size:.8rem}
   .fdc-res{margin-top:8px;padding-top:8px;border-top:1px solid var(--borda);font-size:.9rem}
-  .fdc-bom{color:var(--verde)}
+  .fdc-bom{color:#18a558}
+  .fdc-li-bt{margin-left:6px;font-size:.72rem;padding:1px 8px;border-radius:999px;border:1px solid var(--borda);background:transparent;background-image:none;color:var(--cinza);cursor:pointer;white-space:nowrap}
+  .fdc-li-bt:hover{color:var(--txt);border-color:var(--cinza)}
+  .fdc-tri-tag{display:inline-block;font-size:.7rem;font-weight:600;padding:1px 7px;border-radius:999px;border:1px solid var(--borda);color:var(--cinza);background:var(--superficie);background-image:linear-gradient(var(--superficie),var(--superficie));white-space:nowrap}
+  .fdc-conf{margin-top:8px;padding-top:8px;border-top:1px dashed var(--borda)}
+  .fdc-conf .fdc-lista{opacity:.75}
   .fdc-ruim{color:#c0392b}
   /* v192/v208 - ordenacao e renomeacao das abas do menu Relatorios */
   .rel-ord-bt{margin-left:auto}          /* v200 - continua valendo para o "Ordenar cards" do Dashboard */
@@ -2356,6 +2361,7 @@ const colRelPosto = db.collection("relatoriosPosto");      // v168 - relatórios
 const docOrdemMenus = db.collection("config").doc("ordemMenus");   // v188 - ordem dos botoes da barra
 const docOrdemAbasRel = db.collection("config").doc("ordemAbasRel"); // v192 - ordem das abas dentro do menu Relatorios
 const docOrdemCardsDash = db.collection("config").doc("ordemCardsDash"); // v200 - ordem dos cards do Dashboard
+const docFdcConferidos = db.collection("config").doc("fdcConferidos"); // v211 - lancamentos fora do padrao ja conferidos
 const colCaixaInd = db.collection("caixaIndicadores");    // v185 - "2026-07" indicadores de caixa por posto
 const colDespesasAno = db.collection("despesasAno");      // v185 - "2026" despesas mes a mes por tipo
 const colRelPetros   = db.collection("relatoriosPetros"); // v191 - relatorios do Adaptive (Mapa Anual, DRE, despesas, tanques, colaboradores, a prazo)
@@ -2418,6 +2424,7 @@ let analises = {}, anaSel = "";                 // v172 - {"postos_2026-07-28": 
 let escutaAnalises = null;
 let relPostoSel = "teresina", relPostoMes = "", relPostoAba = "resultado";
 let relSemFora = false, relSemRetiradas = false;   // v194 - ajustes do resultado
+let fdcConferidos = {}, fdcVerConferidos = false, fdcListaAtual = null;   // v211
 let relLojaSel = "teresina", relLojaMes = "", relLojaOrdem = "lb";
 let docFormAberto = false, editandoDoc = null;
 let confirmarExclDoc = null, timerExclDoc = null;
@@ -4155,6 +4162,14 @@ function iniciarSync(){
     if (abertos("painelRelPetros")) renderRelPetros();
     if (abertos("painelFinanceiro")) renderFinanceiro();
     if (abertos("painelDespesas")) renderDespesas();
+  }, ()=>{});
+
+  // v211 - lancamentos fora do padrao ja conferidos pelo Tiago
+  docFdcConferidos.onSnapshot(d => {
+    const v = d && d.exists ? d.data() : null;
+    fdcConferidos = (v && v.itens) ? v.itens : {};
+    const p = document.getElementById("painelRelPosto");
+    if (p && p.classList.contains("aberto")) renderRelPosto();
   }, ()=>{});
 
   // v200 - ordem dos cards do Dashboard
@@ -6476,6 +6491,13 @@ function relDespDetDe(posto, mes){
   return Array.isArray(l) ? l : [];
 }
 function ehRetiradaRel(nome){ return /RETIRADA/i.test(String(nome || "")); }
+/* v211 - linhas pagas por TRIMESTRE (o grupo paga aluguel a cada fechamento de trimestre).
+   Elas continuam aparecendo na lista de fora do padrao -- o Tiago quer ver TODAS as anomalias --
+   e so ganham a etiqueta "pago por trimestre", que explica por que o valor parece alto. */
+function ehTrimestralRel(nome){ return /ALUGUEL/i.test(String(nome || "")); }
+/* v211 - o Tiago pode marcar um lancamento como ja conferido; ele some da lista. */
+function chaveFdc(posto, mes, nome){ return String(posto) + "|" + String(mes) + "|" + String(nome || ""); }
+function fdcEstaConferido(posto, mes, nome){ return !!(fdcConferidos && fdcConferidos[chaveFdc(posto, mes, nome)]); }
 function foraDaCurvaRel(posto, mes){
   const atual = relDespDetDe(posto, mes);
   const soma = {}, cont = {};
@@ -6489,7 +6511,7 @@ function foraDaCurvaRel(posto, mes){
       cont[n] = (cont[n] || 0) + 1;
     });
   });
-  const fora = [], ret = [];
+  const fora = [], ret = [], conf = [];
   atual.forEach(x => {
     const n = String(x[0] || ""), v = Number(x[1]) || 0;
     if (ehRetiradaRel(n)){ ret.push({ nome:n, valor:v }); return; }
@@ -6497,25 +6519,58 @@ function foraDaCurvaRel(posto, mes){
     const excesso = v - media;
     // regua escolhida pelo Tiago em 30/07: o DOBRO da media E pelo menos R$ 20 mil de excesso.
     // Medido nos 7 meses x 3 postos, isso marca 5 linhas em 21 meses (so o que distorce o mes).
-    if (v > media * 2 && excesso >= 20000) fora.push({ nome:n, valor:v, media:media, excesso:excesso });
+    if (v > media * 2 && excesso >= 20000){
+      const it = { nome:n, valor:v, media:media, excesso:excesso, tri: ehTrimestralRel(n) };   // v211
+      if (fdcEstaConferido(posto, mes, n)) conf.push(it); else fora.push(it);   // v211
+    }
   });
   fora.sort((a, b) => b.excesso - a.excesso);
-  return { fora: fora, ret: ret,
+  conf.sort((a, b) => b.excesso - a.excesso);
+  return { fora: fora, ret: ret, conf: conf,
+           temTri: fora.some(x => x.tri) || conf.some(x => x.tri),   // v211
            totalFora: fora.reduce((sm, x) => sm + x.excesso, 0),
            totalRet: ret.reduce((sm, x) => sm + x.valor, 0) };
 }
 function alternarSemFora(){ relSemFora = !relSemFora; renderRelPosto(); }
+/* v211 - marcar/desmarcar um lancamento como ja conferido. So admin.
+   Grava o mapa inteiro (set sem merge) porque desmarcar precisa APAGAR a chave,
+   e a chave tem barra e acento (nao serve como caminho de campo do Firestore). */
+function gravarFdcConferidos(itens, msg){
+  fdcConferidos = itens; renderRelPosto();
+  return docFdcConferidos.set({ itens: itens })
+    .then(() => { if (typeof logAtividade === "function") logAtividade("relatorios", msg, siglaEmpresa(empresa)); })
+    .catch(()=>{});
+}
+function marcarFdcConferido(i){
+  if (!ehAdminAtual() || !fdcListaAtual || !fdcListaAtual.fora[i]) return;
+  const nome = fdcListaAtual.fora[i].nome;
+  const itens = Object.assign({}, fdcConferidos || {});
+  itens[chaveFdc(relPostoSel, relPostoMes, nome)] = { por: usuarioAtual || "", em: Date.now() };
+  gravarFdcConferidos(itens, "marcou como conferido: " + nome + " (" + relPostoSel + " " + relPostoMes + ")");
+}
+function desmarcarFdcConferido(i){
+  if (!ehAdminAtual() || !fdcListaAtual || !fdcListaAtual.conf[i]) return;
+  const nome = fdcListaAtual.conf[i].nome;
+  const itens = Object.assign({}, fdcConferidos || {});
+  delete itens[chaveFdc(relPostoSel, relPostoMes, nome)];
+  gravarFdcConferidos(itens, "voltou a marcar como fora do padrao: " + nome + " (" + relPostoSel + " " + relPostoMes + ")");
+}
+function alternarVerConferidos(){ fdcVerConferidos = !fdcVerConferidos; renderRelPosto(); }
 function alternarSemRetiradas(){ relSemRetiradas = !relSemRetiradas; renderRelPosto(); }
 function blocoAjusteResultado(d, r){
   const rr = r || (d && d.res) || {};                 // v197 - o res pode vir do DRE
   const a = foraDaCurvaRel(relPostoSel, relPostoMes);
-  if (!a.fora.length && !a.ret.length) return { html:"", desp:(+rr.desp||0), ll:(+rr.ll||0), mexeu:false };
+  fdcListaAtual = a;                                  // v211 - os botoes chamam por posicao, nao por nome
+  if (!a.fora.length && !a.ret.length && !a.conf.length)
+    return { html:"", desp:(+rr.desp||0), ll:(+rr.ll||0), mexeu:false };
   const tiraF = relSemFora ? a.totalFora : 0;
   const tiraR = relSemRetiradas ? a.totalRet : 0;
   const desp = (+rr.desp || 0) - tiraF - tiraR;
   const ll = (+rr.lb || 0) - desp + (+rr.varEst || 0);
+  const adm = (typeof ehAdminAtual === "function") && ehAdminAtual();   // v211
   let h = '<div class="fdc-caixa">';
-  h += '<div class="fdc-topo"><b>Lançamentos fora do padrão deste mês</b>' +
+  h += '<div class="fdc-topo"><b>' +
+       (a.fora.length ? 'Lançamentos fora do padrão deste mês' : 'Sobre as despesas deste mês') + '</b>' +
        '<span class="fdc-bts">' +
        (a.fora.length ? '<button class="doc-chip' + (relSemFora ? ' ativo' : '') + '" onclick="alternarSemFora()">' +
           (relSemFora ? '✓ ' : '') + 'Tirar da conta</button>' : '') +
@@ -6524,13 +6579,20 @@ function blocoAjusteResultado(d, r){
        '</span></div>';
   if (a.fora.length){
     h += '<ul class="fdc-lista">';
-    a.fora.forEach(x => {
+    a.fora.forEach((x, i) => {
       h += '<li><b>' + escAttr(x.nome) + '</b> — ' + fmtR$0(x.valor) +
            (x.media > 0 ? ' <span class="fdc-obs">(média dos outros meses: ' + fmtR$0(x.media) +
               ' · <b>' + fmtR$0(x.excesso) + ' acima</b>)</span>'
-                        : ' <span class="fdc-obs">(não aparece em nenhum outro mês)</span>') + '</li>';
+                        : ' <span class="fdc-obs">(não aparece em nenhum outro mês)</span>') +
+           (x.tri ? ' <span class="fdc-tri-tag">pago por trimestre</span>' : '') +
+           (adm ? ' <button class="fdc-li-bt" onclick="marcarFdcConferido(' + i + ')" title="Some da lista; o valor volta a contar normalmente">✓ já conferi</button>' : '') +
+           '</li>';
     });
     h += '</ul>';
+  }
+  // v211 - explica a etiqueta, sem tirar a linha da lista
+  if (a.temTri){
+    h += '<p class="fdc-obs">O aluguel é pago a cada <b>fechamento de trimestre</b>: nos meses de fechamento ele aparece alto porque cobre o trimestre inteiro, e nos outros meses não aparece. Confira e, se estiver certo, marque como conferido.</p>';
   }
   if (a.ret.length) h += '<p class="fdc-obs">Retiradas de sócios no mês: <b>' + fmtR$0(a.totalRet) +
       '</b> — não são despesa da operação, são distribuição de lucro.</p>';
@@ -6541,6 +6603,24 @@ function blocoAjusteResultado(d, r){
       ' de lucro líquido, no lugar de ' + fmtR$0(+rr.ll || 0) + '.</div>';
   } else {
     h += '<p class="fdc-obs">Os números acima <b>incluem</b> esses lançamentos. Use os botões para ver o mês sem eles.</p>';
+  }
+  // v211 - o que ele ja conferiu fica guardado, fora da conta, e pode voltar
+  if (a.conf.length){
+    h += '<div class="fdc-conf"><span class="fdc-obs">' + a.conf.length +
+         (a.conf.length === 1 ? ' lançamento já conferido por você' : ' lançamentos já conferidos por você') +
+         ' — fora da lista acima.</span> ' +
+         '<button class="fdc-li-bt" onclick="alternarVerConferidos()">' +
+         (fdcVerConferidos ? 'esconder' : 'ver quais') + '</button>';
+    if (fdcVerConferidos){
+      h += '<ul class="fdc-lista">';
+      a.conf.forEach((x, i) => {
+        h += '<li><b>' + escAttr(x.nome) + '</b> — ' + fmtR$0(x.valor) +
+             (adm ? ' <button class="fdc-li-bt" onclick="desmarcarFdcConferido(' + i + ')">voltar para a lista</button>' : '') +
+             '</li>';
+      });
+      h += '</ul>';
+    }
+    h += '</div>';
   }
   h += '</div>';
   return { html:h, desp:desp, ll:ll, mexeu: !!(tiraF || tiraR) };
