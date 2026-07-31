@@ -940,6 +940,7 @@
   .fdc-ruim{color:#c0392b}
   /* v192 - ordenacao das abas do menu Relatorios */
   .rel-ord-bt{margin-left:auto}
+  .fin-sub{font-size:.72rem;color:var(--cinza);margin:-4px 0 6px 0;padding-left:2px}
   .ord-abas{border:1px solid var(--borda);border-radius:10px;padding:10px;margin:8px 0;background:var(--superficie-2);background-image:linear-gradient(var(--superficie-2),var(--superficie-2))}
   #dashOrdBarra{margin:0 0 4px}                      /* v200 - barra do "Ordenar cards" */
   #painelDash .ord-cards-box:empty{display:none}
@@ -1483,6 +1484,7 @@
     <button class="btn-claro" id="btnDescontos" onclick="alternarDescontos()"><span class="mi">🏷️</span><span class="mt">Descontos</span></button>
     <button class="btn-claro" id="btnRelPosto" onclick="alternarRelatorios()"><span class="mi">📑</span><span class="mt">Relatórios</span></button>
     <button class="btn-claro" id="btnDespesas" onclick="alternarDespesas()"><span class="mi">💸</span><span class="mt">Despesas</span></button>
+    <button class="btn-claro" id="btnFinanceiro" onclick="alternarFinanceiro()"><span class="mi">💰</span><span class="mt">Financeiro</span></button>
     <button class="btn-claro" id="btnAnalise" onclick="alternarAnalise()"><span class="mi">🧠</span><span class="mt">Análise</span></button>
     <button class="btn-claro" id="btnInfleet" onclick="alternarInfleet()"><span class="mi">📡</span><span class="mt">APP Infleet</span></button>
     <button class="btn-claro" id="btnPedido" onclick="alternarPedido()"><span class="mi">📝</span><span class="mt">Pedido de carregamento</span></button>
@@ -1773,12 +1775,28 @@
     <div class="grupo">
       <h2 id="dspTitulo">💸 Despesas dos postos, mês a mês</h2>
       <p class="nota-dash">Todas as despesas lançadas no Petros, por tipo e por mês. Serve para achar lançamento fora do padrão — aquele que cai num mês só e faz o resultado daquele mês parecer pior do que foi.</p>
+      <div class="doc-tools" id="finAbasDesp"></div>
+      <div class="ord-abas-fin-box"></div>
       <div class="evo-filtros">
         <div class="desc-campo"><label>Ano</label><select id="dspAno" onchange="dspAnoSel=this.value;renderDespesas()"></select></div>
         <div class="desc-campo"><label>Unidade</label><select id="dspPosto" onchange="dspPostoSel=this.value;renderDespesas()"></select></div>
         <div class="desc-campo"><label>Retiradas de sócios</label><select id="dspRet" onchange="dspComRet=(this.value==='1');renderDespesas()"><option value="1">Incluir</option><option value="0">Tirar da conta</option></select></div>
       </div>
       <div id="dspBox"></div>
+    </div>
+  </div>
+
+  <div class="config" id="painelFinanceiro">
+    <div class="grupo">
+      <h2 id="finTitulo">💰 Financeiro</h2>
+      <p class="nota-dash">O dinheiro que entra, o que sai e o que ainda est&aacute; para receber. Os n&uacute;meros v&ecirc;m do Adaptive.</p>
+      <div class="evo-filtros">
+        <div class="desc-campo"><label>Unidade</label><select id="finUnid" onchange="finUnidSel=this.value;renderFinanceiro()"></select></div>
+        <div class="desc-campo" id="finPerLinha"><label>Per&iacute;odo</label><select id="finPer" onchange="finPerSel=this.value;renderFinanceiro()"></select></div>
+      </div>
+      <div class="doc-tools" id="finAbas"></div>
+      <div class="ord-abas-fin-box"></div>
+      <div id="finBox"></div>
     </div>
   </div>
 
@@ -4577,7 +4595,7 @@ function excluir(i){
 
 /* ================== Salvar / Carregar / Exportar ================== */
 // Painéis que ocupam a página; só um fica aberto por vez
-const PAINEIS = ["painelRegistros","painelDash","painelResumoDia","painelHistorico","painelSimular","painelDescontos","painelPuxadas","painelCotacoes","painelInfleet","painelIfood","painelPedido","painelRelPosto","painelRelLoja","painelDespesas","painelRelPetros","painelAnalise","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin"];
+const PAINEIS = ["painelRegistros","painelDash","painelResumoDia","painelHistorico","painelSimular","painelDescontos","painelPuxadas","painelCotacoes","painelInfleet","painelIfood","painelPedido","painelRelPosto","painelRelLoja","painelDespesas","painelFinanceiro","painelRelPetros","painelAnalise","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin"];
 function fecharTodosPaineis(exceto){
   PAINEIS.forEach(id => {
     const el = document.getElementById(id);
@@ -4634,6 +4652,11 @@ function fecharTodosPaineis(exceto){
   if (brel) brel.classList.toggle("ativo", ["painelRelPosto","painelRelPetros"].some(id => {
     const e = document.getElementById(id); return e && e.classList.contains("aberto");
   }));
+  // v205 - o mesmo para o menu "Financeiro" (painelFinanceiro + painelDespesas)
+  const bfin = document.getElementById("btnFinanceiro");
+  if (bfin) bfin.classList.toggle("ativo", ["painelFinanceiro","painelDespesas"].some(id => {
+    const e = document.getElementById(id); return e && e.classList.contains("aberto");
+  }));
 }
 
 /* ===== Menu lateral: abrir/fechar no celular ===== */
@@ -4676,7 +4699,8 @@ const MENUS_APP = [
   {key:"simular",     btn:"btnSimular",     pan:"painelSimular",     emp:"postos", nome:"Simular Margens"},
   {key:"descontos",   btn:"btnDescontos",   pan:"painelDescontos",   emp:"postos", nome:"Descontos"},
   {key:"relPosto",    btn:"btnRelPosto",    pan:"painelRelPosto",    emp:"postos|conv", nome:"Relatórios"},
-  {key:"despesas",    btn:"btnDespesas",    pan:"painelDespesas",    emp:"postos|conv", nome:"Despesas"},
+  {key:"financeiro",  btn:"btnFinanceiro",  pan:"painelFinanceiro",  emp:"postos", nome:"Financeiro"},   // v205
+  {key:"despesas",    btn:"btnDespesas",    pan:"painelDespesas",    emp:"conv", nome:"Despesas"},   // v205 - nos Postos virou aba do Financeiro
   {key:"infleet",     btn:"btnInfleet",     pan:"painelInfleet",     emp:"transp", nome:"APP Infleet"},
   {key:"pedido",      btn:"btnPedido",      pan:"painelPedido",      emp:"transp", nome:"Pedido de carregamento"},
   {key:"cotacoes",    btn:"btnCotacoes",    pan:"painelCotacoes",    emp:"transp", nome:"Cotações do Dia"},
@@ -4714,6 +4738,9 @@ function menuPermitidoDe(email, key){
   if (key === "relPosto") return _menuPermBase(email, "relPosto") || _menuPermBase(email, "relPetros");
   // v198: o menu "Caixas" virou um bloco dentro do Dashboard.
   if (key === "dash") return _menuPermBase(email, "dash") || _menuPermBase(email, "caixas");
+  // v205: nos Postos o menu "Despesas" virou aba do menu novo "Financeiro".
+  if (key === "financeiro") return _menuPermBase(email, "financeiro") || _menuPermBase(email, "despesas");
+  if (key === "despesas")   return _menuPermBase(email, "despesas")   || _menuPermBase(email, "financeiro");
   return _menuPermBase(email, key);
 }
 function _menuPermBase(email, key){
@@ -5348,7 +5375,8 @@ const ABAS_REL_UNIF = [
   { k:"p:comb",      n:"⛽ Combustíveis",       painel:"painelRelPosto",  aba:"comb",      emp:"postos" },
   { k:"z:mapa",      n:"🗺️ Mapa Anual",         painel:"painelRelPetros", aba:"mapa",      emp:"postos|conv" },
   { k:"z:dre",       n:"📊 Resultado do período", painel:"painelRelPetros", aba:"dre",     emp:"postos|conv" },
-  { k:"z:desp",      n:"💸 Despesas",           painel:"painelRelPetros", aba:"desp",      emp:"postos|conv" },
+  { k:"z:afer",      n:"📏 Aferições",          painel:"painelRelPetros", aba:"afer",      emp:"postos" },   // v205
+  { k:"z:vpend",     n:"⏳ Vendas pendentes",   painel:"painelRelPetros", aba:"vpend",     emp:"postos" },   // v205
   { k:"z:tanques",   n:"🛢️ Tanques",            painel:"painelRelPetros", aba:"tanques",   emp:"postos" },
   { k:"z:colab",     n:"🙋 Colaboradores",      painel:"painelRelPetros", aba:"colab",     emp:"postos|conv" },
   { k:"z:aprazo",    n:"📄 A Prazo",            painel:"painelRelPetros", aba:"aprazo",    emp:"postos" }   // v193: a loja nao vende a prazo
@@ -5461,7 +5489,8 @@ function renderOrdemAbasRel(){
 const ABAS_REL_PETROS = [
   ["mapa",    "🗺️ Mapa Anual"],
   ["dre",     "💵 Resultado do Período"],
-  ["desp",    "💸 Despesas"],
+  ["afer",    "📏 Aferições"],
+  ["vpend",   "⏳ Vendas pendentes"],
   ["tanques", "⛽ Tanques"],
   ["colab",   "👷 Colaboradores"],
   ["aprazo",  "🧾 A Prazo"]
@@ -5469,7 +5498,7 @@ const ABAS_REL_PETROS = [
 // Tanques so existe em posto (a conveniencia nao tem tanque)
 function rpzAbasDaEmpresa(){
   const sig = siglaEmpresa(empresa);
-  return ABAS_REL_PETROS.filter(a => !(a[0] === "tanques" && sig !== "postos"));
+  return ABAS_REL_PETROS.filter(a => !(["tanques","afer","vpend"].indexOf(a[0]) >= 0 && sig !== "postos"));
 }
 function rpzDin(v, casas){ return fmtBR(Number(v)||0, casas == null ? 2 : casas); }
 function rpzDia(d){ return String(d || "").split("-").reverse().join("/"); }
@@ -5542,13 +5571,15 @@ function renderRelPetros(){
   if (doc && doc.de && doc.ate) h += '<p class="nota-dash">Período: ' + rpzDia(doc.de) + ' a ' + rpzDia(doc.ate) + '.</p>';
   if (rpzAba === "mapa")         h += rpzBlocoMapa(linhas);
   else if (rpzAba === "dre")     h += rpzBlocoDre(linhas);
-  else if (rpzAba === "desp")    h += rpzBlocoDesp(linhas);
+  else if (rpzAba === "afer")    h += rpzBlocoAfer(linhas);
+  else if (rpzAba === "vpend")   h += rpzBlocoVpend(linhas);
   else if (rpzAba === "tanques") h += rpzBlocoTanques(linhas);
   else if (rpzAba === "colab")   h += rpzBlocoColab(linhas);
   else if (rpzAba === "aprazo")  h += rpzBlocoAprazo(linhas);
   const quando = doc && doc.atualizadoEm ? String(doc.atualizadoEm).slice(0,10).split("-").reverse().join("/") : "—";
   const FONTE = { mapa:"Mapa Anual de Resultados e Indicadores", dre:"Demonstrativo de Resultado no Período-Consolidado",
-    desp:"Despesas Pagas no Período", tanques:"Perdas e Sobras na Medição dos Tanques",
+    afer:"Aferições Ocorridas no Período", vpend:"Vendas Pendentes por Atendente no Período",
+    tanques:"Perdas e Sobras na Medição dos Tanques",
     colab:"2.02 - Saldo de Colaboradores", aprazo:"Vendas a Prazo em Aberto - Geral" };
   h += '<p class="ana-rodape">Atualizado ' + escAttr(quando) + '. Fonte: ' + escAttr(FONTE[rpzAba] || "") + ' (Petros).</p>';
   box.innerHTML = h;
@@ -5749,6 +5780,451 @@ function rpzBlocoAprazo(ls){
   return h;
 }
 
+/* ===================== v205 - MENU FINANCEIRO =====================
+   Seis abas, so nos Postos Full. Quatro nascem aqui (a prazo sem faturar,
+   recebimentos, pagamentos e descontos); "Despesas do mes" veio da aba do menu
+   Relatorios e "Despesas do ano" e o antigo menu Despesas da barra lateral,
+   que continua existindo so para a Full Conveniencia.                        */
+const ABAS_FIN = [
+  { k:"f:aprazosf", n:"📄 A Prazo sem faturar", painel:"painelFinanceiro", aba:"aprazosf" },
+  { k:"f:recliq",   n:"📥 Recebimentos",        painel:"painelFinanceiro", aba:"recliq"   },
+  { k:"f:pagliq",   n:"📤 Pagamentos",          painel:"painelFinanceiro", aba:"pagliq"   },
+  { k:"f:descv",    n:"🏷️ Descontos",     painel:"painelFinanceiro", aba:"descv"    },
+  { k:"f:desp",     n:"💸 Despesas do mês", painel:"painelFinanceiro", aba:"desp"    },
+  { k:"f:dspano",   n:"📅 Despesas do ano",     painel:"painelDespesas",   aba:""         }
+];
+let finAba = "aprazosf", finUnidSel = "todos", finPerSel = "", abaFinAtual = "f:aprazosf", ordAbasFinAberto = false;
+const FIN_FONTE = {
+  aprazosf: "Vendas a Prazo em Aberto - Sem Faturar",
+  recliq:   "Títulos a Receber Liquidados",
+  pagliq:   "Títulos a Pagar Liquidados",
+  descv:    "Desconto nas Vendas Cliente no Período",
+  desp:     "Despesas Pagas no Período por Tipo"
+};
+
+/* --- abas, na ordem que esta valendo (config/ordemAbasRel, chave "fin") --- */
+function finAbasOrdenadas(){
+  const ordem = (ordemAbasRel && ordemAbasRel["fin"]) ? ordemAbasRel["fin"] : [];
+  const mapa = {}; ABAS_FIN.forEach(a => mapa[a.k] = a);
+  const saida = [];
+  ordem.forEach(k => { if (mapa[k]){ saida.push(mapa[k]); delete mapa[k]; } });
+  ABAS_FIN.forEach(a => { if (mapa[a.k]) saida.push(a); });   // aba nova nunca some
+  return saida;
+}
+function abaFinValida(){
+  const abas = finAbasOrdenadas();
+  if (!abas.some(a => a.k === abaFinAtual)) abaFinAtual = abas[0].k;
+  return ABAS_FIN.find(a => a.k === abaFinAtual);
+}
+function barraAbasFin(){
+  const abas = finAbasOrdenadas();
+  abaFinValida();
+  let h = abas.map(a => '<button class="doc-chip' + (abaFinAtual === a.k ? ' ativo' : '') +
+    '" onclick="irParaAbaFin(\'' + a.k + '\')">' + a.n + '</button>').join("");
+  if (ehAdminAtual()) h += '<button class="doc-chip rel-ord-bt' + (ordAbasFinAberto ? ' ativo' : '') +
+    '" onclick="alternarOrdemAbasFin()" title="Mudar a ordem das abas">⚙️ Ordenar abas</button>';
+  return h;
+}
+function recarregarBarraAbasFin(){
+  ["finAbas","finAbasDesp"].forEach(id => {
+    const e = document.getElementById(id);
+    if (e && e.innerHTML) e.innerHTML = barraAbasFin();
+  });
+}
+function irParaAbaFin(k){
+  const t = ABAS_FIN.find(a => a.k === k);
+  if (!t) return;
+  abaFinAtual = k;
+  if (t.painel === "painelFinanceiro"){ if (finAba !== t.aba) finPerSel = ""; finAba = t.aba; }
+  const alvo = document.getElementById(t.painel);
+  if (!alvo) return;
+  if (!alvo.classList.contains("aberto")){
+    alvo.classList.add("aberto");
+    fecharTodosPaineis(t.painel);
+    atualizarFiltrosVisiveis();
+  }
+  if (t.painel === "painelFinanceiro") renderFinanceiro(); else renderDespesas();
+}
+function financeiroAberto(){
+  return ["painelFinanceiro","painelDespesas"].some(id => {
+    const e = document.getElementById(id); return e && e.classList.contains("aberto");
+  });
+}
+function alternarFinanceiro(){
+  if (financeiroAberto()){ fecharTodosPaineis(); ordAbasFinAberto = false; return; }
+  const t = abaFinValida();
+  if (t) irParaAbaFin(t.k);
+}
+/* --- ordenacao das abas do Financeiro (so admin) --- */
+function alternarOrdemAbasFin(){ ordAbasFinAberto = !ordAbasFinAberto; renderOrdemAbasFin(); recarregarBarraAbasFin(); }
+function moverAbaFin(k, dir){
+  const lista = finAbasOrdenadas().map(a => a.k);
+  const i = lista.indexOf(k), j = i + dir;
+  if (i < 0 || j < 0 || j >= lista.length) return;
+  lista.splice(j, 0, lista.splice(i, 1)[0]);
+  if (!ordemAbasRel) ordemAbasRel = {};
+  ordemAbasRel["fin"] = lista;
+  docOrdemAbasRel.set({ porEmpresa: ordemAbasRel })
+    .then(() => { if (typeof logAtividade === "function") logAtividade("menus", "Mudou a ordem das abas do Financeiro", "fin"); })
+    .catch(()=>{});
+  recarregarBarraAbasFin(); renderOrdemAbasFin();
+}
+function resetarOrdemAbasFin(){
+  if (!ordemAbasRel) ordemAbasRel = {};
+  delete ordemAbasRel["fin"];
+  docOrdemAbasRel.set({ porEmpresa: ordemAbasRel }).catch(()=>{});
+  recarregarBarraAbasFin(); renderOrdemAbasFin();
+}
+function renderOrdemAbasFin(){
+  const caixas = document.querySelectorAll(".ord-abas-fin-box");
+  if (!caixas.length) return;
+  if (!ordAbasFinAberto || !ehAdminAtual()){ caixas.forEach(c => { c.innerHTML = ""; }); return; }
+  const lista = finAbasOrdenadas();
+  let h = '<div class="ord-abas"><p class="nota-dash">Arrume as abas do Financeiro na ordem que você preferir. Todo mundo passa a ver assim.</p><div class="ord-lista">';
+  lista.forEach((a, i) => {
+    h += '<div class="ord-item"><span class="ord-pos">' + (i+1) + '</span>' +
+         '<span class="ord-nome">' + a.n + '</span>' +
+         '<span class="ord-bts">' +
+         '<button class="btn-claro" ' + (i === 0 ? 'disabled ' : '') + 'onclick="moverAbaFin(\'' + a.k + '\',-1)" title="Subir">▲</button>' +
+         '<button class="btn-claro" ' + (i === lista.length-1 ? 'disabled ' : '') + 'onclick="moverAbaFin(\'' + a.k + '\',1)" title="Descer">▼</button>' +
+         '</span></div>';
+  });
+  h += '</div><div class="ord-acoes"><button class="btn-claro" onclick="resetarOrdemAbasFin()">↩ Voltar à ordem original</button>' +
+       '<button class="btn-claro" onclick="alternarOrdemAbasFin()">✓ Pronto</button></div></div>';
+  caixas.forEach(c => { c.innerHTML = h; });
+}
+
+/* --- dados: os documentos ficam em relatoriosPetros, tipo_postos_{unidade}_{periodo} --- */
+function finUnidNome(u){ const x = UNIDADES_REL.find(v => v.chave === u); return x ? x.nome : u; }
+function finUnidades(){ return finUnidSel === "todos" ? UNIDADES_REL.map(u => u.chave) : [finUnidSel]; }
+function finPeriodos(tipo){
+  const set = {};
+  UNIDADES_REL.forEach(u => {
+    const pre = tipo + "_postos_" + u.chave + "_";
+    Object.keys(relPetros).forEach(k => { if (k.indexOf(pre) === 0) set[k.slice(pre.length)] = 1; });
+  });
+  return Object.keys(set).sort().reverse();
+}
+// [{un, nome, dados}] so das unidades que tem documento naquele periodo
+function finDocs(tipo, per){
+  const saida = [];
+  finUnidades().forEach(u => {
+    const d = relPetros[tipo + "_postos_" + u + "_" + per];
+    if (d) saida.push({ un: u, nome: finUnidNome(u), doc: d, dados: rpzLista(d) });
+  });
+  return saida;
+}
+function finSoma(ds, f){ return ds.reduce((s, x) => s + (Number(f(x)) || 0), 0); }
+// junta pares [nome, valor, qtd] de varias unidades somando pelo nome
+function finJunta(ds, campo){
+  const m = {};
+  ds.forEach(x => {
+    ((x.dados && x.dados[campo]) || []).forEach(r => {
+      const k = rpzTxt(r[0]) || "—";
+      if (!m[k]) m[k] = [k, 0, 0];
+      m[k][1] += Number(r[1]) || 0;
+      m[k][2] += Number(r[2]) || 0;
+    });
+  });
+  return Object.keys(m).map(k => m[k]).sort((a, b) => b[1] - a[1]);
+}
+function finBarras(itens, titulo, fmt, subf){
+  if (!itens.length) return "";
+  const max = itens.reduce((m, i) => Math.max(m, Number(i[1]) || 0), 0) || 1;
+  let h = titulo ? '<h3 class="cxi-sub">' + titulo + '</h3>' : "";
+  h += '<div class="cxi-graf">';
+  itens.forEach(i => {
+    const v = Number(i[1]) || 0;
+    h += '<div class="cxi-par"><span class="cxi-q" title="' + escAttr(i[0]) + '">' + escAttr(String(i[0]).slice(0, 30)) + '</span>' +
+         '<span class="cxi-wrap"><span class="cxi-bar" style="width:' + (v / max * 100).toFixed(1) + '%"></span></span>' +
+         '<span class="cxi-v">' + (fmt ? fmt(v) : rpzDin0(v)) + '</span></div>';
+    if (subf){ const s = subf(i); if (s) h += '<div class="fin-sub">' + s + '</div>'; }
+  });
+  return h + '</div>';
+}
+function finCard(rot, val, cls, sub){
+  return '<div class="rpz-card"><span>' + rot + '</span><b class="' + (cls || "") + '">' + val +
+         (sub ? '<small> ' + sub + '</small>' : "") + '</b></div>';
+}
+function finTab(cols, linhas, total){
+  let h = '<div class="rpz-rola"><table class="rpz-tab"><thead><tr>' +
+    cols.map((c, i) => '<th' + (i ? ' class="rpz-r"' : '') + '>' + c + '</th>').join("") + '</tr></thead><tbody>';
+  linhas.forEach(l => {
+    h += '<tr>' + l.map((v, i) => i ? '<td class="rpz-r">' + v + '</td>' : '<td class="rpz-nome">' + v + '</td>').join("") + '</tr>';
+  });
+  if (total) h += '</tbody><tfoot><tr class="rpz-tot">' + total.map((v, i) => i ? '<td class="rpz-r">' + v + '</td>' : '<td class="rpz-nome">' + v + '</td>').join("") + '</tr></tfoot>';
+  else h += '</tbody>';
+  return h + '</table></div>';
+}
+
+/* --- A Prazo sem faturar: [cliente, titulo, parcela, emissao, vencimento, valor] --- */
+function finBlocoAprazoSf(ds){
+  const todas = [];
+  ds.forEach(x => (x.dados || []).forEach(r => todas.push({ un: x.nome, r: r })));
+  if (!todas.length) return '<div class="ana-vazio">Nenhuma venda a prazo em aberto neste período.</div>';
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  let tot = 0, venc = 0, qVenc = 0;
+  const porCli = {}, porPosto = {};
+  todas.forEach(o => {
+    const v = Number(o.r[5]) || 0, dv = String(o.r[4] || "");
+    tot += v;
+    if (dv && new Date(dv + "T00:00:00") < hoje){ venc += v; qVenc++; }
+    const c = rpzTxt(o.r[0]) || "—";
+    if (!porCli[c]) porCli[c] = [c, 0, 0];
+    porCli[c][1] += v; porCli[c][2]++;
+    if (!porPosto[o.un]) porPosto[o.un] = [o.un, 0, 0];
+    porPosto[o.un][1] += v; porPosto[o.un][2]++;
+  });
+  const cli = Object.keys(porCli).map(k => porCli[k]).sort((a,b) => b[1]-a[1]);
+  let h = '<div class="rpz-cards">';
+  h += finCard("Em aberto", "R$ " + rpzDin0(tot));
+  h += finCard("Títulos", String(todas.length));
+  h += finCard("Clientes", String(cli.length));
+  h += finCard("Vencidos", "R$ " + rpzDin0(venc), venc > 0 ? "rpz-neg" : "rpz-pos", qVenc + (qVenc === 1 ? " título" : " títulos"));
+  h += '</div>';
+  if (venc > 0) h += '<div class="ana-resumo"><b>Atenção:</b> R$ ' + rpzDin0(venc) + ' já passou do vencimento (' + qVenc + ' títulos).</div>';
+  const lp = Object.keys(porPosto).map(k => porPosto[k]).sort((a,b) => b[1]-a[1]);
+  if (lp.length > 1) h += finBarras(lp, "Por posto", null, i => i[2] + " títulos");
+  h += finBarras(cli.slice(0, 12), "Maiores clientes em aberto", null, i => i[2] + " títulos");
+  h += '<h3 class="cxi-sub">Todos os títulos</h3>';
+  const ord = todas.slice().sort((a,b) => String(a.r[4]||"").localeCompare(String(b.r[4]||"")));
+  h += finTab(["Cliente", "Título", "Emissão", "Vencimento", "Valor"],
+    ord.map(o => [escAttr(rpzTxt(o.r[0])), escAttr(rpzTxt(o.r[1]) + "/" + rpzTxt(o.r[2])), rpzDia(o.r[3]), rpzDia(o.r[4]), rpzDin(o.r[5])]),
+    ["Total", "", "", "", rpzDin(tot)]);
+  return h;
+}
+
+/* --- Recebimentos: {tot:{v,q}, nat:[[n,v,q]], forma:[[n,v]], dia:[[d,v]], cli:[[n,q,v]]} --- */
+function finBlocoRec(ds){
+  if (!ds.length) return '<div class="ana-vazio">Sem títulos liquidados neste período.</div>';
+  const totV = finSoma(ds, x => x.dados && x.dados.tot && x.dados.tot.v);
+  const totQ = finSoma(ds, x => x.dados && x.dados.tot && x.dados.tot.q);
+  if (!totQ) return '<div class="ana-vazio">Sem títulos liquidados neste período.</div>';
+  const nat = finJunta(ds, "nat");
+  const acha = re => nat.filter(r => re.test(r[0])).reduce((s, r) => s + r[1], 0);
+  const prazo = acha(/prazo/i), cartao = acha(/crédito|credito|débito|debito/i);
+  let h = '<div class="rpz-cards">';
+  h += finCard("Recebido no período", "R$ " + rpzDin0(totV), "rpz-pos");
+  h += finCard("Títulos liquidados", rpzDin0(totQ));
+  h += finCard("Venda a prazo", "R$ " + rpzDin0(prazo), "", totV ? (prazo / totV * 100).toFixed(1).replace(".", ",") + "% do total" : "");
+  h += finCard("Cartões", "R$ " + rpzDin0(cartao), "", "crédito + débito");
+  h += '</div>';
+  const porPosto = ds.map(x => [x.nome, (x.dados.tot ? Number(x.dados.tot.v) || 0 : 0), (x.dados.tot ? Number(x.dados.tot.q) || 0 : 0)]).sort((a,b) => b[1]-a[1]);
+  if (porPosto.length > 1) h += finBarras(porPosto, "Por posto", null, i => i[2] + " títulos");
+  h += finBarras(nat.slice(0, 10), "Como o dinheiro entrou", null, null);
+  const cli = finJunta(ds.map(x => ({ dados: { cli: ((x.dados && x.dados.cli) || []).map(r => [r[0], r[2], r[1]]) } })), "cli");
+  if (cli.length){
+    h += '<h3 class="cxi-sub">Maiores clientes a prazo</h3>';
+    h += finTab(["Cliente", "Títulos", "Recebido"],
+      cli.slice(0, 12).map(r => [escAttr(r[0]), rpzDin0(r[2]), rpzDin(r[1])]));
+  }
+  const dia = finJunta(ds, "dia").sort((a,b) => String(a[0]).localeCompare(String(b[0])));
+  if (dia.length) h += '<details class="rel-det"><summary>Ver dia a dia (' + dia.length + ' dias)</summary>' +
+    finBarras(dia.map(r => [rpzDia(r[0]), r[1]]), "", null, null) + '</details>';
+  return h;
+}
+
+/* --- Pagamentos: {tot:{v,q}, tipo:[[n,v,q]], cred:[[n,q,v]], dia:[[d,v]], semTipo:n} --- */
+function finBlocoPag(ds){
+  if (!ds.length) return '<div class="ana-vazio">Sem títulos pagos neste período.</div>';
+  const totV = finSoma(ds, x => x.dados && x.dados.tot && x.dados.tot.v);
+  const totQ = finSoma(ds, x => x.dados && x.dados.tot && x.dados.tot.q);
+  if (!totQ) return '<div class="ana-vazio">Sem títulos pagos neste período.</div>';
+  const semTipo = finSoma(ds, x => x.dados && x.dados.semTipo);
+  const comTipo = totV - semTipo;
+  let h = '<div class="rpz-cards">';
+  h += finCard("Pago no período", "R$ " + rpzDin0(totV), "rpz-neg");
+  h += finCard("Títulos liquidados", rpzDin0(totQ));
+  h += finCard("Compra de combustível", "R$ " + rpzDin0(semTipo), "", totV ? (semTipo / totV * 100).toFixed(1).replace(".", ",") + "% do total" : "");
+  h += finCard("Despesas", "R$ " + rpzDin0(comTipo));
+  h += '</div>';
+  h += '<p class="nota-dash">O que vem sem tipo de despesa é nota de compra de combustível — por isso aparece separado.</p>';
+  const porPosto = ds.map(x => [x.nome, (x.dados.tot ? Number(x.dados.tot.v) || 0 : 0), (x.dados.tot ? Number(x.dados.tot.q) || 0 : 0)]).sort((a,b) => b[1]-a[1]);
+  if (porPosto.length > 1) h += finBarras(porPosto, "Por posto", null, i => i[2] + " títulos");
+  const cred = finJunta(ds.map(x => ({ dados: { cred: ((x.dados && x.dados.cred) || []).map(r => [r[0], r[2], r[1]]) } })), "cred");
+  h += finBarras(cred.slice(0, 10), "Maiores credores", null, i => i[2] + " títulos");
+  const tipo = finJunta(ds, "tipo").filter(r => r[0] !== "-" && r[0] !== "—");
+  if (tipo.length){
+    h += '<h3 class="cxi-sub">Por tipo de despesa</h3>';
+    h += finTab(["Tipo", "Títulos", "Pago"],
+      tipo.slice(0, 25).map(r => [escAttr(r[0]), rpzDin0(r[2]), rpzDin(r[1])]),
+      ["Total sem combustível", "", rpzDin(tipo.reduce((s, r) => s + r[1], 0))]);
+  }
+  const dia = finJunta(ds, "dia").sort((a,b) => String(a[0]).localeCompare(String(b[0])));
+  if (dia.length) h += '<details class="rel-det"><summary>Ver dia a dia (' + dia.length + ' dias)</summary>' +
+    finBarras(dia.map(r => [rpzDia(r[0]), r[1]]), "", null, null) + '</details>';
+  return h;
+}
+
+/* --- Descontos: [cliente, item, qtd, bruto, desconto, liquido] --- */
+function finBlocoDesc(ds){
+  const todas = [];
+  ds.forEach(x => (x.dados || []).forEach(r => todas.push({ un: x.nome, r: r })));
+  if (!todas.length) return '<div class="ana-vazio">Nenhum desconto dado a cliente neste período.</div>';
+  let desc = 0, bruto = 0;
+  const porCli = {}, porItem = {}, porPosto = {};
+  todas.forEach(o => {
+    const d = Number(o.r[4]) || 0, b = Number(o.r[3]) || 0;
+    desc += d; bruto += b;
+    const c = rpzTxt(o.r[0]) || "—", it = rpzTxt(o.r[1]) || "—";
+    if (!porCli[c]) porCli[c] = [c, 0, 0];
+    porCli[c][1] += d; porCli[c][2]++;
+    if (!porItem[it]) porItem[it] = [it, 0, 0];
+    porItem[it][1] += d; porItem[it][2]++;
+    if (!porPosto[o.un]) porPosto[o.un] = [o.un, 0, 0];
+    porPosto[o.un][1] += d; porPosto[o.un][2] += b;
+  });
+  const cli = Object.keys(porCli).map(k => porCli[k]).sort((a,b) => b[1]-a[1]);
+  const itens = Object.keys(porItem).map(k => porItem[k]).sort((a,b) => b[1]-a[1]);
+  const pct = bruto ? (desc / bruto * 100) : 0;
+  let h = '<div class="rpz-cards">';
+  h += finCard("Desconto no período", "R$ " + rpzDin(desc), "rpz-neg");
+  h += finCard("Sobre o bruto", pct.toFixed(2).replace(".", ",") + "%", "", "de R$ " + rpzDin0(bruto));
+  h += finCard("Clientes", String(cli.length));
+  h += finCard("Maior desconto", "R$ " + rpzDin(cli[0][1]), "", escAttr(String(cli[0][0]).slice(0, 22)));
+  h += '</div>';
+  const lp = Object.keys(porPosto).map(k => porPosto[k]).sort((a,b) => b[1]-a[1]);
+  if (lp.length > 1) h += finBarras(lp, "Por posto", v => rpzDin(v), i => (i[2] ? (i[1] / i[2] * 100).toFixed(2).replace(".", ",") + "% do bruto" : ""));
+  h += finBarras(itens.slice(0, 10), "Onde vai o desconto", v => rpzDin(v), null);
+  h += '<h3 class="cxi-sub">Por cliente</h3>';
+  h += finTab(["Cliente", "Itens", "Desconto"],
+    cli.slice(0, 30).map(r => [escAttr(r[0]), rpzDin0(r[2]), rpzDin(r[1])]),
+    ["Total", rpzDin0(todas.length), rpzDin(desc)]);
+  return h;
+}
+
+function renderFinanceiro(){
+  const box = document.getElementById("finBox");
+  if (!box) return;
+  const elAbas = document.getElementById("finAbas");
+  if (elAbas) elAbas.innerHTML = barraAbasFin();
+  renderOrdemAbasFin();
+
+  const uns = ["todos"].concat(UNIDADES_REL.map(u => u.chave));
+  preencherSelectRel("finUnid", uns, finUnidSel, c => c === "todos" ? "Todos os postos" : finUnidNome(c));
+  finUnidSel = (document.getElementById("finUnid") || {}).value || finUnidSel;
+
+  const pers = finPeriodos(finAba);
+  const perLinha = document.getElementById("finPerLinha");
+  if (!pers.length){
+    if (perLinha) perLinha.style.display = "none";
+    box.innerHTML = '<div class="ana-vazio">Ainda não há dados deste relatório.<br>Eles vêm do Adaptive.</div>';
+    return;
+  }
+  if (perLinha) perLinha.style.display = "";
+  if (!finPerSel || pers.indexOf(finPerSel) < 0) finPerSel = pers[0];
+  preencherSelectRel("finPer", pers, finPerSel, rpzRotuloPeriodo);
+
+  const ds = finDocs(finAba, finPerSel);
+  let h = "";
+  const d0 = ds.length ? ds[0].doc : null;
+  if (d0 && d0.de && d0.ate) h += '<p class="nota-dash">Período: ' + rpzDia(d0.de) + ' a ' + rpzDia(d0.ate) + '.</p>';
+  if (finAba === "aprazosf")    h += finBlocoAprazoSf(ds);
+  else if (finAba === "recliq") h += finBlocoRec(ds);
+  else if (finAba === "pagliq") h += finBlocoPag(ds);
+  else if (finAba === "descv")  h += finBlocoDesc(ds);
+  else if (finAba === "desp"){
+    const ls = [];
+    ds.forEach(x => (x.dados || []).forEach(r => ls.push(r)));
+    h += rpzBlocoDesp(ls);
+  }
+  const quando = d0 && d0.atualizadoEm ? String(d0.atualizadoEm).slice(0,10).split("-").reverse().join("/") : "—";
+  h += '<p class="ana-rodape">Atualizado ' + escAttr(quando) + '. Fonte: ' + escAttr(FIN_FONTE[finAba] || "") + ' (Adaptive).</p>';
+  box.innerHTML = h;
+}
+
+// v205 - os tres postos no periodo aberto, para o quadro de comparacao das abas novas
+function rpzTresPostos(tipo){
+  const saida = [];
+  UNIDADES_REL.forEach(u => {
+    const d = relPetros[tipo + "_postos_" + u.chave + "_" + rpzPerSel];
+    if (d) saida.push({ nome: u.nome, dados: rpzLista(d) });
+  });
+  return saida.length > 1 ? saida : [];
+}
+
+/* --- Afericoes: [data, bico, litros, atendente, validada] --- */
+function rpzBlocoAfer(ls){
+  if (!ls.length) return '<div class="ana-vazio">Nenhuma aferição neste período.</div>';
+  let litros = 0, semVal = 0;
+  const porAte = {}, porBico = {}, dias = {};
+  ls.forEach(r => {
+    const q = Number(r[2]) || 0;
+    litros += q;
+    if (String(r[4] || "N") !== "S") semVal++;
+    const a = rpzTxt(r[3]) || "—", b = rpzTxt(r[1]) || "—", d = String(r[0] || "").slice(0, 10);
+    if (!porAte[a]) porAte[a] = [a, 0, 0];
+    porAte[a][1] += q; porAte[a][2]++;
+    if (!porBico[b]) porBico[b] = [b, 0, 0];
+    porBico[b][1] += q; porBico[b][2]++;
+    if (d) dias[d] = 1;
+  });
+  const ate = Object.keys(porAte).map(k => porAte[k]).sort((a,b) => b[1]-a[1]);
+  const bic = Object.keys(porBico).map(k => porBico[k]).sort((a,b) => b[1]-a[1]);
+  let h = '<div class="rpz-cards">';
+  h += finCard("Aferições", rpzDin0(ls.length));
+  h += finCard("Litros aferidos", rpzDin(litros) + " L");
+  h += finCard("Dias com aferição", String(Object.keys(dias).length));
+  h += finCard("Sem validação", rpzDin0(semVal), semVal ? "rpz-neg" : "rpz-pos");
+  h += '</div>';
+  if (semVal === ls.length) h += '<div class="ana-resumo"><b>Atenção:</b> nenhuma das ' + ls.length + ' aferições do período foi validada no sistema.</div>';
+  const tres = rpzTresPostos("afer");
+  if (tres.length){
+    const cmp = tres.map(x => [x.nome, x.dados.length, x.dados.reduce((s2, r) => s2 + (Number(r[2]) || 0), 0)])
+                    .sort((a,b) => b[1]-a[1]);
+    h += finBarras(cmp, "Comparação entre os postos", v => rpzDin0(v) + " aferições", i => rpzDin(i[2]) + " L");
+  }
+  h += finBarras(ate.slice(0, 12), "Quem mais afere", v => rpzDin(v) + " L", i => i[2] + " aferições");
+  h += '<h3 class="cxi-sub">Por bico</h3>';
+  h += finTab(["Bico", "Aferições", "Litros"],
+    bic.map(r => [escAttr(r[0]), rpzDin0(r[2]), rpzDin(r[1])]),
+    ["Total", rpzDin0(ls.length), rpzDin(litros)]);
+  return h;
+}
+
+/* --- Vendas pendentes por atendente: [tipo(P|F), atendente, dataAbast, bico, litros, valor, dataVenda] --- */
+function rpzBlocoVpend(ls){
+  if (!ls.length) return '<div class="ana-vazio">Nenhum abastecimento pendente. Ótimo sinal.</div>';
+  const pend = ls.filter(r => String(r[0]) === "P"), fora = ls.filter(r => String(r[0]) === "F");
+  const vPend = pend.reduce((s, r) => s + (Number(r[5]) || 0), 0);
+  const vFora = fora.reduce((s, r) => s + (Number(r[5]) || 0), 0);
+  const datas = pend.map(r => String(r[2] || "").slice(0, 10)).filter(Boolean).sort();
+  const porAte = {};
+  pend.forEach(r => {
+    const a = rpzTxt(r[1]) || "SEM ATENDENTE";
+    if (!porAte[a]) porAte[a] = [a, 0, 0];
+    porAte[a][1] += Number(r[5]) || 0; porAte[a][2]++;
+  });
+  const ate = Object.keys(porAte).map(k => porAte[k]).sort((a,b) => b[1]-a[1]);
+  let h = '<div class="rpz-cards">';
+  h += finCard("Abastecimentos pendentes", rpzDin0(pend.length), pend.length ? "rpz-neg" : "rpz-pos");
+  h += finCard("Valor parado", "R$ " + rpzDin(vPend), pend.length ? "rpz-neg" : "");
+  h += finCard("Baixados fora da data", rpzDin0(fora.length), "", "R$ " + rpzDin(vFora));
+  h += finCard("Mais antigo", datas.length ? rpzDia(datas[0]) : "—");
+  h += '</div>';
+  h += '<p class="nota-dash">Pendente é abastecimento que saiu da bomba e ainda não virou venda no caixa. Esta lista é uma <b>foto de agora</b>, não do período escolhido.</p>';
+  const tresP = rpzTresPostos("vpend");
+  if (tresP.length){
+    const cmp = tresP.map(x => {
+      const ps = x.dados.filter(r => String(r[0]) === "P");
+      return [x.nome, ps.length, ps.reduce((s2, r) => s2 + (Number(r[5]) || 0), 0)];
+    }).sort((a,b) => b[1]-a[1]);
+    h += finBarras(cmp, "Comparação entre os postos", v => rpzDin0(v) + " pendentes", i => "R$ " + rpzDin(i[2]));
+  }
+  if (ate.length){
+    h += '<h3 class="cxi-sub">Por atendente</h3>';
+    h += finTab(["Atendente", "Pendentes", "Valor"],
+      ate.map(r => [escAttr(r[0]), rpzDin0(r[2]), rpzDin(r[1])]),
+      ["Total", rpzDin0(pend.length), rpzDin(vPend)]);
+  }
+  if (fora.length){
+    h += '<h3 class="cxi-sub">Baixados fora da data do abastecimento</h3>';
+    h += finTab(["Atendente", "Abastecimento", "Venda", "Valor"],
+      fora.slice(0, 40).map(r => [escAttr(rpzTxt(r[1])), rpzDia(String(r[2] || "").slice(0,10)), rpzDia(String(r[6] || "").slice(0,10)), rpzDin(r[5])]));
+  }
+  return h;
+}
+
 /* ===================== v185 - MENU DESPESAS ===================== */
 const DSP_MES = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
 function dspDin(v){ const n = Number(v)||0; return n.toLocaleString("pt-BR",{minimumFractionDigits:0,maximumFractionDigits:0}); }
@@ -5762,6 +6238,14 @@ function dspRetirada(nome){ return /RETIRADA/i.test(String(nome||"")); }
 function renderDespesas(){
   const box = document.getElementById("dspBox");
   if (!box) return;
+  // v205 - nos Postos esta tela e a aba "Despesas do ano" do menu Financeiro
+  const abasD = document.getElementById("finAbasDesp");
+  if (abasD){
+    const ehPosto = siglaEmpresa(empresa) === "postos";
+    abasD.style.display = ehPosto ? "" : "none";
+    if (ehPosto){ abaFinAtual = "f:dspano"; abasD.innerHTML = barraAbasFin(); renderOrdemAbasFin(); }
+    else abasD.innerHTML = "";
+  }
   const anos = Object.keys(despesasAno).sort().reverse();
   const selA = document.getElementById("dspAno"), selP = document.getElementById("dspPosto"), selR = document.getElementById("dspRet");
   const linha = document.querySelector("#painelDespesas .evo-filtros");
