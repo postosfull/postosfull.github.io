@@ -938,8 +938,12 @@
   .fdc-res{margin-top:8px;padding-top:8px;border-top:1px solid var(--borda);font-size:.9rem}
   .fdc-bom{color:var(--verde)}
   .fdc-ruim{color:#c0392b}
-  /* v192 - ordenacao das abas do menu Relatorios */
-  .rel-ord-bt{margin-left:auto}
+  /* v192/v208 - ordenacao e renomeacao das abas do menu Relatorios */
+  .rel-ord-bt{margin-left:auto}          /* v200 - continua valendo para o "Ordenar cards" do Dashboard */
+  .rel-topo{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+  .rel-topo h2{margin-bottom:0}
+  .rel-topo-bts{margin-left:auto;display:flex;gap:8px;flex:0 0 auto}
+  .rel-topo-bts:empty{display:none}
   /* v207 - traco entre os grupos de abas + campo de renomear */
   .aba-sep{flex:0 0 auto;width:1px;height:22px;background:var(--borda);background-image:linear-gradient(var(--borda),var(--borda));border-radius:1px;margin:0 3px}
   .ren-inp{flex:1 1 auto;min-width:0;font:inherit;font-size:.86rem;padding:5px 9px;border:1px solid var(--borda);border-radius:7px;
@@ -1763,7 +1767,7 @@
 
   <div class="config" id="painelRelPosto">
     <div class="grupo">
-      <h2 id="relTituloPosto">📑 Relatórios</h2>
+      <div class="rel-topo"><h2 id="relTituloPosto">📑 Relatórios</h2><div class="rel-topo-bts"></div></div>
       <p class="nota-dash">Números que vêm do Petros/Adaptive. Use as abas para trocar de relatório.</p>
       <div class="evo-filtros">
         <div class="desc-campo"><label>Posto</label><select id="relPostoEmp" onchange="relPostoSel=this.value;renderRelPosto()"></select></div>
@@ -1777,7 +1781,7 @@
 
   <div class="config" id="painelDespesas">
     <div class="grupo">
-      <h2 id="dspTitulo">💸 Despesas dos postos, mês a mês</h2>
+      <div class="rel-topo"><h2 id="dspTitulo">💸 Despesas dos postos, mês a mês</h2><div class="rel-topo-bts"></div></div>
       <p class="nota-dash">Todas as despesas lançadas no Petros, por tipo e por mês. Serve para achar lançamento fora do padrão — aquele que cai num mês só e faz o resultado daquele mês parecer pior do que foi.</p>
       <div class="doc-tools" id="finAbasDesp"></div>
       <div class="ord-abas-box"></div>
@@ -1792,7 +1796,7 @@
 
   <div class="config" id="painelFinanceiro">
     <div class="grupo">
-      <h2 id="finTitulo">💰 Financeiro</h2>
+      <div class="rel-topo"><h2 id="finTitulo">💰 Financeiro</h2><div class="rel-topo-bts"></div></div>
       <p class="nota-dash">O dinheiro que entra, o que sai e o que ainda est&aacute; para receber. Os n&uacute;meros v&ecirc;m do Adaptive.</p>
       <div class="evo-filtros">
         <div class="desc-campo"><label>Unidade</label><select id="finUnid" onchange="finUnidSel=this.value;renderFinanceiro()"></select></div>
@@ -1806,7 +1810,7 @@
 
   <div class="config" id="painelRelPetros">
     <div class="grupo">
-      <h2 id="rpzTitulo">&#128209; Relat&oacute;rios</h2>
+      <div class="rel-topo"><h2 id="rpzTitulo">&#128209; Relat&oacute;rios</h2><div class="rel-topo-bts"></div></div>
       <p class="nota-dash">N&uacute;meros que v&ecirc;m do Petros/Adaptive. Use as abas para trocar de relat&oacute;rio.</p>
       <div class="evo-filtros">
         <div class="desc-campo"><label>Unidade</label><select id="rpzUnid" onchange="rpzUnidSel=this.value;renderRelPetros()"></select></div>
@@ -5434,11 +5438,23 @@ function barraAbasRel(){
     h += '<button class="doc-chip' + (abaRelAtual === a.k ? ' ativo' : '') +
       '" onclick="irParaAbaRel(\'' + a.k + '\')">' + nomeAba(a) + '</button>';
   });
-  if (ehAdminAtual()) h += '<button class="doc-chip rel-ord-bt' + (ordAbasAberto ? ' ativo' : '') +
+  return h;
+}
+/* v208 - os dois botoes de admin moram no canto direito do titulo, nao na fila de abas.
+   No painelDespesas eles so aparecem nos Postos (na Conveniencia aquilo e' o menu Despesas). */
+function botoesAbasRel(){
+  if (!ehAdminAtual()) return "";
+  return '<button class="doc-chip' + (ordAbasAberto ? ' ativo' : '') +
     '" onclick="alternarOrdemAbasRel()" title="Mudar a ordem das abas">⚙️ Ordenar abas</button>' +
     '<button class="doc-chip' + (renAbasAberto ? ' ativo' : '') +
     '" onclick="alternarRenomearAbasRel()" title="Trocar o nome das abas">✏️ Renomear abas</button>';
-  return h;
+}
+function recarregarBotoesAbasRel(){
+  const soPosto = siglaEmpresa(empresa) === "postos";
+  document.querySelectorAll(".rel-topo-bts").forEach(c => {
+    const naDespesa = !!(c.closest && c.closest("#painelDespesas"));
+    c.innerHTML = (naDespesa && !soPosto) ? "" : botoesAbasRel();
+  });
 }
 function irParaAbaRel(k){
   const t = ABAS_REL_UNIF.find(a => a.k === k);
@@ -5521,6 +5537,7 @@ function resetarOrdemAbasRel(){
   recarregarBarraAbasRel(); renderOrdemAbasRel();
 }
 function renderOrdemAbasRel(){
+  recarregarBotoesAbasRel();          // v208 - os botoes do canto acompanham o estado
   const caixas = document.querySelectorAll(".ord-abas-box");
   if (!caixas.length) return;
   if ((!ordAbasAberto && !renAbasAberto) || !ehAdminAtual()){ caixas.forEach(c => { c.innerHTML = ""; }); return; }
@@ -6225,6 +6242,7 @@ function renderDespesas(){
     } else {
       abasD.innerHTML = "";
       document.querySelectorAll("#painelDespesas .ord-abas-box").forEach(c => { c.innerHTML = ""; });
+      recarregarBotoesAbasRel();   // v208 - e os botoes do canto tambem somem na loja
       if (titD) titD.innerHTML = "💸 Despesas dos postos, m\u00eas a m\u00eas";
     }
   }
