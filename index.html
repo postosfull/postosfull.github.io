@@ -476,6 +476,10 @@
   }
   .resumo-dash .cartao-kpi b{display:block;font-size:1.05rem;color:var(--txt)}
   .resumo-dash .cartao-kpi b small{font-size:.72rem;color:var(--cinza);font-weight:600}
+  /* v203 - o b do quadrinho tem color:var(--txt) e ganha do .rpz-pos generico (licao da v198) */
+  .resumo-dash .cartao-kpi b.rpz-pos{color:#18a558}
+  .resumo-dash .cartao-kpi b.rpz-neg{color:#c0392b}
+  .dtr-aviso{color:#c0392b;font-weight:700}
   .resumo-dash .cartao-kpi span{font-size:.72rem;color:var(--cinza);text-transform:uppercase;letter-spacing:.4px}
   /* Tabelas do Resumo do dia: colunas estreitas e coladas uma na outra, em vez de
      esticadas de ponta a ponta da tela (pedido do Tiago) */
@@ -1951,6 +1955,54 @@
       </div>
       <div id="conteudoDash"></div>
       <p class="nota-dash">Para cada combustível, gráficos lado a lado: <b>Evolução do preço de compra</b>, <b>Evolução da margem - valor</b> (em R$) e <b>Evolução da margem - percentual</b> (em %). A margem usa preço de compra, custo do frete e preço de venda dos lançamentos. Cada ponto é a média na data, respeitando os filtros de Data, Posto e Forma. No preço de compra, vermelho = subiu (ruim); nas margens, verde = subiu (bom). Use as caixas "Mostrar" para exibir só os gráficos que quiser.</p>
+    </div>
+
+    <div class="grupo" id="dashGrpFrota">
+      <h2>🚚 Frota agora</h2>
+      <p class="nota-dash">Onde cada caminhão está neste momento, segundo o rastreador do Infleet. Quem está há 6 horas ou mais sem mandar posição aparece marcado — quase sempre é o rastreador, não o caminhão. O odômetro e o abastecimento por abastecimento ficam no menu APP Infleet.</p>
+      <div id="dtrFrotaBox"></div>
+    </div>
+
+    <div class="grupo" id="dashGrpPuxadasMes">
+      <h2>📦 Puxadas do mês</h2>
+      <p class="nota-dash">Quanto a transportadora rodou no mês: viagens de verdade, CT-e emitidos, litros entregues e frete faturado. Uma viagem pode gerar mais de um CT-e — a contagem de viagens junta o que foi entregue no mesmo dia, pelo mesmo motorista e no mesmo endereço. A lista puxada por puxada fica no menu Puxadas.</p>
+      <div class="evo-filtros">
+        <div class="desc-campo"><label>Mês</label><select id="dtrMesPux" onchange="dtrMesSel=this.value;renderDashTransp()"></select></div>
+      </div>
+      <div id="dtrPuxBox"></div>
+    </div>
+
+    <div class="grupo" id="dashGrpFreteCusto">
+      <h2>💰 Frete × custo do diesel</h2>
+      <p class="nota-dash">Quanto entrou de frete no mês e quanto saiu de combustível no mesmo mês. <b>É só o combustível</b>: motorista, manutenção, pneu, imposto e a parcela do caminhão não entram. Serve para acompanhar a variação de um mês para o outro, não para dizer o lucro da transportadora.</p>
+      <div class="evo-filtros">
+        <div class="desc-campo"><label>Mês</label><select id="dtrMesFc" onchange="dtrMesSel=this.value;renderDashTransp()"></select></div>
+      </div>
+      <div id="dtrFcBox"></div>
+    </div>
+
+    <div class="grupo" id="dashGrpCombustivel">
+      <h2>⛽ Combustível do mês</h2>
+      <p class="nota-dash">O que a frota abasteceu no mês. O Arla 32 é aditivo, não combustível: fica em coluna própria e não entra no R$/L nem na média km/L. A média km/L é ponderada pelos litros.</p>
+      <div class="evo-filtros">
+        <div class="desc-campo"><label>Mês</label><select id="dtrMesComb" onchange="dtrMesSel=this.value;renderDashTransp()"></select></div>
+      </div>
+      <div id="dtrCombBox"></div>
+    </div>
+
+    <div class="grupo" id="dashGrpEficiencia">
+      <h2>📉 Eficiência por caminhão</h2>
+      <p class="nota-dash">Quantos quilômetros cada caminhão faz com um litro, comparado com a média da frota no mês. Quem roda menos km por litro gasta mais para fazer a mesma entrega. Os quilômetros e o custo por km são estimados a partir dos litros e do km/L de cada abastecimento.</p>
+      <div class="evo-filtros">
+        <div class="desc-campo"><label>Mês</label><select id="dtrMesEfi" onchange="dtrMesSel=this.value;renderDashTransp()"></select></div>
+      </div>
+      <div id="dtrEfiBox"></div>
+    </div>
+
+    <div class="grupo" id="dashGrpDocsVencer">
+      <h2>📄 Documentos a vencer</h2>
+      <p class="nota-dash">CNH, licenciamento, seguro e licenças cadastrados como <b>Full Transportadora</b> no menu Documentos. Aparecem os que já venceram e os que vencem nos próximos 60 dias.</p>
+      <div id="dtrDocBox"></div>
     </div>
   </div>
 
@@ -4084,6 +4136,7 @@ function iniciarSync(){
   escutaDocumentos = colDocumentos.onSnapshot(snap => {
     const l = []; snap.forEach(d => l.push(Object.assign({ id: d.id }, d.data()))); documentos = l;
     atualizarBadgeAvisos();
+    atualizarDashTransp();                     // v203
     const pv = document.getElementById("painelVencimentos");
     if (pv && pv.classList.contains("aberto")) renderVencimentos();
     const pc = document.getElementById("painelCalendario");
@@ -4266,6 +4319,7 @@ function iniciarSync(){
     puxadas = lista;
     const pp = document.getElementById("painelPuxadas");
     if (pp && pp.classList.contains("aberto")) renderPuxadas();
+    atualizarDashTransp();                     // v203
   }, ()=>{});
 
   // Evolução das vendas (um doc por mês)
@@ -4291,12 +4345,14 @@ function iniciarSync(){
     infleetFrota = snap.exists ? (snap.data() || null) : null;
     const pi = document.getElementById("painelInfleet");
     if (pi && pi.classList.contains("aberto")) renderInfleet();
+    atualizarDashTransp();                     // v203
   }, ()=>{});
   escutaInfAbast = colInfAbast.onSnapshot(snap => {
     const lista = [];
     snap.forEach(d => lista.push({ id: d.id, ...d.data() }));
     lista.sort((x,y)=>String(y.data||"").localeCompare(String(x.data||"")));
     infAbastecimentos = lista;
+    atualizarDashTransp();                     // v203
     const pi = document.getElementById("painelInfleet");
     if (pi && pi.classList.contains("aberto")) renderInfleet();
   }, ()=>{});
@@ -4593,7 +4649,7 @@ let empresa = "postos";
 const CHAVE_EMPRESA = "margens_empresa";
 // Registro central dos menus (para empresa + permissões por usuário)
 const MENUS_APP = [
-  {key:"dash",        btn:"btnDash",        pan:"painelDash",        emp:"postos|conv", nome:"Dashboard"},   // v198 - a Conveniencia ganhou Dashboard
+  {key:"dash",        btn:"btnDash",        pan:"painelDash",        emp:"postos|conv|transp", nome:"Dashboard"},   // v198 Conveniencia, v203 Transportadora
   {key:"resumoDia",   btn:"btnResumoDia",   pan:"painelResumoDia",   emp:"postos|conv", nome:"Resumo do dia"},
   {key:"registros",   btn:"btnRegistros",   pan:"painelRegistros",   emp:"postos", nome:"Lançamentos"},
   {key:"historico",   btn:"btnHistorico",   pan:"painelHistorico",   emp:"postos", nome:"Histórico"},
@@ -4866,6 +4922,8 @@ function abrirPrimeiroPermitido(){
 }
 function abrirPainelInicial(){
   const s = siglaEmpresa(empresa);
+  // v203 - a Transportadora tambem abre no Dashboard (antes abria no APP Infleet)
+  if (s === "transp" && menuPermitido("dash")){ abrirDashboardInicial(); return; }
   if (s === "transp" && menuPermitido("infleet")){ abrirInfleetInicial(); return; }
   if (s === "transp" && menuPermitido("cotacoes")){ abrirCotacoesInicial(); return; }
   // v198 - a Conveniencia tambem abre no Dashboard (antes abria em Produtos e categorias)
@@ -6518,6 +6576,7 @@ function graficoBarrasEvo(itens, moeda, comparar){
   return '<div class="evo-wrap">' + s + '<div class="evo-tip" id="evoTip"></div></div>';
 }
 function renderEvolucao(){
+  if (dashEhTransp()) return;   // v203 - a Transportadora nao tem o card de evolucao
   popularSelectEvo();
   const box = document.getElementById("evolucaoBox");
   if (!box) return;
@@ -11104,7 +11163,14 @@ const CARDS_DASH = [
   { k:"categorias", id:"dashGrpCategorias", n:"🍫 Onde está o lucro da loja",      emp:"conv" },
   { k:"comparar",   id:"dashGrpComparar",   n:"⚖️ As três lojas na mesma categoria",        emp:"conv" },
   { k:"ifood",      id:"dashGrpIfood",      n:"🛵 iFood",                          emp:"conv" },
-  { k:"precos",     id:"dashGrpPrecos",     n:"📉 Evolução de preços e margens",   emp:"postos" }
+  { k:"precos",     id:"dashGrpPrecos",     n:"📉 Evolução de preços e margens",   emp:"postos" },
+  // v203 - Full Transportadora
+  { k:"frota",      id:"dashGrpFrota",      n:"🚚 Frota agora",                  emp:"transp" },
+  { k:"puxadasMes", id:"dashGrpPuxadasMes", n:"📦 Puxadas do mês",               emp:"transp" },
+  { k:"freteCusto", id:"dashGrpFreteCusto", n:"💰 Frete × custo do diesel",       emp:"transp" },
+  { k:"combustivel",id:"dashGrpCombustivel",n:"⛽ Combustível do mês",             emp:"transp" },
+  { k:"eficiencia", id:"dashGrpEficiencia", n:"📉 Eficiência por caminhão",       emp:"transp" },
+  { k:"docsVencer", id:"dashGrpDocsVencer", n:"📄 Documentos a vencer",          emp:"transp" }
 ];
 function cardsDashDaEmpresa(s){
   s = s || siglaEmpresa(empresa);
@@ -11163,8 +11229,9 @@ function renderOrdemCardsDash(){
   if (!ordCardsAberto || !ehAdminAtual()){ caixa.innerHTML = ""; return; }
   const s = siglaEmpresa(empresa);
   const lista = cardsDashDaEmpresa(s);
+  const ondeVale = (s === "conv") ? "a Full Conveniência" : (s === "transp" ? "a Full Transportadora" : "os Postos Full");
   let h = '<div class="ord-abas"><p class="nota-dash">Arrume os cards na ordem que você preferir. Vale para ' +
-    (s === "conv" ? "a Full Conveniência" : "os Postos Full") + ' e todo mundo passa a ver assim.</p><div class="ord-lista">';
+    ondeVale + ' e todo mundo passa a ver assim.</p><div class="ord-lista">';
   lista.forEach((c, i) => {
     h += '<div class="ord-item"><span class="ord-pos">' + (i+1) + '</span>' +
          '<span class="ord-nome">' + c.n + '</span>' +
@@ -11261,19 +11328,310 @@ function atualizarDashPostos(){
   if (p && p.classList.contains("aberto") && !dashEhConv()) renderDashPostosResultado();
 }
 
+/* ===================== v203 - DASHBOARD DA FULL TRANSPORTADORA =====================
+   Terceira empresa a ganhar Dashboard, no MESMO painelDash. Seis cards, todos com
+   dado que ja existe no app: frota ao vivo (config/infleetFrota), puxadas do mes
+   (colecao puxadas), frete contra o custo do diesel (as duas juntas), combustivel e
+   eficiencia por caminhao (infleetAbastecimentos) e os documentos da transportadora
+   a vencer (colecoes documentos + arquivos).
+   Nenhum card de outra empresa aparece aqui: quem manda e' a coluna "emp" do
+   CARDS_DASH, lida por ajustarBlocosDash(). */
+function dashEhTransp(){ return siglaEmpresa(empresa) === "transp"; }
+
+let dtrMesSel = "";   // "AAAA-MM" escolhido nos cards de mes da Transportadora
+
+// Meses que tem puxada ou abastecimento, mais o mes corrente - assim um mes que
+// ainda nao teve movimento aparece vazio em vez de sumir do seletor.
+function dtrMeses(){
+  const s = {};
+  (puxadas||[]).forEach(p => { const m = String(p.data||"").slice(0,7); if (m.length === 7) s[m] = 1; });
+  (infAbastecimentos||[]).forEach(a => { const m = String(a.data||"").slice(0,7); if (m.length === 7) s[m] = 1; });
+  s[hojeISO().slice(0,7)] = 1;
+  return Object.keys(s).sort().reverse();
+}
+
+// Abastecimentos do mes: Arla separado do combustivel (senao suja o R$/L e o km/L).
+function dtrComb(mes){
+  const doMes = (infAbastecimentos||[]).filter(a => String(a.data||"").slice(0,7) === mes);
+  const porVeic = {};
+  let litros = 0, valor = 0, arlaL = 0, arlaV = 0, outros = 0, somaKmL = 0, litrosKmL = 0, qtd = 0;
+  doMes.forEach(a => {
+    const pl = a.placa || "\u2014";
+    if (!porVeic[pl]) porVeic[pl] = { placa:pl, nome:a.veiculo||"", motorista:a.motorista||"",
+                                      qtd:0, litros:0, valor:0, arlaL:0, arlaV:0, somaKmL:0, litrosKmL:0 };
+    const r = porVeic[pl];
+    const L = +a.litros || 0, V = +a.valor || 0;
+    r.qtd += 1; qtd += 1;
+    if (ehArlaInf(a.combustivel)){ r.arlaL += L; r.arlaV += V; arlaL += L; arlaV += V; }
+    else if (ehCombInf(a.combustivel)){
+      r.litros += L; r.valor += V; litros += L; valor += V;
+      if (+a.kmPorLitro > 0){
+        r.somaKmL += (+a.kmPorLitro) * L; r.litrosKmL += L;
+        somaKmL += (+a.kmPorLitro) * L;   litrosKmL += L;
+      }
+    } else { outros += V; }
+    if (!r.nome && a.veiculo) r.nome = a.veiculo;
+    if (!r.motorista && a.motorista) r.motorista = a.motorista;
+  });
+  const lista = Object.keys(porVeic).map(k => {
+    const r = porVeic[k];
+    r.precoLitro = r.litros > 0 ? r.valor / r.litros : 0;
+    r.kml = r.litrosKmL > 0 ? r.somaKmL / r.litrosKmL : 0;
+    r.km  = r.kml * r.litros;                       // quilometros estimados no mes
+    r.custoKm = r.km > 0 ? r.valor / r.km : 0;
+    return r;
+  }).sort((x, y) => (y.valor + y.arlaV) - (x.valor + x.arlaV));
+  return { qtd, lista, litros, valor, arlaL, arlaV, outros,
+           precoLitro: litros > 0 ? valor / litros : 0,
+           kml: litrosKmL > 0 ? somaKmL / litrosKmL : 0,
+           total: valor + arlaV + outros };
+}
+
+// Puxadas do mes. Viagens pela regra da v175 (dia + motorista + endereco de entrega).
+function dtrPux(mes){
+  const doMes = (puxadas||[]).filter(p => String(p.data||"").slice(0,7) === mes);
+  const porMot = {};
+  let litros = 0, frete = 0;
+  doMes.forEach(p => {
+    litros += (+p.litros || 0);
+    frete  += (+p.valorFrete || 0);
+    const nome = p.motorista || (p.placaCaminhao ? ("Placa " + p.placaCaminhao) : "(sem motorista)");
+    if (!porMot[nome]) porMot[nome] = [];
+    porMot[nome].push(p);
+  });
+  let viagens = 0;
+  Object.keys(porMot).forEach(nome => { viagens += contarViagens(porMot[nome]); });
+  return { qtd: doMes.length, viagens, litros, frete,
+           fretePorL: litros > 0 ? frete / litros : 0,
+           motoristas: Object.keys(porMot).length };
+}
+
+function renderDashTransp(){
+  const meses = dtrMeses();
+  if (!dtrMesSel || meses.indexOf(dtrMesSel) < 0) dtrMesSel = meses[0] || hojeISO().slice(0,7);
+  ["dtrMesPux","dtrMesFc","dtrMesComb","dtrMesEfi"].forEach(id =>
+    preencherSelectRel(id, meses, dtrMesSel, rotuloMesRel));
+  renderDtrFrota();
+  renderDtrPuxadas();
+  renderDtrFreteCusto();
+  renderDtrComb();
+  renderDtrEficiencia();
+  renderDtrDocs();
+}
+// chamada pelos onSnapshot: so' faz trabalho se o Dashboard da Transportadora estiver na tela
+function atualizarDashTransp(){
+  const p = document.getElementById("painelDash");
+  if (p && p.classList.contains("aberto") && dashEhTransp()) renderDashTransp();
+}
+
+/* ---- card 1: Frota agora ---- */
+function renderDtrFrota(){
+  const box = document.getElementById("dtrFrotaBox");
+  if (!box) return;
+  const f = infleetFrota;
+  const lista = (f && Array.isArray(f.veiculos)) ? f.veiculos : [];
+  if (!lista.length){
+    box.innerHTML = '<p class="nota-dash">Ainda n\u00e3o recebemos os dados do Infleet. Eles chegam junto com a sincroniza\u00e7\u00e3o autom\u00e1tica.</p>';
+    return;
+  }
+  let rodando = 0, parados = 0, sumidos = 0;
+  lista.forEach(v => {
+    const hs = horasSemSinalInf(v.quando);
+    // "rodando" e' ligado E andando: ligado parado no p\u00e1tio conta como parado
+    if (hs !== null && hs >= INF_HORAS_SEM_SINAL) sumidos += 1;
+    else if (v.ligado && (+v.velocidade > 1)) rodando += 1;
+    else parados += 1;
+  });
+  let h = '<div class="resumo-dash">' +
+    '<div class="cartao-kpi"><span>Na estrada</span><b>' + rodando + '</b></div>' +
+    '<div class="cartao-kpi"><span>Parados</span><b>' + parados + '</b></div>' +
+    '<div class="cartao-kpi"><span>Sem sinal</span><b class="' + (sumidos ? "rpz-neg" : "") + '">' + sumidos + '</b></div>' +
+  '</div>';
+  h += '<div class="tabela-wrap"><table class="pux-tab pux-lista"><thead><tr><th>Caminh\u00e3o</th><th>Motorista</th><th>Situa\u00e7\u00e3o</th><th>Onde est\u00e1</th><th>\u00daltima posi\u00e7\u00e3o</th></tr></thead><tbody>';
+  lista.forEach(v => {
+    const vel = (+v.velocidade > 1) ? (" \u00b7 " + fmtBR(+v.velocidade, 0) + " km/h") : "";
+    const hs = horasSemSinalInf(v.quando);
+    const sumido = (hs !== null && hs >= INF_HORAS_SEM_SINAL);
+    const sit = sumido ? '<span class="inf-sumido">\u26a0\ufe0f sem sinal</span>' : (v.ligado ? ("\ud83d\udfe2 Ligado" + vel) : "\u26aa Desligado");
+    const alerta = sumido ? ('<br><span class="inf-sumido">h\u00e1 ' + textoTempoInf(hs) + '</span>') : "";
+    h += '<tr' + (sumido ? ' class="inf-linha-sumida"' : '') + '>' +
+      '<td data-lbl="Caminh\u00e3o"><b>' + escAttr(v.nome || v.placa || "\u2014") + '</b><br><span class="nota-dash">' + escAttr(v.placa || "") + '</span></td>' +
+      '<td data-lbl="Motorista">' + escAttr(v.motorista || "\u2014") + '</td>' +
+      '<td data-lbl="Situa\u00e7\u00e3o">' + sit + '</td>' +
+      '<td data-lbl="Onde est\u00e1">' + escAttr(v.onde || "\u2014") + '</td>' +
+      '<td data-lbl="\u00daltima posi\u00e7\u00e3o">' + fmtQuandoInf(v.quando) + alerta + '</td>' +
+    '</tr>';
+  });
+  h += '</tbody></table></div>';
+  if (f && f.atualizadoEm) h += '<p class="nota-dash">Atualizado em ' + fmtQuandoInf(f.atualizadoEm) + '.</p>';
+  box.innerHTML = h;
+}
+
+/* ---- card 2: Puxadas do mes ---- */
+function renderDtrPuxadas(){
+  const box = document.getElementById("dtrPuxBox");
+  if (!box) return;
+  const p = dtrPux(dtrMesSel);
+  if (!p.qtd){
+    box.innerHTML = '<p class="nota-dash">Nenhuma puxada registrada neste m\u00eas.</p>';
+    return;
+  }
+  box.innerHTML = '<div class="resumo-dash">' +
+    '<div class="cartao-kpi"><span>Viagens</span><b>' + fmtBR(p.viagens, 0) + '</b></div>' +
+    '<div class="cartao-kpi"><span>CT-e emitidos</span><b>' + fmtBR(p.qtd, 0) + '</b></div>' +
+    '<div class="cartao-kpi"><span>Litros entregues</span><b>' + fmtLitros(p.litros) + ' L</b></div>' +
+    '<div class="cartao-kpi"><span>Frete no m\u00eas</span><b>' + fmtR$0(p.frete) + '</b></div>' +
+    '<div class="cartao-kpi"><span>Frete por litro</span><b>R$ ' + fmtBR(p.fretePorL, 3) + '</b></div>' +
+  '</div>' +
+  '<p class="nota-dash">' + fmtBR(p.motoristas, 0) + (p.motoristas === 1 ? " motorista" : " motoristas") +
+  ' com puxada neste m\u00eas. Uma viagem pode ter mais de um CT-e quando o caminh\u00e3o carrega em duas distribuidoras ou descarrega no mesmo endere\u00e7o para duas empresas.</p>';
+}
+
+/* ---- card 3: Frete x custo do diesel ---- */
+function renderDtrFreteCusto(){
+  const box = document.getElementById("dtrFcBox");
+  if (!box) return;
+  const p = dtrPux(dtrMesSel), c = dtrComb(dtrMesSel);
+  if (!p.qtd && !c.qtd){
+    box.innerHTML = '<p class="nota-dash">Sem puxada e sem abastecimento neste m\u00eas.</p>';
+    return;
+  }
+  const custo = c.total;
+  const sobra = p.frete - custo;
+  const pct = p.frete > 0 ? (custo / p.frete * 100) : 0;
+  const porMilL = p.litros > 0 ? (custo / p.litros * 1000) : 0;
+  let h = '<div class="resumo-dash">' +
+    '<div class="cartao-kpi"><span>Frete recebido</span><b>' + fmtR$0(p.frete) + '</b></div>' +
+    '<div class="cartao-kpi"><span>Combust\u00edvel gasto</span><b>' + fmtR$0(custo) + '</b></div>' +
+    '<div class="cartao-kpi"><span>Sobra antes das outras despesas</span><b class="' + (sobra < 0 ? "rpz-neg" : "rpz-pos") + '">' + fmtR$0(sobra) + '</b></div>' +
+    '<div class="cartao-kpi"><span>Combust\u00edvel sobre o frete</span><b class="' + (pct > 50 ? "rpz-neg" : "") + '">' + (p.frete > 0 ? fmtPctRel(pct) : "\u2014") + '</b></div>' +
+    '<div class="cartao-kpi"><span>Combust\u00edvel por 1.000 L entregues</span><b>' + (p.litros > 0 ? ("R$ " + fmtBR(porMilL, 2)) : "\u2014") + '</b></div>' +
+  '</div>';
+  if (!p.qtd || !c.qtd){
+    h += '<p class="nota-dash dtr-aviso">\u26a0\ufe0f Falta um dos dois lados neste m\u00eas' +
+         (!p.qtd ? " (nenhuma puxada gravada)" : " (nenhum abastecimento gravado)") +
+         ' \u2014 a compara\u00e7\u00e3o s\u00f3 vale quando os dois est\u00e3o completos.</p>';
+  }
+  h += '<p class="nota-dash">Combust\u00edvel inclui o Arla 32. N\u00e3o entram nesta conta: motorista, manuten\u00e7\u00e3o, pneu, ped\u00e1gio, imposto e a parcela do caminh\u00e3o.</p>';
+  box.innerHTML = h;
+}
+
+/* ---- card 4: Combustivel do mes ---- */
+function renderDtrComb(){
+  const box = document.getElementById("dtrCombBox");
+  if (!box) return;
+  const c = dtrComb(dtrMesSel);
+  if (!c.qtd){
+    box.innerHTML = '<p class="nota-dash">Nenhum abastecimento neste m\u00eas.</p>';
+    return;
+  }
+  let h = '<div class="resumo-dash">' +
+    '<div class="cartao-kpi"><span>Gasto no m\u00eas</span><b>' + fmtR$0(c.total) + '</b></div>' +
+    '<div class="cartao-kpi"><span>Combust\u00edvel</span><b>' + fmtLitros(c.litros) + ' L <small>R$ ' + fmtBR(c.precoLitro, 3) + '/L</small></b></div>' +
+    '<div class="cartao-kpi"><span>Arla 32</span><b>' + fmtLitros(c.arlaL) + ' L <small>' + fmtR$0(c.arlaV) + '</small></b></div>' +
+    '<div class="cartao-kpi"><span>M\u00e9dia km/L</span><b>' + (c.kml ? fmtBR(c.kml, 2) : "\u2014") + '</b></div>' +
+    '<div class="cartao-kpi"><span>Abastecimentos</span><b>' + fmtBR(c.qtd, 0) + '</b></div>' +
+  '</div>';
+  if (c.outros > 0) h += '<p class="nota-dash">Fora das colunas acima, ' + fmtR$0(c.outros) + ' em outros itens lan\u00e7ados no Infleet.</p>';
+  box.innerHTML = h;
+}
+
+/* ---- card 5: Eficiencia por caminhao ---- */
+function renderDtrEficiencia(){
+  const box = document.getElementById("dtrEfiBox");
+  if (!box) return;
+  const c = dtrComb(dtrMesSel);
+  const comKml = c.lista.filter(r => r.kml > 0);
+  if (!comKml.length){
+    box.innerHTML = '<p class="nota-dash">Sem km/L neste m\u00eas. O Infleet s\u00f3 calcula o km/L quando o od\u00f4metro \u00e9 informado em dois abastecimentos seguidos do mesmo caminh\u00e3o.</p>';
+    return;
+  }
+  let h = '<div class="tabela-wrap"><table class="pux-tab pux-lista pux-resumo"><thead><tr>' +
+    '<th>Caminh\u00e3o</th><th>km/L</th><th>Contra a m\u00e9dia</th><th>Litros</th><th>Gasto</th><th>km rodados</th><th>Custo por km</th>' +
+    '</tr></thead><tbody>';
+  comKml.forEach(r => {
+    const dif = c.kml > 0 ? ((r.kml - c.kml) / c.kml * 100) : 0;
+    // faixa de 1% para cima ou para baixo conta como "na media"; fora dela, cor
+    const cls = dif < -1 ? "rpz-neg" : (dif > 1 ? "rpz-pos" : "");
+    h += '<tr>' +
+      '<td data-lbl="Caminh\u00e3o"><b>' + escAttr(r.nome || r.placa) + '</b><br><span class="nota-dash">' + escAttr(r.placa + (r.motorista ? (" \u00b7 " + r.motorista) : "")) + '</span></td>' +
+      '<td data-lbl="km/L"><b>' + fmtBR(r.kml, 2) + '</b></td>' +
+      '<td data-lbl="Contra a m\u00e9dia"><b class="' + cls + '">' + (dif >= 0 ? "+" : "") + fmtPctRel(dif) + '</b></td>' +
+      '<td data-lbl="Litros">' + fmtLitros(r.litros) + ' L</td>' +
+      '<td data-lbl="Gasto">' + fmtR$0(r.valor) + '</td>' +
+      '<td data-lbl="km rodados">' + fmtLitros(r.km) + ' km</td>' +
+      '<td data-lbl="Custo por km">R$ ' + fmtBR(r.custoKm, 2) + '</td>' +
+    '</tr>';
+  });
+  h += '<tr class="pux-total"><td data-lbl="Caminh\u00e3o">M\u00e9dia da frota</td>' +
+       '<td data-lbl="km/L"><b>' + fmtBR(c.kml, 2) + '</b></td><td data-lbl="Contra a m\u00e9dia">\u2014</td>' +
+       '<td data-lbl="Litros">' + fmtLitros(c.litros) + ' L</td><td data-lbl="Gasto">' + fmtR$0(c.valor) + '</td>' +
+       '<td data-lbl="km rodados">\u2014</td><td data-lbl="Custo por km">\u2014</td></tr>';
+  h += '</tbody></table></div>';
+  const fora = c.lista.length - comKml.length;
+  if (fora > 0) h += '<p class="nota-dash">' + fora + (fora === 1 ? " caminh\u00e3o ficou" : " caminh\u00f5es ficaram") + ' de fora por n\u00e3o ter km/L calculado no m\u00eas.</p>';
+  box.innerHTML = h;
+}
+
+/* ---- card 6: Documentos a vencer ---- */
+const DTR_DIAS_VENCER = 60;
+function renderDtrDocs(){
+  const box = document.getElementById("dtrDocBox");
+  if (!box) return;
+  const todos = (typeof itensDocsTodos === "function" ? itensDocsTodos() : [])
+    .filter(i => i && i.vencimento && i.empresa === "Full Transportadora");
+  if (!todos.length){
+    box.innerHTML = '<p class="nota-dash">Nenhum documento da Full Transportadora com data de vencimento. Cadastre no menu <b>Documentos</b> escolhendo a empresa \u201cFull Transportadora\u201d e ele passa a aparecer aqui.</p>';
+    return;
+  }
+  const vencidos = [], breve = [], emdia = [];
+  todos.forEach(i => {
+    const d = diasAte(i.vencimento);
+    if (d < 0) vencidos.push(i); else if (d <= DTR_DIAS_VENCER) breve.push(i); else emdia.push(i);
+  });
+  const ordena = (a, b) => String(a.vencimento).localeCompare(String(b.vencimento));
+  vencidos.sort(ordena); breve.sort(ordena);
+  let h = '<div class="resumo-dash">' +
+    '<div class="cartao-kpi"><span>Vencidos</span><b class="' + (vencidos.length ? "rpz-neg" : "") + '">' + vencidos.length + '</b></div>' +
+    '<div class="cartao-kpi"><span>Vencem em at\u00e9 ' + DTR_DIAS_VENCER + ' dias</span><b>' + breve.length + '</b></div>' +
+    '<div class="cartao-kpi"><span>Em dia</span><b class="' + (emdia.length ? "rpz-pos" : "") + '">' + emdia.length + '</b></div>' +
+  '</div>';
+  const mostrar = vencidos.concat(breve);
+  if (!mostrar.length){
+    h += '<p class="nota-dash">Nada vencendo nos pr\u00f3ximos ' + DTR_DIAS_VENCER + ' dias. O detalhe de todos fica no menu Documentos.</p>';
+    box.innerHTML = h;
+    return;
+  }
+  h += '<div class="tabela-wrap"><table class="pux-tab pux-lista"><thead><tr><th>Documento</th><th>Tipo</th><th>Vence em</th><th>Situa\u00e7\u00e3o</th></tr></thead><tbody>';
+  mostrar.forEach(i => {
+    const d = diasAte(i.vencimento);
+    const txt = d < 0 ? ("vencido h\u00e1 " + Math.abs(d) + (Math.abs(d) === 1 ? " dia" : " dias"))
+                      : (d === 0 ? "vence hoje" : ("faltam " + d + (d === 1 ? " dia" : " dias")));
+    h += '<tr>' +
+      '<td data-lbl="Documento"><b>' + escAttr(i.nome) + '</b>' + (i.numero ? ('<br><span class="nota-dash">' + escAttr(i.numero) + '</span>') : "") + '</td>' +
+      '<td data-lbl="Tipo">' + escAttr((ICONE_DOC[i.tipo] || "") + " " + i.tipo) + '</td>' +
+      '<td data-lbl="Vence em">' + fmtDataCurta(i.vencimento) + '</td>' +
+      '<td data-lbl="Situa\u00e7\u00e3o"><b class="' + (d < 0 ? "rpz-neg" : "") + '">' + txt + '</b></td>' +
+    '</tr>';
+  });
+  h += '</tbody></table></div>';
+  h += '<p class="nota-dash">Editar, anexar arquivo ou cadastrar documento novo: menu <b>Documentos</b>.</p>';
+  box.innerHTML = h;
+}
+
 function ajustarBlocosDash(){
   const conv = dashEhConv();
   aplicarOrdemCardsDash();                 // v200
   renderBarraOrdenarCards();               // v200
   renderOrdemCardsDash();                  // v200
-  const ver = (id, on) => { const e = document.getElementById(id); if (e) e.style.display = on ? "" : "none"; };
-  ver("dashGrpResultadoP", !conv);
-  ver("dashGrpResultado",  conv);
-  ver("dashGrpDespesas",   conv);
-  ver("dashGrpCategorias", conv);
-  ver("dashGrpComparar",   conv);
-  ver("dashGrpIfood",      conv);
-  ver("dashGrpPrecos",    !conv);
+  // v203 - com TRES empresas no mesmo painel, a visibilidade passou a sair da
+  // propria lista CARDS_DASH (coluna "emp"). Card novo nao precisa de mais uma
+  // linha aqui e, principalmente, nenhum card de uma empresa vaza para a outra.
+  const sig = siglaEmpresa(empresa);
+  CARDS_DASH.forEach(c => {
+    const e = document.getElementById(c.id);
+    if (e) e.style.display = (String(c.emp).split("|").indexOf(sig) >= 0) ? "" : "none";
+  });
   // v199 - a explicacao do card de evolucao muda com a empresa
   const ex = document.getElementById("evoExplica");
   if (ex) ex.innerHTML = conv
@@ -11536,6 +11894,7 @@ function renderDashConvIfood(){
 
 function renderDashboard(){
   ajustarBlocosDash();                       // v198
+  if (dashEhTransp()){ renderDashTransp(); return; }   // v203 - nao tem Petros nem Caixas
   // Vendas do dia (Petros) - primeira coisa do Dashboard, nas duas empresas
   const alvoPetros = document.getElementById("conteudoPetros");
   if (alvoPetros) alvoPetros.innerHTML = renderPetrosResumo();
