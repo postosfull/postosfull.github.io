@@ -973,6 +973,11 @@
   .rpz-r{text-align:right !important}
   .rpz-sec{font-weight:700;background:var(--verde-claro);background-image:linear-gradient(var(--verde-claro),var(--verde-claro));color:var(--verde)}
   .rpz-tot td{font-weight:700}
+  /* v212 - aba Ano mes a mes */
+  .am-graf{margin:10px 0}
+  .am-cab{font-size:.68rem;text-transform:uppercase;letter-spacing:.03em;color:var(--cinza);margin-bottom:7px}
+  .am-p{font-size:.78rem;font-weight:600;min-width:62px;text-align:right}
+  @media(max-width:520px){ .cxi-q{min-width:34px} .cxi-v{min-width:70px} .am-p{min-width:52px} }
   .rpz-nome{max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   @media (max-width:640px){
     table.rpz-tab{font-size:.72rem}
@@ -5397,6 +5402,7 @@ const ABAS_REL_UNIF = [
   { k:"p:caixa",     n:"🧾 Caixa",              painel:"painelRelPosto",  aba:"caixa",     emp:"postos" },
   { k:"p:equipe",    n:"👷 Equipe e movimento", painel:"painelRelPosto",  aba:"equipe",    emp:"postos" },
   { k:"z:mapa",      n:"🗺️ Mapa Anual",         painel:"painelRelPetros", aba:"mapa",      emp:"postos|conv" },
+  { k:"z:anomes",    n:"📆 Ano mês a mês",       painel:"painelRelPetros", aba:"anomes",    emp:"postos|conv" },   // v212
   { k:"z:dre",       n:"📊 Resultado do período", painel:"painelRelPetros", aba:"dre",     emp:"postos|conv" },
   { k:"z:afer",      n:"📏 Aferições",          painel:"painelRelPetros", aba:"afer",      emp:"postos" },   // v205
   { k:"z:vpend",     n:"⏳ Vendas pendentes",   painel:"painelRelPetros", aba:"vpend",     emp:"postos" },   // v205
@@ -5595,6 +5601,7 @@ function renderOrdemAbasRel(){
 /* ===================== v191 - MENU RELATORIOS PETROS ===================== */
 const ABAS_REL_PETROS = [
   ["mapa",    "🗺️ Mapa Anual"],
+  ["anomes",  "📆 Ano mês a mês"],
   ["dre",     "💵 Resultado do Período"],
   ["afer",    "📏 Aferições"],
   ["vpend",   "⏳ Vendas pendentes"],
@@ -5677,6 +5684,7 @@ function renderRelPetros(){
   let h = "";
   if (doc && doc.de && doc.ate) h += '<p class="nota-dash">Período: ' + rpzDia(doc.de) + ' a ' + rpzDia(doc.ate) + '.</p>';
   if (rpzAba === "mapa")         h += rpzBlocoMapa(linhas);
+  else if (rpzAba === "anomes")  h += rpzBlocoAnoMes(linhas);   // v212
   else if (rpzAba === "dre")     h += rpzBlocoDre(linhas);
   else if (rpzAba === "afer")    h += rpzBlocoAfer(linhas);
   else if (rpzAba === "vpend")   h += rpzBlocoVpend(linhas);
@@ -5685,11 +5693,104 @@ function renderRelPetros(){
   else if (rpzAba === "aprazo")  h += rpzBlocoAprazo(linhas);
   const quando = doc && doc.atualizadoEm ? String(doc.atualizadoEm).slice(0,10).split("-").reverse().join("/") : "—";
   const FONTE = { mapa:"Mapa Anual de Resultados e Indicadores", dre:"Demonstrativo de Resultado no Período-Consolidado",
+    anomes:"Demonstrativo de Resultado Detalhado Mês a Mês-GR",
     afer:"Aferições Ocorridas no Período", vpend:"Vendas Pendentes por Atendente no Período",
     tanques:"Perdas e Sobras na Medição dos Tanques",
     colab:"2.02 - Saldo de Colaboradores", aprazo:"Vendas a Prazo em Aberto - Geral" };
   h += '<p class="ana-rodape">Atualizado ' + escAttr(quando) + '. Fonte: ' + escAttr(FONTE[rpzAba] || "") + ' (Petros).</p>';
   box.innerHTML = h;
+}
+
+/* ===================== v212 - ABA "ANO MES A MES" =====================
+   Fonte: relatorio "Demonstrativo de Resultado Detalhado Mes a Mes-GR" do Adaptive,
+   gravado em relatoriosPetros/anomes_{emp}_{unidade}_{AAAA}. O documento guarda oito
+   listas de 12 posicoes (uma por mes) e a tela faz a conta:
+     venda        = vcomb + vprod                      (combustivel + loja)
+     lucro liquido= venda + orec - ccomb - cprod - desp + vest
+     % sobre venda= lucro liquido / venda
+   O % segue a MESMA definicao da v202 (as outras receitas ficam de fora do divisor),
+   para as telas do app nao contarem historias diferentes. */
+const RPZ_MESAM = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+function rpzAmCol(D, c){
+  const a = (D && D[c]) || [];
+  const o = []; for (let i = 0; i < 12; i++) o.push(Number(a[i]) || 0);
+  return o;
+}
+function rpzBlocoAnoMes(D){
+  if (!D || typeof D !== "object" || Array.isArray(D)) return '<div class="ana-vazio">Ainda n\u00e3o h\u00e1 dados deste ano.</div>';
+  const lit = rpzAmCol(D,"lit"),  vc = rpzAmCol(D,"vcomb"), vp = rpzAmCol(D,"vprod"),
+        cc  = rpzAmCol(D,"ccomb"), cp = rpzAmCol(D,"cprod"), orc = rpzAmCol(D,"orec"),
+        dsp = rpzAmCol(D,"desp"),  vst = rpzAmCol(D,"vest");
+  const vend = [], ll = [], pct = [], tem = [];
+  for (let i = 0; i < 12; i++){
+    const v = vc[i] + vp[i];
+    vend.push(v);
+    tem.push(v > 0);                                  // mes sem venda nenhuma = mes que ainda nao aconteceu
+    ll.push(v + orc[i] - cc[i] - cp[i] - dsp[i] + vst[i]);
+    pct.push(v > 0 ? (ll[i] / v * 100) : 0);
+  }
+  if (!tem.some(Boolean)) return '<div class="ana-vazio">Ainda n\u00e3o h\u00e1 dados deste ano.</div>';
+  const soma = a => a.reduce((s, v, i) => s + (tem[i] ? v : 0), 0);
+  const tLit = soma(lit), tVend = soma(vend), tLl = soma(ll), tDsp = soma(dsp);
+  const tPct = tVend ? (tLl / tVend * 100) : 0;
+  const comLitro = tLit > 0;                          // a Conveniencia nao vende combustivel
+  const cls = v => (v < 0 ? "rpz-neg" : "rpz-pos");
+
+  let h = '<p class="nota-dash">O ano inteiro m\u00eas a m\u00eas: quanto vendeu e quanto sobrou. ' +
+    'O <b>% sobre vendas</b> \u00e9 o lucro l\u00edquido dividido pelas vendas de combust\u00edvel e produtos ' +
+    '(as outras receitas ficam de fora do divisor, igual ao resto do app).</p>';
+
+  // --- quadrinhos do ano ---
+  h += '<div class="rpz-cards">';
+  if (comLitro) h += '<div class="rpz-card"><span>Litros no ano</span><b>' + fmtL(tLit) + '</b></div>';
+  h += '<div class="rpz-card"><span>Venda total</span><b>' + fmtR$0(tVend) + '</b></div>' +
+       '<div class="rpz-card"><span>Despesas</span><b>' + fmtR$0(tDsp) + '</b></div>' +
+       '<div class="rpz-card"><span>Lucro l\u00edquido</span><b class="' + cls(tLl) + '">' + fmtR$0(tLl) + '</b></div>' +
+       '<div class="rpz-card"><span>% sobre vendas</span><b class="' + cls(tLl) + '">' + fmtPctRel(tPct, 2) + '</b></div></div>';
+
+  // --- grafico de barras: litros (posto) ou venda em R$ (loja), com o % ao lado ---
+  const base = comLitro ? lit : vend;
+  let mx = 0; for (let i = 0; i < 12; i++) if (tem[i] && base[i] > mx) mx = base[i];
+  h += '<div class="cxi-graf am-graf"><div class="am-cab">' +
+       (comLitro ? "Litros vendidos por m\u00eas" : "Venda por m\u00eas") + ' \u00b7 % do lucro l\u00edquido \u00e0 direita</div>';
+  for (let i = 0; i < 12; i++){
+    if (!tem[i]) continue;
+    const larg = mx ? Math.max(2, Math.round(base[i] / mx * 100)) : 2;
+    h += '<div class="cxi-par"><span class="cxi-q">' + RPZ_MESAM[i] + '</span>' +
+         '<span class="cxi-wrap"><span class="cxi-bar" style="width:' + larg + '%"></span></span>' +
+         '<span class="cxi-v">' + (comLitro ? fmtL(base[i]) : fmtR$0(base[i])) + '</span>' +
+         '<span class="am-p ' + cls(ll[i]) + '">' + fmtPctRel(pct[i], 2) + '</span></div>';
+  }
+  h += '</div>';
+
+  // --- tabela mes a mes ---
+  h += '<div class="rpz-rola"><table class="rpz-tab"><thead><tr><th>M\u00eas</th>' +
+       (comLitro ? '<th class="rpz-r">Litros</th>' : '') +
+       '<th class="rpz-r">Venda total</th><th class="rpz-r">Despesas</th>' +
+       '<th class="rpz-r">Lucro l\u00edquido</th><th class="rpz-r">% s/ vendas</th></tr></thead><tbody>';
+  for (let i = 0; i < 12; i++){
+    if (!tem[i]){
+      h += '<tr><td class="rpz-nome">' + RPZ_MESAM[i] + '</td>' +
+           new Array((comLitro ? 5 : 4) + 1).join('<td class="rpz-r">\u2014</td>') + '</tr>';
+      continue;
+    }
+    h += '<tr><td class="rpz-nome">' + RPZ_MESAM[i] + '</td>' +
+         (comLitro ? ('<td class="rpz-r">' + fmtLitros(lit[i]) + '</td>') : '') +
+         '<td class="rpz-r">' + fmtR$0(vend[i]) + '</td>' +
+         '<td class="rpz-r">' + fmtR$0(dsp[i]) + '</td>' +
+         '<td class="rpz-r ' + cls(ll[i]) + '">' + fmtR$0(ll[i]) + '</td>' +
+         '<td class="rpz-r ' + cls(ll[i]) + '">' + fmtPctRel(pct[i], 2) + '</td></tr>';
+  }
+  h += '<tr class="rpz-tot"><td class="rpz-nome">Ano</td>' +
+       (comLitro ? ('<td class="rpz-r">' + fmtLitros(tLit) + '</td>') : '') +
+       '<td class="rpz-r">' + fmtR$0(tVend) + '</td>' +
+       '<td class="rpz-r">' + fmtR$0(tDsp) + '</td>' +
+       '<td class="rpz-r ' + cls(tLl) + '">' + fmtR$0(tLl) + '</td>' +
+       '<td class="rpz-r ' + cls(tLl) + '">' + fmtPctRel(tPct, 2) + '</td></tr></tbody></table></div>';
+
+  h += '<p class="nota-dash">\u26a0\ufe0f As <b>retiradas de s\u00f3cios</b> entram como despesa neste relat\u00f3rio, ' +
+       'e o <b>m\u00eas em andamento</b> ainda vai mudar at\u00e9 fechar \u2014 os dois puxam o resultado para baixo na leitura.</p>';
+  return h;
 }
 
 /* --- Mapa Anual: [sessao, sub, tipo, ordem, totalizador, casas, m1..m12, ano] --- */
