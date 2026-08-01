@@ -908,6 +908,15 @@
   .cxi-heroleg{font-size:.72rem;color:var(--cinza);margin-bottom:6px}
   .cxi-lin{display:flex;justify-content:space-between;font-size:.8rem;color:var(--cinza);margin-top:6px;padding-top:6px;border-top:1px solid var(--borda)}
   .cxi-lin b{color:var(--txt);font-weight:600}
+  .mc-selo{display:inline-block;margin-top:8px;padding:3px 9px;border-radius:999px;font-size:.74rem;font-weight:700;line-height:1.35}
+  .mc-ok{background:rgba(24,165,88,.14);color:#18a558;border:1px solid rgba(24,165,88,.35)}
+  .mc-fora{background:rgba(192,57,43,.12);color:#c0392b;border:1px solid rgba(192,57,43,.32)}
+  .mc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin-top:10px}
+  .mc-col{background:var(--superficie-2);border:1px solid var(--borda);border-radius:10px;padding:10px 12px}
+  .mc-col h4{margin:0 0 6px;font-size:.86rem}
+  .mc-campos{display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin:8px 0 4px}
+  .mc-campos label{font-size:.85rem;display:flex;align-items:center;gap:8px}
+  .mc-campos input[type=number]{width:70px;padding:6px 8px;border-radius:8px;border:1px solid var(--borda);background:var(--superficie);color:var(--txt)}
   .cxi-liq b{color:var(--verde)}
   .cxi-sub{font-size:.95rem;margin:18px 0 6px}
   .cxi-graf{background:var(--superficie-2);border:1px solid var(--borda);border-radius:10px;padding:12px 14px}
@@ -2104,6 +2113,11 @@
       <label class="cot-data-lbl">Funcionário: <select id="admSelAcesso" onchange="renderEditorAcesso()"></select></label>
       <div id="admEditorAcesso"></div>
     </div>
+    <div class="grupo" id="grupoMetaCaixa" style="display:none">
+      <h2>🧾 Conferência dos caixas</h2>
+      <p class="nota-dash">Em quanto tempo os caixas devem ser confirmados, e quem acompanha. O card <b>🧾 Caixas</b> do Dashboard passa a mostrar verde ou vermelho conforme esta meta. Este quadro só aparece para administradores.</p>
+      <div id="metaCaixaBox"></div>
+    </div>
     <div class="grupo" id="grupoPermEnvio" style="display:none">
       <h2>🔔 Quem pode enviar avisos e tarefas</h2>
       <p class="nota-dash">Quem estiver marcado aqui vê o formulário de envio na Caixa de entrada. Quem não estiver continua recebendo e concluindo tarefas normalmente — só não consegue criar. Administradores sempre podem. Este quadro só aparece para administradores.</p>
@@ -2366,6 +2380,7 @@ const colRelPosto = db.collection("relatoriosPosto");      // v168 - relatórios
 const docOrdemMenus = db.collection("config").doc("ordemMenus");   // v188 - ordem dos botoes da barra
 const docOrdemAbasRel = db.collection("config").doc("ordemAbasRel"); // v192 - ordem das abas dentro do menu Relatorios
 const docOrdemCardsDash = db.collection("config").doc("ordemCardsDash"); // v200 - ordem dos cards do Dashboard
+const docMetaCaixa      = db.collection("config").doc("metaCaixa");      // v213 - meta de confirmacao dos caixas
 const docFdcConferidos = db.collection("config").doc("fdcConferidos"); // v211 - lancamentos fora do padrao ja conferidos
 const colCaixaInd = db.collection("caixaIndicadores");    // v185 - "2026-07" indicadores de caixa por posto
 const colDespesasAno = db.collection("despesasAno");      // v185 - "2026" despesas mes a mes por tipo
@@ -2421,6 +2436,7 @@ let caixaInd = {}, cxiSel = "";                 // v185 - {"2026-07": {...}}
 let dcvMesSel = "", dcvLojaSel = "teresina";     // v198 - filtros do Dashboard da Conveniencia
 let dpsMesSel = "";                              // v200 - mes do Resultado do mes dos Postos
 let ordemCardsDash = {}, ordCardsAberto = false; // v200 - ordem dos cards do Dashboard
+let metaCaixa = {}, mcMsg = "";                  // v213 - config/metaCaixa (mcMsg sobrevive ao redesenho)
 let despesasAno = {}, dspAnoSel = "", dspPostoSel = "todos", dspComRet = true;  // v185
 let relPetros = {}, rpzAba = "mapa", rpzUnidSel = "teresina", rpzPerSel = "";  // v191
 let ordemAbasRel = {}, abaRelAtual = "", ordAbasAberto = false;  // v192
@@ -2924,6 +2940,135 @@ function gravarPermEnvio(){
     .then(()=>{ if (typeof logAtividade === "function") logAtividade("permissao", "Mudou quem pode enviar avisos/tarefas", ""); })
     .catch(()=>{});
 }
+/* ===================== v213 - META DE CONFERENCIA DOS CAIXAS =====================
+   O Adaptive devolve o tempo medio em dias CORRIDOS. Como a equipe nao trabalha no
+   fim de semana, um caixa de sexta so pode ser confirmado na segunda. Entao a meta,
+   que o Tiago pensa em DIAS UTEIS, e' convertida para o limite equivalente em dias
+   corridos antes de comparar. Para meta = 1 dia util o limite da' 1,43 dia corrido:
+   (1+1+1+1+3+2+1)/7 - a media dos sete dias da semana. */
+function mcMeta(){ const v = Number(metaCaixa && metaCaixa.metaDiasUteis); return (isFinite(v) && v > 0) ? v : 1; }
+function mcTxtDias(v, uteis){                 // "1 dia \u00fatil" / "2 dias \u00fateis" / "1,43 dia corrido"
+  const um = Math.abs(v - 1) < 0.005;
+  return fmtBR(v, (v % 1) ? 2 : 0) + (um ? " dia " : " dias ") +
+         (uteis ? (um ? "\u00fatil" : "\u00fateis") : (um ? "corrido" : "corridos"));
+}
+function mcDescontaFds(){ return (metaCaixa && metaCaixa.descontarFds === false) ? false : true; }
+function mcLimiteCorrido(){
+  const M = mcMeta();
+  if (!mcDescontaFds()) return M;
+  let t = 0;
+  for (let d = 0; d < 7; d++){                 // 0 = domingo
+    let dia = d, restam = M, corr = 0;
+    while (restam > 0 && corr < 60){ dia = (dia + 1) % 7; corr++; if (dia !== 0 && dia !== 6) restam--; }
+    t += corr;
+  }
+  return t / 7;
+}
+function mcSelo(tempoDias){
+  const d = Number(tempoDias);
+  if (!isFinite(d) || d <= 0) return "";
+  const lim = mcLimiteCorrido();
+  const dentro = d <= lim + 0.001;
+  const txt = dentro ? "\u2713 dentro da meta"
+                     : "\u25b2 " + fmtBR(d - lim, 1) + " dia" + ((d - lim) >= 2 ? "s" : "") + " acima da meta";
+  return '<div class="mc-selo ' + (dentro ? "mc-ok" : "mc-fora") + '">' + txt + '</div>';
+}
+function mcRodape(){
+  return 'Meta: <b>' + mcTxtDias(mcMeta(), true) + '</b>' +
+    (mcDescontaFds()
+      ? ' \u2014 como ningu\u00e9m confere no fim de semana, isso equivale a <b>' + mcTxtDias(mcLimiteCorrido(), false) +
+        '</b> na m\u00e9dia (um caixa de sexta s\u00f3 pode ser confirmado na segunda).'
+      : ' \u2014 contados em dias corridos, sem desconto de fim de semana.') +
+    ' Voc\u00ea muda isso no Painel Administrativo.';
+}
+/* ---- o quadro do Painel Administrativo ---- */
+function mcPessoas(){
+  return Object.keys(perfis || {}).map(e => String(e).toLowerCase())
+    .filter((e,i,a) => e && a.indexOf(e) === i).sort();
+}
+function mcNomeDe(e){ const p = (perfis || {})[e]; return (p && p.nome) ? p.nome : e; }
+function mcMarcados(lista, e){ return Array.isArray(lista) && lista.indexOf(e) >= 0; }
+function renderMetaCaixa(){
+  const grp = document.getElementById("grupoMetaCaixa");
+  const box = document.getElementById("metaCaixaBox");
+  if (!grp || !box) return;
+  const souAdmin = ehAdminAtual();
+  grp.style.display = souAdmin ? "" : "none";
+  if (!souAdmin){ box.innerHTML = ""; return; }
+
+  const pessoas = mcPessoas();
+  const resp = (metaCaixa && metaCaixa.responsaveis) ? metaCaixa.responsaveis : {};
+  const aviso = (metaCaixa && Array.isArray(metaCaixa.avisoPara)) ? metaCaixa.avisoPara : [];
+
+  let h = '<div class="mc-campos">' +
+    '<label>Meta <input type="number" id="mcDias" min="1" max="30" step="1" value="' + mcMeta() + '"> dias \u00fateis</label>' +
+    '<label><input type="checkbox" id="mcFds"' + (mcDescontaFds() ? ' checked' : '') + '> N\u00e3o contar s\u00e1bado e domingo</label>' +
+    '</div>';
+  h += '<p class="nota-dash">Com a meta atual, o limite equivalente \u00e9 de <b>' + mcTxtDias(mcLimiteCorrido(), false) + '</b> na m\u00e9dia.</p>';
+
+  h += '<div class="pe-sub">Respons\u00e1veis por posto</div>';
+  if (!pessoas.length){
+    h += '<p class="nota-dash">Nenhum funcion\u00e1rio cadastrado ainda. Crie os usu\u00e1rios no quadro acima e eles aparecem aqui sozinhos.</p>';
+  } else {
+    h += '<div class="mc-grid">';
+    CXI_POSTOS.forEach(u => {
+      h += '<div class="mc-col"><h4>' + escAttr(u) + '</h4><div class="usr-perm-grid">';
+      pessoas.forEach(e => {
+        h += '<label class="usr-perm-item"><input type="checkbox" data-mcresp="' + escAttr(u) + '" value="' + escAttr(e) + '"' +
+             (mcMarcados(resp[u], e) ? ' checked' : '') + '> ' + escAttr(mcNomeDe(e)) + '</label>';
+      });
+      h += '</div></div>';
+    });
+    h += '</div>';
+  }
+
+  h += '<div class="pe-sub">Quem recebe o aviso semanal</div>';
+  h += '<p class="nota-dash">O aviso vai \u00e0 Caixa de entrada nas segundas de manh\u00e3, com o tempo m\u00e9dio de cada posto e quem est\u00e1 fora da meta. Quem estiver marcado como respons\u00e1vel acima recebe s\u00f3 a parte do pr\u00f3prio posto.</p>';
+  if (!pessoas.length){
+    h += '<p class="nota-dash">\u2014</p>';
+  } else {
+    h += '<div class="usr-perm-grid">';
+    pessoas.forEach(e => {
+      h += '<label class="usr-perm-item"><input type="checkbox" data-mcaviso="1" value="' + escAttr(e) + '"' +
+           (mcMarcados(aviso, e) ? ' checked' : '') + '> ' + escAttr(mcNomeDe(e)) + '</label>';
+    });
+    h += '</div>';
+  }
+
+  h += '<div class="add-linha"><button class="btn-verde" onclick="salvarMetaCaixa()">Salvar</button></div>';
+  // a mensagem vive em mcMsg, e nao no DOM: o onSnapshot redesenha este quadro logo
+  // depois de salvar, e uma mensagem escrita direto no elemento sumiria na hora.
+  h += '<div class="msg-admin" id="msgMetaCaixa">' + escAttr(mcMsg) + '</div>';
+  box.innerHTML = h;
+}
+function salvarMetaCaixa(){
+  if (!ehAdminAtual()) return;
+  if (!nuvemPronta){ mcMsg = "Sem conex\u00e3o com a nuvem \u2014 tente de novo em instantes."; renderMetaCaixa(); return; }
+  const di = document.getElementById("mcDias"), fd = document.getElementById("mcFds");
+  const dias = Math.max(1, Math.min(30, parseInt((di && di.value) || "1", 10) || 1));
+  const responsaveis = {};
+  CXI_POSTOS.forEach(u => {
+    responsaveis[u] = Array.prototype.slice
+      .call(document.querySelectorAll('[data-mcresp="' + u + '"]:checked'))
+      .map(c => String(c.value).toLowerCase());
+  });
+  const avisoPara = Array.prototype.slice
+    .call(document.querySelectorAll('[data-mcaviso]:checked'))
+    .map(c => String(c.value).toLowerCase());
+  const antes = JSON.parse(JSON.stringify(metaCaixa || {}));
+  const novo = { metaDiasUteis: dias, descontarFds: !!(fd && fd.checked),
+                 responsaveis: responsaveis, avisoPara: avisoPara,
+                 atualizadoEm: new Date().toISOString(), por: usuarioAtual || "" };
+  docMetaCaixa.set(novo, {merge:true})
+    .then(() => {
+      mcMsg = "Pronto. A meta agora \u00e9 de " + mcTxtDias(dias, true) + ".";
+      renderMetaCaixa();
+      logAtividade({ acao:"editar", area:"Confer\u00eancia dos caixas",
+        resumo:"meta de " + mcTxtDias(dias, true), colecao:"config", docId:"metaCaixa",
+        tipoUndo:"configMetaCaixa", antes: antes });
+    })
+    .catch(() => { mcMsg = "N\u00e3o consegui salvar agora."; renderMetaCaixa(); });
+}
 // v187 - a tela de Configuracoes: quem pode enviar aviso/tarefa (so admin ve)
 function renderPermEnvio(){
   const grp = document.getElementById("grupoPermEnvio");
@@ -3316,7 +3461,7 @@ function alternarAdmin(){
   const aberto = abrirPainelExclusivo("painelAdmin");
   const bu = document.getElementById("btnUsuarios");
   if (bu) bu.classList.toggle("ativo", aberto);
-  if (aberto){ renderAdminUsuarios(); renderPerfisAcesso(); renderPermEnvio(); }
+  if (aberto){ renderAdminUsuarios(); renderPerfisAcesso(); renderPermEnvio(); renderMetaCaixa(); }
 }
 
 let admAcessoSel = "", admAtivSel = "", admPerfilSel = "", admOfflineSel = "";   // seleção dos seletores do Painel Admin (sobrevive aos re-renders)
@@ -4147,6 +4292,15 @@ function iniciarSync(){
     const m = {}; snap.forEach(d => m[d.id] = Object.assign({ id: d.id }, d.data())); caixaInd = m;
     const p = document.getElementById("painelDash");        // v198 - os caixas moram no Dashboard
     if (p && p.classList.contains("aberto")) renderCaixas();
+  }, ()=>{});
+
+  // v213 - meta de confirmacao dos caixas
+  docMetaCaixa.onSnapshot(d => {
+    metaCaixa = (d && d.exists) ? (d.data() || {}) : {};
+    const p = document.getElementById("painelDash");
+    if (p && p.classList.contains("aberto")) renderCaixas();
+    const a = document.getElementById("painelAdmin");
+    if (a && a.classList.contains("aberto")) renderMetaCaixa();
   }, ()=>{});
 
   // v185 - despesas mes a mes
@@ -5362,6 +5516,7 @@ function renderCaixas(){
     h += '<div class="cxi-card"><div class="cxi-nome">' + escAttr(cxiRotulo(k)) + '</div>' +
          '<div class="cxi-hero">' + escAttr(o.tempoTexto || "—") + '</div>' +
          '<div class="cxi-heroleg">para confirmar um caixa</div>' +
+         mcSelo(o.tempoDias) +
          '<div class="cxi-lin"><span>Caixas fechados</span><b>' + cxiNum(o.fechados).toFixed(0) + '%</b></div>' +
          '<div class="cxi-lin"><span>Confirmados</span><b>' + cxiNum(o.confirmados).toFixed(1) + '%</b></div>' +
          '<div class="cxi-lin"><span>Sobra</span><b>R$ ' + cxiDin(o.sobra) + '</b></div>' +
@@ -5389,6 +5544,7 @@ function renderCaixas(){
   CXI_POSTOS.forEach(k => { const o = P[k] || {}; sf += cxiNum(o.sobra); ff += cxiNum(o.falta); });
   if (ff > sf) h += '<div class="ana-resumo">Somando as três unidades, <b>falta R$ ' + cxiDin(ff - sf) + ' a mais do que sobra</b> em ' + escAttr(cxiMesNome(cxiSel)) + '. Se fosse só erro de digitação, sobra e falta tenderiam a se equilibrar.</div>';
 
+  h += '<p class="ana-rodape">' + mcRodape() + '</p>';
   h += '<p class="ana-rodape">Atualizado ' + escAttr(d.atualizadoEm ? String(d.atualizadoEm).slice(0,10).split("-").reverse().join("/") : "—") + '. Fonte: Painel Operacional do Petros.</p>';
   box.innerHTML = h;
 }
