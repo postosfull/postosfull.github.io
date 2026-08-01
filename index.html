@@ -1280,6 +1280,57 @@
   .doc-chip{border:1px solid var(--borda);background:var(--superficie);border-radius:999px;padding:6px 12px;font-size:.78rem;font-weight:600;color:var(--cinza);cursor:pointer}
   .doc-chip.ativo{border-color:#FF6401;color:#FF6401;background:rgba(255,100,1,.08)}
   .doc-vazio{font-size:.82rem;color:var(--cinza);margin:10px 0}
+  .adm-abas{margin:0 0 12px}
+  .adm-pag{display:block}
+  .adm-filtros{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
+  .adm-filtros input,.adm-filtros select{border:1px solid var(--borda);border-radius:8px;padding:6px 9px;font-size:.8rem;font-family:inherit;background:var(--superficie);color:var(--txt)}
+  .adm-filtros input{flex:1;min-width:150px}
+  .adm-pes{display:flex;align-items:center;gap:9px;flex-wrap:wrap;border:1px solid var(--borda);border-radius:10px;padding:8px 11px;margin-bottom:6px;font-size:.82rem;cursor:pointer;background:var(--superficie);background-image:linear-gradient(var(--superficie),var(--superficie))}
+  .adm-pes:hover{border-color:#FF6401}
+  .adm-pes-nome{font-weight:600}
+  .adm-pes-mail{color:var(--cinza);font-size:.72rem;word-break:break-all}
+  .adm-pes-selos{display:flex;gap:5px;flex-wrap:wrap;margin-left:auto}
+  .adm-tag{font-size:.66rem;border:1px solid var(--borda);background:var(--superficie-2);background-image:linear-gradient(var(--superficie-2),var(--superficie-2));border-radius:20px;padding:1px 9px;color:var(--cinza);white-space:nowrap}
+  .adm-tag-perfil{border-color:#FF6401;color:#FF6401;background:rgba(255,100,1,.08);background-image:linear-gradient(rgba(255,100,1,.08),rgba(255,100,1,.08))}
+  .adm-tag-alerta{border-color:#C62828;color:#C62828;background:#FBEAE6;background-image:linear-gradient(#FBEAE6,#FBEAE6)}
+  .adm-tag-adm{border-color:#18a558;color:#18a558;background:#EAF7EF;background-image:linear-gradient(#EAF7EF,#EAF7EF)}
+  .adm-ficha{border:2px solid #FF6401;border-radius:11px;padding:12px 14px;margin:0 0 10px;background:var(--superficie);background-image:linear-gradient(var(--superficie),var(--superficie))}
+  .adm-ficha-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:8px}
+  .adm-ficha-nome{border:1px solid var(--borda);border-radius:8px;padding:6px 9px;font-size:.85rem;font-weight:600;font-family:inherit;background:var(--superficie);color:var(--txt);min-width:170px}
+  .adm-ficha-bts{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+  .adm-sec{font-size:.8rem;font-weight:700;margin:13px 0 5px}
+  .adm-herda{background:#FFF0E6;background-image:linear-gradient(#FFF0E6,#FFF0E6);border:1px solid #FFD8BF;border-radius:9px;padding:8px 11px;font-size:.76rem;line-height:1.5;margin:8px 0;color:#1E1E1E}
+  .adm-herda b{color:#1E1E1E}
+  .adm-mini{font-size:.68rem;padding:2px 8px}
+  .adm-mini-nota{font-size:.66rem;color:var(--cinza)}
+  .adm-poderes{display:flex;flex-direction:column;gap:6px}
+  .adm-pod{display:flex;align-items:center;gap:9px;flex-wrap:wrap;font-size:.79rem}
+  .adm-pod>span:first-child{flex:1;min-width:190px}
+  .adm-sel3{border:1px solid var(--borda);border-radius:8px;padding:4px 7px;font-size:.74rem;font-family:inherit;background:var(--superficie);color:var(--txt)}
+  .adm-pill{font-size:.66rem;border-radius:20px;padding:1px 9px;border:1px solid;white-space:nowrap}
+  .adm-pill.sim{color:#18a558;border-color:#18a558;background:#EAF7EF;background-image:linear-gradient(#EAF7EF,#EAF7EF)}
+  .adm-pill.nao{color:#C62828;border-color:#C62828;background:#FBEAE6;background-image:linear-gradient(#FBEAE6,#FBEAE6)}
+  .adm-emp-chk{display:flex;gap:16px;flex-wrap:wrap;margin:6px 0 10px}
+  .adm-cols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .adm-col{border:1px solid var(--borda);border-radius:10px;overflow:hidden;margin-top:10px}
+  .adm-cols .adm-col{margin-top:0}
+  .adm-col.apagada .adm-col-corpo{opacity:.45}
+  .adm-col-tit{font-size:.76rem;font-weight:700;padding:6px 10px;color:#fff}
+  .adm-e1 .adm-col-tit{background:#FF6401;background-image:linear-gradient(#FF6401,#FF6401)}
+  .adm-e2 .adm-col-tit{background:#96780F;background-image:linear-gradient(#96780F,#96780F)}
+  .adm-e3 .adm-col-tit{background:#E0561C;background-image:linear-gradient(#E0561C,#E0561C)}
+  .adm-e4 .adm-col-tit{background:#6E6E6E;background-image:linear-gradient(#6E6E6E,#6E6E6E)}
+  .adm-col-corpo{padding:7px 10px 9px}
+  .adm-corpo-larga{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px}
+  .adm-col-off{font-size:.68rem;color:var(--cinza);margin-top:6px}
+  table.adm-mtz{min-width:0}
+  table.adm-mtz td.adm-sim{color:#18a558;font-weight:700;text-align:center}
+  table.adm-mtz td.adm-nao{color:#C9C9C9;text-align:center}
+  table.adm-mtz tr.adm-mtz-pod td{background:var(--superficie-2);background-image:linear-gradient(var(--superficie-2),var(--superficie-2))}
+  .nota-dash.adm-alerta{color:#C62828}
+  .perfil-top{flex-wrap:wrap}
+  .perfil-nome{min-width:140px}
+  @media(max-width:760px){ .adm-cols{grid-template-columns:1fr} .adm-corpo-larga{grid-template-columns:1fr} .adm-pes-selos{margin-left:0} .adm-ficha-bts{margin-left:0} .adm-pod>span:first-child{min-width:0;flex:1 1 100%} }
   .venc-rot.semdata{color:var(--cinza)}
   .venc-tile.cinza b{color:var(--cinza)}
   .perfil-sub:first-of-type{margin-top:6px}
@@ -1540,9 +1591,9 @@
   <aside class="menu-lateral" id="menuLateral" aria-label="Menu principal">
     <button class="btn-claro menu-empresa-btn" id="btnEmpresa" onclick="alternarSeletorEmpresa(event)"><span class="mi">🏢</span><span class="mt"><b id="empresaNome">Postos Full</b> ▾</span></button>
     <div class="menu-empresa-box" id="empresaBox" style="display:none">
-      <button type="button" onclick="definirEmpresa('postos')"><span class="mi">⛽</span><span>Postos Full</span></button>
-      <button type="button" onclick="definirEmpresa('transportadora')"><span class="mi">🚚</span><span>Full Transportadora</span></button>
-      <button type="button" onclick="definirEmpresa('conveniencia')"><span class="mi">🛒</span><span>Full Conveniência</span></button>
+      <button type="button" id="btnEmp_postos" onclick="definirEmpresa('postos')"><span class="mi">⛽</span><span>Postos Full</span></button>
+      <button type="button" id="btnEmp_transp" onclick="definirEmpresa('transportadora')"><span class="mi">🚚</span><span>Full Transportadora</span></button>
+      <button type="button" id="btnEmp_conv" onclick="definirEmpresa('conveniencia')"><span class="mi">🛒</span><span>Full Conveniência</span></button>
     </div>
     <div class="menu-sep"></div>
     <button class="btn-claro" id="btnDash" onclick="alternarDash()"><span class="mi">📈</span><span class="mt">Dashboard</span></button>
@@ -2118,70 +2169,86 @@
   </div>
 
   <div class="config" id="painelAdmin">
-    <div class="grupo">
-      <h2>Criar novo usuário</h2>
-      <div class="admin-form">
-        <input type="text" id="novoUsuarioNome" maxlength="40" placeholder="Nome do funcionário (como aparece no app)">
-        <input type="email" id="novoUsuarioEmail" placeholder="E-mail do funcionário">
-        <input type="text" id="novoUsuarioSenha" placeholder="Senha inicial (mín. 6 caracteres)">
-        <button class="btn-verde" onclick="criarUsuario()">Criar usuário</button>
+    <div class="doc-tools adm-abas" id="admAbas"></div>
+
+    <div class="adm-pag" id="admPagPessoas">
+      <div class="grupo">
+        <h2>👥 Pessoas</h2>
+        <p class="nota-dash">Clique numa pessoa para abrir a ficha dela: perfil de acesso, menus por empresa, o que ela pode fazer, conferência dos caixas, notificações, senha e atividades. <b>Funciona também com a pessoa offline.</b></p>
+        <div class="adm-filtros">
+          <input type="text" id="admBuscaInp" maxlength="40" placeholder="🔎 procurar pessoa" oninput="admBusca(this.value)">
+          <select id="admFiltroPerfil" onchange="admFiltroPerfil(this.value)"></select>
+        </div>
+        <div id="admListaPessoas"></div>
+        <div class="msg-admin" id="msgAdminLista"></div>
       </div>
-      <div class="msg-admin" id="msgAdmin"></div>
-    </div>
-    <div class="grupo">
-      <h2>Perfis de acesso</h2>
-      <p class="nota-dash">Crie perfis (ex.: "Caixa", "Gerente") marcando os menus que cada um pode ver. Depois, na lista de usuários abaixo, associe cada pessoa a um perfil — ou escolha os menus manualmente. Se você mudar os menus de um perfil, todos os usuários daquele perfil mudam junto.</p>
-      <label class="cot-data-lbl">Perfil: <select id="admSelPerfil" onchange="renderEditorPerfil()"></select></label>
-      <div id="editorPerfil"></div>
-      <div class="add-linha">
-        <input id="novoPerfilNome" maxlength="30" placeholder="Nome do novo perfil" onkeydown="if(event.key==='Enter')criarPerfilAcesso()">
-        <button class="btn-verde" onclick="criarPerfilAcesso()">Criar perfil</button>
+      <div class="grupo">
+        <h2>Criar novo usuário</h2>
+        <div class="admin-form">
+          <input type="text" id="novoUsuarioNome" maxlength="40" placeholder="Nome do funcionário (como aparece no app)">
+          <input type="email" id="novoUsuarioEmail" placeholder="E-mail do funcionário">
+          <input type="text" id="novoUsuarioSenha" placeholder="Senha inicial (mín. 6 caracteres)">
+          <button class="btn-verde" onclick="criarUsuario()">Criar usuário</button>
+        </div>
+        <div class="msg-admin" id="msgAdmin"></div>
       </div>
-      <div class="msg-admin" id="msgPerfis"></div>
     </div>
-    <div class="grupo">
-      <h2>Usuários cadastrados</h2>
-      <p class="nota-dash">Edite o nome de exibição (salva sozinho ao sair do campo) ou envie um link de troca de senha para o e-mail do usuário. Para remover, bloquear ou definir uma senha manualmente, use o painel do Firebase no fim da página.</p>
-      <div class="usr-lista" id="listaUsuarios"></div>
-      <h3 class="pv-sub">Usuários offline</h3>
-      <p class="nota-dash pv-sub-nota">Escolha um funcionário para ver quando ele acessou o app pela última vez.</p>
-      <label class="cot-data-lbl">Ver último acesso de: <select id="admSelOffline" onchange="renderOfflineInfo()"></select></label>
-      <div id="offlineInfo"></div>
-      <div class="msg-admin" id="msgAdminLista"></div>
-    </div>
-    <div class="grupo">
-      <h2>Acessos aos menus</h2>
-      <p class="nota-dash">Escolha um funcionário para definir quais menus ele pode ver. As alterações valem quando ele recarregar o app. (Você, administrador, vê tudo.)</p>
-      <label class="cot-data-lbl">Funcionário: <select id="admSelAcesso" onchange="renderEditorAcesso()"></select></label>
-      <div id="admEditorAcesso"></div>
-    </div>
-    <div class="grupo" id="grupoMetaCaixa" style="display:none">
-      <h2>🧾 Conferência dos caixas</h2>
-      <p class="nota-dash">Em quanto tempo os caixas devem ser confirmados, e quem acompanha. O card <b>🧾 Caixas</b> do Dashboard passa a mostrar verde ou vermelho conforme esta meta. Este quadro só aparece para administradores.</p>
-      <div id="metaCaixaBox"></div>
-    </div>
-    <div class="grupo" id="grupoPermEnvio" style="display:none">
-      <h2>🔔 Quem pode enviar avisos e tarefas</h2>
-      <p class="nota-dash">Quem estiver marcado aqui vê o formulário de envio na Caixa de entrada. Quem não estiver continua recebendo e concluindo tarefas normalmente — só não consegue criar. Administradores sempre podem. Este quadro só aparece para administradores.</p>
-      <div id="permEnvioBox"></div>
-    </div>
-    <div class="grupo">
-      <h2>Atividades por funcionário</h2>
-      <p class="nota-dash">Veja o que cada funcionário fez no app. <b>Desfazer</b> reverte a alteração (quando possível); <b>Excluir</b> remove só o registro do histórico. As mais antigas podem ser trazidas em ⬇️ no menu Histórico.</p>
-      <label class="cot-data-lbl">Funcionário: <select id="admSelAtiv" onchange="renderAtividadesFunc()"></select></label>
-      <div id="admListaAtiv" class="lista-hist"></div>
-    </div>
-    <div class="grupo">
-      <h2>Redefinir senha de um usuário</h2>
-      <div class="admin-form">
-        <input type="email" id="resetUsuarioEmail" placeholder="E-mail do usuário">
-        <button class="btn-verde" onclick="resetUsuario()">Enviar link de redefinição</button>
+
+    <div class="adm-pag" id="admPagPerfis" style="display:none">
+      <div class="grupo">
+        <h2>🎭 Perfis de acesso</h2>
+        <p class="nota-dash">Um perfil guarda <b>as empresas</b>, <b>os menus de cada empresa</b>, <b>o que a pessoa pode fazer</b> e as notificações. Mudou o perfil, mudou todo mundo que o segue. Na aba Pessoas você associa cada um a um perfil — ou abre uma exceção.</p>
+        <label class="cot-data-lbl">Perfil: <select id="admSelPerfil" onchange="renderEditorPerfil()"></select></label>
+        <div id="editorPerfil"></div>
+        <div class="add-linha">
+          <input id="novoPerfilNome" maxlength="30" placeholder="Nome do novo perfil" onkeydown="if(event.key==='Enter')criarPerfilAcesso()">
+          <button class="btn-verde" onclick="criarPerfilAcesso()">Criar perfil</button>
+        </div>
+        <div class="msg-admin" id="msgPerfis"></div>
       </div>
-      <div class="msg-admin" id="msgAdminReset"></div>
     </div>
-    <div class="grupo">
-      <h2>Remover ou bloquear usuários</h2>
-      <a class="link-console" href="https://console.firebase.google.com/project/postos-full/authentication/users" target="_blank" rel="noopener">Abrir painel de usuários no Firebase ↗</a>
+
+    <div class="adm-pag" id="admPagMatriz" style="display:none">
+      <div class="grupo">
+        <h2>🔎 Quem vê o quê</h2>
+        <p class="nota-dash">A conferência numa página só: cada coluna é um perfil (ou uma pessoa que está sem perfil), cada linha é um menu ou um poder.</p>
+        <label class="cot-data-lbl">Empresa: <select id="admMtzEmp" onchange="renderAdmMatriz()">
+          <option value="postos">⛽ Postos Full</option>
+          <option value="transp">🚚 Full Transportadora</option>
+          <option value="conv">🍫 Full Conveniência</option>
+        </select></label>
+        <div id="admMatrizBox"></div>
+      </div>
+    </div>
+
+    <div class="adm-pag" id="admPagRegras" style="display:none">
+      <div class="grupo" id="grupoMetaCaixa" style="display:none">
+        <h2>🧾 Conferência dos caixas</h2>
+        <p class="nota-dash">Em quanto tempo os caixas devem ser confirmados, e quem acompanha. O card <b>🧾 Caixas</b> do Dashboard passa a mostrar verde ou vermelho conforme esta meta.</p>
+        <div id="metaCaixaBox"></div>
+      </div>
+      <div class="grupo">
+        <h2>Redefinir a senha de um e-mail</h2>
+        <p class="nota-dash">Para quem já está na lista de pessoas, use o botão 🔑 Trocar senha da ficha. Este campo serve para um e-mail avulso.</p>
+        <div class="admin-form">
+          <input type="email" id="resetUsuarioEmail" placeholder="E-mail do usuário">
+          <button class="btn-verde" onclick="resetUsuario()">Enviar link de redefinição</button>
+        </div>
+        <div class="msg-admin" id="msgAdminReset"></div>
+      </div>
+      <div class="grupo">
+        <h2>Remover ou bloquear usuários</h2>
+        <a class="link-console" href="https://console.firebase.google.com/project/postos-full/authentication/users" target="_blank" rel="noopener">Abrir painel de usuários no Firebase ↗</a>
+      </div>
+    </div>
+
+    <div class="adm-pag" id="admPagAtividades" style="display:none">
+      <div class="grupo">
+        <h2>📜 Atividades por funcionário</h2>
+        <p class="nota-dash">Veja o que cada funcionário fez no app. <b>Desfazer</b> reverte a alteração (quando possível); <b>Excluir</b> remove só o registro do histórico. As mais antigas podem ser trazidas em ⬇️ no menu Histórico.</p>
+        <label class="cot-data-lbl">Funcionário: <select id="admSelAtiv" onchange="renderAtividadesFunc()"></select></label>
+        <div id="admListaAtiv" class="lista-hist"></div>
+      </div>
     </div>
   </div>
 
@@ -2464,7 +2531,8 @@ let permissaoEnvio = {};               // emailLower -> true (pode enviar avisos
 let escutaPermEnvio = null;
 let eventos = [];                      // eventos do calendário cadastrados no app (coleção "eventos")
 let escutaEventos = null;
-let permissaoEventos = {};             // emailLower -> true (pode criar/editar eventos do calendário)
+let permissaoEventos = {};             // emailLower -> true|false (pode criar/editar eventos do calendário)
+let permissaoEventosPerfil = {};       // v216 - perfilId -> true (o mesmo poder, pelo perfil)
 let escutaPermEventos = null;
 let calFormAberto = false;             // form de novo/editar evento aberto?
 let editandoEvento = null;             // id do evento em edição
@@ -3024,11 +3092,8 @@ function mcRodape(){
     ' Voc\u00ea muda isso no Painel Administrativo.';
 }
 /* ---- o quadro do Painel Administrativo ---- */
-function mcPessoas(){
-  return Object.keys(perfis || {}).map(e => String(e).toLowerCase())
-    .filter((e,i,a) => e && a.indexOf(e) === i).sort();
-}
-function mcNomeDe(e){ const p = (perfis || {})[e]; return (p && p.nome) ? p.nome : e; }
+function mcPessoas(){ return admEmails(); }
+function mcNomeDe(e){ const n = (perfis || {})[e]; return (n && n !== e) ? n : e; }
 function mcMarcados(lista, e){ return Array.isArray(lista) && lista.indexOf(e) >= 0; }
 function renderMetaCaixa(){
   const grp = document.getElementById("grupoMetaCaixa");
@@ -3112,63 +3177,7 @@ function salvarMetaCaixa(){
     .catch(() => { mcMsg = "N\u00e3o consegui salvar agora."; renderMetaCaixa(); });
 }
 // v187 - a tela de Configuracoes: quem pode enviar aviso/tarefa (so admin ve)
-function renderPermEnvio(){
-  const grp = document.getElementById("grupoPermEnvio");
-  const box = document.getElementById("permEnvioBox");
-  if (!grp || !box) return;
-  const souAdmin = ehAdminAtual();
-  grp.style.display = souAdmin ? "" : "none";
-  if (!souAdmin){ box.innerHTML = ""; return; }
-
-  const asp2 = (s) => String(s).replace(/'/g, "\\'");
-  let h = '';
-
-  const ids = Object.keys(perfisAcesso || {});
-  h += '<div class="pe-sub">Por perfil de acesso</div>';
-  if (!ids.length){
-    h += '<p class="nota-dash">Nenhum perfil criado ainda. Os perfis ficam no Painel Administrativo.</p>';
-  } else {
-    h += '<div class="usr-perm-grid">';
-    ids.forEach(id => {
-      const nome = (perfisAcesso[id] && perfisAcesso[id].nome) ? perfisAcesso[id].nome : id;
-      const on = permissaoEnvioPerfil[id] === true;
-      h += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked ' : '') +
-           'onchange="setPermEnvioPerfil(\'' + asp2(id) + '\', this.checked)"> ' + escAttr(nome) + '</label>';
-    });
-    h += '</div>';
-  }
-
-  const emails = Object.keys(Object.assign({}, perfis || {}, permissoesTodos || {}))
-    .map(e => String(e).toLowerCase()).filter((e,i,a) => e && a.indexOf(e) === i).sort();
-  h += '<div class="pe-sub">Pessoa por pessoa</div>';
-  h += '<p class="nota-dash">Deixe em <b>Seguir o perfil</b> para usar a regra de cima. Use <b>Pode</b> ou <b>Não pode</b> só quando quiser abrir uma exceção para alguém.</p>';
-  if (!emails.length){
-    h += '<p class="nota-dash">Nenhum funcionário cadastrado ainda.</p>';
-  } else {
-    emails.forEach(e => {
-      const ehAdmin = (typeof ADMINS!=="undefined") && ADMINS.includes(e);
-      const nome = (perfis && perfis[e] && perfis[e] !== e) ? perfis[e] : e;
-      const modo = origemEnvioDe(e);
-      const pode = podeEnviarRecadosDe(e);
-      const pid = perfilDoUsuario(e);
-      const pnome = (pid && perfisAcesso[pid] && perfisAcesso[pid].nome) ? perfisAcesso[pid].nome : (pid || "sem perfil");
-      h += '<div class="pe-item"><span class="pe-nome">' + escAttr(nome) +
-           (ehAdmin ? ' <span class="usr-tag">admin</span>' : '') +
-           '<span class="pe-perfil">' + escAttr(pnome) + '</span></span>';
-      if (ehAdmin){
-        h += '<span class="pe-sel"><span class="pe-tag pe-sim">sempre pode</span></span>';
-      } else {
-        h += '<span class="pe-sel"><select onchange="setPermEnvioModo(\'' + asp2(e) + '\', this.value)">' +
-             '<option value=""' + (modo === "perfil" ? " selected" : "") + '>Seguir o perfil</option>' +
-             '<option value="sim"' + (modo === "sim" ? " selected" : "") + '>Pode enviar</option>' +
-             '<option value="nao"' + (modo === "nao" ? " selected" : "") + '>Não pode</option>' +
-             '</select><span class="pe-tag ' + (pode ? 'pe-sim' : 'pe-nao') + '">' + (pode ? 'pode enviar' : 'não envia') + '</span></span>';
-      }
-      h += '</div>';
-    });
-  }
-  box.innerHTML = h;
-}
+function renderPermEnvio(){ renderAbaAdm(); }
 function recadoVisivelParaMim(r){
   const u = (usuarioAtual||"").toLowerCase();
   if (ehAdminAtual()) return true;
@@ -3446,7 +3455,7 @@ function iniciarPresenca(){
   heartbeatTimer = setInterval(() => {
     if (document.visibilityState !== "hidden") baterPresenca();
     const pAdm = document.getElementById("painelAdmin");
-    if (pAdm && pAdm.classList.contains("aberto")) renderAdminUsuarios();
+    if (pAdm && pAdm.classList.contains("aberto")) renderAbaAdm();
   }, 45000);
   if (!presencaVisWired){
     presencaVisWired = true;
@@ -3498,71 +3507,559 @@ function presencaHtml(email){
   return ' <span class="pres off"><span class="dot"></span>' + (t ? ("visto " + fmtPresencaHa(t)) : "nunca entrou") + '</span>';
 }
 
+/* ===================== v216 - Painel Administrativo unificado ===================== */
+/* Cinco abas: Pessoas, Perfis de acesso, Quem ve o que, Regras do app e Atividades.
+   A permissao passa a ter DUAS dimensoes (empresa x menu) e os poderes deixam de
+   morar em quadros separados. Regra unica de decisao:
+   admin > excecao da pessoa > perfil > padrao.                                    */
+
+const ABAS_ADM = [
+  {k:"pessoas", nome:"👥 Pessoas",                pag:"admPagPessoas"},
+  {k:"perfis",  nome:"🎭 Perfis de acesso",       pag:"admPagPerfis"},
+  {k:"matriz",  nome:"🔎 Quem vê o quê", pag:"admPagMatriz"},
+  {k:"regras",  nome:"⚙️ Regras do app",          pag:"admPagRegras"},
+  {k:"ativ",    nome:"📜 Atividades",             pag:"admPagAtividades"}
+];
+const EMPRESAS_ADM = [
+  {sig:"postos", chave:"postos",         nome:"⛽ Postos Full",                cls:"adm-e1"},
+  {sig:"transp", chave:"transportadora", nome:"🚚 Full Transportadora",  cls:"adm-e2"},
+  {sig:"conv",   chave:"conveniencia",   nome:"🛒 Full Conveniência", cls:"adm-e3"}
+];
+const PODERES_ADM = [
+  {k:"envio",   nome:"🔔 Enviar avisos e tarefas na Caixa de entrada"},
+  {k:"eventos", nome:"📅 Criar e editar eventos, vencimentos e arquivos"},
+  {k:"admin",   nome:"🛠 Administrador (vê tudo e edita permissões)"}
+];
+let admAba = "pessoas";
+let admFichaAberta = "";     // e-mail da ficha aberta (estado em variavel, nunca no DOM)
+let admBuscaTxt = "";
+let admFiltroPerfilSel = "";
+let admMtzEmp = "postos";
+let _travaEmpresa = false;   // evita laco entre garantirEmpresaPermitida e definirEmpresa
+
+function aspAdm(s){ return String(s).replace(/'/g, "\\'"); }
+function admEmails(){
+  const mapa = {};
+  Object.keys(perfisDocs || {}).forEach(e => { mapa[e] = true; });
+  (historico || []).forEach(h => { const e = String(h.usuario || "").trim().toLowerCase(); if (e && e.indexOf("@") > 0) mapa[e] = true; });
+  Object.keys(presencaMap || {}).forEach(e => { if (e) mapa[e] = true; });
+  Object.keys(permissoesTodos || {}).forEach(e => { if (e) mapa[e] = true; });
+  return Object.keys(mapa).filter(e => e && e.indexOf("@") > 0).sort();
+}
+function admNomeDe(e){ const n = (perfis || {})[e]; return (n && n !== e) ? n : e; }
+function nomePerfilAdm(id){ return (id && perfisAcesso[id] && perfisAcesso[id].nome) ? perfisAcesso[id].nome : (id || ""); }
+
+/* ----- menus por empresa ----- */
+function menusDaSigla(sig){ return MENUS_APP.filter(m => m.key !== "conta" && m.emp !== "ambos" && menuVisivelEmpresa(m, sig)); }
+function menusComuns(){ return MENUS_APP.filter(m => m.key !== "conta" && m.emp === "ambos"); }
+function mapaMenusNovo(mp){ return !!(mp && (mp.postos || mp.transp || mp.conv || mp.todas)); }
+// menu marcado? No formato antigo (mapa plano) o que ja estava gravado vale para as TRES empresas.
+function menuMarcadoEm(mp, sig, key){
+  if (!mp) return false;
+  if (mapaMenusNovo(mp)){
+    if (mp.todas && mp.todas[key] === true) return true;
+    const r = mp[sig];
+    return !!(r && r[key] === true);
+  }
+  return mp[key] === true;
+}
+function menusVaziosPorEmpresa(){ return {postos:{}, transp:{}, conv:{}, todas:{}}; }
+
+/* ----- quem e administrador (v216: deixou de ser so a lista fixa do arquivo) ----- */
+function ehAdminEmail(email){
+  email = (email || "").toLowerCase();
+  if ((typeof ADMINS !== "undefined") && ADMINS.includes(email)) return true;
+  const raw = (permissoesTodos || {})[email];
+  if (raw && raw.admin === true) return true;
+  if (raw && raw.admin === false) return false;
+  const pid = perfilDoUsuario(email);
+  const p = pid ? perfisAcesso[pid] : null;
+  return !!(p && p.poderes && p.poderes.admin === true);
+}
+function ehAdminFixo(email){ return (typeof ADMINS !== "undefined") && ADMINS.includes((email || "").toLowerCase()); }
+function origemPoderAdm(email){
+  email = (email || "").toLowerCase();
+  if (ehAdminFixo(email)) return "admin";
+  const raw = (permissoesTodos || {})[email];
+  if (raw && raw.admin === true) return "sim";
+  if (raw && raw.admin === false) return "nao";
+  return "perfil";
+}
+function setPoderAdminUsuario(email, modo){
+  email = String(email).toLowerCase();
+  if (!ehAdminAtual()) return;
+  const cur = permissoesTodos[email] ? Object.assign({}, permissoesTodos[email]) : {};
+  if (modo === "sim") cur.admin = true;
+  else if (modo === "nao") cur.admin = false;
+  else delete cur.admin;
+  if (!Object.keys(cur).length) delete permissoesTodos[email]; else permissoesTodos[email] = cur;
+  gravarPermissoesAdm("Administrador de " + admNomeDe(email) + " atualizado.");
+}
+function setPoderPerfil(id, chave, on){
+  if (!perfisAcesso[id] || !ehAdminAtual()) return;
+  if (!perfisAcesso[id].poderes) perfisAcesso[id].poderes = {};
+  if (on) perfisAcesso[id].poderes[chave] = true; else delete perfisAcesso[id].poderes[chave];
+  docPerfisAcesso.set({ perfis: perfisAcesso })
+    .then(()=>{ aplicarVisibilidadeMenus(); renderAbaAdm(); })
+    .catch(er => avisoAdmin("msgPerfis", msgErro(er), "erro"));
+}
+
+/* ----- empresas que a pessoa enxerga ----- */
+function empresaPermitidaDe(email, sig){
+  email = (email || "").toLowerCase();
+  if (ehAdminEmail(email)) return true;
+  const raw = (permissoesTodos || {})[email];
+  if (raw && raw.empresas && typeof raw.empresas === "object") return raw.empresas[sig] === true;
+  const pid = perfilDoUsuario(email);
+  const p = pid ? perfisAcesso[pid] : null;
+  if (p && p.empresas && typeof p.empresas === "object") return p.empresas[sig] === true;
+  return true;   // sem regra salva = ve as tres (compatibilidade)
+}
+function empresaPermitida(sig){ return empresaPermitidaDe(usuarioAtual, sig); }
+function garantirEmpresaPermitida(){
+  if (_travaEmpresa) return;
+  const s = siglaEmpresa(empresa);
+  if (empresaPermitida(s)) return;
+  const alvo = EMPRESAS_ADM.filter(x => empresaPermitida(x.sig))[0];
+  if (!alvo) return;                     // ninguem fica sem empresa nenhuma
+  _travaEmpresa = true;
+  try { definirEmpresa(alvo.chave); } finally { _travaEmpresa = false; }
+}
+function setEmpresaPerfil(id, sig, on){
+  if (!perfisAcesso[id] || !ehAdminAtual()) return;
+  const p = perfisAcesso[id];
+  if (!p.empresas) { p.empresas = {}; EMPRESAS_ADM.forEach(x => p.empresas[x.sig] = true); }
+  if (on) p.empresas[sig] = true; else p.empresas[sig] = false;
+  docPerfisAcesso.set({ perfis: perfisAcesso })
+    .then(()=>{ aplicarVisibilidadeMenus(); renderEditorPerfil(); })
+    .catch(er => avisoAdmin("msgPerfis", msgErro(er), "erro"));
+}
+function setEmpresaUsuario(email, sig, on){
+  email = String(email).toLowerCase();
+  const cur = permissoesTodos[email] ? Object.assign({}, permissoesTodos[email]) : {};
+  if (!cur.empresas){ cur.empresas = {}; EMPRESAS_ADM.forEach(x => cur.empresas[x.sig] = empresaPermitidaDe(email, x.sig)); }
+  cur.empresas[sig] = !!on;
+  permissoesTodos[email] = cur;
+  gravarPermissoesAdm("Empresas de " + admNomeDe(email) + " atualizadas.");
+}
+
+/* ----- gravacao comum ----- */
+function gravarPermissoesAdm(msgOk){
+  docPermissoes.set({ porUsuario: permissoesTodos })
+    .then(()=> avisoAdmin("msgAdminLista", msgOk, "ok"))
+    .catch(er => avisoAdmin("msgAdminLista", msgErro(er), "erro"));
+  aplicarVisibilidadeMenus();
+  renderAbaAdm();
+}
+function menusManualDoUsuario(email){
+  const out = menusVaziosPorEmpresa();
+  EMPRESAS_ADM.forEach(x => { menusDaSigla(x.sig).forEach(m => { if (menuPermitidoDe(email, m.key, x.sig)) out[x.sig][m.key] = true; }); });
+  menusComuns().forEach(m => { if (menuPermitidoDe(email, m.key, "postos")) out.todas[m.key] = true; });
+  return out;
+}
+function setPermUsuarioEmp(email, sig, key, on){
+  email = String(email).toLowerCase();
+  const cur = permissoesTodos[email] ? Object.assign({}, permissoesTodos[email]) : {};
+  const r = normPerm(cur);
+  let menus = (r && r.menus && mapaMenusNovo(r.menus)) ? JSON.parse(JSON.stringify(r.menus)) : menusManualDoUsuario(email);
+  ["postos","transp","conv","todas"].forEach(k => { if (!menus[k]) menus[k] = {}; });
+  if (on) menus[sig][key] = true; else delete menus[sig][key];
+  const novo = { menus: menus };
+  if (cur.avisos) novo.avisos = cur.avisos;
+  if (cur.admin !== undefined) novo.admin = cur.admin;
+  if (cur.empresas) novo.empresas = cur.empresas;
+  permissoesTodos[email] = novo;
+  gravarPermissoesAdm("Menus de " + admNomeDe(email) + " salvos.");
+}
+
+/* ----- as abas ----- */
+function barraAbasAdm(){
+  const box = document.getElementById("admAbas"); if (!box) return;
+  box.innerHTML = ABAS_ADM.map(a =>
+    '<button class="doc-chip' + (admAba === a.k ? ' ativo' : '') + '" onclick="irParaAbaAdm(\'' + a.k + '\')">' + a.nome + '</button>').join("");
+}
+function irParaAbaAdm(k){
+  if (!ABAS_ADM.some(a => a.k === k)) k = "pessoas";
+  admAba = k;
+  ABAS_ADM.forEach(a => { const el = document.getElementById(a.pag); if (el) el.style.display = (a.k === k) ? "" : "none"; });
+  barraAbasAdm();
+  renderAbaAdm();
+}
+function renderAbaAdm(){
+  const pa = document.getElementById("painelAdmin");
+  if (!pa || !pa.classList.contains("aberto")) return;
+  if (admAba === "perfis")      renderPerfisAcesso();
+  else if (admAba === "matriz") renderAdmMatriz();
+  else if (admAba === "regras") renderMetaCaixa();
+  else if (admAba === "ativ")   { popularSelectsAdmin(admEmails()); renderAtividadesFunc(); }
+  else                          renderAdminUsuarios();
+}
+
+/* ----- aba Pessoas ----- */
+function admBusca(v){ admBuscaTxt = String(v || ""); renderAdminUsuarios(); }
+function admFiltroPerfil(v){ admFiltroPerfilSel = String(v || ""); renderAdminUsuarios(); }
+function abrirFichaPessoa(email){
+  email = String(email || "").toLowerCase();
+  admFichaAberta = (admFichaAberta === email) ? "" : email;
+  renderAdminUsuarios();
+}
+function renderAdminUsuarios(){
+  const cont = document.getElementById("admListaPessoas");
+  const todos = admEmails();
+  popularSelectsAdmin(todos);
+  const fp = document.getElementById("admFiltroPerfil");
+  if (fp){
+    const ids = Object.keys(perfisAcesso || {});
+    fp.innerHTML = '<option value="">Todos os perfis</option>' +
+      ids.map(id => '<option value="' + escAttr(id) + '">' + escAttr(nomePerfilAdm(id)) + '</option>').join("") +
+      '<option value="__sem">Sem perfil (vê tudo)</option>';
+    fp.value = admFiltroPerfilSel;
+  }
+  if (!cont) return;
+  if (!todos.length){
+    cont.innerHTML = '<p class="nota-dash">As pessoas aparecem aqui ao serem criadas neste painel, ao salvarem o próprio nome ou ao fazerem a primeira alteração no app.</p>';
+    return;
+  }
+  const q = admBuscaTxt.trim().toLowerCase();
+  const lista = todos.filter(e => {
+    if (q && e.indexOf(q) < 0 && String(admNomeDe(e)).toLowerCase().indexOf(q) < 0) return false;
+    const pid = perfilDoUsuario(e);
+    if (admFiltroPerfilSel === "__sem") return !pid && !normPerm(permissoesTodos[e]);
+    if (admFiltroPerfilSel) return pid === admFiltroPerfilSel;
+    return true;
+  });
+  const online = todos.filter(usuarioOnline);
+  let h = '<div class="pres-resumo"><span class="pres on"><span class="dot"></span></span><span><b>' + online.length + '</b> ' +
+    (online.length === 1 ? 'pessoa online agora' : 'pessoas online agora') +
+    (online.length ? ' — ' + escAttr(online.map(e => admNomeDe(e)).join(", ")) : '') + '</span></div>';
+  if (!lista.length) h += '<p class="nota-dash">Nenhuma pessoa com esse filtro.</p>';
+  h += lista.map(e => (e === admFichaAberta) ? fichaPessoaHtml(e) : linhaPessoaHtml(e)).join("");
+  cont.innerHTML = h;
+}
+function selosDaPessoa(e){
+  const pid = perfilDoUsuario(e);
+  const rule = normPerm(permissoesTodos[e]);
+  let s = "";
+  const adm = ehAdminEmail(e);
+  if (adm) s += '<span class="adm-tag adm-tag-adm">administrador</span>';
+  if (pid) s += '<span class="adm-tag adm-tag-perfil">' + escAttr(nomePerfilAdm(pid)) + '</span>';
+  else if (rule) s += '<span class="adm-tag">menus próprios</span>';
+  else if (!adm) s += '<span class="adm-tag adm-tag-alerta">sem perfil — vê tudo</span>';
+  return s;
+}
+function linhaPessoaHtml(e){
+  return '<div class="adm-pes" onclick="abrirFichaPessoa(\'' + aspAdm(e) + '\')">' +
+    '<span class="adm-pes-nome">' + escAttr(admNomeDe(e)) + '</span>' +
+    '<span class="adm-pes-mail">' + escAttr(e) + '</span>' +
+    '<span class="adm-pes-selos">' + selosDaPessoa(e) + '</span>' +
+    presencaHtml(e) + '</div>';
+}
+function selTresEstados(chamada, modo, rotSim, rotNao){
+  return '<select class="adm-sel3" onchange="' + chamada + '">' +
+    '<option value=""' + (modo === "perfil" ? " selected" : "") + '>Seguir o perfil</option>' +
+    '<option value="sim"' + (modo === "sim" ? " selected" : "") + '>' + rotSim + '</option>' +
+    '<option value="nao"' + (modo === "nao" ? " selected" : "") + '>' + rotNao + '</option></select>';
+}
+function fichaPessoaHtml(e){
+  const a = aspAdm(e);
+  const fixo = ehAdminFixo(e);
+  const rule = normPerm(permissoesTodos[e]);
+  const pid = perfilDoUsuario(e);
+  let modo = ""; if (pid) modo = "perfil:" + pid; else if (rule && rule.menus) modo = "manual";
+
+  let h = '<div class="adm-ficha"><div class="adm-ficha-top">' +
+    '<input class="adm-ficha-nome" maxlength="40" value="' + escAttr(admNomeDe(e) === e ? "" : admNomeDe(e)) +
+    '" placeholder="Sem nome definido" onchange="salvarNomeUsuario(\'' + a + '\', this.value)">' +
+    '<span class="adm-pes-mail">' + escAttr(e) + '</span>' + presencaHtml(e) +
+    '<span class="adm-ficha-bts">' +
+      '<button class="btn-claro" onclick="enviarResetUsuario(\'' + a + '\')">🔑 Trocar senha</button>' +
+      '<button class="btn-claro" onclick="verAtividadesDe(\'' + a + '\')">📜 Atividades</button>' +
+      '<button class="btn-claro" onclick="abrirFichaPessoa(\'' + a + '\')">✕ fechar</button>' +
+    '</span></div>';
+
+  /* 1. perfil de acesso */
+  h += '<div class="adm-sec">1 · Perfil de acesso</div>';
+  h += '<label class="usr-acesso-lbl"><select onchange="definirAcessoUsuario(\'' + a + '\', this.value)">' +
+       '<option value=""' + (modo === "" ? " selected" : "") + '>Sem perfil — vê tudo</option>';
+  const pids = Object.keys(perfisAcesso || {});
+  if (pids.length){
+    h += '<optgroup label="Perfis">';
+    pids.forEach(id => { const v = "perfil:" + id; h += '<option value="' + v + '"' + (modo === v ? " selected" : "") + '>' + escAttr(nomePerfilAdm(id)) + '</option>'; });
+    h += '</optgroup>';
+  }
+  h += '<option value="manual"' + (modo === "manual" ? " selected" : "") + '>Menus próprios (escolher à mão)</option></select></label>';
+
+  if (modo.indexOf("perfil:") === 0){
+    const p = perfisAcesso[pid] || {};
+    const emps = EMPRESAS_ADM.filter(x => empresaMarcadaNoPerfil(p, x.sig)).map(x => x.nome.replace(/^\S+\s/, ""));
+    let qtd = 0;
+    EMPRESAS_ADM.forEach(x => menusDaSigla(x.sig).forEach(m => { if (menuMarcadoEm(p.menus, x.sig, m.key)) qtd++; }));
+    menusComuns().forEach(m => { if (menuMarcadoEm(p.menus, "todas", m.key)) qtd++; });
+    h += '<div class="adm-herda"><b>Herda do perfil ' + escAttr(nomePerfilAdm(pid)) + ':</b> ' +
+         (emps.length ? escAttr(emps.join(" · ")) : "nenhuma empresa") + ' · <b>' + qtd + '</b> menus marcados. ' +
+         '<button class="btn-claro adm-mini" onclick="editarPerfilDaPessoa(\'' + aspAdm(pid) + '\')">editar o perfil</button></div>';
+  } else if (modo === "manual"){
+    h += '<div class="adm-sec">2 · Empresas e menus desta pessoa</div>' + gradeMenusHtml("usuario", e, rule ? rule.menus : null, permissoesTodos[e] || {});
+  } else {
+    h += '<p class="nota-dash">⚠️ Sem perfil, esta pessoa <b>vê o app inteiro, nas três empresas</b>. Escolha um perfil acima ou marque os menus à mão.</p>';
+  }
+
+  /* poderes */
+  h += '<div class="adm-sec">' + (modo === "manual" ? "3" : "2") + ' · O que esta pessoa pode fazer</div>';
+  h += '<p class="nota-dash">Deixe em <b>Seguir o perfil</b> para usar a regra do perfil. A exceção vence o perfil.</p>';
+  h += '<div class="adm-poderes">';
+  PODERES_ADM.forEach(pd => {
+    let modoP = "perfil", vale = false, rotSim = "Pode", rotNao = "Não pode", chamada = "";
+    if (pd.k === "envio"){ modoP = origemEnvioDe(e); vale = podeEnviarRecadosDe(e); chamada = "setPermEnvioModo('" + a + "', this.value)"; }
+    else if (pd.k === "eventos"){ modoP = origemEventosDe(e); vale = podeGerenciarEventosDe(e); chamada = "setPermEventosModo('" + a + "', this.value)"; }
+    else { modoP = origemPoderAdm(e); vale = ehAdminEmail(e); chamada = "setPoderAdminUsuario('" + a + "', this.value)"; rotSim = "É administrador"; rotNao = "Não é"; }
+    h += '<div class="adm-pod"><span>' + pd.nome + '</span>';
+    if (modoP === "admin" || (pd.k === "admin" && fixo)) h += '<span class="adm-pill sim">sempre pode (admin do app)</span>';
+    else h += selTresEstados(chamada, modoP, rotSim, rotNao) +
+              '<span class="adm-pill ' + (vale ? 'sim' : 'nao') + '">' + (vale ? 'pode' : 'não pode') + '</span>';
+    h += '</div>';
+  });
+  h += '</div>';
+
+  /* caixas */
+  h += '<div class="adm-sec">🧾 Conferência dos caixas</div><div class="usr-perm-grid">';
+  const resp = (metaCaixa && metaCaixa.responsaveis) ? metaCaixa.responsaveis : {};
+  CXI_POSTOS.forEach(u => {
+    const on = Array.isArray(resp[u]) && resp[u].indexOf(e) >= 0;
+    h += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked ' : '') +
+         'onchange="setRespCaixaPessoa(\'' + a + '\', \'' + aspAdm(u) + '\', this.checked)"> Responsável por ' + escAttr(u) + '</label>';
+  });
+  const av = (metaCaixa && Array.isArray(metaCaixa.avisoPara)) ? metaCaixa.avisoPara : [];
+  h += '<label class="usr-perm-item"><input type="checkbox" ' + (av.indexOf(e) >= 0 ? 'checked ' : '') +
+       'onchange="setAvisoCaixaPessoa(\'' + a + '\', this.checked)"> 📥 Recebe o aviso semanal</label></div>';
+
+  /* notificacoes */
+  const rawAvi = (permissoesTodos[e] && permissoesTodos[e].avisos) ? permissoesTodos[e].avisos : null;
+  h += '<div class="adm-sec">🔔 Notificações</div>';
+  h += '<label class="usr-acesso-lbl"><select onchange="definirModoAvisosUsuario(\'' + a + '\', this.value)">' +
+       '<option value=""' + (!rawAvi ? " selected" : "") + '>Seguir o perfil</option>' +
+       '<option value="manual"' + (rawAvi ? " selected" : "") + '>Escolher à mão (exceção)</option></select></label>';
+  if (rawAvi){
+    h += '<div class="usr-perm-grid">';
+    ORIGENS_AVISO_ADM.forEach(o => {
+      h += '<label class="usr-perm-item"><input type="checkbox" ' + (rawAvi[o[0]] !== false ? 'checked ' : '') +
+           'onchange="setAvisoUsuario(\'' + a + '\', \'' + o[0] + '\', this.checked)"> ' + o[1] + '</label>';
+    });
+    h += '</div>';
+  }
+  h += '</div>';
+  return h;
+}
+const ORIGENS_AVISO_ADM = [["ct","Posto Full - Teresina"],["cc","Posto Full - Caxias"],["cd","Posto Full - Dutra"],["cx","Full Transportadora"],["cg","Outros"]];
+function verAtividadesDe(email){
+  admAtivSel = String(email || "").toLowerCase();
+  irParaAbaAdm("ativ");
+  const s = document.getElementById("admSelAtiv"); if (s) s.value = admAtivSel;
+  renderAtividadesFunc();
+}
+function editarPerfilDaPessoa(id){ admPerfilSel = id; irParaAbaAdm("perfis"); }
+function setRespCaixaPessoa(email, unidade, on){
+  if (!ehAdminAtual() || !nuvemPronta) return;
+  email = String(email).toLowerCase();
+  const resp = JSON.parse(JSON.stringify((metaCaixa && metaCaixa.responsaveis) ? metaCaixa.responsaveis : {}));
+  CXI_POSTOS.forEach(u => { if (!Array.isArray(resp[u])) resp[u] = []; });
+  const lista = resp[unidade];
+  const i = lista.indexOf(email);
+  if (on && i < 0) lista.push(email); else if (!on && i >= 0) lista.splice(i, 1);
+  metaCaixa = Object.assign({}, metaCaixa || {}, { responsaveis: resp });
+  docMetaCaixa.set({ responsaveis: resp, atualizadoEm: new Date().toISOString(), por: usuarioAtual || "" }, {merge:true}).catch(()=>{});
+  renderAdminUsuarios();
+}
+function setAvisoCaixaPessoa(email, on){
+  if (!ehAdminAtual() || !nuvemPronta) return;
+  email = String(email).toLowerCase();
+  const av = ((metaCaixa && Array.isArray(metaCaixa.avisoPara)) ? metaCaixa.avisoPara : []).slice();
+  const i = av.indexOf(email);
+  if (on && i < 0) av.push(email); else if (!on && i >= 0) av.splice(i, 1);
+  metaCaixa = Object.assign({}, metaCaixa || {}, { avisoPara: av });
+  docMetaCaixa.set({ avisoPara: av, atualizadoEm: new Date().toISOString(), por: usuarioAtual || "" }, {merge:true}).catch(()=>{});
+  renderAdminUsuarios();
+}
+
+/* ----- a grade de menus por empresa (serve para perfil e para pessoa) ----- */
+function empresaMarcadaNoPerfil(p, sig){ return !p || !p.empresas ? true : p.empresas[sig] === true; }
+function gradeMenusHtml(tipo, id, mapaMenus, dono){
+  const perfil = (tipo === "perfil");
+  const chamadaEmp = perfil ? "setEmpresaPerfil" : "setEmpresaUsuario";
+  const chamadaMenu = perfil ? "setMenuPerfilEmp" : "setPermUsuarioEmp";
+  const a = aspAdm(id);
+  let h = '<p class="nota-dash">Empresa desmarcada <b>some do seletor do topo</b> — a pessoa nem vê que ela existe.</p>';
+  h += '<div class="adm-emp-chk">';
+  EMPRESAS_ADM.forEach(x => {
+    const on = perfil ? empresaMarcadaNoPerfil(dono, x.sig) : empresaPermitidaDe(id, x.sig);
+    h += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked ' : '') +
+         'onchange="' + chamadaEmp + '(\'' + a + '\', \'' + x.sig + '\', this.checked)"> <b>' + x.nome + '</b></label>';
+  });
+  h += '</div><div class="adm-cols">';
+  EMPRESAS_ADM.forEach(x => {
+    const viva = perfil ? empresaMarcadaNoPerfil(dono, x.sig) : empresaPermitidaDe(id, x.sig);
+    h += '<div class="adm-col ' + x.cls + (viva ? '' : ' apagada') + '"><div class="adm-col-tit">' + x.nome + '</div><div class="adm-col-corpo">';
+    menusDaSigla(x.sig).forEach(m => {
+      const on = menuMarcadoEm(mapaMenus, x.sig, m.key);
+      h += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked ' : '') +
+           'onchange="' + chamadaMenu + '(\'' + a + '\', \'' + x.sig + '\', \'' + m.key + '\', this.checked)"> ' + escAttr(m.nome) + '</label>';
+    });
+    if (!viva) h += '<div class="adm-col-off">empresa desmarcada acima</div>';
+    h += '</div></div>';
+  });
+  h += '</div>';
+  h += '<div class="adm-col adm-e4"><div class="adm-col-tit">🌐 Em todas as empresas</div><div class="adm-col-corpo adm-corpo-larga">';
+  menusComuns().forEach(m => {
+    const trava = (m.key === "caixa");
+    const on = trava ? true : menuMarcadoEm(mapaMenus, "todas", m.key);
+    h += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked ' : '') + (trava ? 'disabled ' : '') +
+         'onchange="' + chamadaMenu + '(\'' + a + '\', \'todas\', \'' + m.key + '\', this.checked)"> ' + escAttr(m.nome) +
+         (trava ? ' <span class="adm-mini-nota">(todos sempre veem)</span>' : '') + '</label>';
+  });
+  h += '</div></div>';
+  return h;
+}
+
+/* ----- aba Perfis ----- */
+function renderPerfisAcesso(){
+  const sel = document.getElementById("admSelPerfil");
+  if (!sel) return;
+  const ids = Object.keys(perfisAcesso || {});
+  sel.innerHTML = ids.length
+    ? ('<option value="">— escolha um perfil —</option>' + ids.map(id => '<option value="' + escAttr(id) + '">' + escAttr(nomePerfilAdm(id)) + '</option>').join(""))
+    : '<option value="">— nenhum perfil criado —</option>';
+  if (admPerfilSel && ids.indexOf(admPerfilSel) >= 0) sel.value = admPerfilSel; else admPerfilSel = "";
+  renderEditorPerfil();
+}
+function quantasPessoasNoPerfil(id){ return admEmails().filter(e => perfilDoUsuario(e) === id).length; }
+function renderEditorPerfil(){
+  const cont = document.getElementById("editorPerfil"); if (!cont) return;
+  const sel = document.getElementById("admSelPerfil");
+  const id = sel ? sel.value : "";
+  admPerfilSel = id;
+  if (!id || !perfisAcesso[id]){
+    cont.innerHTML = Object.keys(perfisAcesso || {}).length
+      ? '<p class="nota-dash">Escolha um perfil acima para editar, ou crie um novo abaixo.</p>'
+      : '<p class="nota-dash">Nenhum perfil ainda. Crie um abaixo (ex.: "Caixa", "Gerente") e marque as empresas e os menus dele.</p>';
+    return;
+  }
+  const p = perfisAcesso[id];
+  const n = quantasPessoasNoPerfil(id);
+  let h = '<div class="perfil-item"><div class="perfil-top">' +
+    '<input class="perfil-nome" maxlength="30" value="' + escAttr(p.nome || "") + '" placeholder="Nome do perfil" onchange="renomearPerfilAcesso(\'' + aspAdm(id) + '\', this.value)">' +
+    '<span class="adm-tag">' + n + (n === 1 ? ' pessoa usa' : ' pessoas usam') + ' este perfil</span>' +
+    '<button class="btn-claro perfil-x" onclick="removerPerfilAcesso(\'' + aspAdm(id) + '\')">✕ excluir</button></div>';
+
+  h += '<div class="adm-sec">1 · Empresas e menus que este perfil vê</div>';
+  h += gradeMenusHtml("perfil", id, p.menus, p);
+
+  h += '<div class="adm-sec">2 · O que este perfil pode fazer</div>';
+  h += '<div class="usr-perm-grid">';
+  PODERES_ADM.forEach(pd => {
+    let on = false, chamada = "";
+    if (pd.k === "envio"){ on = permissaoEnvioPerfil[id] === true; chamada = "setPermEnvioPerfil('" + aspAdm(id) + "', this.checked)"; }
+    else if (pd.k === "eventos"){ on = permissaoEventosPerfil[id] === true; chamada = "setPermEventosPerfil('" + aspAdm(id) + "', this.checked)"; }
+    else { on = !!(p.poderes && p.poderes.admin === true); chamada = "setPoderPerfil('" + aspAdm(id) + "', 'admin', this.checked)"; }
+    h += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked ' : '') + 'onchange="' + chamada + '"> ' + pd.nome + '</label>';
+  });
+  h += '</div>';
+  h += '<p class="nota-dash">🧾 O <b>responsável pela conferência dos caixas</b> é sempre por pessoa (depende do posto) — fica na ficha de cada uma, na aba Pessoas.</p>';
+
+  h += '<div class="adm-sec">3 · Notificações que este perfil recebe</div><div class="usr-perm-grid">';
+  ORIGENS_AVISO_ADM.forEach(o => {
+    const on = !(p.avisos && p.avisos[o[0]] === false);
+    h += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked' : '') + ' onchange="setAvisoPerfil(\'' + aspAdm(id) + '\', \'' + o[0] + '\', this.checked)"> ' + o[1] + '</label>';
+  });
+  h += '</div></div>';
+  cont.innerHTML = h;
+}
+function setMenuPerfilEmp(id, sig, key, on){
+  if (!perfisAcesso[id] || !ehAdminAtual()) return;
+  const p = perfisAcesso[id];
+  if (!p.menus || !mapaMenusNovo(p.menus)){
+    const antigo = p.menus || {};
+    const novo = menusVaziosPorEmpresa();
+    // o formato antigo valia para as tres empresas: preserva marcando em todas
+    EMPRESAS_ADM.forEach(x => menusDaSigla(x.sig).forEach(m => { if (antigo[m.key] === true) novo[x.sig][m.key] = true; }));
+    menusComuns().forEach(m => { if (antigo[m.key] === true) novo.todas[m.key] = true; });
+    p.menus = novo;
+  }
+  if (!p.menus[sig]) p.menus[sig] = {};
+  if (on) p.menus[sig][key] = true; else delete p.menus[sig][key];
+  docPerfisAcesso.set({ perfis: perfisAcesso })
+    .then(()=>{ aplicarVisibilidadeMenus(); renderEditorPerfil(); })
+    .catch(er => avisoAdmin("msgPerfis", msgErro(er), "erro"));
+}
+
+/* ----- aba Quem ve o que ----- */
+function renderAdmMatriz(){
+  const box = document.getElementById("admMatrizBox"); if (!box) return;
+  const sel = document.getElementById("admMtzEmp"); if (sel) admMtzEmp = sel.value || admMtzEmp;
+  const sig = admMtzEmp;
+  const emp = EMPRESAS_ADM.filter(x => x.sig === sig)[0] || EMPRESAS_ADM[0];
+  const pids = Object.keys(perfisAcesso || {});
+  const soltos = admEmails().filter(e => !perfilDoUsuario(e) && !ehAdminEmail(e));
+  const cols = pids.map(id => ({tipo:"perfil", id:id, nome:nomePerfilAdm(id)}))
+    .concat(soltos.map(e => ({tipo:"pessoa", id:e, nome:admNomeDe(e)})));
+  if (!cols.length){ box.innerHTML = '<p class="nota-dash">Nenhum perfil criado e ninguém sem perfil.</p>'; return; }
+  const linhas = menusDaSigla(sig).concat(menusComuns());
+  const veMenu = (c, key) => (key === "caixa" || key === "conta") ? true      // todos sempre veem
+    : (c.tipo === "perfil"
+        ? menuMarcadoEm((perfisAcesso[c.id] || {}).menus, (menusComuns().some(m => m.key === key) ? "todas" : sig), key)
+        : menuPermitidoDe(c.id, key, sig));
+  let h = '<div class="rpz-rola"><table class="rpz-tab adm-mtz"><thead><tr><th>Menu — ' + escAttr(emp.nome) + '</th>' +
+    cols.map(c => '<th>' + escAttr(c.nome) + (c.tipo === "pessoa" ? '<br><span class="adm-mini-nota">sem perfil</span>' : '') + '</th>').join("") + '</tr></thead><tbody>';
+  linhas.forEach(m => {
+    h += '<tr><td>' + escAttr(m.nome) + '</td>' + cols.map(c => {
+      const on = (c.tipo === "pessoa" && !normPerm(permissoesTodos[c.id])) ? true : veMenu(c, m.key);
+      return '<td class="' + (on ? 'adm-sim' : 'adm-nao') + '">' + (on ? '✓' : '—') + '</td>';
+    }).join("") + '</tr>';
+  });
+  const poderCol = (c, k) => {
+    if (c.tipo === "perfil"){
+      if (k === "envio") return permissaoEnvioPerfil[c.id] === true;
+      if (k === "eventos") return permissaoEventosPerfil[c.id] === true;
+      return !!((perfisAcesso[c.id] || {}).poderes && perfisAcesso[c.id].poderes.admin === true);
+    }
+    if (k === "envio") return podeEnviarRecadosDe(c.id);
+    if (k === "eventos") return podeGerenciarEventosDe(c.id);
+    return ehAdminEmail(c.id);
+  };
+  PODERES_ADM.forEach(pd => {
+    h += '<tr class="adm-mtz-pod"><td>' + pd.nome + '</td>' + cols.map(c => {
+      const on = poderCol(c, pd.k);
+      return '<td class="' + (on ? 'adm-sim' : 'adm-nao') + '">' + (on ? '✓' : '—') + '</td>';
+    }).join("") + '</tr>';
+  });
+  h += '</tbody></table></div>';
+  const semRegra = admEmails().filter(e => !ehAdminEmail(e) && !normPerm(permissoesTodos[e]));
+  if (semRegra.length){
+    h += '<p class="nota-dash adm-alerta">🚩 <b>' + semRegra.length + (semRegra.length === 1 ? ' pessoa está' : ' pessoas estão') +
+      ' sem perfil e sem menus próprios</b> — quem está assim <b>vê o app inteiro</b>: ' +
+      escAttr(semRegra.map(e => admNomeDe(e)).join(", ")) + '.</p>';
+  }
+  box.innerHTML = h;
+}
+
 /* ---------- Painel de administração ---------- */
 function alternarAdmin(){
   const aberto = abrirPainelExclusivo("painelAdmin");
   const bu = document.getElementById("btnUsuarios");
   if (bu) bu.classList.toggle("ativo", aberto);
-  if (aberto){ renderAdminUsuarios(); renderPerfisAcesso(); renderPermEnvio(); renderMetaCaixa(); }
+  if (aberto) irParaAbaAdm(admAba);
 }
 
 let admAcessoSel = "", admAtivSel = "", admPerfilSel = "", admOfflineSel = "";   // seleção dos seletores do Painel Admin (sobrevive aos re-renders)
 function nomeAdm(e){ return (perfis[e] && perfis[e] !== e) ? (perfis[e] + " (" + e + ")") : e; }
 function popularSelectsAdmin(emails){
-  const naoAdmin = emails.filter(e => !ADMINS.includes(e));
-  const sa = document.getElementById("admSelAcesso");
-  if (sa){ sa.innerHTML = '<option value="">— escolha um funcionário —</option>' + naoAdmin.map(e => '<option value="' + escAttr(e) + '">' + escAttr(nomeAdm(e)) + '</option>').join(""); if (admAcessoSel && naoAdmin.indexOf(admAcessoSel) >= 0) sa.value = admAcessoSel; else admAcessoSel = ""; }
   const st = document.getElementById("admSelAtiv");
-  if (st){ st.innerHTML = '<option value="">— escolha um funcionário —</option>' + emails.map(e => '<option value="' + escAttr(e) + '">' + escAttr(nomeAdm(e)) + '</option>').join(""); if (admAtivSel && emails.indexOf(admAtivSel) >= 0) st.value = admAtivSel; else admAtivSel = ""; }
+  if (st){
+    st.innerHTML = '<option value="">\u2014 escolha um funcion\u00e1rio \u2014</option>' +
+      emails.map(e => '<option value="' + escAttr(e) + '">' + escAttr(nomeAdm(e)) + '</option>').join("");
+    if (admAtivSel && emails.indexOf(admAtivSel) >= 0) st.value = admAtivSel; else admAtivSel = "";
+  }
 }
-function renderEditorAcesso(){
-  const cont = document.getElementById("admEditorAcesso"); if (!cont) return;
-  const sel = document.getElementById("admSelAcesso");
-  const e = sel ? sel.value : "";
-  admAcessoSel = e;
-  if (!e){ cont.innerHTML = '<p class="nota-dash">Selecione um funcionário acima para editar os acessos aos menus.</p>'; return; }
-  const asp = z => String(z).replace(/'/g, "\\'");
-  const rule = normPerm(permissoesTodos[e]);
-  let modo = ""; if (rule && rule.perfil) modo = "perfil:" + rule.perfil; else if (rule && rule.menus) modo = "manual";
-  let html = '<div class="usr-acesso">';
-  html += '<label class="usr-acesso-lbl">Acesso aos menus: <select onchange="definirAcessoUsuario(\'' + asp(e) + '\', this.value)">';
-  html += '<option value=""' + (modo === "" ? " selected" : "") + '>Vê todos os menus</option>';
-  const pids = Object.keys(perfisAcesso || {});
-  if (pids.length){
-    html += '<optgroup label="Perfis">';
-    pids.forEach(pid => { const val = "perfil:" + pid; html += '<option value="' + val + '"' + (modo === val ? " selected" : "") + '>Perfil: ' + escAttr(perfisAcesso[pid].nome || "(sem nome)") + '</option>'; });
-    html += '</optgroup>';
-  }
-  html += '<option value="manual"' + (modo === "manual" ? " selected" : "") + '>Escolher manualmente</option>';
-  html += '</select></label>';
-  if (modo === "manual"){
-    html += '<div class="usr-perm-grid">';
-    MENUS_APP.forEach(m => { if (m.key === "conta") return; const on = !!(rule.menus && rule.menus[m.key] === true); html += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked' : '') + ' onchange="setPermUsuario(\'' + asp(e) + '\', \'' + m.key + '\', this.checked)"> ' + m.nome + '</label>'; });
-    html += '</div>';
-  } else if (modo.indexOf("perfil:") === 0){
-    const p = perfisAcesso[modo.slice(7)];
-    const nomes = p ? MENUS_APP.filter(m => m.key !== "conta" && p.menus && p.menus[m.key] === true).map(m => m.nome) : [];
-    html += '<div class="usr-perm-info">Vê: ' + (nomes.length ? escAttr(nomes.join(", ")) : "nenhum menu ainda") + '.</div>';
-  }
-  html += '<div class="perfil-sub">\ud83d\udd14 Notificações deste funcionário:</div>';
-  const rawAvi = (permissoesTodos[e] && permissoesTodos[e].avisos) ? permissoesTodos[e].avisos : null;
-  const modoAvi = rawAvi ? "manual" : "";
-  html += '<label class="usr-acesso-lbl">Notificações: <select onchange="definirModoAvisosUsuario(\'' + asp(e) + '\', this.value)">';
-  html += '<option value=""' + (modoAvi === "" ? " selected" : "") + '>Seguir o perfil</option>';
-  html += '<option value="manual"' + (modoAvi === "manual" ? " selected" : "") + '>Escolher manualmente (exceção)</option>';
-  html += '</select></label>';
-  if (modoAvi === "manual"){
-    const origensAvi = [["ct","Posto Full - Teresina"],["cc","Posto Full - Caxias"],["cd","Posto Full - Dutra"],["cx","Full Transportadora"],["cg","Outros"]];
-    html += '<div class="usr-perm-grid">';
-    origensAvi.forEach(o => { const on = rawAvi[o[0]] !== false; html += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked' : '') + ' onchange="setAvisoUsuario(\'' + asp(e) + '\', \'' + o[0] + '\', this.checked)"> ' + o[1] + '</label>'; });
-    html += '</div><p class="nota-dash" style="margin:4px 0 0;font-size:.7rem">Exce\u00e7\u00e3o s\u00f3 para este funcion\u00e1rio \u2014 ignora o perfil.</p>';
-  }
-  html += '<div class="perfil-sub">\ud83d\udcc5 Calend\u00e1rio:</div>';
-  const ehAdmE = (typeof ADMINS!=="undefined") && ADMINS.includes(e);
-  html += '<label class="usr-envio-lbl"><input type="checkbox" ' + ((ehAdmE || permissaoEventos[e] === true) ? 'checked ' : '') + (ehAdmE ? 'disabled ' : '') + 'onchange="setPermEventos(\'' + asp(e) + '\', this.checked)"> Pode criar e editar eventos, vencimentos e arquivos</label>' + (ehAdmE ? ' <span style="font-size:.7rem;color:var(--cinza)">(admin sempre pode)</span>' : '');
-  html += '<p class="nota-dash" style="margin:6px 0 0;font-size:.7rem">O administrador vê tudo. Alterações valem quando o usuário recarregar o app.</p></div>';
-  cont.innerHTML = html;
-}
+function renderEditorAcesso(){ renderAbaAdm(); }
 // ----- Registro de atividades (todas as ações dos usuários) -----
 function logAtividade(o){
   if (!nuvemPronta) return;
@@ -3612,62 +4109,8 @@ function renderAtividadesFunc(){
 }
 
 /* Lista de usuários cadastrados: perfis salvos + quem já aparece no histórico */
-function renderAdminUsuarios(){
-  const cont = document.getElementById("listaUsuarios");
-  if (!cont) return;
-  const mapa = {};
-  Object.keys(perfisDocs || {}).forEach(e => { mapa[e] = perfisDocs[e]; });
-  (historico || []).forEach(h => {
-    const e = String(h.usuario || "").trim().toLowerCase();
-    if (e && e.indexOf("@") > 0 && !(e in mapa)) mapa[e] = perfis[e] || "";
-  });
-  Object.keys(presencaMap || {}).forEach(e => { if (!(e in mapa)) mapa[e] = perfis[e] || ""; });
-  const emails = Object.keys(mapa).sort();
-  if (!emails.length){
-    cont.innerHTML = '<p class="nota-dash">Os usuários aparecem aqui ao serem criados por este painel, ao salvarem o próprio nome ou ao fazerem a primeira alteração no app.</p>';
-    return;
-  }
-  const asp = s => String(s).replace(/'/g,"\\'");
-  const attr = s => String(s).replace(/"/g,'&quot;');
-  const online = emails.filter(usuarioOnline);
-  const offline = emails.filter(e => !usuarioOnline(e));
-  let html = '<div class="pres-resumo"><span class="pres on"><span class="dot"></span></span><span><b>' + online.length + '</b> ' + (online.length === 1 ? 'usuário online agora' : 'usuários online agora') + (online.length ? ' — ' + escAttr(online.map(e => perfis[e] || e).join(", ")) : '') + '</span></div>';
-  online.forEach(e => {
-    const ehAdmin = ADMINS.includes(e);
-    html += '<div class="usr-item"><span class="usr-email">' + e +
-      (ehAdmin ? ' <span class="usr-tag">admin</span>' : '') + presencaHtml(e) + '</span>' +
-      '<input maxlength="40" value="' + attr(mapa[e] || '') + '" placeholder="Sem nome definido" ' +
-      'onchange="salvarNomeUsuario(\'' + asp(e) + '\', this.value)">' +
-      '<button class="btn-claro" title="Envia um e-mail para o usuário escolher uma senha nova" ' +
-      'onclick="enviarResetUsuario(\'' + asp(e) + '\')">🔑 Trocar senha</button>' +
-      '</div>';
-    html += '<div class="usr-envio"><label class="usr-envio-lbl"><input type="checkbox" ' +
-      (podeEnviarRecadosDe(e) ? 'checked ' : '') + (ehAdmin ? 'disabled ' : '') +
-      'onchange="setPermEnvio(\'' + asp(e) + '\', this.checked)"> Pode enviar avisos/tarefas</label>' +
-      (ehAdmin ? ' <span style="font-size:.7rem;color:var(--cinza)">(admin sempre pode)</span>' : '') + '</div>';
-  });
-  if (!online.length) html += '<p class="nota-dash">Ninguém online agora.</p>';
-  cont.innerHTML = html;
-  // Caixa dos usuários OFFLINE (só mostra o último acesso)
-  const so = document.getElementById("admSelOffline");
-  if (so){ so.innerHTML = '<option value="">— escolha um funcionário —</option>' + offline.map(e => '<option value="' + escAttr(e) + '">' + escAttr(nomeAdm(e)) + '</option>').join(""); if (admOfflineSel && offline.indexOf(admOfflineSel) >= 0) so.value = admOfflineSel; else admOfflineSel = ""; }
-  renderOfflineInfo();
-  popularSelectsAdmin(emails);
-  renderEditorAcesso();
-  renderAtividadesFunc();
-}
-function renderOfflineInfo(){
-  const cont = document.getElementById("offlineInfo"); if (!cont) return;
-  const sel = document.getElementById("admSelOffline");
-  admOfflineSel = sel ? sel.value : "";
-  const e = admOfflineSel;
-  if (!e){ cont.innerHTML = '<p class="nota-dash">Escolha um funcionário acima para ver o último acesso dele.</p>'; return; }
-  const nome = (perfis[e] && perfis[e] !== e) ? perfis[e] : e;
-  const t = presencaMap[e] || 0;
-  if (!t){ cont.innerHTML = '<div class="off-info"><span class="pres off"><span class="dot"></span></span> <b>' + escAttr(nome) + '</b> — nunca acessou o app. <span class="off-email">' + escAttr(e) + '</span></div>'; return; }
-  const msAc = msDeQuando(t);   // v201
-  cont.innerHTML = '<div class="off-info"><span class="pres off"><span class="dot"></span></span> <b>' + escAttr(nome) + '</b> — último acesso <b>' + escAttr(fmtPresencaHa(t)) + '</b>' + (msAc ? (' <span class="off-abs">(' + escAttr(fmtDataHora(new Date(msAc))) + ')</span>') : '') + ' <span class="off-email">' + escAttr(e) + '</span></div>';
-}
+
+function renderOfflineInfo(){ /* v216: o ultimo acesso mora na ficha da pessoa */ }
 const permAbertos = new Set();   // e-mails cujo editor de menus está aberto (para sobreviver a re-desenhos)
 function alternarPermUsuario(email){
   email = String(email).toLowerCase();
@@ -3700,15 +4143,14 @@ function definirAcessoUsuario(email, val){
   } else if (val.indexOf("perfil:") === 0){
     permissoesTodos[email] = aviAtual ? { perfil: val.slice(7), avisos: aviAtual } : { perfil: val.slice(7) };
   } else if (val === "manual"){
-    const menus = {};
-    MENUS_APP.forEach(m => { if (m.key !== "conta") menus[m.key] = menuPermitidoDe(email, m.key); }); // parte do estado atual
+    const menus = menusManualDoUsuario(email);      // v216 - ja nasce separado por empresa
     permissoesTodos[email] = aviAtual ? { menus, avisos: aviAtual } : { menus };
   }
   docPermissoes.set({ porUsuario: permissoesTodos })
     .then(()=> avisoAdmin("msgAdminLista", "Acesso de " + email + " atualizado.", "ok"))
     .catch(er => avisoAdmin("msgAdminLista", msgErro(er), "erro"));
   aplicarVisibilidadeMenus();
-  renderEditorAcesso();
+  renderAbaAdm();
 }
 // Exceção de notificações por usuário (independe do perfil)
 function definirModoAvisosUsuario(email, val){
@@ -3729,7 +4171,7 @@ function definirModoAvisosUsuario(email, val){
   docPermissoes.set({ porUsuario: permissoesTodos })
     .then(()=> avisoAdmin("msgAdminLista", "Notificações de " + email + " atualizadas.", "ok"))
     .catch(er => avisoAdmin("msgAdminLista", msgErro(er), "erro"));
-  renderEditorAcesso();
+  renderAbaAdm();
   refrescarAvisosCalendario();
 }
 function setAvisoUsuario(email, origem, on){
@@ -3743,45 +4185,8 @@ function setAvisoUsuario(email, origem, on){
     .catch(er => avisoAdmin("msgAdminLista", msgErro(er), "erro"));
 }
 // ----- Perfis de acesso (templates de menus, com vínculo ao vivo) -----
-function renderPerfisAcesso(){
-  const sel = document.getElementById("admSelPerfil");
-  if (!sel) return;
-  const ids = Object.keys(perfisAcesso || {});
-  sel.innerHTML = ids.length
-    ? ('<option value="">— escolha um perfil —</option>' + ids.map(id => '<option value="' + id + '">' + escAttr(perfisAcesso[id].nome || "(sem nome)") + '</option>').join(""))
-    : '<option value="">— nenhum perfil criado —</option>';
-  if (admPerfilSel && ids.indexOf(admPerfilSel) >= 0) sel.value = admPerfilSel; else admPerfilSel = "";
-  renderEditorPerfil();
-}
-function renderEditorPerfil(){
-  const cont = document.getElementById("editorPerfil"); if (!cont) return;
-  const sel = document.getElementById("admSelPerfil");
-  const id = sel ? sel.value : "";
-  admPerfilSel = id;
-  if (!id || !perfisAcesso[id]){
-    cont.innerHTML = Object.keys(perfisAcesso || {}).length
-      ? '<p class="nota-dash">Escolha um perfil acima para editar os menus dele, ou crie um novo abaixo.</p>'
-      : '<p class="nota-dash">Nenhum perfil ainda. Crie um abaixo (ex.: "Caixa", "Gerente") e marque os menus que ele pode ver.</p>';
-    return;
-  }
-  const p = perfisAcesso[id] || { nome:"", menus:{} };
-  let h = '<div class="perfil-item"><div class="perfil-top">' +
-    '<input class="perfil-nome" maxlength="30" value="' + escAttr(p.nome || "") + '" placeholder="Nome do perfil" onchange="renomearPerfilAcesso(\'' + id + '\', this.value)">' +
-    '<button class="btn-claro perfil-x" onclick="removerPerfilAcesso(\'' + id + '\')">✕ excluir</button></div>';
-  h += '<div class="perfil-sub">Menus que este perfil vê:</div><div class="usr-perm-grid">';
-  MENUS_APP.forEach(m => {
-    if (m.key === "conta") return;
-    const on = !!(p.menus && p.menus[m.key] === true);
-    h += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked' : '') +
-      ' onchange="setMenuPerfil(\'' + id + '\', \'' + m.key + '\', this.checked)"> ' + m.nome + '</label>';
-  });
-  h += '</div>';
-  const origensAvi = [["ct","Posto Full - Teresina"],["cc","Posto Full - Caxias"],["cd","Posto Full - Dutra"],["cx","Full Transportadora"],["cg","Outros"]];
-  h += '<div class="perfil-sub">\ud83d\udd14 Notificações que este perfil vê:</div><div class="usr-perm-grid">';
-  origensAvi.forEach(o => { const on = !(p.avisos && p.avisos[o[0]] === false); h += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked' : '') + ' onchange="setAvisoPerfil(\'' + id + '\', \'' + o[0] + '\', this.checked)"> ' + o[1] + '</label>'; });
-  h += '</div></div>';
-  cont.innerHTML = h;
-}
+
+
 function criarPerfilAcesso(){
   const inp = document.getElementById("novoPerfilNome");
   const nome = (inp && inp.value || "").trim();
@@ -4245,7 +4650,7 @@ function iniciarSync(){
     perfis = mapa;
     perfisDocs = docs;
     const pAdm = document.getElementById("painelAdmin");
-    if (pAdm && pAdm.classList.contains("aberto")) renderAdminUsuarios();
+    if (pAdm && pAdm.classList.contains("aberto")) renderAbaAdm();
     // atualizar o nome do próprio usuário logado
     nomeUsuario = perfis[(usuarioAtual||"").toLowerCase()] || "";
     const cn = document.getElementById("meuNome");
@@ -4262,7 +4667,7 @@ function iniciarSync(){
     snap.forEach(doc => { const d = doc.data() || {}; m[doc.id.toLowerCase()] = d.ultimoVisto || 0; });
     presencaMap = m;
     const pAdm = document.getElementById("painelAdmin");
-    if (pAdm && pAdm.classList.contains("aberto")) renderAdminUsuarios();
+    if (pAdm && pAdm.classList.contains("aberto")) renderAbaAdm();
   }, ()=>{});
 
   // Caixa de entrada (avisos e tarefas internas)
@@ -4282,21 +4687,22 @@ function iniciarSync(){
     permissaoEnvio = (d && d.porUsuario) ? d.porUsuario : {};
     permissaoEnvioPerfil = (d && d.porPerfil) ? d.porPerfil : {};   // v187
     const pAdm2 = document.getElementById("painelAdmin");
-    if (pAdm2 && pAdm2.classList.contains("aberto")) renderPermEnvio();
+    if (pAdm2 && pAdm2.classList.contains("aberto")) renderAbaAdm();
     const pcx = document.getElementById("painelCaixa");
     if (pcx && pcx.classList.contains("aberto")) renderCaixa();
     const pAdm = document.getElementById("painelAdmin");
-    if (pAdm && pAdm.classList.contains("aberto")) renderAdminUsuarios();
+    if (pAdm && pAdm.classList.contains("aberto")) renderAbaAdm();
   }, ()=>{});
 
   // Quem pode criar/editar eventos do calendário
   escutaPermEventos = docPermEventos.onSnapshot(snap => {
     const d = snap.exists ? (snap.data() || {}) : {};
     permissaoEventos = (d && d.porUsuario) ? d.porUsuario : {};
+    permissaoEventosPerfil = (d && d.porPerfil) ? d.porPerfil : {};
     const pc = document.getElementById("painelCalendario");
     if (pc && pc.classList.contains("aberto")) renderCalendario();
     const pAdm = document.getElementById("painelAdmin");
-    if (pAdm && pAdm.classList.contains("aberto")) renderEditorAcesso();
+    if (pAdm && pAdm.classList.contains("aberto")) renderAbaAdm();
   }, ()=>{});
 
   // v168 - relatórios mensais vindos do Adaptive
@@ -4447,7 +4853,7 @@ function iniciarSync(){
     aplicarVisibilidadeMenus();
     garantirPainelPermitido();
     const pa = document.getElementById("painelAdmin");
-    if (pa && pa.classList.contains("aberto")) renderPerfisAcesso();
+    if (pa && pa.classList.contains("aberto")) renderAbaAdm();
     refrescarAvisosCalendario();
   }, ()=>{});
 
@@ -4940,51 +5346,50 @@ const MENUS_APP = [
   {key:"conta",       btn:"btnConta",       pan:"painelConta",       emp:"ambos",  nome:"Minha conta"},
   {key:"config",      btn:"btnConfig",      pan:"painelConfig",      emp:"ambos",  nome:"Configurações"}
 ];
-function ehAdminAtual(){ return (typeof ADMINS!=="undefined") && ADMINS.includes((usuarioAtual||"").toLowerCase()); }
+function ehAdminAtual(){ return ehAdminEmail(usuarioAtual); }
 // Um menu é permitido se: usuário é admin, OU não há regra p/ ele (vê tudo), OU a regra marca true
 function normPerm(v){
   if (!v || typeof v !== "object") return null;
   if (v.perfil) return { perfil: v.perfil };
   if (v.menus && typeof v.menus === "object") return { menus: v.menus };
-  // legado (mapa plano menuKey->bool) — mas ignorando a chave "avisos" (exceção de notificações)
-  const chavesMenu = Object.keys(v).filter(k => k !== "avisos");
-  if (!chavesMenu.length) return null;   // só tinha "avisos" = vê todos os menus
+  // legado (mapa plano menuKey->bool) \u2014 ignorando as chaves que nao sao menu
+  const IGN = ["avisos","admin","poderes","empresas"];
+  const chavesMenu = Object.keys(v).filter(k => IGN.indexOf(k) < 0);
+  if (!chavesMenu.length) return null;   // so tinha excecoes = ve todos os menus
   const flat = {}; chavesMenu.forEach(k => flat[k] = v[k]);
   return { menus: flat };
 }
-function menuPermitidoDe(email, key){
+function menuPermitidoDe(email, key, sig){
   if (key === "conta" || key === "caixa") return true;
-  // v133: "Vencimentos" e "Arquivos" viraram um menu só (Documentos).
-  // Quem tinha permissão em qualquer um dos dois continua vendo o menu unificado.
-  if (key === "vencimentos") return _menuPermBase(email, "vencimentos") || _menuPermBase(email, "arquivos");
-  // v177: o "Comparativo de Preços" virou uma seção dentro de "Cotações do Dia".
-  // Quem tinha permissão no comparativo continua enxergando o menu que o absorveu.
-  if (key === "cotacoes") return _menuPermBase(email, "cotacoes") || _menuPermBase(email, "comparativo");
-  // v192: "Relatorios do posto" e "Relatorios Petros" viraram o menu unico "Relatorios".
-  // v207: o menu "Financeiro" tambem virou abas dentro dele.
-  if (key === "relPosto") return _menuPermBase(email, "relPosto") || _menuPermBase(email, "relPetros") || _menuPermBase(email, "financeiro");
+  // v133: "Vencimentos" e "Arquivos" viraram um menu so (Documentos).
+  if (key === "vencimentos") return _menuPermBase(email, "vencimentos", sig) || _menuPermBase(email, "arquivos", sig);
+  // v177: o "Comparativo de Precos" virou uma secao dentro de "Cotacoes do Dia".
+  if (key === "cotacoes") return _menuPermBase(email, "cotacoes", sig) || _menuPermBase(email, "comparativo", sig);
+  // v192 / v207: "Relatorios do posto", "Relatorios Petros" e "Financeiro" viraram um menu so.
+  if (key === "relPosto") return _menuPermBase(email, "relPosto", sig) || _menuPermBase(email, "relPetros", sig) || _menuPermBase(email, "financeiro", sig);
   // v198: o menu "Caixas" virou um bloco dentro do Dashboard.
-  if (key === "dash") return _menuPermBase(email, "dash") || _menuPermBase(email, "caixas");
-  // v205/v207: nos Postos o menu "Despesas" virou aba dos Relatorios; na Conveniencia continua menu.
-  if (key === "despesas")   return _menuPermBase(email, "despesas")   || _menuPermBase(email, "financeiro");
-  return _menuPermBase(email, key);
+  if (key === "dash") return _menuPermBase(email, "dash", sig) || _menuPermBase(email, "caixas", sig);
+  // v205/v207: nos Postos o menu "Despesas" virou aba dos Relatorios.
+  if (key === "despesas")   return _menuPermBase(email, "despesas", sig)   || _menuPermBase(email, "financeiro", sig);
+  return _menuPermBase(email, key, sig);
 }
-function _menuPermBase(email, key){
+function _menuPermBase(email, key, sig){
   email = (email || "").toLowerCase();
-  if ((typeof ADMINS !== "undefined") && ADMINS.includes(email)) return true;
+  if (ehAdminEmail(email)) return true;
+  const s = sig || siglaEmpresa(empresa);
   const rule = normPerm(permissoesTodos[email]);
-  if (!rule) return true;                       // sem regra = vê tudo
+  if (!rule) return true;                       // sem regra = ve tudo
   if (rule.perfil){
     const p = perfisAcesso[rule.perfil];
-    if (!p) return true;                        // perfil apagado = não travar o usuário
-    return !!(p.menus && p.menus[key] === true);
+    if (!p) return true;                        // perfil apagado = nao travar o usuario
+    return menuMarcadoEm(p.menus, s, key);
   }
-  return !!(rule.menus && rule.menus[key] === true);
+  return menuMarcadoEm(rule.menus, s, key);
 }
-function menuPermitido(key){
+function menuPermitido(key, sig){
   if (key === "conta" || key === "caixa") return true;   // Minha conta e Caixa de entrada: todos sempre veem
   if (ehAdminAtual()) return true;
-  return menuPermitidoDe(usuarioAtual, key);
+  return menuPermitidoDe(usuarioAtual, key, sig);
 }
 // Antes só existiam duas empresas, então bastava um sim/não ("é transportadora?").
 // Com a Full Conveniência virando a terceira, a comparação passa a ser pela sigla
@@ -5164,11 +5569,16 @@ function renderSetasOrdem(){
 
 function aplicarVisibilidadeMenus(){
   instalarFerramentasPaineis();
+  garantirEmpresaPermitida();                       // v216 - empresa desmarcada nao fica aberta
   const s = siglaEmpresa(empresa);
+  EMPRESAS_ADM.forEach(x => {                       // v216 - some do seletor do topo
+    const be = document.getElementById("btnEmp_" + x.sig);
+    if (be) be.style.display = empresaPermitida(x.sig) ? "" : "none";
+  });
   MENUS_APP.forEach(m => {
     const b = document.getElementById(m.btn);
     if (!b) return;
-    b.style.display = (menuVisivelEmpresa(m, s) && menuPermitido(m.key)) ? "" : "none";
+    b.style.display = (menuVisivelEmpresa(m, s) && menuPermitido(m.key, s)) ? "" : "none";
   });
   // Blocos das Configurações que só fazem sentido em uma empresa
   const gm = document.getElementById("grupoMotoristas"); if (gm) gm.style.display = (s === "transp") ? "" : "none";
@@ -9046,16 +9456,39 @@ function selDiaCal(iso){
 const ORIGENS_EVENTO = ["Posto Full - Teresina","Posto Full - Caxias","Posto Full - Dutra","Full Transportadora","Outros"];
 function podeGerenciarEventosDe(email){
   email = (email||"").toLowerCase();
-  if ((typeof ADMINS!=="undefined") && ADMINS.includes(email)) return true;
-  return !!(permissaoEventos && permissaoEventos[email] === true);
+  if (ehAdminEmail(email)) return true;
+  if (permissaoEventos && permissaoEventos[email] === true) return true;
+  if (permissaoEventos && permissaoEventos[email] === false) return false;
+  const p = perfilDoUsuario(email);
+  return !!(p && permissaoEventosPerfil && permissaoEventosPerfil[p] === true);
 }
-function podeGerenciarEventos(){ return podeGerenciarEventosDe(usuarioAtual); }
-function setPermEventos(email, on){
+function origemEventosDe(email){
+  email = (email||"").toLowerCase();
+  if (ehAdminFixo(email)) return "admin";
+  if (permissaoEventos && permissaoEventos[email] === true) return "sim";
+  if (permissaoEventos && permissaoEventos[email] === false) return "nao";
+  return "perfil";
+}
+function setPermEventosModo(email, modo){
   email = (email||"").toLowerCase();
   if (!permissaoEventos) permissaoEventos = {};
-  if (on) permissaoEventos[email] = true; else delete permissaoEventos[email];
-  docPermEventos.set({ porUsuario: permissaoEventos }).catch(()=>{});
+  if (modo === "sim") permissaoEventos[email] = true;
+  else if (modo === "nao") permissaoEventos[email] = false;
+  else delete permissaoEventos[email];
+  gravarPermEventos();
 }
+function setPermEventosPerfil(id, on){
+  if (!permissaoEventosPerfil) permissaoEventosPerfil = {};
+  if (on) permissaoEventosPerfil[id] = true; else delete permissaoEventosPerfil[id];
+  gravarPermEventos();
+}
+function gravarPermEventos(){
+  docPermEventos.set({ porUsuario: permissaoEventos || {}, porPerfil: permissaoEventosPerfil || {} })
+    .then(()=>{ renderAbaAdm(); refrescarAvisosCalendario(); })
+    .catch(()=>{});
+}
+function podeGerenciarEventos(){ return podeGerenciarEventosDe(usuarioAtual); }
+function setPermEventos(email, on){ setPermEventosModo(email, on ? "sim" : ""); }
 function _isoDe(dt){ return dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0"); }
 function ocorrenciasEventos(){
   const out = [];
