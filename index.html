@@ -3102,6 +3102,9 @@ function renderMetaCaixa(){
   const grp = document.getElementById("grupoMetaCaixa");
   const box = document.getElementById("metaCaixaBox");
   if (!grp || !box) return;
+  // v218 - nao redesenhar por baixo da mao de quem esta usando o quadro.
+  // (O snapshot de presenca bate a cada ~1 min; sem isto, o cursor pula do campo.)
+  if (box.contains(document.activeElement)) return;
   const souAdmin = ehAdminAtual();
   grp.style.display = souAdmin ? "" : "none";
   if (!souAdmin){ box.innerHTML = ""; return; }
@@ -3111,8 +3114,8 @@ function renderMetaCaixa(){
   const aviso = (metaCaixa && Array.isArray(metaCaixa.avisoPara)) ? metaCaixa.avisoPara : [];
 
   let h = '<div class="mc-campos">' +
-    '<label>Meta <input type="number" id="mcDias" min="1" max="30" step="1" value="' + mcMeta() + '"> dias \u00fateis</label>' +
-    '<label><input type="checkbox" id="mcFds"' + (mcDescontaFds() ? ' checked' : '') + '> N\u00e3o contar s\u00e1bado e domingo</label>' +
+    '<label>Meta <input type="number" id="mcDias" min="1" max="30" step="1" value="' + mcMeta() + '" onchange="salvarMetaCaixa()"> dias \u00fateis</label>' +
+    '<label><input type="checkbox" id="mcFds"' + (mcDescontaFds() ? ' checked' : '') + ' onchange="salvarMetaCaixa()"> N\u00e3o contar s\u00e1bado e domingo</label>' +
     '</div>';
   h += '<p class="nota-dash">Com a meta atual, o limite equivalente \u00e9 de <b>' + mcTxtDias(mcLimiteCorrido(), false) + '</b> na m\u00e9dia.</p>';
 
@@ -3125,7 +3128,9 @@ function renderMetaCaixa(){
       h += '<div class="mc-col"><h4>' + escAttr(u) + '</h4><div class="usr-perm-grid">';
       pessoas.forEach(e => {
         h += '<label class="usr-perm-item"><input type="checkbox" data-mcresp="' + escAttr(u) + '" value="' + escAttr(e) + '"' +
-             (mcMarcados(resp[u], e) ? ' checked' : '') + '> ' + escAttr(mcNomeDe(e)) + '</label>';
+             (mcMarcados(resp[u], e) ? ' checked' : '') +
+             ' onchange="setRespCaixaPessoa(\'' + escAspas(e) + '\', \'' + escAspas(u) + '\', this.checked)"> ' +
+             escAttr(mcNomeDe(e)) + '</label>';
       });
       h += '</div></div>';
     });
@@ -3140,36 +3145,33 @@ function renderMetaCaixa(){
     h += '<div class="usr-perm-grid">';
     pessoas.forEach(e => {
       h += '<label class="usr-perm-item"><input type="checkbox" data-mcaviso="1" value="' + escAttr(e) + '"' +
-           (mcMarcados(aviso, e) ? ' checked' : '') + '> ' + escAttr(mcNomeDe(e)) + '</label>';
+           (mcMarcados(aviso, e) ? ' checked' : '') +
+           ' onchange="setAvisoCaixaPessoa(\'' + escAspas(e) + '\', this.checked)"> ' +
+           escAttr(mcNomeDe(e)) + '</label>';
     });
     h += '</div>';
   }
 
-  h += '<div class="add-linha"><button class="btn-verde" onclick="salvarMetaCaixa()">Salvar</button></div>';
+  h += '<p class="nota-dash">\u2713 Tudo aqui \u00e9 salvo na hora \u2014 n\u00e3o existe bot\u00e3o de salvar.</p>';
   // a mensagem vive em mcMsg, e nao no DOM: o onSnapshot redesenha este quadro logo
   // depois de salvar, e uma mensagem escrita direto no elemento sumiria na hora.
   h += '<div class="msg-admin" id="msgMetaCaixa">' + escAttr(mcMsg) + '</div>';
   box.innerHTML = h;
 }
 function salvarMetaCaixa(){
+  // v218 - grava SO a meta. Os respons\u00e1veis e o aviso semanal gravam sozinhos, caixinha
+  // por caixinha (setRespCaixaPessoa / setAvisoCaixaPessoa) \u2014 por isso o {merge:true} aqui
+  // n\u00e3o pode carregar as listas junto: ele apagaria o que outra tela acabou de gravar.
   if (!ehAdminAtual()) return;
   if (!nuvemPronta){ mcMsg = "Sem conex\u00e3o com a nuvem \u2014 tente de novo em instantes."; renderMetaCaixa(); return; }
   const di = document.getElementById("mcDias"), fd = document.getElementById("mcFds");
   const dias = Math.max(1, Math.min(30, parseInt((di && di.value) || "1", 10) || 1));
-  const responsaveis = {};
-  CXI_POSTOS.forEach(u => {
-    responsaveis[u] = Array.prototype.slice
-      .call(document.querySelectorAll('[data-mcresp="' + u + '"]:checked'))
-      .map(c => String(c.value).toLowerCase());
-  });
-  const avisoPara = Array.prototype.slice
-    .call(document.querySelectorAll('[data-mcaviso]:checked'))
-    .map(c => String(c.value).toLowerCase());
-  const antes = JSON.parse(JSON.stringify(metaCaixa || {}));
-  const novo = { metaDiasUteis: dias, descontarFds: !!(fd && fd.checked),
-                 responsaveis: responsaveis, avisoPara: avisoPara,
-                 atualizadoEm: new Date().toISOString(), por: usuarioAtual || "" };
-  docMetaCaixa.set(novo, {merge:true})
+  const fds = !!(fd && fd.checked);
+  const antes = { metaDiasUteis: mcMeta(), descontarFds: mcDescontaFds() };
+  if (dias === antes.metaDiasUteis && fds === antes.descontarFds) return;   // nada mudou
+  metaCaixa = Object.assign({}, metaCaixa || {}, { metaDiasUteis: dias, descontarFds: fds });
+  docMetaCaixa.set({ metaDiasUteis: dias, descontarFds: fds,
+                     atualizadoEm: new Date().toISOString(), por: usuarioAtual || "" }, {merge:true})
     .then(() => {
       mcMsg = "Pronto. A meta agora \u00e9 de " + mcTxtDias(dias, true) + ".";
       renderMetaCaixa();
@@ -3885,8 +3887,12 @@ function setRespCaixaPessoa(email, unidade, on){
   const i = lista.indexOf(email);
   if (on && i < 0) lista.push(email); else if (!on && i >= 0) lista.splice(i, 1);
   metaCaixa = Object.assign({}, metaCaixa || {}, { responsaveis: resp });
-  docMetaCaixa.set({ responsaveis: resp, atualizadoEm: new Date().toISOString(), por: usuarioAtual || "" }, {merge:true}).catch(()=>{});
-  renderAdminUsuarios();
+  mcMsg = (on ? "\u2713 " + mcNomeDe(email) + " agora responde por " + unidade + "."
+              : "\u2713 " + mcNomeDe(email) + " saiu de " + unidade + ".");
+  docMetaCaixa.set({ responsaveis: resp, atualizadoEm: new Date().toISOString(), por: usuarioAtual || "" }, {merge:true})
+    .catch(() => { mcMsg = "N\u00e3o consegui salvar agora."; renderAbaAdm(); });
+  const cx = document.getElementById("msgMetaCaixa"); if (cx) cx.textContent = mcMsg;   // v218 - sem redesenhar
+  if (admAba === "pessoas") renderAdminUsuarios();
 }
 function setAvisoCaixaPessoa(email, on){
   if (!ehAdminAtual() || !nuvemPronta) return;
@@ -3895,8 +3901,12 @@ function setAvisoCaixaPessoa(email, on){
   const i = av.indexOf(email);
   if (on && i < 0) av.push(email); else if (!on && i >= 0) av.splice(i, 1);
   metaCaixa = Object.assign({}, metaCaixa || {}, { avisoPara: av });
-  docMetaCaixa.set({ avisoPara: av, atualizadoEm: new Date().toISOString(), por: usuarioAtual || "" }, {merge:true}).catch(()=>{});
-  renderAdminUsuarios();
+  mcMsg = (on ? "\u2713 " + mcNomeDe(email) + " passa a receber o aviso semanal."
+              : "\u2713 " + mcNomeDe(email) + " deixa de receber o aviso semanal.");
+  docMetaCaixa.set({ avisoPara: av, atualizadoEm: new Date().toISOString(), por: usuarioAtual || "" }, {merge:true})
+    .catch(() => { mcMsg = "N\u00e3o consegui salvar agora."; renderAbaAdm(); });
+  const cx = document.getElementById("msgMetaCaixa"); if (cx) cx.textContent = mcMsg;   // v218 - sem redesenhar
+  if (admAba === "pessoas") renderAdminUsuarios();
 }
 
 /* ----- a grade de menus por empresa (serve para perfil e para pessoa) ----- */
