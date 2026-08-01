@@ -1486,6 +1486,8 @@
     body.com-atz #telaLogin{padding-top:116px}
     body.com-atz .menu-lateral{top:96px}
   }
+.pux-grafia{display:inline-block;font-size:11px;padding:1px 7px;border-radius:10px;margin-left:6px;
+  color:#8a5a00;background-color:#fff3d6;background-image:linear-gradient(#fff3d6,#fff3d6);border:1px solid #f0d9a0;cursor:help}
 </style>
 </head>
 <body>
@@ -1690,6 +1692,11 @@
         <button class="btn-claro" onclick="mudarMesPuxadas(1)">Próximo mês ▶</button>
       </div>
       <div id="resumoPuxadas"></div>
+    </div>
+    <div class="grupo">
+      <h2>Volume por cliente — <span id="puxMesRotuloCli"></span></h2>
+      <p class="nota-dash">Para quem foi o combustível no mês. <b>Cada distribuidora escreve o nome do cliente do seu jeito no CT-e</b> (“FCN.X” e “FCN X”, “NC … PD” e “NC … PD LTDA”) — aqui as grafias do mesmo cliente entram somadas, numa linha só.</p>
+      <div id="resumoPuxCliente"></div>
     </div>
     <div class="grupo">
       <h2>Puxadas registradas</h2>
@@ -10700,6 +10707,33 @@ function renderPuxadas(){
     }
   }
 
+  // v215 - Volume por cliente (as duas grafias do mesmo cliente somadas)
+  const rotCli = document.getElementById("puxMesRotuloCli");
+  if (rotCli) rotCli.textContent = fmtMesRotulo(mesPuxadas);
+  const contCli = document.getElementById("resumoPuxCliente");
+  if (contCli){
+    const cls = resumirPorCliente(doMes);
+    if (!cls.length){
+      contCli.innerHTML = '<p class="nota-dash">Nenhuma puxada neste m\u00eas.</p>';
+    } else {
+      let cL=0, cF=0, cQ=0;
+      let hc = '<div class="tabela-wrap"><table class="pux-tab pux-lista pux-resumo"><thead><tr><th>Cliente</th><th>Puxadas</th><th>Litros no m\u00eas</th><th>Frete no m\u00eas</th></tr></thead><tbody>';
+      cls.forEach(c => {
+        cL+=c.litros; cF+=c.frete; cQ+=c.qtd;
+        const dup = c.grafias.length > 1
+          ? ' <span class="pux-grafia" title="No CT-e vem escrito de '+c.grafias.length+' jeitos: '+escAttr(c.grafias.join(" | "))+'">'+c.grafias.length+' grafias</span>'
+          : '';
+        hc += '<tr><td data-lbl="Cliente"><b>'+escAttr(c.curto)+'</b>'+dup+'<br><span class="nota-dash">'+escAttr(c.nome)+'</span></td>'+
+              '<td data-lbl="Puxadas">'+c.qtd+'</td>'+
+              '<td data-lbl="Litros no m\u00eas">'+fmtLitros(c.litros)+' L</td>'+
+              '<td data-lbl="Frete no m\u00eas">R$ '+fmtBR(c.frete,2)+'</td></tr>';
+      });
+      hc += '<tr class="pux-total"><td data-lbl="Cliente">Total</td><td data-lbl="Puxadas">'+cQ+'</td><td data-lbl="Litros no m\u00eas">'+fmtLitros(cL)+' L</td><td data-lbl="Frete no m\u00eas">R$ '+fmtBR(cF,2)+'</td></tr>';
+      hc += '</tbody></table></div>';
+      contCli.innerHTML = hc;
+    }
+  }
+
   // Lista completa de puxadas (recentes primeiro)
   const lista = document.getElementById("listaPuxadas");
   if (!lista) return;
@@ -10716,7 +10750,7 @@ function renderPuxadas(){
       '<td data-lbl="Motorista">'+escAttr(p.motorista||"—")+'</td>'+
       '<td data-lbl="Placa">'+escAttr([p.placaCaminhao,p.placaTanque].filter(Boolean).join(" / "))+'</td>'+
       '<td data-lbl="Distribuidora">'+escAttr(p.distribuidora||"")+'</td>'+
-      '<td data-lbl="Destinatário">'+escAttr(p.destinatario||"")+'</td>'+
+      '<td data-lbl="Destinatário"'+(clienteCanonico(p.destinatario,p.destinatarioCnpj)!==(p.destinatario||"")?' title="No CT-e: '+escAttr(p.destinatario||"")+'"':'')+'>'+escAttr(clienteCanonico(p.destinatario,p.destinatarioCnpj))+'</td>'+
       '<td data-lbl="Frete">R$ '+fmtBR(+p.valorFrete||0,2)+'</td>'+
       '<td data-lbl="Litros">'+fmtLitros(+p.litros||0)+' L</td>'+
       (admin?('<td class="pux-del"><button class="btn-claro'+(conf?' confirmar':'')+'" onclick="removerPuxada(\''+p.id+'\')">'+(conf?'✓?':'✕')+'</button></td>'):'')+
@@ -10765,6 +10799,73 @@ function contarViagens(lista){
     chaves[String(p.data || "") + "|" + localDaPuxada(p.destinatario)] = true;
   });
   return Object.keys(chaves).length;
+}
+
+/* ============ v215 - nome unico de cada cliente das puxadas ============
+   O nome do destinatario e' uma COPIA do que a distribuidora escreveu no CT-e,
+   e cada distribuidora escreve de um jeito: a FEDERAL e a WK mandam "FCN X"
+   (sem ponto), a LARCO manda "NC ... PD" (sem LTDA) e a WK manda "DISCAR ...
+   LTDA." (com ponto final). Sem isto o MESMO cliente conta como dois.
+   Quem manda e' o CNPJ (campo destinatarioCnpj, gravado na coleta); o nome so'
+   entra quando o CNPJ nao veio. Cliente novo: acrescente uma entrada abaixo com
+   pedacos do nome em MAIUSCULAS e sem acento. */
+const CLIENTES_PUXADA = [
+  { nome:"FCN.X CARVALHO COMBUSTIVEL LTDA",          curto:"Posto Full Teresina",
+    cnpj:"09.641.208/0001-64", contem:["FCN.X CARVALHO","FCN X CARVALHO"] },
+  { nome:"FCN.X COMBUSTIVEIS LTDA",                  curto:"Posto Full Caxias",
+    cnpj:"15.772.754/0001-37", contem:["FCN.X COMBUSTIVEIS","FCN X COMBUSTIVEIS"] },
+  { nome:"NC DISTRIBUIDORA DE COMBUSTIVEIS PD LTDA", curto:"Posto Full Dutra",
+    cnpj:"46.785.405/0001-83", contem:["NC DISTRIBUIDORA"] },
+  { nome:"DISCAR DISTRIBUIDORA DE BEBIDAS LTDA",     curto:"Discar Distribuidora",
+    cnpj:"07.034.675/0001-09", contem:["DISCAR"] }
+];
+function soNumeros(s){ return String(s == null ? "" : s).replace(/\D/g, ""); }
+// Acha o cadastro do cliente: primeiro pelo CNPJ, depois por pedaco do nome.
+// Devolve null quando nao conhece - a' o nome do CT-e continua valendo.
+function clientePuxada(destinatario, cnpj){
+  const c = soNumeros(cnpj);
+  if (c){
+    for (let i = 0; i < CLIENTES_PUXADA.length; i++){
+      if (soNumeros(CLIENTES_PUXADA[i].cnpj) === c) return CLIENTES_PUXADA[i];
+    }
+  }
+  const d = semAcento(destinatario);
+  if (!d) return null;
+  for (let i = 0; i < CLIENTES_PUXADA.length; i++){
+    const E = CLIENTES_PUXADA[i];
+    for (let j = 0; j < E.contem.length; j++){
+      if (d.indexOf(semAcento(E.contem[j])) >= 0) return E;
+    }
+  }
+  return null;
+}
+// Nome unico do cliente (razao social oficial). Desconhecido volta como veio.
+function clienteCanonico(destinatario, cnpj){
+  const e = clientePuxada(destinatario, cnpj);
+  return e ? e.nome : String(destinatario == null ? "" : destinatario).trim();
+}
+// Apelido curto ("Posto Full Caxias"). Desconhecido volta como veio.
+function clienteCurto(destinatario, cnpj){
+  const e = clientePuxada(destinatario, cnpj);
+  return e ? e.curto : String(destinatario == null ? "" : destinatario).trim();
+}
+// Junta as puxadas por cliente, ja' com as duas grafias somadas.
+function resumirPorCliente(lista){
+  const por = {};
+  (lista || []).forEach(p => {
+    const nome = clienteCanonico(p.destinatario, p.destinatarioCnpj) || "(sem destinatario)";
+    if (!por[nome]) por[nome] = { nome:nome, curto:clienteCurto(p.destinatario, p.destinatarioCnpj),
+                                  qtd:0, litros:0, frete:0, grafias:{} };
+    const r = por[nome];
+    r.qtd += 1;
+    r.litros += (+p.litros || 0);
+    r.frete  += (+p.valorFrete || 0);
+    if (p.destinatario) r.grafias[p.destinatario] = true;
+  });
+  return Object.keys(por).map(k => {
+    por[k].grafias = Object.keys(por[k].grafias);
+    return por[k];
+  }).sort((a,b) => b.litros - a.litros);
 }
 
 function parseVolComp(s){ const n = parseInt(String(s).replace(/\D/g,""),10); return isFinite(n)?n:0; }
