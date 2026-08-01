@@ -1175,6 +1175,9 @@
   .cal-dot.cd{background:#81C784}   /* Dutra */
   .cal-dot.cx{background:#BA68C8}   /* Transportadora */
   .cal-dot.cg{background:#9E9E9E}   /* Geral */
+  .cal-dot.kt{background:#1565C0}   /* Loja Teresina  - v217: mesma familia do posto, mais escuro */
+  .cal-dot.kc{background:#E65100}   /* Loja Caxias */
+  .cal-dot.kd{background:#2E7D32}   /* Loja Dutra */
   .cal-sub{font-size:.8rem;font-weight:600;color:var(--cinza);margin-bottom:8px}
   /* Lista de usuários (painel Usuários) */
   .usr-lista{display:flex;flex-direction:column;gap:8px}
@@ -2571,15 +2574,15 @@ let confirmarRemAnexo = null, timerRemAnexo = null;
 // v166 - empresas do grupo (usadas no menu Documentos para dizer de quem e cada arquivo)
 const EMPRESAS_GRUPO = [
   { nome:"Posto Full Teresina",        razao:"FCN.X CARVALHO COMBUSTIVEL LTDA",              cnpj:"09.641.208/0001-64", unidade:"Posto Full - Teresina" },
-  { nome:"Full Conveniência Teresina", razao:"V & T CARVALHO LTDA (Full Mania)",             cnpj:"17.957.841/0001-94", unidade:"Posto Full - Teresina" },
+  { nome:"Full Conveniência Teresina", razao:"V & T CARVALHO LTDA (Full Mania)",             cnpj:"17.957.841/0001-94", unidade:"Full Conveniência - Teresina" },
   { nome:"TSC Administradora",         razao:"TSC SERVICOS ADMINISTRATIVOS LTDA",            cnpj:"43.703.942/0001-49", unidade:"Posto Full - Teresina" },
   { nome:"BTC THE",                    razao:"BTC THE SOLUCOES EMPRESARIAIS LTDA",           cnpj:"64.947.495/0001-43", unidade:"Posto Full - Teresina" },
   { nome:"Posto Full Caxias",          razao:"FCN.X COMBUSTIVEIS LTDA",                      cnpj:"15.772.754/0001-37", unidade:"Posto Full - Caxias" },
-  { nome:"Full Conveniência Caxias",   razao:"FULL CONVENIENCIA LTDA",                       cnpj:"16.993.906/0001-94", unidade:"Posto Full - Caxias" },
+  { nome:"Full Conveniência Caxias",   razao:"FULL CONVENIENCIA LTDA",                       cnpj:"16.993.906/0001-94", unidade:"Full Conveniência - Caxias" },
   { nome:"TSC.X Administradora",       razao:"TSC.X ADMINISTRADORA LTDA",                    cnpj:"44.838.751/0001-57", unidade:"Posto Full - Caxias" },
   { nome:"BTC Caxias",                 razao:"BTC CAXIAS GESTAO DE NEGOCIOS LTDA",           cnpj:"64.947.020/0001-57", unidade:"Posto Full - Caxias" },
   { nome:"Posto Full Dutra",           razao:"NC DISTRIBUIDORA DE COMBUSTIVEIS PD LTDA",     cnpj:"46.785.405/0001-83", unidade:"Posto Full - Dutra" },
-  { nome:"Full Conveniência Dutra",    razao:"T E C CONVENIENCIA LTDA",                      cnpj:"49.949.736/0001-08", unidade:"Posto Full - Dutra" },
+  { nome:"Full Conveniência Dutra",    razao:"T E C CONVENIENCIA LTDA",                      cnpj:"49.949.736/0001-08", unidade:"Full Conveniência - Dutra" },
   { nome:"T E C Comércio e Serviços",  razao:"T E C COMERCIO E SERVICOS ADMINISTRATIVOS LTDA", cnpj:"50.295.648/0001-00", unidade:"Posto Full - Dutra" },
   { nome:"BTC Dutra",                  razao:"BTC DUTRA ADMINISTRACAO DE NEGOCIOS LTDA",     cnpj:"65.133.422/0001-80", unidade:"Posto Full - Dutra" },
   { nome:"Full Transportadora",        razao:"FULL TRANSPORTADORA LTDA",                     cnpj:"47.389.745/0001-58", unidade:"Full Transportadora" }
@@ -3850,7 +3853,22 @@ function fichaPessoaHtml(e){
   h += '</div>';
   return h;
 }
-const ORIGENS_AVISO_ADM = [["ct","Posto Full - Teresina"],["cc","Posto Full - Caxias"],["cd","Posto Full - Dutra"],["cx","Full Transportadora"],["cg","Outros"]];
+/* v217 - AS AGENDAS DO GRUPO, EM UM LUGAR SO.
+   Alimenta o Calendario (ponto colorido e filtro), os Documentos, os Arquivos e as
+   notificacoes por perfil/pessoa. Antes eram cinco listas soltas e as conveniencias
+   nao estavam em nenhuma. Agenda nova entra AQUI e aparece nas quatro telas. */
+const AGENDAS_CAL = [
+  { k:"ct", origem:"Posto Full - Teresina",         curto:"Teresina" },
+  { k:"cc", origem:"Posto Full - Caxias",           curto:"Caxias" },
+  { k:"cd", origem:"Posto Full - Dutra",            curto:"Dutra" },
+  { k:"kt", origem:"Full Conveni\u00eancia - Teresina", curto:"Loja Teresina" },
+  { k:"kc", origem:"Full Conveni\u00eancia - Caxias",   curto:"Loja Caxias" },
+  { k:"kd", origem:"Full Conveni\u00eancia - Dutra",    curto:"Loja Dutra" },
+  { k:"cx", origem:"Full Transportadora",           curto:"Transportadora" },
+  { k:"cg", origem:"Outros",                        curto:"Outros" }
+];
+const CHAVES_AGENDA = AGENDAS_CAL.map(a => a.k);
+const ORIGENS_AVISO_ADM = AGENDAS_CAL.map(a => [a.k, a.origem]);
 function verAtividadesDe(email){
   admAtivSel = String(email || "").toLowerCase();
   irParaAbaAdm("ativ");
@@ -4157,7 +4175,7 @@ function definirModoAvisosUsuario(email, val){
   email = String(email).toLowerCase();
   const cur = permissoesTodos[email] ? Object.assign({}, permissoesTodos[email]) : {};
   if (val === "manual"){
-    const keys = ["ct","cc","cd","cx","cg"];
+    const keys = CHAVES_AGENDA.slice();   // v217
     const r = normPerm(cur);
     const p = (r && r.perfil) ? perfisAcesso[r.perfil] : null;
     const base = (p && p.avisos) ? p.avisos : {};
@@ -9453,7 +9471,7 @@ function selDiaCal(iso){
   renderCalendario();
 }
 /* ===== Eventos do calendário criados no app (substituem a sincronização do Google) ===== */
-const ORIGENS_EVENTO = ["Posto Full - Teresina","Posto Full - Caxias","Posto Full - Dutra","Full Transportadora","Outros"];
+const ORIGENS_EVENTO = AGENDAS_CAL.map(a => a.origem);   // v217 - inclui as tres conveniencias
 function podeGerenciarEventosDe(email){
   email = (email||"").toLowerCase();
   if (ehAdminEmail(email)) return true;
@@ -10099,14 +10117,17 @@ function baixarAnexoDoc(id){ const d=(documentos||[]).find(x=>x.id===id); if(!d|
 function alternarArquivos(){ alternarVencimentos(); }   // v133: menu unificado
 function origemClasseCal(o){
   o = String(o||'').toLowerCase();
-  if (o.indexOf('teresina') >= 0) return 'ct';
-  if (o.indexOf('caxias') >= 0) return 'cc';
-  if (o.indexOf('dutra') >= 0) return 'cd';
+  // v217 - a CONVENIENCIA vem antes da cidade: "Full Conveniencia - Teresina" nao pode
+  // cair no balde do posto de Teresina (a classificacao sempre foi por cidade).
+  const loja = o.indexOf('conveni') >= 0;
+  if (o.indexOf('teresina') >= 0) return loja ? 'kt' : 'ct';
+  if (o.indexOf('caxias') >= 0) return loja ? 'kc' : 'cc';
+  if (o.indexOf('dutra') >= 0) return loja ? 'kd' : 'cd';
   if (o.indexOf('transport') >= 0) return 'cx';
   return 'cg';
 }
 // Filtro por agenda: todos ligados por padrão; clique na etiqueta liga/desliga
-let calFiltro = { ct:true, cc:true, cd:true, cx:true, cg:true };
+let calFiltro = {}; CHAVES_AGENDA.forEach(k => calFiltro[k] = true);   // v217
 function alternarFiltroCal(cls){
   calFiltro[cls] = !calFiltro[cls];
   renderCalendario();
@@ -10128,8 +10149,10 @@ function renderCalendario(){
     '<button class="cal-nav" onclick="hojeCal()">Hoje</button></div>';
 
   // filtros por agenda (clicáveis; "Outros" só aparece se existir evento fora das 4 agendas)
-  const filtrosCal = [["ct","Teresina"],["cc","Caxias"],["cd","Dutra"],["cx","Transportadora"]];
-  if (todosEventos.some(e => origemClasseCal(e.origem) === 'cg')) filtrosCal.push(["cg","Outros"]);
+  // v217 - as agendas saem de AGENDAS_CAL; "Outros" so aparece se existir evento fora das demais
+  const filtrosCal = AGENDAS_CAL
+    .filter(a => a.k !== 'cg' || todosEventos.some(e => origemClasseCal(e.origem) === 'cg'))
+    .map(a => [a.k, a.curto]);
   html += '<div class="cal-leg">';
   filtrosCal.forEach(f => {
     html += '<button class="cal-filtro' + (calFiltro[f[0]] ? '' : ' off') + '" ' +
