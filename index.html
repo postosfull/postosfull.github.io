@@ -6072,7 +6072,7 @@ function cxiMesNome(id){
   const i = parseInt(p[1],10) - 1;
   return (M[i] || "") + "/" + (p[0]||"").slice(2);
 }
-function cxiNum(v){ const n = Number(v); return isFinite(n) ? n : 0; }
+function cxiNum(v){ const n = numBR(v); return n === null ? 0 : n; }   // v222 - antes Number("1.234,56") dava NaN e o app mostrava R$ 0,00
 function cxiDin(v){ return cxiNum(v).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function renderCaixas(){
   const box = document.getElementById("cxiBox");
@@ -8742,7 +8742,7 @@ function alternarIfood(){
 function abrirIfood(){ abrirSiteExterno(URL_IFOOD, "Portal do iFood", "ifdMsg"); }
 function copiarLinkIfood(){ copiarEnderecoExterno(URL_IFOOD, "ifdMsg"); }
 
-function ifdNum(v){ const n = +v; return isFinite(n) ? n : 0; }
+function ifdNum(v){ const n = numBR(v); return n === null ? 0 : n; }   // v222 - mesmo motivo do cxiNum
 function ifdRS(v){ return "R$ " + fmtBR(ifdNum(v), 2); }
 function ifdPct(v, casas){ return fmtBR(ifdNum(v)*100, (casas === undefined ? 1 : casas)) + "%"; }
 // Seta de comparacao com o periodo anterior (o iFood manda 0,15 = +15%)
@@ -12464,7 +12464,27 @@ function abrirDashboardInicial(){
   alternarDash();        // fechado: abre normalmente
 }
 
-const fmtBR = (v, casas=2) => v.toLocaleString("pt-BR",{minimumFractionDigits:casas,maximumFractionDigits:casas});
+/* v222 - porta de entrada unica dos numeros. Ver o cabecalho do patchV222.py.
+   Devolve null quando NAO e' numero, para quem chama poder mostrar "—" em vez de
+   inventar um zero (ou quebrar a tela, que era o que acontecia com undefined). */
+function numBR(v){
+  if (typeof v === "number") return isFinite(v) ? v : null;
+  if (v === null || v === undefined) return null;
+  var s = String(v).trim().replace(/[R$\u00a0\s]/g, "");
+  if (!s) return null;
+  // "1.234,56" (brasileiro): a virgula manda, o ponto e' milhar.
+  if (s.indexOf(",") >= 0) s = s.replace(/\./g, "").replace(",", ".");
+  // "1.234" sem virgula so' e' milhar se os grupos tiverem 3 digitos certinhos;
+  // assim "1.5" continua valendo um e meio, e nao quinze.
+  else if (/^-?\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, "");
+  var n = parseFloat(s.replace(/[^0-9.\-]/g, ""));
+  return isFinite(n) ? n : null;
+}
+const fmtBR = (v, casas=2) => {
+  const n = numBR(v);
+  return n === null ? "\u2014"
+    : n.toLocaleString("pt-BR",{minimumFractionDigits:casas,maximumFractionDigits:casas});
+};
 
 function inicializarDatasFiltro(){
   // Filtros da tela já abrem no mês vigente (1º dia até hoje) — editáveis à vontade
