@@ -796,6 +796,16 @@
   .pet-l span{color:var(--cinza)}
   .pet-l b{color:var(--txt);white-space:nowrap}
   .pet-l-nota b{font-weight:600;opacity:.65;font-style:italic}   /* v220 - despesa do dia ainda nao lancada */
+  /* v221 - tela de quem ainda nao tem perfil. background-image por causa do modo escuro forcado */
+  .aguarda-perfil{display:none;border:1px solid var(--borda);border-left:6px solid #FF6401;border-radius:12px;
+    padding:20px 22px;margin:0 0 16px;background:var(--superficie-2);background-image:linear-gradient(var(--superficie-2),var(--superficie-2))}
+  .aguarda-perfil h2{font-family:"Oswald","Poppins",sans-serif;font-size:1.1rem;letter-spacing:.4px;margin:0 0 10px}
+  .aguarda-perfil p{font-size:.92rem;line-height:1.55;color:var(--cinza);margin:0 0 8px}
+  .aguarda-perfil p:last-child{margin-bottom:0}
+  .aguarda-perfil b{color:var(--txt)}
+  body.sem-perfil .aguarda-perfil{display:block}
+  /* enquanto espera, o seletor de empresa nao serve para nada - so' confundiria */
+  body.sem-perfil #btnEmpresa,body.sem-perfil #empresaBox{display:none}
   .pet-l b.rpz-pos{color:#18a558}   /* v198 - lucro liquido positivo em verde (licao da v197) */
   .pet-l b.rpz-neg{color:#c0392b}
   .pet-info{font-size:.72rem;color:var(--cinza);margin-top:10px}
@@ -2027,6 +2037,13 @@
       <div id="cartaoResumo" class="cardres"></div>
       <p class="nota-dash" id="resMsg" style="margin-top:8px"></p>
     </div>
+  </div>
+
+  <div class="aguarda-perfil" id="avisoAguardaPerfil">
+    <h2>⏳ Aguardando o administrador selecionar seu perfil</h2>
+    <p>Você entrou como <b id="aguardaEmail"></b>.</p>
+    <p>Seu acesso ainda não foi liberado. O administrador <b>já foi avisado</b> — assim que ele escolher o seu perfil, os menus aparecem aqui sozinhos, sem precisar sair e entrar de novo.</p>
+    <p>Até lá você pode usar a <b>Caixa de entrada</b> e a <b>Minha conta</b>.</p>
   </div>
 
   <div class="config" id="painelDash">
@@ -3718,7 +3735,7 @@ function renderAdminUsuarios(){
     const ids = Object.keys(perfisAcesso || {});
     fp.innerHTML = '<option value="">Todos os perfis</option>' +
       ids.map(id => '<option value="' + escAttr(id) + '">' + escAttr(nomePerfilAdm(id)) + '</option>').join("") +
-      '<option value="__sem">Sem perfil (vê tudo)</option>';
+      '<option value="__sem">Sem perfil (aguardando libera\u00e7\u00e3o)</option>';
     fp.value = admFiltroPerfilSel;
   }
   if (!cont) return;
@@ -3750,7 +3767,7 @@ function selosDaPessoa(e){
   if (adm) s += '<span class="adm-tag adm-tag-adm">administrador</span>';
   if (pid) s += '<span class="adm-tag adm-tag-perfil">' + escAttr(nomePerfilAdm(pid)) + '</span>';
   else if (rule) s += '<span class="adm-tag">menus próprios</span>';
-  else if (!adm) s += '<span class="adm-tag adm-tag-alerta">sem perfil — vê tudo</span>';
+  else if (!adm) s += '<span class="adm-tag adm-tag-alerta">aguardando perfil</span>';
   return s;
 }
 function linhaPessoaHtml(e){
@@ -3786,7 +3803,7 @@ function fichaPessoaHtml(e){
   /* 1. perfil de acesso */
   h += '<div class="adm-sec">1 · Perfil de acesso</div>';
   h += '<label class="usr-acesso-lbl"><select onchange="definirAcessoUsuario(\'' + a + '\', this.value)">' +
-       '<option value=""' + (modo === "" ? " selected" : "") + '>Sem perfil — vê tudo</option>';
+       '<option value=""' + (modo === "" ? " selected" : "") + '>Sem perfil \u2014 aguardando libera\u00e7\u00e3o</option>';
   const pids = Object.keys(perfisAcesso || {});
   if (pids.length){
     h += '<optgroup label="Perfis">';
@@ -3807,7 +3824,7 @@ function fichaPessoaHtml(e){
   } else if (modo === "manual"){
     h += '<div class="adm-sec">2 · Empresas e menus desta pessoa</div>' + gradeMenusHtml("usuario", e, rule ? rule.menus : null, permissoesTodos[e] || {});
   } else {
-    h += '<p class="nota-dash">⚠️ Sem perfil, esta pessoa <b>vê o app inteiro, nas três empresas</b>. Escolha um perfil acima ou marque os menus à mão.</p>';
+    h += '<p class="nota-dash">\u23f3 Sem perfil, esta pessoa <b>n\u00e3o v\u00ea menu nenhum</b> \u2014 ela fica na tela de espera, com acesso s\u00f3 \u00e0 Caixa de entrada e \u00e0 Minha conta. Escolha um perfil acima ou marque os menus \u00e0 m\u00e3o.</p>';
   }
 
   /* poderes */
@@ -4064,7 +4081,7 @@ function renderAdmMatriz(){
   const semRegra = admEmails().filter(e => !ehAdminEmail(e) && !normPerm(permissoesTodos[e]));
   if (semRegra.length){
     h += '<p class="nota-dash adm-alerta">🚩 <b>' + semRegra.length + (semRegra.length === 1 ? ' pessoa está' : ' pessoas estão') +
-      ' sem perfil e sem menus próprios</b> — quem está assim <b>vê o app inteiro</b>: ' +
+      ' sem perfil e sem menus próprios</b> — quem está assim <b>não vê menu nenhum</b> e fica na tela de espera: ' +
       escAttr(semRegra.map(e => admNomeDe(e)).join(", ")) + '.</p>';
   }
   box.innerHTML = h;
@@ -4163,7 +4180,7 @@ function setPermUsuario(email, key, marcado){
     .catch(er => avisoAdmin("msgAdminLista", msgErro(er), "erro"));
   aplicarVisibilidadeMenus();
 }
-// Define como o usuário acessa os menus: "" (vê tudo), "perfil:<id>" ou "manual"
+// Define como o usuário acessa os menus: "" (sem perfil, fica esperando), "perfil:<id>" ou "manual"
 function definirAcessoUsuario(email, val){
   email = String(email).toLowerCase();
   const aviAtual = (permissoesTodos[email] && permissoesTodos[email].avisos) ? permissoesTodos[email].avisos : null;
@@ -4256,14 +4273,14 @@ function removerPerfilAcesso(id){
   confirmarExclPerfil = null;
   delete perfisAcesso[id];
   docPerfisAcesso.set({ perfis: perfisAcesso })
-    .then(()=>{ avisoAdmin("msgPerfis", "Perfil excluído. Usuários que usavam esse perfil voltaram a ver todos os menus — reassocie se precisar.", "ok"); renderPerfisAcesso(); renderAdminUsuarios(); aplicarVisibilidadeMenus(); })
+    .then(()=>{ avisoAdmin("msgPerfis", "Perfil excluído. Quem usava esse perfil ficou na tela de espera — escolha outro perfil para essas pessoas.", "ok"); renderPerfisAcesso(); renderAdminUsuarios(); aplicarVisibilidadeMenus(); })
     .catch(e => avisoAdmin("msgPerfis", msgErro(e), "erro"));
 }
 function liberarTudoUsuario(email){
   email = String(email).toLowerCase();
-  delete permissoesTodos[email];   // sem regra = vê tudo
+  delete permissoesTodos[email];   // v221 - sem regra = volta para a fila de espera
   docPermissoes.set({ porUsuario: permissoesTodos })
-    .then(()=> { avisoAdmin("msgAdminLista", email + " voltou a ver todos os menus.", "ok"); renderAdminUsuarios(); })
+    .then(()=> { avisoAdmin("msgAdminLista", email + " ficou sem perfil e voltou para a tela de espera.", "ok"); renderAdminUsuarios(); })
     .catch(er => avisoAdmin("msgAdminLista", msgErro(er), "erro"));
   aplicarVisibilidadeMenus();
 }
@@ -4678,6 +4695,7 @@ function iniciarSync(){
     });
     perfis = mapa;
     perfisDocs = docs;
+    sincronizarAvisoSemPerfil();   // v221 - a fila so' existe depois que a lista de pessoas chega
     const pAdm = document.getElementById("painelAdmin");
     if (pAdm && pAdm.classList.contains("aberto")) renderAbaAdm();
     // atualizar o nome do próprio usuário logado
@@ -4868,6 +4886,7 @@ function iniciarSync(){
     const bruto = (d && d.porUsuario) ? d.porUsuario : {};
     const norm = {}; Object.keys(bruto).forEach(k => { norm[String(k).toLowerCase()] = bruto[k]; });
     permissoesTodos = norm;
+    vistoPermissoes = true;                       // v221
     aplicarVisibilidadeMenus();
     garantirPainelPermitido();
     refrescarAvisosCalendario();
@@ -4879,6 +4898,7 @@ function iniciarSync(){
   escutaPerfisAcesso = docPerfisAcesso.onSnapshot(snap => {
     const d = snap.exists ? (snap.data() || {}) : {};
     perfisAcesso = (d && d.perfis) ? d.perfis : {};
+    vistoPerfisAcesso = true;                     // v221
     aplicarVisibilidadeMenus();
     garantirPainelPermitido();
     const pa = document.getElementById("painelAdmin");
@@ -5376,7 +5396,10 @@ const MENUS_APP = [
   {key:"config",      btn:"btnConfig",      pan:"painelConfig",      emp:"ambos",  nome:"Configurações"}
 ];
 function ehAdminAtual(){ return ehAdminEmail(usuarioAtual); }
-// Um menu é permitido se: usuário é admin, OU não há regra p/ ele (vê tudo), OU a regra marca true
+// v221 - Um menu e' permitido se: a pessoa e' admin, OU a regra dela marca true.
+// ANTES: quem nao tinha regra via TUDO. Isso deixava um funcionario recem-cadastrado enxergando o
+// app inteiro ate alguem lembrar de dar o perfil. Agora o padrao e' o contrario: sem perfil, sem
+// menu - e o Tiago recebe uma tarefa na Caixa de entrada com a lista de quem esta esperando.
 function normPerm(v){
   if (!v || typeof v !== "object") return null;
   if (v.perfil) return { perfil: v.perfil };
@@ -5407,13 +5430,47 @@ function _menuPermBase(email, key, sig){
   if (ehAdminEmail(email)) return true;
   const s = sig || siglaEmpresa(empresa);
   const rule = normPerm(permissoesTodos[email]);
-  if (!rule) return true;                       // sem regra = ve tudo
+  if (!rule) return false;                      // v221 - sem perfil = nenhum menu (era "ve tudo")
   if (rule.perfil){
     const p = perfisAcesso[rule.perfil];
-    if (!p) return true;                        // perfil apagado = nao travar o usuario
+    if (!p) return false;                       // v221 - perfil apagado = volta para a fila de espera
     return menuMarcadoEm(p.menus, s, key);
   }
   return menuMarcadoEm(rule.menus, s, key);
+}
+/* ===================== v221 - A FILA DE QUEM AINDA NAO TEM PERFIL =====================
+   Uma pessoa esta "aguardando" quando nao e' administradora E nao tem nenhuma porta aberta:
+   sem regra salva, ou com um perfil que foi apagado, ou com um mapa de menus todo desmarcado.
+   O ultimo caso importa: marcar zero menus e' o mesmo que nao ter decidido nada ainda. */
+function algumMenuLiberado(mapa){
+  if (!mapa || typeof mapa !== "object") return false;
+  const cai = o => Object.keys(o || {}).some(k => o[k] === true);
+  // aceita tanto o formato plano (legado) quanto o por empresa (v216)
+  if (cai(mapa)) return true;
+  return ["postos","transp","conv","todas"].some(sg => cai(mapa[sg]));
+}
+function aguardandoPerfil(email){
+  email = (email || "").toLowerCase();
+  if (!email) return false;
+  if (ehAdminEmail(email)) return false;
+  const rule = normPerm(permissoesTodos[email]);
+  if (!rule) return true;
+  if (rule.perfil){
+    const p = perfisAcesso[rule.perfil];
+    return !p || !algumMenuLiberado(p.menus);
+  }
+  return !algumMenuLiberado(rule.menus);
+}
+function filaSemPerfil(){
+  return Object.keys(perfis || {}).map(e => String(e).toLowerCase())
+    .filter(e => aguardandoPerfil(e))
+    .sort((a, b) => mcNomeDe(a).localeCompare(mcNomeDe(b), "pt-BR"));
+}
+function administradoresDoApp(){
+  const set = {};
+  ((typeof ADMINS !== "undefined") ? ADMINS : []).forEach(e => { set[String(e).toLowerCase()] = true; });
+  Object.keys(perfis || {}).forEach(e => { if (ehAdminEmail(e)) set[String(e).toLowerCase()] = true; });
+  return Object.keys(set);
 }
 function menuPermitido(key, sig){
   if (key === "conta" || key === "caixa") return true;   // Minha conta e Caixa de entrada: todos sempre veem
@@ -5596,8 +5653,66 @@ function renderSetasOrdem(){
 })();
 
 
+/* v221 - a tarefa que avisa o administrador. Id fixo: e' UMA tarefa, que se reescreve.
+   Qualquer sessao logada grava - inclusive a da propria pessoa que esta esperando, que e' o que
+   faz o aviso nascer na hora, sem depender de o Tiago estar com o app aberto. Todas as sessoes
+   calculam a mesma lista a partir dos mesmos documentos, entao nao ha briga de escrita.
+   A `assinatura` evita regravar a cada snapshot; o `.get()` evita regravar o que ja esta la. */
+const REC_SEM_PERFIL = "rec_sem_perfil";
+let filaSemPerfilUltima = null;
+/* 🔴 As duas bandeiras abaixo existem por causa de uma corrida REAL, pega no teste 7:
+   o snapshot da lista de PESSOAS chega antes do de PERMISSOES. Nesse instante `permissoesTodos`
+   esta vazio e TODO MUNDO parece estar sem perfil - o app criava uma tarefa dizendo que a equipe
+   inteira estava esperando, e a concluia meio segundo depois. Nada e' avaliado antes das duas. */
+let vistoPermissoes = false, vistoPerfisAcesso = false;
+function dadosDeAcessoProntos(){ return vistoPermissoes && vistoPerfisAcesso; }
+function sincronizarAvisoSemPerfil(){
+  // ⚠ nao exigir `nuvemPronta` aqui: ele so' vira true DEPOIS dos snapshots de permissao e de
+  // pessoas, entao a checagem chegaria sempre cedo demais e o aviso nunca nasceria.
+  if (!usuarioAtual || !dadosDeAcessoProntos()) return;
+  if (!Object.keys(perfis || {}).length) return;          // a lista de pessoas ainda nao chegou
+  const fila = filaSemPerfil();
+  const assinatura = fila.join("|");
+  if (assinatura === filaSemPerfilUltima) return;
+  filaSemPerfilUltima = assinatura;
+  const ref = colRecados.doc(REC_SEM_PERFIL);
+  ref.get().then(s => {
+    const atual = s.exists ? (s.data() || {}) : null;
+    if (!fila.length){
+      // ninguem mais esperando: a tarefa se conclui sozinha e sai da lista de pendentes
+      if (atual && !atual.concluida){
+        ref.set({ concluida:true, concluidaPor:"app", concluidaNome:"Controle de acesso",
+                  concluidaEm: Date.now() }, {merge:true}).catch(()=>{});
+      }
+      return;
+    }
+    const nomes = fila.map(e => mcNomeDe(e) + " (" + e + ")");
+    const titulo = "\ud83d\udd10 " + (fila.length === 1 ? "1 pessoa est\u00e1" : fila.length + " pessoas est\u00e3o") +
+                   " esperando perfil de acesso";
+    const texto = "Estas pessoas entraram no app e ainda n\u00e3o t\u00eam perfil, ent\u00e3o n\u00e3o veem menu nenhum \u2014 " +
+                  "s\u00f3 a tela de espera, a Caixa de entrada e a Minha conta:\n\n\u2022 " + nomes.join("\n\u2022 ") +
+                  "\n\nPara liberar: Painel Administrativo \u2192 aba \ud83d\udc65 Pessoas \u2192 toque no nome \u2192 escolha o perfil. " +
+                  "Assim que todo mundo tiver perfil, esta tarefa se conclui sozinha.";
+    if (atual && atual.texto === texto && atual.concluida === false) return;   // ja esta assim
+    ref.set({ tipo:"tarefa", titulo: titulo, texto: texto,
+      de:"app", deNome:"Controle de acesso",
+      paraTodos:false, para: administradoresDoApp(),
+      criadoEm: (atual && atual.criadoEm) || Date.now(),
+      atualizadoEm: Date.now(), pendentes: fila,
+      exigeComprovante:false,
+      concluida:false, concluidaPor:"", concluidaNome:"", concluidaEm:0 }, {merge:true}).catch(()=>{});
+  }).catch(()=>{});
+}
 function aplicarVisibilidadeMenus(){
   instalarFerramentasPaineis();
+  // v221 - liga/desliga a tela de espera de quem ainda nao tem perfil.
+  // Enquanto os dados de acesso nao chegaram, nao mostrar a tela: senao ela pisca na cara de quem
+  // TEM perfil. (Os menus, no meio-tempo, ficam escondidos - que e' o lado seguro do erro.)
+  const esperando = dadosDeAcessoProntos() && aguardandoPerfil(usuarioAtual);
+  document.body.classList.toggle("sem-perfil", esperando);
+  const alvoMail = document.getElementById("aguardaEmail");
+  if (alvoMail) alvoMail.textContent = usuarioAtual || "";
+  sincronizarAvisoSemPerfil();
   garantirEmpresaPermitida();                       // v216 - empresa desmarcada nao fica aberta
   const s = siglaEmpresa(empresa);
   EMPRESAS_ADM.forEach(x => {                       // v216 - some do seletor do topo
