@@ -1457,6 +1457,35 @@
   .modal-push p{font-size:.9rem;color:var(--cinza);margin:0 0 20px}
   .modal-push-botoes{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
   .modal-push-botoes button{flex:1 1 140px;max-width:210px}
+
+  /* ===== v214 - barra "saiu versao nova" =====
+     background-image junto do background: o modo escuro forcado do Chrome apaga
+     background-color, mas nao apaga gradiente. Sem isso a barra sai transparente. */
+  .atz-barra{
+    position:fixed;top:0;left:0;right:0;z-index:10001;
+    display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;
+    padding:11px 16px;
+    background:#FF6401;background-image:linear-gradient(#FF6401,#FF6401);
+    color:#fff;font-size:.92rem;font-weight:500;line-height:1.3;
+    box-shadow:0 2px 12px rgba(0,0,0,.30);
+  }
+  .atz-txt{display:inline-flex;align-items:center;gap:8px}
+  .atz-barra button{font-family:inherit;font-size:.86rem;font-weight:600;cursor:pointer;border-radius:8px;line-height:1}
+  .atz-bt{background:#fff;background-image:linear-gradient(#fff,#fff);color:#B33F00;border:0;padding:8px 16px}
+  .atz-bt:hover{background:#FFE4D2;background-image:linear-gradient(#FFE4D2,#FFE4D2)}
+  .atz-x{background:transparent;border:1px solid rgba(255,255,255,.55);color:#fff;padding:7px 12px}
+  .atz-x:hover{border-color:#fff;background:rgba(255,255,255,.16);background-image:linear-gradient(rgba(255,255,255,.16),rgba(255,255,255,.16))}
+  body.com-atz{padding-top:70px}
+  /* a tela de login e a barra lateral sao position:fixed e nao andam com o padding do
+     body — precisam descer na mao para nao ficarem escondidas atras da barra. */
+  body.com-atz #telaLogin{padding-top:90px}
+  body.com-atz .menu-lateral{top:70px}
+  @media (max-width:560px){
+    .atz-barra{font-size:.85rem;gap:8px;padding:10px 12px}
+    body.com-atz{padding-top:96px}
+    body.com-atz #telaLogin{padding-top:116px}
+    body.com-atz .menu-lateral{top:96px}
+  }
 </style>
 </head>
 <body>
@@ -1464,6 +1493,12 @@
   // aplica o tema salvo o quanto antes, evitando piscar a tela clara
   try { if (localStorage.getItem("margens_tema") !== "claro") document.body.classList.add("tema-escuro"); } catch (e) {}
 </script>
+
+<div class="atz-barra" id="barraAtualizar" role="status" aria-live="polite" style="display:none">
+  <span class="atz-txt">⟳ Saiu uma versão nova do app.</span>
+  <button type="button" class="atz-bt" onclick="atualizarAgora()">Atualizar agora</button>
+  <button type="button" class="atz-x" onclick="fecharAvisoVersao()">Depois</button>
+</div>
 
 <div id="telaLogin">
   <div class="cartao-login">
@@ -13347,8 +13382,103 @@ render();
 atualizarFiltrosVisiveis();
 
 /* ================== PWA: service worker ================== */
+/* ===== v214 - avisar que saiu versao nova =====
+   Quem esta com a pagina aberta continua com o JS antigo depois de uma publicacao:
+   o service worker so entrega o codigo novo em uma carga nova da pagina. Aqui o app
+   descobre sozinho que saiu versao e mostra uma barra com o botao "Atualizar agora".
+   Como descobre: a cada 10 min (e sempre que a aba volta a ficar visivel) le o sw.js
+   e compara com o texto lido quando a pagina abriu. Toda versao muda o "postos-full-vNNN"
+   do sw.js, entao qualquer diferenca = versao nova. Nao existe numero de versao escrito
+   dentro do index.html de proposito: assim nao ha o que esquecer de trocar, e nao ha
+   como a barra ficar presa na tela depois de atualizar.
+   As duas redes de protecao do proprio service worker (updatefound / controllerchange)
+   ficam junto, para o aviso aparecer na hora em que a troca acontece.
+   O estado mora em variavel, nunca no DOM (regra da v137/v213). */
+const ATZ_INTERVALO_MS = 600000;   // 10 minutos
+let atzVersaoInicial = null;       // o "postos-full-vNNN" lido quando a pagina abriu
+let atzNaTela        = false;      // a barra esta aparecendo?
+let atzDispensado    = false;      // a pessoa clicou em "Depois" nesta sessao
+
+function mostrarAvisoVersao() {
+  if (atzNaTela || atzDispensado) return;
+  const b = document.getElementById("barraAtualizar");
+  if (!b) return;
+  atzNaTela = true;
+  b.style.display = "flex";
+  document.body.classList.add("com-atz");
+}
+
+function fecharAvisoVersao() {
+  atzDispensado = true;
+  atzNaTela = false;
+  const b = document.getElementById("barraAtualizar");
+  if (b) b.style.display = "none";
+  document.body.classList.remove("com-atz");
+}
+
+function atualizarAgora() {
+  const b = document.getElementById("barraAtualizar");
+  if (b) b.textContent = "Atualizando\u2026";
+  location.reload();
+}
+
+async function atzLerVersao() {
+  try {
+    const r = await fetch("sw.js", { cache: "no-store" });
+    if (!r || !r.ok) return null;
+    const t = await r.text();
+    const m = t.match(/postos-full-v[0-9A-Za-z.\-]+/);
+    return m ? m[0] : null;
+  } catch (e) { return null; }
+}
+
+async function atzConferirVersao() {
+  if (atzNaTela || atzDispensado) return;
+  if (navigator.onLine === false) return;
+  const v = await atzLerVersao();
+  if (!v) return;
+  if (!atzVersaoInicial) { atzVersaoInicial = v; return; }
+  if (v !== atzVersaoInicial) mostrarAvisoVersao();
+}
+
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(()=>{}));
+  // se nao havia service worker no comando quando a pagina abriu, esta e a PRIMEIRA
+  // instalacao: o codigo ja e o mais novo e nao se deve avisar nada.
+  const atzTinhaControlador = !!navigator.serviceWorker.controller;
+
+  window.addEventListener("load", () => {
+    atzLerVersao().then(v => { if (v) atzVersaoInicial = v; });
+
+    navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(reg => {
+      if (!reg) return;
+      reg.addEventListener("updatefound", () => {
+        const novo = reg.installing;
+        if (!novo) return;
+        novo.addEventListener("statechange", () => {
+          if (atzTinhaControlador && (novo.state === "installed" || novo.state === "activated")) mostrarAvisoVersao();
+        });
+      });
+      const pedirUpdate = () => { if (navigator.onLine !== false) { try { reg.update(); } catch (e) {} } };
+      setInterval(() => { pedirUpdate(); atzConferirVersao(); }, ATZ_INTERVALO_MS);
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") { pedirUpdate(); atzConferirVersao(); }
+      });
+      window.addEventListener("focus", () => { pedirUpdate(); atzConferirVersao(); });
+    }).catch(() => {});
+
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (atzTinhaControlador) mostrarAvisoVersao();
+    });
+  });
+} else {
+  // navegador sem service worker: so a conferencia pelo texto do sw.js
+  window.addEventListener("load", () => {
+    atzLerVersao().then(v => { if (v) atzVersaoInicial = v; });
+    setInterval(atzConferirVersao, ATZ_INTERVALO_MS);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") atzConferirVersao();
+    });
+  });
 }
 </script>
   <div id="modalPush" class="modal-push-overlay" style="display:none">
