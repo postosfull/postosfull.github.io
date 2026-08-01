@@ -795,6 +795,7 @@
   .pet-l{display:flex;justify-content:space-between;gap:10px;font-size:.85rem}
   .pet-l span{color:var(--cinza)}
   .pet-l b{color:var(--txt);white-space:nowrap}
+  .pet-l-nota b{font-weight:600;opacity:.65;font-style:italic}   /* v220 - despesa do dia ainda nao lancada */
   .pet-l b.rpz-pos{color:#18a558}   /* v198 - lucro liquido positivo em verde (licao da v197) */
   .pet-l b.rpz-neg{color:#c0392b}
   .pet-info{font-size:.72rem;color:var(--cinza);margin-top:10px}
@@ -12535,14 +12536,31 @@ function renderPetrosResumo(){
   }
   const ordem = ["Teresina","Caxias","Pres Dutra"];       // ordem escolhida pelo Tiago
   const rotulo = n => n === "Pres Dutra" ? "Dutra" : n;
+  /* v220 - o dia ja tem despesa lancada?
+     De manha o Adaptive ainda nao tem despesa do dia: as colunas Despesas e Despesas/L
+     voltam zeradas e o "lucro liquido" e' o lucro BRUTO com outro nome. Chamar aquilo de
+     liquido e' mentir para quem le. Agora quem decide e' o dado.
+     1a escolha: os campos despesas / despesasL que a rotina copia do Petros.
+     Reserva (enquanto a rotina antiga nao for trocada): se lucro bruto/L e lucro
+     liquido/L sao o mesmo numero, e' porque a despesa ainda nao entrou. */
+  const temDespesa = d => {
+    if (typeof d.despesas  === "number") return d.despesas  > 0;
+    if (typeof d.despesasL === "number") return d.despesasL > 0;
+    if (typeof d.lucroBrutoL === "number" && typeof d.lucroLiquidoL === "number")
+      return Math.abs(d.lucroBrutoL - d.lucroLiquidoL) > 0.00005;
+    return true;                       // sem informacao nenhuma, mantem o texto de antes
+  };
+  const NOTA_SEM_DESP = '<div class="pet-l pet-l-nota"><span>Despesas do dia</span><b>ainda n\u00e3o lan\u00e7adas</b></div>';
 
   if (soLojas){
     html += '<div class="pet-bloco"><h4 class="pet-bloco-tit">🛒 Full Conveniência</h4><div class="pet-grid">';
     ordem.forEach(n => {
       const d = (p.conveniencias||{})[n]; if (!d) return;
+      const cd = temDespesa(d);                                  // v220
       html += '<div class="pet-card"><h4>'+rotulo(n)+'</h4><div class="pet-linhas">' +
         '<div class="pet-l"><span>Vendas</span><b>R$ '+fmtBR(d.outros||0,2)+'</b></div>' +
-        '<div class="pet-l"><span>Lucro Líquido</span><b>R$ '+fmtBR(d.lucroLiquido||0,2)+'</b></div>' +
+        '<div class="pet-l"><span>'+(cd ? 'Lucro Líquido' : 'Lucro Bruto')+'</span><b>R$ '+fmtBR(d.lucroLiquido||0,2)+'</b></div>' +
+        (cd ? '' : NOTA_SEM_DESP) +
         '</div></div>';
     });
     html += '</div></div>';
@@ -12550,11 +12568,16 @@ function renderPetrosResumo(){
     html += '<div class="pet-bloco"><h4 class="pet-bloco-tit">⛽ Postos Full</h4><div class="pet-grid">';
     ordem.forEach(n => {
       const d = (p.postos||{})[n]; if (!d) return;
+      const cd = temDespesa(d);                                  // v220
       html += '<div class="pet-card"><h4>'+rotulo(n)+'</h4><div class="pet-linhas">' +
         '<div class="pet-l"><span>Volume</span><b>'+fmtBR(d.volume||0,0)+' L</b></div>' +
-        '<div class="pet-l"><span>Lucro Líquido</span><b>R$ '+fmtBR(d.lucroLiquido||0,2)+'</b></div>' +
-        '<div class="pet-l"><span>Lucro Bruto/L</span><b>R$ '+fmtBR(d.lucroBrutoL||0,4)+'</b></div>' +
-        '<div class="pet-l"><span>Lucro Líquido/L</span><b>R$ '+fmtBR(d.lucroLiquidoL||0,4)+'</b></div>' +
+        (cd
+          ? '<div class="pet-l"><span>Lucro Líquido</span><b>R$ '+fmtBR(d.lucroLiquido||0,2)+'</b></div>' +
+            '<div class="pet-l"><span>Lucro Bruto/L</span><b>R$ '+fmtBR(d.lucroBrutoL||0,4)+'</b></div>' +
+            '<div class="pet-l"><span>Lucro Líquido/L</span><b>R$ '+fmtBR(d.lucroLiquidoL||0,4)+'</b></div>'
+          : '<div class="pet-l"><span>Lucro Bruto</span><b>R$ '+fmtBR(d.lucroLiquido||0,2)+'</b></div>' +
+            '<div class="pet-l"><span>Lucro Bruto/L</span><b>R$ '+fmtBR(d.lucroBrutoL||0,4)+'</b></div>' +
+            NOTA_SEM_DESP) +
         '</div></div>';
     });
     html += '</div></div>';
