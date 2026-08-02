@@ -989,6 +989,41 @@
   .rpz-card span{display:block;font-size:.68rem;text-transform:uppercase;letter-spacing:.03em;color:var(--cinza)}
   .rpz-card b{display:block;font-size:1.02rem;margin-top:2px}
   .rpz-neg{color:#c0392b}
+  /* ---------- v225 - aba "A Pagar / Fluxo" ---------- */
+  .flx-sec{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--cinza);font-weight:700;margin:16px 0 4px}
+  .flx-tag{display:inline-block;font-size:.66rem;font-weight:600;padding:1px 7px;border-radius:999px;border:1px solid var(--borda);color:var(--cinza);background:var(--superficie);background-image:linear-gradient(var(--superficie),var(--superficie));white-space:nowrap}
+  .flx-tag.at{border-color:var(--vermelho);color:var(--vermelho)}
+  .flx-tag.hj{border-color:var(--verde);color:var(--verde)}
+  .flx-graf{background:var(--superficie-2);background-image:linear-gradient(var(--superficie-2),var(--superficie-2));border:1px solid var(--borda);border-radius:10px;padding:12px 14px}
+  .flx-mes{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+  .flx-mes>span:first-child{flex:0 0 46px;font-size:.72rem;color:var(--cinza);font-weight:600;text-transform:uppercase}
+  .flx-bars{flex:1 1 auto;min-width:0}
+  .flx-b{display:flex;align-items:center;gap:6px;margin:1px 0}
+  .flx-b em{font-style:normal;font-size:.66rem;color:var(--cinza);flex:0 0 34px}
+  .flx-t{flex:1 1 auto;min-width:0;height:11px;border-radius:3px;display:flex;overflow:hidden;background:var(--superficie);background-image:linear-gradient(var(--superficie),var(--superficie))}
+  .flx-t s{display:block;height:11px;text-decoration:none}
+  .flx-e{background:#18a558;background-image:linear-gradient(#18a558,#18a558)}
+  .flx-s1{background:#9E9E9E;background-image:linear-gradient(#9E9E9E,#9E9E9E)}
+  .flx-s2{background:var(--vermelho);background-image:linear-gradient(var(--vermelho),var(--vermelho))}
+  .flx-b>b{flex:0 0 84px;text-align:right;font-size:.72rem;font-weight:600}
+  .flx-leg{display:flex;gap:14px;flex-wrap:wrap;font-size:.68rem;color:var(--cinza);margin-top:8px}
+  .flx-leg s{text-decoration:none;display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+  .flx-leg .flx-le{background:#18a558;background-image:linear-gradient(#18a558,#18a558)}
+  .flx-leg .flx-l1{background:#9E9E9E;background-image:linear-gradient(#9E9E9E,#9E9E9E)}
+  .flx-leg .flx-l2{background:var(--vermelho);background-image:linear-gradient(var(--vermelho),var(--vermelho))}
+  .flx-tab .flx-vencida .flx-c2{color:var(--vermelho)}
+  /* no celular a linha vira cartao: data e VALOR na primeira linha (decisao do Tiago, 02/08) */
+  @media (max-width:560px){
+    .flx-tab thead{display:none}
+    .flx-tab tbody tr{display:flex;flex-wrap:wrap;align-items:baseline;gap:1px 8px;padding:7px 0;border-bottom:1px solid var(--borda)}
+    .flx-tab tbody td{border:none;padding:0;white-space:normal}
+    .flx-tab tbody td.flx-c1{order:1;font-weight:600}
+    .flx-tab tbody td.flx-c2{order:2;margin-left:auto;font-weight:600;text-align:right}
+    .flx-tab tbody td.flx-c3{order:3;flex:1 1 100%;font-size:.72rem;overflow-wrap:anywhere}
+    .flx-tab tbody td.flx-c4{order:4;font-size:.66rem;color:var(--cinza)}
+    .flx-tab tbody td.flx-c5{display:none}
+    .flx-tab tbody td.flx-c6{order:5;margin-left:auto}
+  }
   .rpz-pos{color:#18a558}
   .rpz-rola{overflow-x:auto}
   table.rpz-tab{min-width:0;font-size:.8rem;width:100%}
@@ -6197,7 +6232,9 @@ const ABAS_REL_UNIF = [
   { k:"f:pagliq",    n:"📤 Pagamentos",          painel:"painelFinanceiro", aba:"pagliq",   emp:"postos", menu:"fin" },
   { k:"f:descv",     n:"🏷️ Descontos",     painel:"painelFinanceiro", aba:"descv",    emp:"postos", menu:"fin" },
   { k:"f:desp",      n:"💸 Despesas do mês",     painel:"painelFinanceiro", aba:"desp",     emp:"postos", menu:"fin" },
-  { k:"f:dspano",    n:"📅 Despesas do ano",     painel:"painelDespesas",   aba:"",         emp:"postos", menu:"fin" }
+  { k:"f:dspano",    n:"📅 Despesas do ano",     painel:"painelDespesas",   aba:"",         emp:"postos", menu:"fin" },
+  /* v225 - o que ainda vai sair de dinheiro (unica tela do app que olha para a frente) */
+  { k:"f:apagar",    n:"💰 A Pagar / Fluxo",     painel:"painelFinanceiro", aba:"apagar",   emp:"postos", menu:"fin" }
 ];
 /* ===================== v224 - EM QUAL MENU CADA ABA MORA =====================
    "rel" = menu Relatorios, "fin" = menu Financeiro. O campo `menu` de ABAS_REL_UNIF e' o
@@ -6905,7 +6942,8 @@ const FIN_FONTE = {
   recliq:   "T\u00edtulos a Receber Liquidados",
   pagliq:   "T\u00edtulos a Pagar Liquidados",
   descv:    "Desconto nas Vendas Cliente no Per\u00edodo",
-  desp:     "Despesas Pagas no Per\u00edodo por Tipo"
+  desp:     "Despesas Pagas no Per\u00edodo por Tipo",
+  apagar:   "T\u00edtulos a Pagar Pendentes por Vencimento + 01 - Posi\u00e7\u00e3o de Liquidez"
 };
 
 /* --- dados: os documentos ficam em relatoriosPetros, tipo_postos_{unidade}_{periodo} --- */
@@ -7107,6 +7145,214 @@ function finBlocoDesc(ds){
   return h;
 }
 
+/* ===================== v225 - ABA "A PAGAR / FLUXO" =====================
+   Tres blocos numa aba so: (1) quanto o grupo tem hoje, da Posicao de Liquidez;
+   (2) o que vence, dos Titulos a Pagar Pendentes por Vencimento; (3) entrou x saiu
+   mes a mes, reaproveitando os documentos recliq/pagliq que ja existiam.
+   Os dois documentos novos sao FOTO DE AGORA e vem um por DIA para a rede inteira:
+   relatoriosPetros/{apagarpend|liquidez}_postos_todos_{AAAA-MM-DD}.
+   Receita da coleta em claude/rotina-a-pagar-e-liquidez.md.                        */
+const FLX_DISP = ["SaldoCaixa", "SaldoBancos", "CartoesCredito", "CartoesDebito", "ChequesVista"];
+
+function flxDias(tipo){
+  const pre = tipo + "_postos_todos_";
+  return Object.keys(relPetros).filter(k => k.indexOf(pre) === 0)
+    .map(k => k.slice(pre.length)).sort().reverse();
+}
+function flxDados(tipo, dia){
+  const d = relPetros[tipo + "_postos_todos_" + dia];
+  if (!d) return null;
+  const o = rpzLista(d);
+  return (o && typeof o === "object" && !Array.isArray(o)) ? o : null;
+}
+/* a liquidez do mesmo dia; se faltar, a mais recente ANTERIOR - nunca uma do futuro */
+function flxLiquidezDe(dia){
+  const dias = flxDias("liquidez").filter(d => d <= dia);
+  return dias.length ? flxDados("liquidez", dias[0]) : null;
+}
+/* soma um campo da liquidez respeitando o filtro de unidade da tela */
+function flxLiqSoma(liq, campos){
+  if (!liq || !liq.campos) return 0;
+  const uns = finUnidades();
+  let t = 0;
+  uns.forEach(u => { const c = liq.campos[u] || {}; campos.forEach(k => t += Number(c[k]) || 0); });
+  return t;
+}
+/* os baldes do a-pagar, somados nas unidades escolhidas */
+function flxResumo(ap){
+  const z = { vencido:{v:0,q:0}, migalha:{v:0,q:0}, hoje:{v:0,q:0}, d7:{v:0,q:0}, mes:{v:0,q:0}, depois:{v:0,q:0}, total:{v:0,q:0} };
+  if (!ap || !ap.resumo) return z;
+  finUnidades().forEach(u => {
+    const r = ap.resumo[u]; if (!r) return;
+    Object.keys(z).forEach(b => { if (r[b]){ z[b].v += Number(r[b].v) || 0; z[b].q += Number(r[b].q) || 0; } });
+  });
+  return z;
+}
+function flxLinhas(ap){
+  const uns = finUnidades();
+  return ((ap && ap.linhas) || []).filter(l => uns.indexOf(l.u) >= 0);
+}
+/* quantos dias entre duas datas AAAA-MM-DD (positivo = a segunda e' depois) */
+function flxDifDias(de, ate){
+  const a = new Date(de + "T12:00:00"), b = new Date(ate + "T12:00:00");
+  if (isNaN(a) || isNaN(b)) return 0;
+  return Math.round((b - a) / 86400000);
+}
+function flxSelo(dv, hoje){
+  const n = flxDifDias(hoje, dv);
+  if (n < 0)  return '<span class="flx-tag at">vencido há ' + (-n) + (n === -1 ? ' dia' : ' dias') + '</span>';
+  if (n === 0) return '<span class="flx-tag hj">vence hoje</span>';
+  if (n === 1) return '<span class="flx-tag">amanhã</span>';
+  return '<span class="flx-tag">em ' + n + ' dias</span>';
+}
+
+/* ---------- bloco 3: entrou x saiu, dos recliq/pagliq que ja existem ---------- */
+function flxMesesFluxo(){
+  const set = {};
+  ["recliq", "pagliq"].forEach(t => finPeriodos(t).forEach(p => set[p] = 1));
+  return Object.keys(set).sort().reverse().slice(0, 8).reverse();
+}
+function flxSomaMes(tipo, per, campo){
+  let t = 0;
+  finUnidades().forEach(u => {
+    const d = relPetros[tipo + "_postos_" + u + "_" + per];
+    if (!d) return;
+    const o = rpzLista(d);
+    if (!o || Array.isArray(o)) return;
+    t += campo === "semTipo" ? (Number(o.semTipo) || 0) : (o.tot ? Number(o.tot.v) || 0 : 0);
+  });
+  return t;
+}
+function flxBlocoFluxo(){
+  const meses = flxMesesFluxo();
+  if (!meses.length) return "";
+  const linhas = meses.map(m => {
+    const ent = flxSomaMes("recliq", m, "tot");
+    const sai = flxSomaMes("pagliq", m, "tot");
+    const comb = flxSomaMes("pagliq", m, "semTipo");
+    return { m: m, ent: ent, sai: sai, comb: Math.min(comb, sai), resto: Math.max(sai - comb, 0) };
+  }).filter(l => l.ent || l.sai);
+  if (!linhas.length) return "";
+  const max = linhas.reduce((x, l) => Math.max(x, l.ent, l.sai), 0) || 1;
+  const pc = v => (v / max * 100).toFixed(1);
+  const mi = v => v >= 1000000 ? "R$ " + fmtBR(v / 1000000, 2) + " mi" : "R$ " + rpzDin0(v);
+  const MESC = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+  const rot = p => /^\d{4}-\d{2}$/.test(p) ? MESC[(+p.split("-")[1]) - 1] + "/" + p.slice(2, 4) : p;
+  let h = '<h3 class="cxi-sub">Entrou &times; Saiu, mês a mês</h3><div class="flx-graf">';
+  linhas.forEach(l => {
+    h += '<div class="flx-mes"><span>' + escAttr(rot(l.m)) + '</span><div class="flx-bars">' +
+      '<div class="flx-b"><em>entrou</em><div class="flx-t"><s class="flx-e" style="width:' + pc(l.ent) + '%"></s></div><b>' + mi(l.ent) + '</b></div>' +
+      '<div class="flx-b"><em>saiu</em><div class="flx-t"><s class="flx-s1" style="width:' + pc(l.comb) + '%"></s><s class="flx-s2" style="width:' + pc(l.resto) + '%"></s></div><b>' + mi(l.sai) + '</b></div>' +
+      '</div></div>';
+  });
+  h += '<div class="flx-leg"><span><s class="flx-le"></s>Entrou (recebido)</span>' +
+       '<span><s class="flx-l1"></s>Saiu &mdash; compra de combustível</span>' +
+       '<span><s class="flx-l2"></s>Saiu &mdash; todo o resto</span></div></div>';
+  const ult = linhas[linhas.length - 1];
+  const pctc = ult.sai ? (ult.comb / ult.sai * 100).toFixed(1).replace(".", ",") : "0";
+  h += '<p class="nota-dash">Saiu mais do que entrou, <b>e isso não é prejuízo</b>: ' + pctc +
+       '% do que sai é compra de combustível, que volta como venda. O que interessa acompanhar é a faixa vermelha.</p>';
+  return h;
+}
+
+function flxTabela(linhas, dia){
+  let h = '<div class="rpz-rola"><table class="rpz-tab flx-tab"><thead><tr>' +
+    '<th class="flx-c1">Vencimento</th><th class="rpz-r flx-c2">Valor</th><th class="flx-c3">Credor</th>' +
+    '<th class="flx-c4">Unidade</th><th class="flx-c5">Tipo</th><th class="flx-c6">Situação</th></tr></thead><tbody>';
+  linhas.forEach(l => {
+    h += '<tr' + (l.d < dia ? ' class="flx-vencida"' : '') + '>' +
+      '<td class="flx-c1">' + rpzDia(l.d) + '</td>' +
+      '<td class="rpz-r flx-c2">' + rpzDin(l.v) + '</td>' +
+      '<td class="rpz-nome flx-c3">' + escAttr(rpzTxt(l.n)) + '</td>' +
+      '<td class="flx-c4">' + escAttr(finUnidNome(l.u)) + '</td>' +
+      '<td class="flx-c5">' + escAttr(rpzTxt(l.t || "—")) + '</td>' +
+      '<td class="flx-c6">' + flxSelo(l.d, dia) + '</td></tr>';
+  });
+  return h + '</tbody></table></div>';
+}
+
+/* ---------- a tela ---------- */
+function renderFinApagar(box){
+  const dias = flxDias("apagarpend");
+  const perLinha = document.getElementById("finPerLinha");
+  if (!dias.length){
+    if (perLinha) perLinha.style.display = "none";
+    box.innerHTML = '<div class="ana-vazio">Ainda não há dados deste relatório.<br>Eles vêm do Adaptive.</div>';
+    return;
+  }
+  if (perLinha) perLinha.style.display = "";
+  if (!finPerSel || dias.indexOf(finPerSel) < 0) finPerSel = dias[0];
+  preencherSelectRel("finPer", dias, finPerSel, rpzDia);
+
+  const dia = finPerSel;
+  const ap = flxDados("apagarpend", dia) || {};
+  const liq = flxLiquidezDe(dia);
+  const R = flxResumo(ap);
+  let h = "";
+
+  /* ---- 1. quanto o grupo tem hoje ---- */
+  if (liq){
+    const disp = flxLiqSoma(liq, FLX_DISP);
+    const rec = flxLiqSoma(liq, ["ContasReceber"]);
+    const pos = disp + rec - R.total.v;
+    h += '<div class="flx-sec">1 &middot; Quanto o grupo tem em ' + rpzDia(dia) + '</div>';
+    h += '<div class="rpz-cards">';
+    h += finCard("Dinheiro disponível", "R$ " + rpzDin0(disp));
+    h += finCard("+ A receber em aberto", "R$ " + rpzDin0(rec));
+    h += finCard("− A pagar em aberto", "R$ " + rpzDin0(R.total.v), "rpz-neg", rpzDin0(R.total.q) + " títulos");
+    h += finCard("= Posição", "R$ " + rpzDin0(pos), pos < 0 ? "rpz-neg" : "rpz-pos");
+    h += '</div>';
+    h += '<p class="nota-dash">Disponível = caixa + bancos + cartões a receber (crédito e débito) + cheques à vista.' +
+         (liq.data && liq.data !== dia ? ' A posição é de ' + rpzDia(liq.data) + ' (o dia escolhido ainda não tem leitura).' : '') + '</p>';
+  }
+
+  /* ---- 2. o que vence ---- */
+  h += '<div class="flx-sec">2 &middot; O que vence</div>';
+  h += '<div class="rpz-cards">';
+  h += finCard("🔴 Vencido", "R$ " + rpzDin0(R.vencido.v), "rpz-neg", rpzDin0(R.vencido.q) + " títulos");
+  h += finCard("Vence hoje", "R$ " + rpzDin0(R.hoje.v), "", rpzDin0(R.hoje.q) + " títulos");
+  h += finCard("Próximos 7 dias", "R$ " + rpzDin0(R.d7.v), "", rpzDin0(R.d7.q) + " títulos");
+  h += finCard("Resto do mês", "R$ " + rpzDin0(R.mes.v), "", rpzDin0(R.mes.q) + " títulos");
+  h += '</div>';
+
+  /* 🔑 duas tabelas, nao uma: em ordem de data pura, o topo da tela seria o lixo de 2023 e o
+     que vence esta semana ficaria la' embaixo. O que vem primeiro e' o que ainda da' para fazer. */
+  const todas = flxLinhas(ap);
+  const proximas = todas.filter(l => l.d >= dia).sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : b.v - a.v);
+  const atrasadas = todas.filter(l => l.d < dia).sort((a, b) => b.v - a.v);
+
+  if (atrasadas.length){
+    h += '<details class="rel-det"><summary>🔴 ' + rpzDin0(atrasadas.length) +
+         ' títulos vencidos, R$ ' + rpzDin0(R.vencido.v) + ' &mdash; do maior para o menor</summary>' +
+         flxTabela(atrasadas, dia) + '</details>';
+  }
+  /* a migalha aparece, mas nao domina o quadro (regra da v211: o app nao decide que algo e' normal) */
+  if (R.migalha.q){
+    const lim = Number(ap.limiarMigalha) || 100;
+    h += '<details class="rel-det"><summary>+ ' + rpzDin0(R.migalha.q) + ' sobras de centavos vencidas, R$ ' +
+         rpzDin(R.migalha.v) + ' no total (abaixo de R$ ' + rpzDin0(lim) + ')</summary>' +
+         '<p class="nota-dash">São restos de acerto, não dívida &mdash; ficam fora dos quadros acima para não esconder o que importa. Quem mais aparece:</p>';
+    h += finTab(["Credor", "Títulos", "Valor"],
+      ((ap.migalhaTop) || []).map(r => [escAttr(r.n), rpzDin0(r.q), rpzDin(r.v)]));
+    h += '</details>';
+  }
+
+  h += '<h3 class="cxi-sub">Próximos vencimentos</h3>';
+  h += proximas.length ? flxTabela(proximas, dia)
+     : '<div class="ana-vazio">Nada a vencer daqui para a frente nesta unidade.</div>';
+  h += '<p class="nota-dash">A lista traz os títulos de R$ ' + rpzDin0(Number(ap.limiarMigalha) || 100) +
+       ' para cima e os que vencem até ' + rpzDia(ap.horizonte || "") + '.</p>';
+
+  /* ---- 3. entrou x saiu ---- */
+  const fluxo = flxBlocoFluxo();
+  if (fluxo) h += '<div class="flx-sec">3 &middot; Entrou &times; Saiu</div>' + fluxo;
+
+  const doc = relPetros["apagarpend_postos_todos_" + dia];
+  const quando = doc && doc.atualizadoEm ? fmtQuandoLocal(doc.atualizadoEm) : rpzDia(dia);
+  h += '<p class="ana-rodape">Atualizado ' + escAttr(quando) + '. Fonte: ' + escAttr(FIN_FONTE.apagar) + ' (Adaptive).</p>';
+  box.innerHTML = h;
+}
+
 function renderFinanceiro(){
   const box = document.getElementById("finBox");
   if (!box) return;
@@ -7120,6 +7366,7 @@ function renderFinanceiro(){
   preencherSelectRel("finUnid", uns, finUnidSel, c => c === "todos" ? "Todos os postos" : finUnidNome(c));
   finUnidSel = (document.getElementById("finUnid") || {}).value || finUnidSel;
 
+  if (finAba === "apagar"){ renderFinApagar(box); return; }   // v225
   const pers = finPeriodos(finAba);
   const perLinha = document.getElementById("finPerLinha");
   if (!pers.length){
