@@ -898,6 +898,11 @@
   .ord-bts{display:flex;gap:4px;flex:0 0 auto}
   .ord-bts button{padding:2px 9px;font-size:.85rem;line-height:1.3}
   .ord-bts button[disabled]{opacity:.35}
+  /* v224 - os dois botoes de menu na caixa "Mover abas" */
+  .mov-bts{display:flex;gap:4px;flex:0 0 auto;flex-wrap:wrap;justify-content:flex-end}
+  .mov-bts button{padding:3px 10px;font-size:.76rem;line-height:1.35;white-space:nowrap}
+  .mov-linha .ord-nome{overflow-wrap:anywhere}
+  .mov-bt.ativo{border-color:#FF6401;color:#FF6401;background:rgba(255,100,1,.10);background-image:linear-gradient(rgba(255,100,1,.10),rgba(255,100,1,.10));font-weight:700}
   /* v187 - quem pode enviar avisos/tarefas */
   .pe-sub{font-weight:600;font-size:.9rem;margin:14px 0 6px}
   .pe-item{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--borda);flex-wrap:wrap}
@@ -966,7 +971,7 @@
   .rel-ord-bt{margin-left:auto}          /* v200 - continua valendo para o "Ordenar cards" do Dashboard */
   .rel-topo{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px}
   .rel-topo h2{margin-bottom:0}
-  .rel-topo-bts{margin-left:auto;display:flex;gap:8px;flex:0 0 auto}
+  .rel-topo-bts{margin-left:auto;display:flex;gap:8px;flex:0 1 auto;flex-wrap:wrap;justify-content:flex-end}
   .rel-topo-bts:empty{display:none}
   /* v207 - traco entre os grupos de abas + campo de renomear */
   .aba-sep{flex:0 0 auto;width:1px;height:22px;background:var(--borda);background-image:linear-gradient(var(--borda),var(--borda));border-radius:1px;margin:0 3px}
@@ -1616,6 +1621,7 @@
     <button class="btn-claro" id="btnSimular" onclick="alternarSimular()"><span class="mi">💰</span><span class="mt">Simular Margens</span></button>
     <button class="btn-claro" id="btnDescontos" onclick="alternarDescontos()"><span class="mi">🏷️</span><span class="mt">Descontos</span></button>
     <button class="btn-claro" id="btnRelPosto" onclick="alternarRelatorios()"><span class="mi">📑</span><span class="mt">Relatórios</span></button>
+    <button class="btn-claro" id="btnFinanceiro" onclick="alternarFinanceiro()"><span class="mi">🏦</span><span class="mt">Financeiro</span></button>
     <button class="btn-claro" id="btnDespesas" onclick="alternarDespesas()"><span class="mi">💸</span><span class="mt">Despesas</span></button>
     <button class="btn-claro" id="btnAnalise" onclick="alternarAnalise()"><span class="mi">🧠</span><span class="mt">Análise</span></button>
     <button class="btn-claro" id="btnInfleet" onclick="alternarInfleet()"><span class="mi">📡</span><span class="mt">APP Infleet</span></button>
@@ -2571,6 +2577,12 @@ let despesasAno = {}, dspAnoSel = "", dspPostoSel = "todos", dspComRet = true;  
 let relPetros = {}, rpzAba = "mapa", rpzUnidSel = "teresina", rpzPerSel = "";  // v191
 let ordemAbasRel = {}, abaRelAtual = "", ordAbasAberto = false;  // v192
 let nomesAbasRel = {}, renAbasAberto = false;                     // v207 - nomes escolhidos pelo Tiago
+/* v224 - em qual menu cada aba mora ("rel" = Relatorios, "fin" = Financeiro).
+   menusAbasRel guarda SO o que o Tiago mudou; o resto vem do campo menu de ABAS_REL_UNIF.
+   menuRelAtivo diz qual dos dois menus esta aberto agora (os dois usam os MESMOS paineis,
+   entao o painel aberto nao serve para saber qual botao acender). */
+let menusAbasRel = {}, movAbasAberto = false, menuRelAtivo = "rel";
+let ultimaAbaMenu = { rel: "", fin: "" };   // v224 - a ultima aba visitada em cada menu
 let analises = {}, anaSel = "";                 // v172 - {"postos_2026-07-28": {...}}
 let escutaAnalises = null;
 let relPostoSel = "teresina", relPostoMes = "", relPostoAba = "resultado";
@@ -4810,6 +4822,9 @@ function iniciarSync(){
     const v = d && d.exists ? d.data() : null;
     ordemAbasRel = (v && v.porEmpresa) ? v.porEmpresa : {};
     nomesAbasRel = (v && v.nomes) ? v.nomes : {};        // v207
+    menusAbasRel = (v && v.menus) ? v.menus : {};        // v224 - abas movidas de menu
+    sincronizarMenuAtivo();
+    aplicarVisibilidadeMenus();   // menu que ficou sem aba some da barra na hora
     const abertos = id => { const p = document.getElementById(id); return !!(p && p.classList.contains("aberto")); };
     if (abertos("painelRelPosto")) renderRelPosto();
     if (abertos("painelRelPetros")) renderRelPetros();
@@ -5333,11 +5348,15 @@ function fecharTodosPaineis(exceto){
     const p = par.split(":"), b = document.getElementById(p[0]), pan = document.getElementById(p[1]);
     if (b && pan) b.classList.toggle("ativo", pan.classList.contains("aberto"));
   });
-  // v192/v207 - um botao so ("Relatorios") acende para os QUATRO paineis de relatorio
-  const brel = document.getElementById("btnRelPosto");
-  if (brel) brel.classList.toggle("ativo", paineisDosRelatorios().some(id => {
+  // v192/v207/v224 - DOIS botoes ("Relatorios" e "Financeiro") dividem os MESMOS quatro paineis.
+  // Por isso o painel aberto nao basta: quem decide qual acender e' o menuRelAtivo.
+  const abertoRel = paineisDosRelatorios().some(id => {
     const e = document.getElementById(id); return e && e.classList.contains("aberto");
-  }));
+  });
+  const brel = document.getElementById("btnRelPosto");
+  if (brel) brel.classList.toggle("ativo", abertoRel && menuRelAtivo === "rel");
+  const bfin = document.getElementById("btnFinanceiro");
+  if (bfin) bfin.classList.toggle("ativo", abertoRel && menuRelAtivo === "fin");
 }
 
 /* ===== Menu lateral: abrir/fechar no celular ===== */
@@ -5380,6 +5399,7 @@ const MENUS_APP = [
   {key:"simular",     btn:"btnSimular",     pan:"painelSimular",     emp:"postos", nome:"Simular Margens"},
   {key:"descontos",   btn:"btnDescontos",   pan:"painelDescontos",   emp:"postos", nome:"Descontos"},
   {key:"relPosto",    btn:"btnRelPosto",    pan:"painelRelPosto",    emp:"postos|conv", nome:"Relatórios"},
+  {key:"financeiro",  btn:"btnFinanceiro",  pan:"painelFinanceiro",  emp:"postos|conv", nome:"Financeiro"},   // v224 - voltou (tinha saido na v207)
   {key:"despesas",    btn:"btnDespesas",    pan:"painelDespesas",    emp:"conv", nome:"Despesas"},   // v205 - nos Postos e aba do menu Relatorios (v207)
   {key:"infleet",     btn:"btnInfleet",     pan:"painelInfleet",     emp:"transp", nome:"APP Infleet"},
   {key:"pedido",      btn:"btnPedido",      pan:"painelPedido",      emp:"transp", nome:"Pedido de carregamento"},
@@ -5417,7 +5437,10 @@ function menuPermitidoDe(email, key, sig){
   // v177: o "Comparativo de Precos" virou uma secao dentro de "Cotacoes do Dia".
   if (key === "cotacoes") return _menuPermBase(email, "cotacoes", sig) || _menuPermBase(email, "comparativo", sig);
   // v192 / v207: "Relatorios do posto", "Relatorios Petros" e "Financeiro" viraram um menu so.
-  if (key === "relPosto") return _menuPermBase(email, "relPosto", sig) || _menuPermBase(email, "relPetros", sig) || _menuPermBase(email, "financeiro", sig);
+  // v224: o Financeiro voltou a ser menu, mas os dois continuam mostrando o MESMO conjunto de
+  // paineis - quem enxerga um enxerga o outro, senao a aba movida sumiria para a pessoa.
+  if (key === "relPosto" || key === "financeiro")
+    return _menuPermBase(email, "relPosto", sig) || _menuPermBase(email, "relPetros", sig) || _menuPermBase(email, "financeiro", sig);
   // v198: o menu "Caixas" virou um bloco dentro do Dashboard.
   if (key === "dash") return _menuPermBase(email, "dash", sig) || _menuPermBase(email, "caixas", sig);
   // v205/v207: nos Postos o menu "Despesas" virou aba dos Relatorios.
@@ -5722,6 +5745,12 @@ function aplicarVisibilidadeMenus(){
     const b = document.getElementById(m.btn);
     if (!b) return;
     b.style.display = (menuVisivelEmpresa(m, s) && menuPermitido(m.key, s)) ? "" : "none";
+  });
+  // v224 - menu de abas que ficou sem NENHUMA aba nesta empresa nao aparece na barra.
+  // E' o que permite ao Tiago esvaziar um dos dois menus so' movendo abas.
+  [["btnRelPosto","rel"], ["btnFinanceiro","fin"]].forEach(par => {
+    const bm = document.getElementById(par[0]);
+    if (bm && bm.style.display !== "none" && !abasDoMenu(par[1], s).length) bm.style.display = "none";
   });
   // Blocos das Configurações que só fazem sentido em uma empresa
   const gm = document.getElementById("grupoMotoristas"); if (gm) gm.style.display = (s === "transp") ? "" : "none";
@@ -6149,25 +6178,60 @@ function renderCaixas(){
    barra so. Cada aba continua morando no seu painel; a barra e' que e' compartilhada.
    Ordem editavel pelo admin, gravada em config/ordemAbasRel. */
 const ABAS_REL_UNIF = [
-  { k:"p:resultado", n:"💵 Resultado do mês",   painel:"painelRelPosto",  aba:"resultado", emp:"postos" },
-  { k:"p:caixa",     n:"🧾 Caixa",              painel:"painelRelPosto",  aba:"caixa",     emp:"postos" },
-  { k:"p:equipe",    n:"👷 Equipe e movimento", painel:"painelRelPosto",  aba:"equipe",    emp:"postos" },
-  { k:"z:mapa",      n:"🗺️ Mapa Anual",         painel:"painelRelPetros", aba:"mapa",      emp:"postos|conv" },
-  { k:"z:anomes",    n:"📆 Ano mês a mês",       painel:"painelRelPetros", aba:"anomes",    emp:"postos|conv" },   // v212
-  { k:"z:dre",       n:"📊 Resultado do período", painel:"painelRelPetros", aba:"dre",     emp:"postos|conv" },
-  { k:"z:afer",      n:"📏 Aferições",          painel:"painelRelPetros", aba:"afer",      emp:"postos" },   // v205
-  { k:"z:vpend",     n:"⏳ Vendas pendentes",   painel:"painelRelPetros", aba:"vpend",     emp:"postos" },   // v205
-  { k:"z:tanques",   n:"🛢️ Tanques",            painel:"painelRelPetros", aba:"tanques",   emp:"postos" },
-  { k:"z:colab",     n:"🙋 Colaboradores",      painel:"painelRelPetros", aba:"colab",     emp:"postos|conv" },
-  { k:"z:aprazo",    n:"📄 A Prazo",            painel:"painelRelPetros", aba:"aprazo",    emp:"postos" },  // v193: a loja nao vende a prazo
-  /* v207 - as seis abas que eram o menu Financeiro (so Postos Full) */
-  { k:"f:aprazosf",  n:"📄 A Prazo sem faturar", painel:"painelFinanceiro", aba:"aprazosf", emp:"postos" },
-  { k:"f:recliq",    n:"📥 Recebimentos",        painel:"painelFinanceiro", aba:"recliq",   emp:"postos" },
-  { k:"f:pagliq",    n:"📤 Pagamentos",          painel:"painelFinanceiro", aba:"pagliq",   emp:"postos" },
-  { k:"f:descv",     n:"🏷️ Descontos",     painel:"painelFinanceiro", aba:"descv",    emp:"postos" },
-  { k:"f:desp",      n:"💸 Despesas do mês",     painel:"painelFinanceiro", aba:"desp",     emp:"postos" },
-  { k:"f:dspano",    n:"📅 Despesas do ano",     painel:"painelDespesas",   aba:"",         emp:"postos" }
+  { k:"p:resultado", n:"💵 Resultado do mês",   painel:"painelRelPosto",  aba:"resultado", emp:"postos", menu:"fin" },
+  { k:"p:caixa",     n:"🧾 Caixa",              painel:"painelRelPosto",  aba:"caixa",     emp:"postos", menu:"fin" },
+  { k:"p:equipe",    n:"👷 Equipe e movimento", painel:"painelRelPosto",  aba:"equipe",    emp:"postos", menu:"rel" },
+  { k:"z:mapa",      n:"🗺️ Mapa Anual",         painel:"painelRelPetros", aba:"mapa",      emp:"postos|conv", menu:"fin" },
+  { k:"z:anomes",    n:"📆 Ano mês a mês",       painel:"painelRelPetros", aba:"anomes",    emp:"postos|conv", menu:"fin" },   // v212
+  { k:"z:dre",       n:"📊 Resultado do período", painel:"painelRelPetros", aba:"dre",     emp:"postos|conv", menu:"fin" },
+  { k:"z:afer",      n:"📏 Aferições",          painel:"painelRelPetros", aba:"afer",      emp:"postos", menu:"rel" },   // v205
+  { k:"z:vpend",     n:"⏳ Vendas pendentes",   painel:"painelRelPetros", aba:"vpend",     emp:"postos", menu:"rel" },   // v205
+  { k:"z:tanques",   n:"🛢️ Tanques",            painel:"painelRelPetros", aba:"tanques",   emp:"postos", menu:"rel" },
+  /* v224 - Colaboradores: nos Postos o Tiago mandou para o Financeiro; na Conveniencia ele fica
+     no Relatorios, senao aquele menu nasceria vazio na loja. Ele pode trocar os dois quando quiser. */
+  { k:"z:colab",     n:"🙋 Colaboradores",      painel:"painelRelPetros", aba:"colab",     emp:"postos|conv", menu:{postos:"fin", conv:"rel"} },
+  { k:"z:aprazo",    n:"📄 A Prazo",            painel:"painelRelPetros", aba:"aprazo",    emp:"postos", menu:"fin" },  // v193: a loja nao vende a prazo
+  /* v207 - as seis abas que eram o menu Financeiro (so Postos Full); v224 - voltaram para ele */
+  { k:"f:aprazosf",  n:"📄 A Prazo sem faturar", painel:"painelFinanceiro", aba:"aprazosf", emp:"postos", menu:"fin" },
+  { k:"f:recliq",    n:"📥 Recebimentos",        painel:"painelFinanceiro", aba:"recliq",   emp:"postos", menu:"fin" },
+  { k:"f:pagliq",    n:"📤 Pagamentos",          painel:"painelFinanceiro", aba:"pagliq",   emp:"postos", menu:"fin" },
+  { k:"f:descv",     n:"🏷️ Descontos",     painel:"painelFinanceiro", aba:"descv",    emp:"postos", menu:"fin" },
+  { k:"f:desp",      n:"💸 Despesas do mês",     painel:"painelFinanceiro", aba:"desp",     emp:"postos", menu:"fin" },
+  { k:"f:dspano",    n:"📅 Despesas do ano",     painel:"painelDespesas",   aba:"",         emp:"postos", menu:"fin" }
 ];
+/* ===================== v224 - EM QUAL MENU CADA ABA MORA =====================
+   "rel" = menu Relatorios, "fin" = menu Financeiro. O campo `menu` de ABAS_REL_UNIF e' o
+   padrao de fabrica (string, ou {postos:..., conv:...} quando muda de empresa para empresa);
+   config/ordemAbasRel.menus guarda SO' o que o Tiago mudou pela caixa "Mover abas". */
+function menuFabricaDaAba(a, s){
+  const f = a && a.menu;
+  if (!f) return "rel";
+  if (typeof f === "string") return f;
+  return f[s] || "rel";
+}
+function menuDaAba(a, s){
+  s = s || siglaEmpresa(empresa);
+  const m = (menusAbasRel && menusAbasRel[s]) ? menusAbasRel[s][a.k] : "";
+  if (m === "rel" || m === "fin") return m;
+  return menuFabricaDaAba(a, s);
+}
+function abasDoMenu(mk, s){
+  s = s || siglaEmpresa(empresa);
+  return abasRelDaEmpresa(s).filter(a => menuDaAba(a, s) === mk);
+}
+/* a aba aberta manda no menu aceso - usado quando a divisao muda por baixo (outro aparelho) */
+function sincronizarMenuAtivo(){
+  const a = ABAS_REL_UNIF.find(x => x.k === abaRelAtual);
+  if (a) menuRelAtivo = menuDaAba(a);
+}
+/* fixa a aba atual sem navegar (quem chama ja' esta' desenhando aquele painel) */
+function fixarAbaAtual(k){
+  const t = ABAS_REL_UNIF.find(a => a.k === k);
+  if (!t) return;
+  abaRelAtual = k;
+  menuRelAtivo = menuDaAba(t);
+  ultimaAbaMenu[menuRelAtivo] = k;
+}
 /* Os quatro paineis que a barra de abas comanda. Na Conveniencia o painelDespesas
    NAO entra: la ele continua sendo o menu proprio "Despesas" da barra lateral. */
 function paineisDosRelatorios(){
@@ -6176,7 +6240,9 @@ function paineisDosRelatorios(){
   return ids;
 }
 function tituloRel(){
-  return "📑 Relatórios — " + (siglaEmpresa(empresa) === "conv" ? "Full Conveniência" : "Postos Full");
+  const emp = (siglaEmpresa(empresa) === "conv" ? "Full Conveniência" : "Postos Full");
+  // v224 - o titulo diz em qual dos dois menus a pessoa esta'
+  return (menuRelAtivo === "fin" ? "🏦 Financeiro — " : "📑 Relatórios — ") + emp;
 }
 // abas desta empresa, ja na ordem que esta valendo
 function abasRelDaEmpresa(s){
@@ -6190,8 +6256,16 @@ function abasRelDaEmpresa(s){
   return saida;
 }
 function abaRelValida(){
-  const abas = abasRelDaEmpresa();
-  if (!abas.length) return null;
+  let abas = abasDoMenu(menuRelAtivo);
+  if (!abas.length){
+    // v224 - o menu ficou sem aba (o Tiago moveu todas): cai para o outro em vez de morrer
+    const outro = (menuRelAtivo === "rel") ? "fin" : "rel";
+    abas = abasDoMenu(outro);
+    if (!abas.length) return null;
+    menuRelAtivo = outro;
+    abaRelAtual = abas[0].k;
+    return abas[0];
+  }
   if (!abas.some(a => a.k === abaRelAtual)) abaRelAtual = abas[0].k;
   return ABAS_REL_UNIF.find(a => a.k === abaRelAtual);
 }
@@ -6204,8 +6278,8 @@ function nomeAba(a, s){
 }
 function grupoAba(k){ return String(k).split(":")[0]; }
 function barraAbasRel(){
-  const abas = abasRelDaEmpresa();
-  abaRelValida();
+  abaRelValida();                       // v224 - pode trocar o menuRelAtivo, entao vem ANTES
+  const abas = abasDoMenu(menuRelAtivo);
   let h = "", ant = "";
   abas.forEach(a => {
     const g = grupoAba(a.k);
@@ -6223,7 +6297,10 @@ function botoesAbasRel(){
   return '<button class="doc-chip' + (ordAbasAberto ? ' ativo' : '') +
     '" onclick="alternarOrdemAbasRel()" title="Mudar a ordem das abas">⚙️ Ordenar abas</button>' +
     '<button class="doc-chip' + (renAbasAberto ? ' ativo' : '') +
-    '" onclick="alternarRenomearAbasRel()" title="Trocar o nome das abas">✏️ Renomear abas</button>';
+    '" onclick="alternarRenomearAbasRel()" title="Trocar o nome das abas">✏️ Renomear abas</button>' +
+    /* v224 - TEMPORARIO: sai quando o Tiago disser que terminou de arrumar os menus */
+    '<button class="doc-chip' + (movAbasAberto ? ' ativo' : '') +
+    '" onclick="alternarMoverAbas()" title="Escolher em qual menu cada aba aparece">🔀 Mover abas</button>';
 }
 function recarregarBotoesAbasRel(){
   const soPosto = siglaEmpresa(empresa) === "postos";
@@ -6236,6 +6313,8 @@ function irParaAbaRel(k){
   const t = ABAS_REL_UNIF.find(a => a.k === k);
   if (!t) return;
   abaRelAtual = k;
+  menuRelAtivo = menuDaAba(t);        // v224 - a aba diz em qual menu a pessoa esta'
+  ultimaAbaMenu[menuRelAtivo] = k;
   if (t.painel === "painelRelPosto") relPostoAba = t.aba;
   else if (t.painel === "painelRelPetros"){ if (rpzAba !== t.aba) rpzPerSel = ""; rpzAba = t.aba; }
   else if (t.painel === "painelFinanceiro"){ if (finAba !== t.aba) finPerSel = ""; finAba = t.aba; }
@@ -6245,6 +6324,8 @@ function irParaAbaRel(k){
     alvo.classList.add("aberto");
     fecharTodosPaineis(t.painel);
     atualizarFiltrosVisiveis();
+  } else {
+    fecharTodosPaineis(t.painel);     // v224 - mesmo painel, outro menu: reacende o botao certo
   }
   if (t.painel === "painelRelPosto") renderRelPosto();
   else if (t.painel === "painelRelPetros") renderRelPetros();
@@ -6256,18 +6337,64 @@ function relatoriosAberto(){
     const e = document.getElementById(id); return e && e.classList.contains("aberto");
   });
 }
-function alternarRelatorios(){
-  if (relatoriosAberto()){ fecharTodosPaineis(); ordAbasAberto = false; renAbasAberto = false; return; }
-  const t = abaRelValida();
+function alternarRelatorios(){ alternarMenuAbas("rel"); }
+/* v224 - o menu Financeiro voltou a existir; os dois compartilham os mesmos quatro paineis */
+function alternarFinanceiro(){ alternarMenuAbas("fin"); }
+function alternarMenuAbas(mk){
+  if (relatoriosAberto() && menuRelAtivo === mk){
+    fecharTodosPaineis(); ordAbasAberto = false; renAbasAberto = false; movAbasAberto = false; return;
+  }
+  const t = abaValidaDoMenu(mk);
   if (!t) return;
   irParaAbaRel(t.k);
 }
+/* volta para a ultima aba visitada naquele menu (ou a primeira, se ela saiu de la') */
+function abaValidaDoMenu(mk){
+  const abas = abasDoMenu(mk);
+  if (!abas.length) return null;
+  const ult = ultimaAbaMenu[mk];
+  return (ult && abas.some(a => a.k === ult)) ? abas.find(a => a.k === ult) : abas[0];
+}
 /* --- ordenacao e renomeacao das abas (so admin) --- */
-function alternarOrdemAbasRel(){ ordAbasAberto = !ordAbasAberto; if (ordAbasAberto) renAbasAberto = false; renderOrdemAbasRel(); recarregarBarraAbasRel(); }
-function alternarRenomearAbasRel(){ renAbasAberto = !renAbasAberto; if (renAbasAberto) ordAbasAberto = false; renderOrdemAbasRel(); recarregarBarraAbasRel(); }
+function alternarOrdemAbasRel(){ ordAbasAberto = !ordAbasAberto; if (ordAbasAberto){ renAbasAberto = false; movAbasAberto = false; } renderOrdemAbasRel(); recarregarBarraAbasRel(); }
+function alternarRenomearAbasRel(){ renAbasAberto = !renAbasAberto; if (renAbasAberto){ ordAbasAberto = false; movAbasAberto = false; } renderOrdemAbasRel(); recarregarBarraAbasRel(); }
+/* v224 - TEMPORARIO: a caixa que move as abas de um menu para o outro */
+function alternarMoverAbas(){ movAbasAberto = !movAbasAberto; if (movAbasAberto){ ordAbasAberto = false; renAbasAberto = false; } renderOrdemAbasRel(); recarregarBarraAbasRel(); }
+/* redesenha a barra lateral, a fila de abas e a caixa, mantendo o painel aberto */
+function atualizarDepoisDeMoverAba(){
+  aplicarVisibilidadeMenus();
+  const abertoId = paineisDosRelatorios().find(id => {
+    const e = document.getElementById(id); return e && e.classList.contains("aberto");
+  });
+  if (abertoId) fecharTodosPaineis(abertoId);   // so' reacende os botoes; nao fecha nada
+  recarregarBarraAbasRel(); renderOrdemAbasRel();
+}
+function moverAbaParaMenu(k, mk){
+  if (mk !== "rel" && mk !== "fin") return;
+  const s = siglaEmpresa(empresa);
+  const a = ABAS_REL_UNIF.find(x => x.k === k);
+  if (!a) return;
+  if (!menusAbasRel) menusAbasRel = {};
+  if (!menusAbasRel[s]) menusAbasRel[s] = {};
+  // voltou ao menu de fabrica? entao APAGA a excecao em vez de gravar o obvio
+  if (menuFabricaDaAba(a, s) === mk) delete menusAbasRel[s][k];
+  else menusAbasRel[s][k] = mk;
+  ["rel","fin"].forEach(x => { if (x !== mk && ultimaAbaMenu[x] === k) ultimaAbaMenu[x] = ""; });
+  gravarAbasRel("Moveu a aba \"" + nomeAba(a, s) + "\" para o menu " + (mk === "fin" ? "Financeiro" : "Relatórios"));
+  if (abaRelAtual === k) irParaAbaRel(k);        // a aba aberta leva o menu e o titulo junto
+  atualizarDepoisDeMoverAba();
+}
+function resetarMenusAbas(){
+  const s = siglaEmpresa(empresa);
+  if (menusAbasRel) delete menusAbasRel[s];
+  gravarAbasRel("Voltou as abas aos menus originais");
+  sincronizarMenuAtivo();
+  if (abaRelAtual) irParaAbaRel(abaRelAtual);
+  atualizarDepoisDeMoverAba();
+}
 /* Grava ORDEM e NOMES juntos: o documento e' um so e um set() sem os dois apagaria o outro. */
 function gravarAbasRel(msg){
-  return docOrdemAbasRel.set({ porEmpresa: ordemAbasRel, nomes: nomesAbasRel })
+  return docOrdemAbasRel.set({ porEmpresa: ordemAbasRel, nomes: nomesAbasRel, menus: menusAbasRel })
     .then(() => { if (typeof logAtividade === "function") logAtividade("menus", msg, siglaEmpresa(empresa)); })
     .catch(()=>{});
 }
@@ -6296,12 +6423,17 @@ function recarregarBarraAbasRel(){
 }
 function moverAbaRel(k, dir){
   const s = siglaEmpresa(empresa);
-  const lista = abasRelDaEmpresa(s).map(a => a.k);
-  const i = lista.indexOf(k), j = i + dir;
-  if (i < 0 || j < 0 || j >= lista.length) return;
-  lista.splice(j, 0, lista.splice(i, 1)[0]);
+  // v224 - a ordem gravada continua sendo UMA lista por empresa (com as abas dos dois menus),
+  // mas subir/descer so' troca de lugar com a vizinha DO MESMO MENU.
+  const todas = abasRelDaEmpresa(s).map(a => a.k);
+  const doMenu = abasDoMenu(menuRelAtivo, s).map(a => a.k);
+  const i = doMenu.indexOf(k), j = i + dir;
+  if (i < 0 || j < 0 || j >= doMenu.length) return;
+  const a = todas.indexOf(k), b = todas.indexOf(doMenu[j]);
+  if (a < 0 || b < 0) return;
+  const t = todas[a]; todas[a] = todas[b]; todas[b] = t;
   if (!ordemAbasRel) ordemAbasRel = {};
-  ordemAbasRel[s] = lista;
+  ordemAbasRel[s] = todas;
   gravarAbasRel("Mudou a ordem das abas dos Relat\u00f3rios");
   recarregarBarraAbasRel(); renderOrdemAbasRel();
 }
@@ -6316,13 +6448,37 @@ function renderOrdemAbasRel(){
   recarregarBotoesAbasRel();          // v208 - os botoes do canto acompanham o estado
   const caixas = document.querySelectorAll(".ord-abas-box");
   if (!caixas.length) return;
-  if ((!ordAbasAberto && !renAbasAberto) || !ehAdminAtual()){ caixas.forEach(c => { c.innerHTML = ""; }); return; }
+  if ((!ordAbasAberto && !renAbasAberto && !movAbasAberto) || !ehAdminAtual()){ caixas.forEach(c => { c.innerHTML = ""; }); return; }
   const s = siglaEmpresa(empresa);
-  const lista = abasRelDaEmpresa(s);
   const onde = (s === "conv" ? "a Full Conveniência" : "os Postos Full");
+  /* v224 - TEMPORARIO: escolher em qual menu cada aba aparece */
+  if (movAbasAberto){
+    const todas = abasRelDaEmpresa(s);
+    let m = '<div class="ord-abas"><p class="nota-dash">Escolha em qual menu cada aba vai aparecer. ' +
+      'Vale para ' + onde + ' e todo mundo passa a ver assim. ' +
+      'Menu que ficar sem nenhuma aba some da barra lateral.</p><div class="ord-lista">';
+    todas.forEach(a => {
+      const atual = menuDaAba(a, s);
+      m += '<div class="ord-item mov-linha"><span class="ord-nome">' + nomeAba(a, s) + '</span>' +
+           '<span class="mov-bts">' +
+           '<button class="btn-claro mov-bt' + (atual === "rel" ? " ativo" : "") +
+           '" onclick="moverAbaParaMenu(\'' + a.k + '\',\'rel\')">📑 Relatórios</button>' +
+           '<button class="btn-claro mov-bt' + (atual === "fin" ? " ativo" : "") +
+           '" onclick="moverAbaParaMenu(\'' + a.k + '\',\'fin\')">🏦 Financeiro</button>' +
+           '</span></div>';
+    });
+    m += '</div><div class="ord-acoes"><button class="btn-claro" onclick="resetarMenusAbas()">\u21a9 Voltar todas ao padrão</button>' +
+         '<button class="btn-claro" onclick="alternarMoverAbas()">\u2713 Pronto</button></div></div>';
+    caixas.forEach(c => { c.innerHTML = m; });
+    return;
+  }
+  // v224 - ordenar e renomear passam a mexer so' nas abas do menu que esta' aberto
+  const lista = abasDoMenu(menuRelAtivo, s);
+  const noMenu = (menuRelAtivo === "fin" ? "do menu Financeiro" : "do menu Relatórios");
   if (renAbasAberto){
-    let r = '<div class="ord-abas"><p class="nota-dash">Escreva o nome que você quer em cada aba. O desenho no começo faz parte do nome — pode trocar ou apagar. Vale para ' +
-      onde + ' e todo mundo passa a ver assim. O ↩ de cada linha devolve o nome original.</p><div class="ord-lista">';
+    let r = '<div class="ord-abas"><p class="nota-dash">Escreva o nome que você quer em cada aba ' + noMenu +
+      '. O desenho no começo faz parte do nome — pode trocar ou apagar. Vale para ' +
+      onde + ' e todo mundo passa a ver assim. O \u21a9 de cada linha devolve o nome original.</p><div class="ord-lista">';
     lista.forEach(a => {
       r += '<div class="ord-item">' +
            '<input class="ren-inp" type="text" maxlength="40" value="' + escAttr(nomeAba(a, s)) + '" onchange="salvarNomeAba(\'' + a.k + '\', this.value)">' +
@@ -6334,7 +6490,7 @@ function renderOrdemAbasRel(){
     caixas.forEach(c => { c.innerHTML = r; });
     return;
   }
-  let h = '<div class="ord-abas"><p class="nota-dash">Arrume as abas na ordem que você preferir. Vale para ' +
+  let h = '<div class="ord-abas"><p class="nota-dash">Arrume as abas ' + noMenu + ' na ordem que você preferir. Vale para ' +
     onde + ' e todo mundo passa a ver assim.</p><div class="ord-lista">';
   lista.forEach((a, i) => {
     h += '<div class="ord-item"><span class="ord-pos">' + (i+1) + '</span>' +
@@ -7106,7 +7262,7 @@ function renderDespesas(){
     const titD = document.getElementById("dspTitulo");
     abasD.style.display = ehPosto ? "" : "none";
     if (ehPosto){
-      abaRelAtual = "f:dspano";
+      fixarAbaAtual("f:dspano");   // v224 - leva o menu junto (a aba pode ter sido movida)
       abasD.innerHTML = barraAbasRel();
       renderOrdemAbasRel();
       if (titD) titD.innerHTML = tituloRel();
