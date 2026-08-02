@@ -795,7 +795,6 @@
   .pet-l{display:flex;justify-content:space-between;gap:10px;font-size:.85rem}
   .pet-l span{color:var(--cinza)}
   .pet-l b{color:var(--txt);white-space:nowrap}
-  .pet-l-nota b{font-weight:600;opacity:.65;font-style:italic}   /* v220 - despesa do dia ainda nao lancada */
   /* v221 - tela de quem ainda nao tem perfil. background-image por causa do modo escuro forcado */
   .aguarda-perfil{display:none;border:1px solid var(--borda);border-left:6px solid #FF6401;border-radius:12px;
     padding:20px 22px;margin:0 0 16px;background:var(--superficie-2);background-image:linear-gradient(var(--superficie-2),var(--superficie-2))}
@@ -12677,7 +12676,10 @@ function renderPetrosResumo(){
      liquido e' mentir para quem le. Agora quem decide e' o dado.
      1a escolha: os campos despesas / despesasL que a rotina copia do Petros.
      Reserva (enquanto a rotina antiga nao for trocada): se lucro bruto/L e lucro
-     liquido/L sao o mesmo numero, e' porque a despesa ainda nao entrou. */
+     liquido/L sao o mesmo numero, e' porque a despesa ainda nao entrou.
+     v223: o AVISO "Despesas do dia - ainda nao lancadas" saiu (pedido do Tiago em 02/08 - o
+     caixa nunca fecha no mesmo dia, entao o aviso aparecia todo dia e so virou ruido). A
+     escolha do rotulo pelo dado continua: se um dia a despesa entrar, volta o Lucro Liquido. */
   const temDespesa = d => {
     if (typeof d.despesas  === "number") return d.despesas  > 0;
     if (typeof d.despesasL === "number") return d.despesasL > 0;
@@ -12685,7 +12687,6 @@ function renderPetrosResumo(){
       return Math.abs(d.lucroBrutoL - d.lucroLiquidoL) > 0.00005;
     return true;                       // sem informacao nenhuma, mantem o texto de antes
   };
-  const NOTA_SEM_DESP = '<div class="pet-l pet-l-nota"><span>Despesas do dia</span><b>ainda n\u00e3o lan\u00e7adas</b></div>';
 
   if (soLojas){
     html += '<div class="pet-bloco"><h4 class="pet-bloco-tit">🛒 Full Conveniência</h4><div class="pet-grid">';
@@ -12695,7 +12696,6 @@ function renderPetrosResumo(){
       html += '<div class="pet-card"><h4>'+rotulo(n)+'</h4><div class="pet-linhas">' +
         '<div class="pet-l"><span>Vendas</span><b>R$ '+fmtBR(d.outros||0,2)+'</b></div>' +
         '<div class="pet-l"><span>'+(cd ? 'Lucro Líquido' : 'Lucro Bruto')+'</span><b>R$ '+fmtBR(d.lucroLiquido||0,2)+'</b></div>' +
-        (cd ? '' : NOTA_SEM_DESP) +
         '</div></div>';
     });
     html += '</div></div>';
@@ -12711,8 +12711,7 @@ function renderPetrosResumo(){
             '<div class="pet-l"><span>Lucro Bruto/L</span><b>R$ '+fmtBR(d.lucroBrutoL||0,4)+'</b></div>' +
             '<div class="pet-l"><span>Lucro Líquido/L</span><b>R$ '+fmtBR(d.lucroLiquidoL||0,4)+'</b></div>'
           : '<div class="pet-l"><span>Lucro Bruto</span><b>R$ '+fmtBR(d.lucroLiquido||0,2)+'</b></div>' +
-            '<div class="pet-l"><span>Lucro Bruto/L</span><b>R$ '+fmtBR(d.lucroBrutoL||0,4)+'</b></div>' +
-            NOTA_SEM_DESP) +
+            '<div class="pet-l"><span>Lucro Bruto/L</span><b>R$ '+fmtBR(d.lucroBrutoL||0,4)+'</b></div>') +
         '</div></div>';
     });
     html += '</div></div>';
