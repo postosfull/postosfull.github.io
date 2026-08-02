@@ -6234,7 +6234,7 @@ const ABAS_REL_UNIF = [
   { k:"f:desp",      n:"💸 Despesas do mês",     painel:"painelFinanceiro", aba:"desp",     emp:"postos", menu:"fin" },
   { k:"f:dspano",    n:"📅 Despesas do ano",     painel:"painelDespesas",   aba:"",         emp:"postos", menu:"fin" },
   /* v225 - o que ainda vai sair de dinheiro (unica tela do app que olha para a frente) */
-  { k:"f:apagar",    n:"💰 A Pagar / Fluxo",     painel:"painelFinanceiro", aba:"apagar",   emp:"postos", menu:"fin" }
+  { k:"f:apagar",    n:"💰 A Pagar / Fluxo",     painel:"painelFinanceiro", aba:"apagar",   emp:"postos|conv", menu:"fin" }
 ];
 /* ===================== v224 - EM QUAL MENU CADA ABA MORA =====================
    "rel" = menu Relatorios, "fin" = menu Financeiro. O campo `menu` de ABAS_REL_UNIF e' o
@@ -7154,13 +7154,15 @@ function finBlocoDesc(ds){
    Receita da coleta em claude/rotina-a-pagar-e-liquidez.md.                        */
 const FLX_DISP = ["SaldoCaixa", "SaldoBancos", "CartoesCredito", "CartoesDebito", "ChequesVista"];
 
+/* v226 - o endereco do documento segue a EMPRESA ABERTA (era fixo em "postos") */
+function flxSig(){ return siglaEmpresa(empresa); }
 function flxDias(tipo){
-  const pre = tipo + "_postos_todos_";
+  const pre = tipo + "_" + flxSig() + "_todos_";
   return Object.keys(relPetros).filter(k => k.indexOf(pre) === 0)
     .map(k => k.slice(pre.length)).sort().reverse();
 }
 function flxDados(tipo, dia){
-  const d = relPetros[tipo + "_postos_todos_" + dia];
+  const d = relPetros[tipo + "_" + flxSig() + "_todos_" + dia];
   if (!d) return null;
   const o = rpzLista(d);
   return (o && typeof o === "object" && !Array.isArray(o)) ? o : null;
@@ -7208,14 +7210,21 @@ function flxSelo(dv, hoje){
 
 /* ---------- bloco 3: entrou x saiu, dos recliq/pagliq que ja existem ---------- */
 function flxMesesFluxo(){
-  const set = {};
-  ["recliq", "pagliq"].forEach(t => finPeriodos(t).forEach(p => set[p] = 1));
+  const set = {}, sig = flxSig();
+  ["recliq", "pagliq"].forEach(t => {
+    const pre = t + "_" + sig + "_";
+    Object.keys(relPetros).forEach(k => {
+      if (k.indexOf(pre) !== 0) return;
+      const resto = k.slice(pre.length), i = resto.indexOf("_");
+      if (i > 0) set[resto.slice(i + 1)] = 1;
+    });
+  });
   return Object.keys(set).sort().reverse().slice(0, 8).reverse();
 }
 function flxSomaMes(tipo, per, campo){
   let t = 0;
   finUnidades().forEach(u => {
-    const d = relPetros[tipo + "_postos_" + u + "_" + per];
+    const d = relPetros[tipo + "_" + flxSig() + "_" + u + "_" + per];
     if (!d) return;
     const o = rpzLista(d);
     if (!o || Array.isArray(o)) return;
@@ -7251,7 +7260,7 @@ function flxBlocoFluxo(){
   const ult = linhas[linhas.length - 1];
   const pctc = ult.sai ? (ult.comb / ult.sai * 100).toFixed(1).replace(".", ",") : "0";
   h += '<p class="nota-dash">Saiu mais do que entrou, <b>e isso não é prejuízo</b>: ' + pctc +
-       '% do que sai é compra de combustível, que volta como venda. O que interessa acompanhar é a faixa vermelha.</p>';
+       '% do que sai é compra de mercadoria, que volta como venda. O que interessa acompanhar é a faixa vermelha.</p>';
   return h;
 }
 
@@ -7347,7 +7356,7 @@ function renderFinApagar(box){
   const fluxo = flxBlocoFluxo();
   if (fluxo) h += '<div class="flx-sec">3 &middot; Entrou &times; Saiu</div>' + fluxo;
 
-  const doc = relPetros["apagarpend_postos_todos_" + dia];
+  const doc = relPetros["apagarpend_" + flxSig() + "_todos_" + dia];
   const quando = doc && doc.atualizadoEm ? fmtQuandoLocal(doc.atualizadoEm) : rpzDia(dia);
   h += '<p class="ana-rodape">Atualizado ' + escAttr(quando) + '. Fonte: ' + escAttr(FIN_FONTE.apagar) + ' (Adaptive).</p>';
   box.innerHTML = h;
@@ -7363,7 +7372,7 @@ function renderFinanceiro(){
   renderOrdemAbasRel();
 
   const uns = ["todos"].concat(UNIDADES_REL.map(u => u.chave));
-  preencherSelectRel("finUnid", uns, finUnidSel, c => c === "todos" ? "Todos os postos" : finUnidNome(c));
+  preencherSelectRel("finUnid", uns, finUnidSel, c => c === "todos" ? (siglaEmpresa(empresa) === "conv" ? "Todas as lojas" : "Todos os postos") : finUnidNome(c));
   finUnidSel = (document.getElementById("finUnid") || {}).value || finUnidSel;
 
   if (finAba === "apagar"){ renderFinApagar(box); return; }   // v225
