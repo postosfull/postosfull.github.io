@@ -1657,7 +1657,6 @@
     <button class="btn-claro" id="btnDescontos" onclick="alternarDescontos()"><span class="mi">🏷️</span><span class="mt">Descontos</span></button>
     <button class="btn-claro" id="btnRelPosto" onclick="alternarRelatorios()"><span class="mi">📑</span><span class="mt">Relatórios</span></button>
     <button class="btn-claro" id="btnFinanceiro" onclick="alternarFinanceiro()"><span class="mi">🏦</span><span class="mt">Financeiro</span></button>
-    <button class="btn-claro" id="btnDespesas" onclick="alternarDespesas()"><span class="mi">💸</span><span class="mt">Despesas</span></button>
     <button class="btn-claro" id="btnAnalise" onclick="alternarAnalise()"><span class="mi">🧠</span><span class="mt">Análise</span></button>
     <button class="btn-claro" id="btnInfleet" onclick="alternarInfleet()"><span class="mi">📡</span><span class="mt">APP Infleet</span></button>
     <button class="btn-claro" id="btnPedido" onclick="alternarPedido()"><span class="mi">📝</span><span class="mt">Pedido de carregamento</span></button>
@@ -5379,7 +5378,7 @@ function fecharTodosPaineis(exceto){
   const bcx = document.getElementById("btnCaixa");
   if (bcx) bcx.classList.toggle("ativo", document.getElementById("painelCaixa").classList.contains("aberto"));
   // v172 - estes tres faltavam: o botao ficava aceso depois de abrir outro menu
-  ["btnRelLoja:painelRelLoja","btnAnalise:painelAnalise","btnDespesas:painelDespesas","btnIfood:painelIfood"].forEach(par => {
+  ["btnRelLoja:painelRelLoja","btnAnalise:painelAnalise","btnIfood:painelIfood"].forEach(par => {
     const p = par.split(":"), b = document.getElementById(p[0]), pan = document.getElementById(p[1]);
     if (b && pan) b.classList.toggle("ativo", pan.classList.contains("aberto"));
   });
@@ -5435,7 +5434,6 @@ const MENUS_APP = [
   {key:"descontos",   btn:"btnDescontos",   pan:"painelDescontos",   emp:"postos", nome:"Descontos"},
   {key:"relPosto",    btn:"btnRelPosto",    pan:"painelRelPosto",    emp:"postos|conv", nome:"Relatórios"},
   {key:"financeiro",  btn:"btnFinanceiro",  pan:"painelFinanceiro",  emp:"postos|conv", nome:"Financeiro"},   // v224 - voltou (tinha saido na v207)
-  {key:"despesas",    btn:"btnDespesas",    pan:"painelDespesas",    emp:"conv", nome:"Despesas"},   // v205 - nos Postos e aba do menu Relatorios (v207)
   {key:"infleet",     btn:"btnInfleet",     pan:"painelInfleet",     emp:"transp", nome:"APP Infleet"},
   {key:"pedido",      btn:"btnPedido",      pan:"painelPedido",      emp:"transp", nome:"Pedido de carregamento"},
   {key:"cotacoes",    btn:"btnCotacoes",    pan:"painelCotacoes",    emp:"transp", nome:"Cotações do Dia"},
@@ -5474,8 +5472,10 @@ function menuPermitidoDe(email, key, sig){
   // v192 / v207: "Relatorios do posto", "Relatorios Petros" e "Financeiro" viraram um menu so.
   // v224: o Financeiro voltou a ser menu, mas os dois continuam mostrando o MESMO conjunto de
   // paineis - quem enxerga um enxerga o outro, senao a aba movida sumiria para a pessoa.
+  // v227 - o menu "Despesas" da loja virou aba: quem tinha ele marcado continua enxergando.
   if (key === "relPosto" || key === "financeiro")
-    return _menuPermBase(email, "relPosto", sig) || _menuPermBase(email, "relPetros", sig) || _menuPermBase(email, "financeiro", sig);
+    return _menuPermBase(email, "relPosto", sig) || _menuPermBase(email, "relPetros", sig) ||
+           _menuPermBase(email, "financeiro", sig) || _menuPermBase(email, "despesas", sig);
   // v198: o menu "Caixas" virou um bloco dentro do Dashboard.
   if (key === "dash") return _menuPermBase(email, "dash", sig) || _menuPermBase(email, "caixas", sig);
   // v205/v207: nos Postos o menu "Despesas" virou aba dos Relatorios.
@@ -6232,7 +6232,8 @@ const ABAS_REL_UNIF = [
   { k:"f:pagliq",    n:"📤 Pagamentos",          painel:"painelFinanceiro", aba:"pagliq",   emp:"postos", menu:"fin" },
   { k:"f:descv",     n:"🏷️ Descontos",     painel:"painelFinanceiro", aba:"descv",    emp:"postos", menu:"fin" },
   { k:"f:desp",      n:"💸 Despesas do mês",     painel:"painelFinanceiro", aba:"desp",     emp:"postos", menu:"fin" },
-  { k:"f:dspano",    n:"📅 Despesas do ano",     painel:"painelDespesas",   aba:"",         emp:"postos", menu:"fin" },
+  /* v227 - na loja esta tela era o menu proprio "Despesas"; virou aba, com nome proprio */
+  { k:"f:dspano",    n:{postos:"📅 Despesas do ano", conv:"💸 Despesas"}, painel:"painelDespesas",   aba:"",         emp:"postos|conv", menu:"fin" },
   /* v225 - o que ainda vai sair de dinheiro (unica tela do app que olha para a frente) */
   { k:"f:apagar",    n:"💰 A Pagar / Fluxo",     painel:"painelFinanceiro", aba:"apagar",   emp:"postos|conv", menu:"fin" }
 ];
@@ -6272,9 +6273,8 @@ function fixarAbaAtual(k){
 /* Os quatro paineis que a barra de abas comanda. Na Conveniencia o painelDespesas
    NAO entra: la ele continua sendo o menu proprio "Despesas" da barra lateral. */
 function paineisDosRelatorios(){
-  const ids = ["painelRelPosto","painelRelPetros","painelFinanceiro"];
-  if (siglaEmpresa(empresa) === "postos") ids.push("painelDespesas");
-  return ids;
+  /* v227 - o painelDespesas agora e' aba nas DUAS empresas (na Conveniencia era menu proprio) */
+  return ["painelRelPosto","painelRelPetros","painelFinanceiro","painelDespesas"];
 }
 function tituloRel(){
   const emp = (siglaEmpresa(empresa) === "conv" ? "Full Conveniência" : "Postos Full");
@@ -6307,11 +6307,18 @@ function abaRelValida(){
   return ABAS_REL_UNIF.find(a => a.k === abaRelAtual);
 }
 /* v207 - nome que esta valendo para a aba (o que o Tiago escreveu, ou o de fabrica) */
+/* v227 - o nome de fabrica pode ser string OU objeto por empresa (mesma receita do `menu`) */
+function nomeFabricaDaAba(a, s){
+  const f = a && a.n;
+  if (!f) return "";
+  if (typeof f === "string") return f;
+  return f[s] || f.postos || "";
+}
 function nomeAba(a, s){
   s = s || siglaEmpresa(empresa);
   const m = nomesAbasRel && nomesAbasRel[s];
   const v = m ? m[a.k] : "";
-  return (v && String(v).trim()) ? String(v) : a.n;
+  return (v && String(v).trim()) ? String(v) : nomeFabricaDaAba(a, s);
 }
 function grupoAba(k){ return String(k).split(":")[0]; }
 function barraAbasRel(){
@@ -6340,11 +6347,8 @@ function botoesAbasRel(){
     '" onclick="alternarMoverAbas()" title="Escolher em qual menu cada aba aparece">🔀 Mover abas</button>';
 }
 function recarregarBotoesAbasRel(){
-  const soPosto = siglaEmpresa(empresa) === "postos";
-  document.querySelectorAll(".rel-topo-bts").forEach(c => {
-    const naDespesa = !!(c.closest && c.closest("#painelDespesas"));
-    c.innerHTML = (naDespesa && !soPosto) ? "" : botoesAbasRel();
-  });
+  /* v227 - o painelDespesas virou aba nas duas empresas, entao nao ha mais excecao */
+  document.querySelectorAll(".rel-topo-bts").forEach(c => { c.innerHTML = botoesAbasRel(); });
 }
 function irParaAbaRel(k){
   const t = ABAS_REL_UNIF.find(a => a.k === k);
@@ -6441,7 +6445,7 @@ function salvarNomeAba(k, v){
   if (!nomesAbasRel[s]) nomesAbasRel[s] = {};
   const t = String(v == null ? "" : v).trim().slice(0, 40);
   const p = ABAS_REL_UNIF.find(a => a.k === k);
-  if (!t || (p && t === p.n)) delete nomesAbasRel[s][k];
+  if (!t || (p && t === nomeFabricaDaAba(p, s))) delete nomesAbasRel[s][k];
   else nomesAbasRel[s][k] = t;
   gravarAbasRel("Renomeou uma aba dos Relat\u00f3rios");
   recarregarBarraAbasRel(); renderOrdemAbasRel();
@@ -7500,12 +7504,6 @@ function rpzBlocoVpend(ls){
 /* ===================== v185 - MENU DESPESAS ===================== */
 const DSP_MES = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
 function dspDin(v){ const n = Number(v)||0; return n.toLocaleString("pt-BR",{minimumFractionDigits:0,maximumFractionDigits:0}); }
-function alternarDespesas(){
-  const aberto = abrirPainelExclusivo("painelDespesas");
-  const b = document.getElementById("btnDespesas");
-  if (b) b.classList.toggle("ativo", aberto);
-  if (aberto) renderDespesas();
-}
 function dspRetirada(nome){ return /RETIRADA/i.test(String(nome||"")); }
 function renderDespesas(){
   const box = document.getElementById("dspBox");
@@ -7514,10 +7512,12 @@ function renderDespesas(){
   // na Conveniencia continua sendo o menu proprio "Despesas" (sem barra de abas).
   const abasD = document.getElementById("finAbasDesp");
   if (abasD){
-    const ehPosto = siglaEmpresa(empresa) === "postos";
+    /* v227 - a barra aparece onde a aba existe: hoje Postos E Conveniencia */
+    const sigD = siglaEmpresa(empresa);
+    const comAba = abasRelDaEmpresa(sigD).some(a => a.k === "f:dspano");
     const titD = document.getElementById("dspTitulo");
-    abasD.style.display = ehPosto ? "" : "none";
-    if (ehPosto){
+    abasD.style.display = comAba ? "" : "none";
+    if (comAba){
       fixarAbaAtual("f:dspano");   // v224 - leva o menu junto (a aba pode ter sido movida)
       abasD.innerHTML = barraAbasRel();
       renderOrdemAbasRel();
