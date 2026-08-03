@@ -6088,6 +6088,14 @@ function mesesDisponiveis(mapa, unidade){
     .map(k => k.split("_")[1])
     .sort().reverse();
 }
+// v229 - um mes que so' tem DRE (sem o "res" do painel) tambem tem de aparecer no seletor.
+function mesesRelPosto(unidade){
+  const m = {};
+  mesesDisponiveis(relPostos, unidade).forEach(x => { m[x] = 1; });
+  const pre = "dre_" + siglaEmpresa(empresa) + "_" + unidade + "_";
+  Object.keys(relPetros || {}).forEach(k => { if (String(k).indexOf(pre) === 0) m[String(k).slice(pre.length)] = 1; });
+  return Object.keys(m).sort().reverse();
+}
 function preencherSelectRel(idSel, valores, sel, rotulo){
   const el = document.getElementById(idSel);
   if (!el) return;
@@ -7732,18 +7740,20 @@ function resDoMesRel(d){
   const base = (d && d.res) ? d.res : null;
   const doc = relPetros["dre_" + siglaEmpresa(empresa) + "_" + relPostoSel + "_" + relPostoMes];
   const D = doc ? rpzLista(doc) : null;
-  if (!base || !D || !D.desp) return { res: base, ate: (d || {}).resAte, doDre: !!(d && d.resFonte === "dre") };
+  // v229 - sem o "res" guardado a tela mostrava "Sem o resultado deste mes" mesmo com o DRE
+  // do mes inteiro gravado. Agora quem manda e' o DRE; falta so' o volume, que ele nao traz.
+  if (!D || !D.desp) return { res: base, ate: (d || {}).resAte, doDre: !!(d && d.resFonte === "dre") };
   const comb = rpzSoma(D.comb, 4), custoComb = rpzSoma(D.comb, 5);
   const outros = rpzSoma(D.prod, 4), custoOutros = rpzSoma(D.prod, 5);
   const outrasRec = rpzSoma(D.rec, 2), desp = rpzSoma(D.desp, 2), varEst = rpzSoma(D.varEst, 1);
   const lb = (comb + outros + outrasRec) - (custoComb + custoOutros);
   const ll = lb - desp + varEst;
-  const litros = +base.vol || 0;
-  return { res: { vol: base.vol, comb: comb, outros: outros, outrasRec: outrasRec,
+  const litros = base ? (+base.vol || 0) : 0;
+  return { res: { vol: base ? base.vol : null, comb: comb, outros: outros, outrasRec: outrasRec,
                   custoComb: custoComb, custoOutros: custoOutros, desp: desp, varEst: varEst,
                   lb: lb, ll: ll,
-                  lbL: litros ? lb / litros : 0, despL: litros ? desp / litros : 0, llL: litros ? ll / litros : 0 },
-           ate: doc.ate || (d || {}).resAte, doDre: true };
+                  lbL: litros ? lb / litros : null, despL: litros ? desp / litros : null, llL: litros ? ll / litros : null },
+           ate: doc.ate || (d || {}).resAte, doDre: true, semLitros: !litros };
 }
 function mudarAbaRelPosto(a){ relPostoAba = a; renderRelPosto(); }
 function renderRelPosto(){
@@ -7753,7 +7763,7 @@ function renderRelPosto(){
   if (titP) titP.innerHTML = tituloRel();
   preencherSelectRel("relPostoEmp", UNIDADES_REL.map(u=>u.chave), relPostoSel, c => (UNIDADES_REL.find(u=>u.chave===c)||{}).nome || c);
   relPostoSel = (document.getElementById("relPostoEmp")||{}).value || relPostoSel;
-  const meses = mesesDisponiveis(relPostos, relPostoSel);
+  const meses = mesesRelPosto(relPostoSel);   // v229 - une os meses do painel com os do DRE
   if (!meses.length){
     document.getElementById("relPostoAbas").innerHTML = barraAbasRel();
     renderOrdemAbasRel();
@@ -7933,7 +7943,7 @@ function blocoResultadoPosto(d, uni){
   const despMostra = aj.mexeu ? aj.desp : (+r.desp||0);
   const llMostra   = aj.mexeu ? aj.ll   : (+r.ll||0);
   let h = '<div class="rel-kpis">' +
-    '<div class="rel-kpi"><span>Volume vendido</span><b>'+fmtL(r.vol)+'</b></div>' +
+    '<div class="rel-kpi"><span>Volume vendido</span><b>'+(r.vol == null ? "\u2014" : fmtL(r.vol))+'</b></div>' +
     '<div class="rel-kpi"><span>Faturamento</span><b>'+fmtR$0((+r.comb||0)+(+r.outros||0)+(+r.outrasRec||0))+'</b></div>' +
     '<div class="rel-kpi"><span>Lucro bruto</span><b>'+fmtR$0(r.lb)+'</b></div>' +
     '<div class="rel-kpi"><span>Despesas'+(aj.mexeu?' (ajustada)':'')+'</span><b>'+fmtR$0(despMostra)+'</b></div>' +
@@ -7941,14 +7951,18 @@ function blocoResultadoPosto(d, uni){
     '<div class="rel-kpi '+(perdeu?'ruim':'')+'"><span>Variação de estoque</span><b>'+fmtR$0(r.varEst)+'</b></div>' +
     '</div>';
   if (aj.mexeu) h += '<p class="nota-dash">A tabela abaixo mostra os valores <b>como estão lançados no Petros</b>. O ajuste aparece nos quadros acima e no quadro do fim.</p>';
+  // v229 - sem os litros do mes (o DRE nao os traz), a coluna "por litro" vira travessao
+  // em vez de dividir por 1 e imprimir um numero que nao quer dizer nada.
+  if (r.vol == null) h += '<p class="nota-dash">⚠️ Os <b>litros</b> deste mês ainda não foram coletados dos painéis, então o volume e a coluna “por litro” aparecem como “—”. Os valores em reais vêm do Demonstrativo de Resultado e estão completos.</p>';
   h += '<div class="rel-scroll"><table class="rel-tab"><thead><tr><th>Linha</th><th class="n">Valor</th><th class="n">Por litro</th></tr></thead><tbody>';
-  const litros = +r.vol || 1;
+  const litros = +r.vol || 0;
+  const porL = v => litros ? (+v||0)/litros : null;
   const linha = (nome, valor, porLitro, moeda) => '<tr><td>'+nome+'</td><td class="n">'+(moeda===false?fmtL(valor):fmtR$(valor))+'</td><td class="n">'+(porLitro==null?"—":("R$ "+fmtBR(porLitro,3)))+'</td></tr>';
-  h += linha("Venda de combustível", r.comb, (+r.comb||0)/litros);
-  h += linha("Venda de outros produtos", r.outros, (+r.outros||0)/litros);
-  h += linha("Outras receitas", r.outrasRec, (+r.outrasRec||0)/litros);
-  h += linha("Custo do combustível", r.custoComb, (+r.custoComb||0)/litros);
-  h += linha("Custo dos outros produtos", r.custoOutros, (+r.custoOutros||0)/litros);
+  h += linha("Venda de combustível", r.comb, porL(r.comb));
+  h += linha("Venda de outros produtos", r.outros, porL(r.outros));
+  h += linha("Outras receitas", r.outrasRec, porL(r.outrasRec));
+  h += linha("Custo do combustível", r.custoComb, porL(r.custoComb));
+  h += linha("Custo dos outros produtos", r.custoOutros, porL(r.custoOutros));
   h += linha("<b>Lucro bruto</b>", r.lb, r.lbL);
   h += linha("Despesas", r.desp, r.despL);
   h += '<tr><td>Variação de estoque</td><td class="n">'+fmtR$(r.varEst)+'</td><td class="n">'+((+r.vol||0) ? ("R$ "+fmtBR((+r.varEst||0)/(+r.vol||1),3)) : "—")+'</td></tr>';
@@ -13292,23 +13306,25 @@ function renderOrdemCardsDash(){
 function dpsResDe(posto, mes){
   const d = relPostos[posto + "_" + mes];
   const base = (d && d.res) ? d.res : null;
-  if (!base) return null;
   const doc = relPetros["dre_postos_" + posto + "_" + mes];
   const D = doc ? rpzLista(doc) : null;
-  if (!D || !D.desp) return { res: base, ate: d.resAte || d.ate };
+  // v229 - com o DRE do mes gravado o card monta sozinho, mesmo sem o "res" do painel
+  if (!D || !D.desp) return base ? { res: base, ate: (d && (d.resAte || d.ate)) } : null;
   const comb = rpzSoma(D.comb, 4), custoComb = rpzSoma(D.comb, 5);
   const outros = rpzSoma(D.prod, 4), custoOutros = rpzSoma(D.prod, 5);
   const outrasRec = rpzSoma(D.rec, 2), desp = rpzSoma(D.desp, 2), varEst = rpzSoma(D.varEst, 1);
   const lb = (comb + outros + outrasRec) - (custoComb + custoOutros);
-  const litros = +base.vol || 0;
-  return { res: { vol: base.vol, comb: comb, outros: outros, outrasRec: outrasRec, desp: desp,
+  const litros = base ? (+base.vol || 0) : 0;
+  return { res: { vol: base ? base.vol : null, comb: comb, outros: outros, outrasRec: outrasRec, desp: desp,
                   varEst: varEst, lb: lb, ll: lb - desp + varEst,
-                  llL: litros ? (lb - desp + varEst) / litros : 0 },
-           ate: doc.ate || d.resAte || d.ate };
+                  llL: litros ? (lb - desp + varEst) / litros : null },
+           ate: doc.ate || (d && (d.resAte || d.ate)) };
 }
 function dpsMeses(){
   const m = {};
   Object.keys(relPostos || {}).forEach(k => { const p = String(k).split("_"); if (p[1]) m[p[1]] = 1; });
+  // v229 - mes que so' tem DRE tambem entra no seletor do card
+  Object.keys(relPetros || {}).forEach(k => { const p = String(k).split("_"); if (p[0] === "dre" && p[1] === "postos" && p[3]) m[p[3]] = 1; });
   return Object.keys(m).sort().reverse();
 }
 function renderDashPostosResultado(){
@@ -13325,6 +13341,7 @@ function renderDashPostosResultado(){
   }
   if (linha) linha.style.display = "";
   let h = '<div class="pet-grid">', achou = false, tVol = 0, tLb = 0, tDesp = 0, tLl = 0, tVend = 0, ate = "";
+  let semVol = false;   // v229 - algum posto sem os litros do mes
   UNIDADES_REL.forEach(u => {
     const r = dpsResDe(u.chave, dpsMesSel);
     if (!r || !r.res) return;
@@ -13333,15 +13350,17 @@ function renderDashPostosResultado(){
     // v202 - "vendas" = combustivel + outros produtos. Outras receitas NAO entram:
     // sao eventuais (bonificacao, aluguel, juros) e distorceriam a comparacao entre meses.
     const vend = (+x.comb || 0) + (+x.outros || 0);
-    tVol += (+x.vol || 0); tLb += (+x.lb || 0); tDesp += (+x.desp || 0); tLl += (+x.ll || 0); tVend += vend;
+    if (x.vol == null) semVol = true; else tVol += (+x.vol || 0);
+    tLb += (+x.lb || 0); tDesp += (+x.desp || 0); tLl += (+x.ll || 0); tVend += vend;
     if (r.ate && r.ate > ate) ate = r.ate;
     h += '<div class="pet-card"><h4>' + escAttr(u.nome) + '</h4><div class="pet-linhas">' +
-      '<div class="pet-l"><span>Volume vendido</span><b>' + fmtBR(+x.vol || 0, 0) + ' L</b></div>' +
+      '<div class="pet-l"><span>Volume vendido</span><b>' + (x.vol == null ? "\u2014" : (fmtBR(+x.vol || 0, 0) + ' L')) + '</b></div>' +
       '<div class="pet-l"><span>Lucro bruto</span><b>' + fmtR$0(x.lb) + '</b></div>' +
       '<div class="pet-l"><span>Despesas</span><b>' + fmtR$0(x.desp) + '</b></div>' +
       '<div class="pet-l"><span>Lucro l\u00edquido</span><b class="' + ((+x.ll || 0) < 0 ? "rpz-neg" : "rpz-pos") + '">' + fmtR$0(x.ll) + '</b></div>' +
       (vend ? ('<div class="pet-l"><span>% sobre vendas</span><b class="' + ((+x.ll || 0) < 0 ? "rpz-neg" : "rpz-pos") + '">' + fmtPctRel((+x.ll || 0) / vend * 100, 2) + '</b></div>') : '') +
-      '<div class="pet-l"><span>Lucro l\u00edquido/L</span><b class="' + ((+x.llL || 0) < 0 ? "rpz-neg" : "rpz-pos") + '">R$ ' + fmtBR(+x.llL || 0, 4) + '</b></div>' +
+      (x.llL == null ? '<div class="pet-l"><span>Lucro l\u00edquido/L</span><b>\u2014</b></div>'
+                     : '<div class="pet-l"><span>Lucro l\u00edquido/L</span><b class="' + ((+x.llL || 0) < 0 ? "rpz-neg" : "rpz-pos") + '">R$ ' + fmtBR(+x.llL || 0, 4) + '</b></div>') +
       '</div></div>';
   });
   h += '</div>';
@@ -13350,11 +13369,11 @@ function renderDashPostosResultado(){
     return;
   }
   h += '<div class="resumo-dash" style="margin-top:12px">' +
-       '<div class="cartao-kpi"><span>Os tr\u00eas postos juntos</span><b>' + fmtBR(tVol, 0) + ' L</b></div>' +
+       '<div class="cartao-kpi"><span>Os tr\u00eas postos juntos</span><b>' + (semVol ? "\u2014" : (fmtBR(tVol, 0) + ' L')) + '</b></div>' +
        '<div class="cartao-kpi"><span>Lucro bruto somado</span><b>' + fmtR$0(tLb) + '</b></div>' +
        '<div class="cartao-kpi"><span>Despesas somadas</span><b>' + fmtR$0(tDesp) + '</b></div>' +
        '<div class="cartao-kpi"><span>Lucro l\u00edquido da rede</span><b>' + fmtR$0(tLl) + '</b></div>' +
-       '<div class="cartao-kpi"><span>Lucro l\u00edquido/L da rede</span><b>R$ ' + fmtBR(tVol ? tLl / tVol : 0, 4) + '</b></div>' +
+       '<div class="cartao-kpi"><span>Lucro l\u00edquido/L da rede</span><b>' + (semVol || !tVol ? "\u2014" : ("R$ " + fmtBR(tLl / tVol, 4))) + '</b></div>' +
        (tVend ? ('<div class="cartao-kpi"><span>% sobre vendas da rede</span><b>' + fmtPctRel(tLl / tVend * 100, 2) + '</b></div>') : '') +
        '</div>';
   h += '<p class="ana-rodape">' + (ate ? ('Per\u00edodo: 1 a ' + String(ate).slice(8,10) + ' de ' + rotuloMesRel(dpsMesSel) + '. ') : '') +
