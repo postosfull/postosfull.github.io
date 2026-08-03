@@ -6851,13 +6851,24 @@ function rpzBlocoTanques(ls){
   if (!ls.length) return '<div class="ana-vazio">Sem medição neste período.</div>';
   const totCusto = ls.reduce((sm, r) => sm + (Number(r[6]) || 0), 0);
   const perdas = ls.filter(r => (Number(r[6]) || 0) < 0);
-  let h = '<div class="rpz-cards">';
+  // v230 - variacao ZERADA em todos os tanques nao quer dizer "nenhuma perda": quer dizer que
+  // os tanques ainda nao foram medidos neste periodo. Acontece todo comeco de mes. Dizer
+  // "0 de 16 tanques com perda" ali e' dar boa noticia falsa - zero e' o unico numero que mente.
+  const semMedicao = ls.every(r => (Number(r[4]) || 0) === 0);
+  let h = "";
+  if (semMedicao){
+    h += '<div class="rel-alerta">⏳ <b>Ainda não houve medição de tanque neste período.</b> ' +
+         'A compra e a venda de cada tanque já aparecem abaixo, mas a variação só existe depois que os tanques são medidos — ' +
+         'por isso ela está zerada. <b>Não leia isto como “nenhuma perda”.</b></div>';
+  } else {
+  h += '<div class="rpz-cards">';
   h += '<div class="rpz-card"><span>Resultado no período</span><b class="' + (totCusto < 0 ? "rpz-neg" : "rpz-pos") + '">R$ ' + rpzDin(totCusto) + '</b></div>';
   h += '<div class="rpz-card"><span>Tanques com perda</span><b>' + perdas.length + ' de ' + ls.length + '</b></div></div>';
   const pior = ls.slice().sort((a, b) => (Number(a[6]) || 0) - (Number(b[6]) || 0))[0];
   if (pior && (Number(pior[6]) || 0) < 0){
     h += '<div class="ana-resumo"><b>Maior perda:</b> ' + escAttr(rpzTxt(pior[1] || "")) + ' em ' + escAttr(rpzTxt(pior[0] || "")) +
          ' — ' + rpzDin(pior[4], 3) + ' L (' + rpzDin(pior[5], 2) + '%), cerca de R$ ' + rpzDin(Math.abs(Number(pior[6]) || 0)) + '.</div>';
+  }
   }
   h += '<div class="rpz-rola"><table class="rpz-tab"><thead><tr><th>Unidade</th><th>Tanque</th><th class="rpz-r">Comprado (L)</th><th class="rpz-r">Vendido (L)</th><th class="rpz-r">Variação (L)</th><th class="rpz-r">%</th><th class="rpz-r">R$</th></tr></thead><tbody>';
   ls.slice().sort((a, b) => (Number(a[6]) || 0) - (Number(b[6]) || 0)).forEach(r => {
