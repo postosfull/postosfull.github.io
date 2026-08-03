@@ -6231,7 +6231,10 @@ const ABAS_REL_UNIF = [
   { k:"p:equipe",    n:"👷 Equipe e movimento", painel:"painelRelPosto",  aba:"equipe",    emp:"postos", menu:"rel" },
   { k:"z:mapa",      n:"🗺️ Mapa Anual",         painel:"painelRelPetros", aba:"mapa",      emp:"postos|conv", menu:"fin" },
   { k:"z:anomes",    n:"📆 Ano mês a mês",       painel:"painelRelPetros", aba:"anomes",    emp:"postos|conv", menu:"fin" },   // v212
-  { k:"z:dre",       n:"📊 Resultado do período", painel:"painelRelPetros", aba:"dre",     emp:"postos|conv", menu:"fin" },
+  /* v233 - a aba "📊 Resultado do período" SAIU: ela e a "💵 Resultado do mês" liam o MESMO
+     documento (dre_{emp}_{unidade}_{mes}) e mostravam quase a mesma coisa com dois desenhos.
+     Tudo o que ela tinha de exclusivo (o detalhe por produto, categoria e despesa) foi para
+     dentro da "Resultado do mês", em blocos recolhidos. */
   { k:"z:afer",      n:"📏 Aferições",          painel:"painelRelPetros", aba:"afer",      emp:"postos", menu:"rel" },   // v205
   { k:"z:vpend",     n:"⏳ Vendas pendentes",   painel:"painelRelPetros", aba:"vpend",     emp:"postos", menu:"rel" },   // v205
   { k:"z:tanques",   n:"🛢️ Tanques",            painel:"painelRelPetros", aba:"tanques",   emp:"postos", menu:"rel" },
@@ -6566,7 +6569,6 @@ function renderOrdemAbasRel(){
 const ABAS_REL_PETROS = [
   ["mapa",    "🗺️ Mapa Anual"],
   ["anomes",  "📆 Ano mês a mês"],
-  ["dre",     "💵 Resultado do Período"],
   ["afer",    "📏 Aferições"],
   ["vpend",   "⏳ Vendas pendentes"],
   ["tanques", "⛽ Tanques"],
@@ -6649,7 +6651,6 @@ function renderRelPetros(){
   if (doc && doc.de && doc.ate) h += '<p class="nota-dash">Período: ' + rpzDia(doc.de) + ' a ' + rpzDia(doc.ate) + '.</p>';
   if (rpzAba === "mapa")         h += rpzBlocoMapa(linhas);
   else if (rpzAba === "anomes")  h += rpzBlocoAnoMes(linhas);   // v212
-  else if (rpzAba === "dre")     h += rpzBlocoDre(linhas);
   else if (rpzAba === "afer")    h += rpzBlocoAfer(linhas);
   else if (rpzAba === "vpend")   h += rpzBlocoVpend(linhas);
   else if (rpzAba === "tanques") h += rpzBlocoTanques(linhas);
@@ -6787,48 +6788,38 @@ function rpzBlocoMapa(ls){
 
 /* --- Resultado do Periodo (consolidado) --- */
 function rpzSoma(ls, col){ return (ls || []).reduce((s, r) => s + (Number(r[col]) || 0), 0); }
-function rpzBlocoDre(D){
-  if (!D || !D.desp) return '<div class="ana-vazio">Sem dados neste período.</div>';
-  const comb = D.comb || [], prod = D.prod || [], rec = D.rec || [], desp = D.desp || [], det = D.despDet || [], ve = D.varEst || [];
-  const vComb = rpzSoma(comb, 4), cComb = rpzSoma(comb, 5);
-  const vProd = rpzSoma(prod, 4), cProd = rpzSoma(prod, 5);
-  const vRec = rpzSoma(rec, 2), vDesp = rpzSoma(desp, 2), vVe = rpzSoma(ve, 1);
-  const lb = (vComb + vProd) - (cComb + cProd);
-  const ll = lb + vRec - vDesp + vVe;
-  const card = (r, v, cls) => '<div class="rpz-card"><span>' + r + '</span><b class="' + (cls || "") + '">' + v + '</b></div>';
-  let h = '<div class="rpz-cards">';
-  h += card("Vendas", "R$ " + rpzDin0(vComb + vProd));
-  h += card("Custo", "R$ " + rpzDin0(cComb + cProd));
-  h += card("Lucro bruto", "R$ " + rpzDin0(lb), lb < 0 ? "rpz-neg" : "rpz-pos");
-  h += card("Outras receitas", "R$ " + rpzDin0(vRec));
-  h += card("Despesas", "R$ " + rpzDin0(vDesp));
-  h += card("Variação de estoque", "R$ " + rpzDin0(vVe), vVe < 0 ? "rpz-neg" : "");
-  h += card("Lucro líquido", "R$ " + rpzDin0(ll), ll < 0 ? "rpz-neg" : "rpz-pos");
-  h += '</div>';
-  if (vVe < 0) h += '<div class="ana-resumo"><b>Atenção:</b> a variação de estoque está negativa em R$ ' + rpzDin0(Math.abs(vVe)) + ' — saiu mais produto do que a venda explica.</div>';
-  h += '<p class="nota-dash">Mesma fonte da aba <b>Resultado do mês</b> (o Demonstrativo de Resultado do Petros). Se os números diferirem, é só o período: esta aba mostra o intervalo escolhido aqui em cima, e aquela mostra o mês inteiro.</p>';
-
-  const tab = (titulo, cols, linhas) => {
-    if (!linhas.length) return "";
-    let t = '<h3 class="cxi-sub">' + titulo + '</h3><div class="rpz-rola"><table class="rpz-tab"><thead><tr>' +
-      cols.map((c, i) => '<th' + (i ? ' class="rpz-r"' : '') + '>' + c + '</th>').join("") + '</tr></thead><tbody>';
-    linhas.forEach(l => {
-      t += '<tr>' + l.map((v, i) => i ? '<td class="rpz-r' + ((Number(v) || 0) < 0 ? ' rpz-neg' : '') + '">' + rpzDin0(v) + '</td>'
-                                      : '<td class="rpz-nome">' + escAttr(rpzTxt(v || "")) + '</td>').join("") + '</tr>';
-    });
-    return t + '</tbody></table></div>';
-  };
-  h += tab("Combustíveis", ["Produto", "Bruto", "Desconto", "Acréscimo", "Líquido", "Custo"], comb.map(r => [r[0], r[1], r[2], r[3], r[4], r[5]]));
-  h += tab("Outros produtos", ["Categoria", "Bruto", "Desconto", "Acréscimo", "Líquido", "Custo"], prod.map(r => [r[0], r[1], r[2], r[3], r[4], r[5]]));
-  h += tab("Outras receitas", ["Receita", "Valor"], rec.map(r => [(r[1] || r[0]), r[2]]));
-  h += tab("Despesas por categoria", ["Categoria", "Valor"], desp.map(r => [r[1] || r[0], r[2]]).sort((a, b) => (Number(b[1]) || 0) - (Number(a[1]) || 0)));
-  if (det.length){
-    h += '<details class="rel-det"><summary>Despesa detalhada (' + det.length + ' linhas)</summary>' +
-      tab("", ["Despesa", "Valor"], det.map(r => [r[2] || r[1], r[3]]).sort((a, b) => (Number(b[1]) || 0) - (Number(a[1]) || 0))) + '</details>';
-  }
-  return h;
+/* ===================== v233 - O DETALHE DO DRE, RECOLHIDO =====================
+   Era a aba "📊 Resultado do período" (rpzBlocoDre). As tabelas continuam iguais; o que
+   mudou e' o lugar: agora vivem dentro da aba "💵 Resultado do mês", cada uma num bloco
+   que abre com um clique, para a tela nao nascer com cinco tabelas longas empilhadas. */
+function relTabDre(titulo, cols, linhas){
+  if (!linhas.length) return "";
+  let t = '<details class="rel-det"><summary>' + titulo + ' (' + linhas.length +
+    (linhas.length === 1 ? ' linha' : ' linhas') + ')</summary>' +
+    '<div class="rpz-rola"><table class="rpz-tab"><thead><tr>' +
+    cols.map((c, i) => '<th' + (i ? ' class="rpz-r"' : '') + '>' + c + '</th>').join("") + '</tr></thead><tbody>';
+  linhas.forEach(l => {
+    t += '<tr>' + l.map((v, i) => i ? '<td class="rpz-r' + ((Number(v) || 0) < 0 ? ' rpz-neg' : '') + '">' + rpzDin0(v) + '</td>'
+                                    : '<td class="rpz-nome">' + escAttr(rpzTxt(v || "")) + '</td>').join("") + '</tr>';
+  });
+  return t + '</tbody></table></div></details>';
 }
-
+function detalheDreRel(D, semBico){
+  if (!D || !D.desp) return "";
+  const comb = D.comb || [], prod = D.prod || [], rec = D.rec || [], desp = D.desp || [], det = D.despDet || [];
+  const cols6 = ["Bruto", "Desconto", "Acréscimo", "Líquido", "Custo"];
+  let h = "";
+  if (!semBico) h += relTabDre("⛽ Combustíveis", ["Produto"].concat(cols6), comb.map(r => [r[0], r[1], r[2], r[3], r[4], r[5]]));
+  h += relTabDre(semBico ? "🛒 Produtos" : "🛒 Outros produtos", ["Categoria"].concat(cols6), prod.map(r => [r[0], r[1], r[2], r[3], r[4], r[5]]));
+  h += relTabDre("💰 Outras receitas", ["Receita", "Valor"], rec.map(r => [(r[1] || r[0]), r[2]]));
+  h += relTabDre("💸 Despesas por categoria", ["Categoria", "Valor"],
+        desp.map(r => [r[1] || r[0], r[2]]).sort((a, b) => (Number(b[1]) || 0) - (Number(a[1]) || 0)));
+  h += relTabDre("🔎 Despesa detalhada", ["Despesa", "Valor"],
+        det.map(r => [r[2] || r[1], r[3]]).sort((a, b) => (Number(b[1]) || 0) - (Number(a[1]) || 0)));
+  if (!h) return "";
+  return '<h4 style="margin:18px 0 6px">Detalhe do mês</h4>' +
+         '<p class="nota-dash">Clique em cada bloco para abrir. É o mesmo detalhe que ficava na aba <b>Resultado do período</b>.</p>' + h;
+}
 /* --- Despesas: [categoria, cod, tipo, valor] --- */
 function rpzBlocoDesp(ls){
   if (!ls.length) return '<div class="ana-vazio">Sem despesas neste período.</div>';
@@ -7777,18 +7768,38 @@ function resDoMesRel(d){
   const D = doc ? rpzLista(doc) : null;
   // v229 - sem o "res" guardado a tela mostrava "Sem o resultado deste mes" mesmo com o DRE
   // do mes inteiro gravado. Agora quem manda e' o DRE; falta so' o volume, que ele nao traz.
-  if (!D || !D.desp) return { res: base, ate: (d || {}).resAte, doDre: !!(d && d.resFonte === "dre") };
+  // v233 - sem o DRE, o "res" guardado ainda traz o lucro bruto COM as outras receitas dentro
+  // (era a leitura antiga desta aba). Recalcula aqui para a tela ter UMA definicao so.
+  if (!D || !D.desp) return { res: relResLbFora(base), ate: (d || {}).resAte, doDre: !!(d && d.resFonte === "dre"), D: null };
   const comb = rpzSoma(D.comb, 4), custoComb = rpzSoma(D.comb, 5);
   const outros = rpzSoma(D.prod, 4), custoOutros = rpzSoma(D.prod, 5);
   const outrasRec = rpzSoma(D.rec, 2), desp = rpzSoma(D.desp, 2), varEst = rpzSoma(D.varEst, 1);
-  const lb = (comb + outros + outrasRec) - (custoComb + custoOutros);
-  const ll = lb - desp + varEst;
+  // v233 - as OUTRAS RECEITAS ficam FORA do lucro bruto (escolha do Tiago ao juntar as duas abas).
+  // O lucro liquido nao muda: elas entram nele por fora.
+  const lb = (comb + outros) - (custoComb + custoOutros);
+  const ll = lb + outrasRec - desp + varEst;
   const litros = base ? (+base.vol || 0) : 0;
   return { res: { vol: base ? base.vol : null, comb: comb, outros: outros, outrasRec: outrasRec,
                   custoComb: custoComb, custoOutros: custoOutros, desp: desp, varEst: varEst,
                   lb: lb, ll: ll,
                   lbL: litros ? lb / litros : null, despL: litros ? desp / litros : null, llL: litros ? ll / litros : null },
-           ate: doc.ate || (d || {}).resAte, doDre: true, semLitros: !litros };
+           ate: doc.ate || (d || {}).resAte, doDre: true, semLitros: !litros,
+           D: D, quando: doc.atualizadoEm ? String(doc.atualizadoEm).slice(0,10).split("-").reverse().join("/") : "" };
+}
+/* v233 - normaliza o "res" congelado de relatoriosPosto/relatoriosLoja para a mesma
+   definicao do DRE: lucro bruto = vendas - custo, com as outras receitas por fora.
+   Sem isto, um mes antigo (que so' tem o "res") contaria historia diferente do mes atual. */
+function relResLbFora(base){
+  if (!base) return base;
+  const comb = +base.comb || 0, outros = +base.outros || 0;
+  const cc = +base.custoComb || 0, co = +base.custoOutros || 0;
+  if (!comb && !outros && !cc && !co) return base;      // documento velho sem as parcelas: fica como esta'
+  const lb = (comb + outros) - (cc + co);
+  const litros = +base.vol || 0;
+  const o = Object.assign({}, base);
+  o.lb = lb;
+  o.lbL = litros ? lb / litros : null;
+  return o;
 }
 function mudarAbaRelPosto(a){ relPostoAba = a; renderRelPosto(); }
 function renderRelPosto(){
@@ -7820,7 +7831,7 @@ function renderRelPosto(){
   const uni = ehResultado ? resDoMesRel(d) : null;
   const fimAba = ehResultado ? ((uni && uni.ate) || d.resAte || d.ate) : d.ate;
   if (fimAba) h += '<p class="nota-dash">Período: 1 a ' + String(fimAba).slice(8,10) + ' de ' + rotuloMesRel(relPostoMes) + '.' +
-    ((ehResultado && ((uni && uni.doDre) || d.resFonte === "dre")) ? ' Fonte: Demonstrativo de Resultado do Petros — a mesma da aba <b>Resultado do período</b>.' : '') + '</p>';
+    ((ehResultado && ((uni && uni.doDre) || d.resFonte === "dre")) ? ' Fonte: Demonstrativo de Resultado do Petros.' : '') + '</p>';
   if (relPostoAba === "caixa") h += blocoCaixaPosto(d);
   else if (relPostoAba === "equipe") h += blocoEquipePosto(d);
   else h += blocoResultadoPosto(d, uni);   // v207 - a aba Combustiveis saiu
@@ -7914,7 +7925,8 @@ function blocoAjusteResultado(d, r){
   const tiraF = relSemFora ? a.totalFora : 0;
   const tiraR = relSemRetiradas ? a.totalRet : 0;
   const desp = (+rr.desp || 0) - tiraF - tiraR;
-  const ll = (+rr.lb || 0) - desp + (+rr.varEst || 0);
+  // v233 - o lucro bruto passou a nao incluir as outras receitas; elas entram aqui por fora.
+  const ll = (+rr.lb || 0) + (+rr.outrasRec || 0) - desp + (+rr.varEst || 0);
   const adm = (typeof ehAdminAtual === "function") && ehAdminAtual();   // v211
   let h = '<div class="fdc-caixa">';
   h += '<div class="fdc-topo"><b>' +
@@ -7982,38 +7994,53 @@ function blocoResultadoPosto(d, uni){
   // Sem isto a tela da loja abria com "Volume vendido —", uma coluna inteira de travessoes
   // e um aviso dizendo que os litros "ainda nao foram coletados" — e eles nunca vao existir.
   const semBico = (siglaEmpresa(empresa) === "conv");
+  // v233 - uma definicao so' de lucro bruto: vendas - custo. As outras receitas ganharam
+  // quadrinho proprio e entram apenas no lucro liquido.
+  const vendas = (+r.comb || 0) + (+r.outros || 0);
+  const custo  = (+r.custoComb || 0) + (+r.custoOutros || 0);
+  const lb     = vendas - custo;
+  const litros = +r.vol || 0;
+  const lbL    = litros ? lb / litros : null;
   const perdeu = (+r.varEst||0) < 0;
   const aj = blocoAjusteResultado(d, r);       // v194
   const despMostra = aj.mexeu ? aj.desp : (+r.desp||0);
   const llMostra   = aj.mexeu ? aj.ll   : (+r.ll||0);
   let h = '<div class="rel-kpis">' +
     (semBico ? '' : '<div class="rel-kpi"><span>Volume vendido</span><b>'+(r.vol == null ? "\u2014" : fmtL(r.vol))+'</b></div>') +
-    '<div class="rel-kpi"><span>Faturamento</span><b>'+fmtR$0((+r.comb||0)+(+r.outros||0)+(+r.outrasRec||0))+'</b></div>' +
-    '<div class="rel-kpi"><span>Lucro bruto</span><b>'+fmtR$0(r.lb)+'</b></div>' +
+    '<div class="rel-kpi"><span>Vendas</span><b>'+fmtR$0(vendas)+'</b></div>' +
+    '<div class="rel-kpi"><span>Custo</span><b>'+fmtR$0(custo)+'</b></div>' +
+    '<div class="rel-kpi"><span>Lucro bruto</span><b>'+fmtR$0(lb)+'</b></div>' +
+    /* v233 - a loja nao tem "outras receitas": um quadrinho fixo em R$ 0 e' so' ruido.
+       Some quando o valor e' zero, nas duas empresas. A linha continua na tabela abaixo,
+       para o demonstrativo ficar completo. */
+    ((+r.outrasRec||0) ? '<div class="rel-kpi"><span>Outras receitas</span><b>'+fmtR$0(r.outrasRec)+'</b></div>' : '') +
     '<div class="rel-kpi"><span>Despesas'+(aj.mexeu?' (ajustada)':'')+'</span><b>'+fmtR$0(despMostra)+'</b></div>' +
-    '<div class="rel-kpi '+(llMostra>=0?'bom':'ruim')+'"><span>Lucro líquido'+(aj.mexeu?' (ajustado)':'')+'</span><b>'+fmtR$0(llMostra)+'</b></div>' +
     '<div class="rel-kpi '+(perdeu?'ruim':'')+'"><span>Variação de estoque</span><b>'+fmtR$0(r.varEst)+'</b></div>' +
+    '<div class="rel-kpi '+(llMostra>=0?'bom':'ruim')+'"><span>Lucro líquido'+(aj.mexeu?' (ajustado)':'')+'</span><b>'+fmtR$0(llMostra)+'</b></div>' +
     '</div>';
   if (aj.mexeu) h += '<p class="nota-dash">A tabela abaixo mostra os valores <b>como estão lançados no Petros</b>. O ajuste aparece nos quadros acima e no quadro do fim.</p>';
   // v229 - sem os litros do mes (o DRE nao os traz), a coluna "por litro" vira travessao
   // em vez de dividir por 1 e imprimir um numero que nao quer dizer nada.
   if (r.vol == null && !semBico) h += '<p class="nota-dash">⚠️ Os <b>litros</b> deste mês ainda não foram coletados dos painéis, então o volume e a coluna “por litro” aparecem como “—”. Os valores em reais vêm do Demonstrativo de Resultado e estão completos.</p>';
   h += '<div class="rel-scroll"><table class="rel-tab"><thead><tr><th>Linha</th><th class="n">Valor</th>'+(semBico?'':'<th class="n">Por litro</th>')+'</tr></thead><tbody>';
-  const litros = +r.vol || 0;
   const porL = v => litros ? (+v||0)/litros : null;
   const linha = (nome, valor, porLitro, moeda) => '<tr><td>'+nome+'</td><td class="n">'+(moeda===false?fmtL(valor):fmtR$(valor))+'</td>'+(semBico?'':('<td class="n">'+(porLitro==null?"—":("R$ "+fmtBR(porLitro,3)))+'</td>'))+'</tr>';
+  // v233 - a ordem passou a ser a de um demonstrativo: vendas, custos, lucro bruto,
+  // outras receitas, despesas, variacao, lucro liquido.
   if (!semBico) h += linha("Venda de combustível", r.comb, porL(r.comb));
   h += linha(semBico ? "Venda de produtos" : "Venda de outros produtos", r.outros, porL(r.outros));
-  h += linha("Outras receitas", r.outrasRec, porL(r.outrasRec));
   if (!semBico) h += linha("Custo do combustível", r.custoComb, porL(r.custoComb));
   h += linha(semBico ? "Custo dos produtos" : "Custo dos outros produtos", r.custoOutros, porL(r.custoOutros));
-  h += linha("<b>Lucro bruto</b>", r.lb, r.lbL);
+  h += linha("<b>Lucro bruto</b>", lb, lbL);
+  h += linha("Outras receitas", r.outrasRec, porL(r.outrasRec));
   h += linha("Despesas", r.desp, r.despL);
-  h += '<tr><td>Variação de estoque</td><td class="n">'+fmtR$(r.varEst)+'</td>'+(semBico?'':('<td class="n">'+((+r.vol||0) ? ("R$ "+fmtBR((+r.varEst||0)/(+r.vol||1),3)) : "—")+'</td>'))+'</tr>';
+  h += '<tr><td>Variação de estoque</td><td class="n">'+fmtR$(r.varEst)+'</td>'+(semBico?'':('<td class="n">'+(litros ? ("R$ "+fmtBR((+r.varEst||0)/litros,3)) : "—")+'</td>'))+'</tr>';
   h += linha("<b>Lucro líquido</b>", r.ll, r.llL);
   h += '</tbody></table></div>';
   h += aj.html;                                  // v194
   if (perdeu) h += '<div class="rel-alerta">⚠️ A variação de estoque do mês está negativa em '+fmtR$(Math.abs(+r.varEst||0))+'. Vale conferir '+(semBico ? 'o inventário, as perdas e quebras e as entradas de nota' : 'aferições, vazamentos e as entradas de nota')+'.</div>';
+  h += detalheDreRel(u.D, semBico);              // v233 - o que era a aba "Resultado do período"
+  if (u.quando) h += '<p class="ana-rodape">Atualizado ' + escAttr(u.quando) + '. Fonte: Demonstrativo de Resultado no Período-Consolidado (Petros).</p>';
   return h;
 }
 /* v231 - a loja nao tem relatoriosPosto.cx, mas os MESMOS indicadores das tres
