@@ -1038,6 +1038,7 @@
   .am-p{font-size:.78rem;font-weight:600;min-width:62px;text-align:right}
   @media(max-width:520px){ .cxi-q{min-width:34px} .cxi-v{min-width:70px} .am-p{min-width:52px} }
   .rpz-nome{max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rpz-un{font-size:.62rem;font-weight:700;color:var(--cinza);background:var(--superficie-2);border:1px solid var(--borda);border-radius:5px;padding:0 4px;margin-right:5px;white-space:nowrap}
   @media (max-width:640px){
     table.rpz-tab{font-size:.72rem}
     .rpz-nome{max-width:118px}
@@ -6584,7 +6585,20 @@ function rpzDin(v, casas){ return fmtBR(Number(v)||0, casas == null ? 2 : casas)
 function rpzDia(d){ return String(d || "").split("-").reverse().join("/"); }
 function rpzDin0(v){ return fmtBR(Number(v)||0, 0); }
 // o Petros manda alguns rotulos com caracteres de controle (ex.: \u0002 antes do combustivel)
-function rpzTxt(v){ return String(v == null ? "" : v).replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim(); }
+/* v235 - alguns textos dos relatorios do Petros chegam com o acento corrompido ("Lucro
+   LÃ­quido", "NÃºmero", "VariaÃ§Ã£o") - e' UTF-8 lido como latin-1, a mesma armadilha do
+   valor_diferença da v191. Consertar na LEITURA vale para todas as abas de uma vez.
+   So' mexe quando o padrao aparece (Ã/Â seguido de byte de continuacao) e so' aceita o
+   resultado se o decodificador estrito nao reclamar - "CARTÃO" e "NÃO" passam intactos. */
+function rpzAcento(s){
+  if (!/[\u00c2\u00c3][\u0080-\u00bf]/.test(s)) return s;
+  try {
+    const b = new Uint8Array(s.length);
+    for (let i = 0; i < s.length; i++){ const c = s.charCodeAt(i); if (c > 255) return s; b[i] = c; }
+    return new TextDecoder("utf-8", {fatal:true}).decode(b);
+  } catch(e){ return s; }
+}
+function rpzTxt(v){ return rpzAcento(String(v == null ? "" : v).replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim()); }
 function rpzLista(o){
   if (!o) return [];
   if (typeof o.dados === "string"){ try { return JSON.parse(o.dados); } catch(e){ return []; } }
@@ -6761,6 +6775,19 @@ function rpzBlocoAnoMes(D){
 
 /* --- Mapa Anual: [sessao, sub, tipo, ordem, totalizador, casas, m1..m12, ano] --- */
 const RPZ_MES3 = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+/* v235 - o Mapa Anual mistura R$, litros, R$/L e contagem NA MESMA COLUNA, e ate' aqui a tela
+   nao dizia qual era qual. O proprio relatorio separa "Valores" de "Indicadores" (coluna 2) e o
+   nome da linha diz o resto. Ordem dos testes importa: "Ticket Medio (Litros)" tem de cair em L,
+   e "Faturamento por Litro" em R$/L. */
+function rpzUnidMapa(sessao, sub, tipo){
+  const nome = ((sessao || "") + " " + (sub || "")).toLowerCase();
+  if (String(tipo || "").toLowerCase().indexOf("indicador") < 0) return "R$";
+  if (/por litro/.test(nome)) return "R$/L";
+  if (/litro/.test(nome)) return "L";
+  if (/\(r\$\)/.test(nome)) return "R$";
+  if (/abastecimento|n[u\u00fa]mero|quantidade/.test(nome)) return "qtd";
+  return "";
+}
 function rpzBlocoMapa(ls){
   if (!ls.length) return '<div class="ana-vazio">Sem linhas neste ano.</div>';
   const ord = ls.slice().sort((a,b) => (Number(a[3])||0) - (Number(b[3])||0));
@@ -6774,7 +6801,11 @@ function rpzBlocoMapa(ls){
       sec = sessao;
       h += '<tr class="rpz-sec"><td colspan="' + (RPZ_MES3.length + 2) + '">' + escAttr(sessao) + '</td></tr>';
     }
-    h += '<tr' + (tot ? ' class="rpz-tot"' : '') + '><td class="rpz-nome">' + escAttr(sub || sessao) + '</td>';
+    // v235 - a etiqueta vai ANTES do nome: a celula tem ellipsis, e no fim ela seria cortada.
+    const nomeLin = sub || sessao;
+    const un = /\(litros\)|\(r\$\)/i.test(nomeLin) ? "" : rpzUnidMapa(sessao, sub, r[2]);
+    h += '<tr' + (tot ? ' class="rpz-tot"' : '') + '><td class="rpz-nome">' +
+         (un ? '<span class="rpz-un">' + escAttr(un) + '</span>' : "") + escAttr(nomeLin) + '</td>';
     for (let i = 0; i < 12; i++){
       const v = Number(r[6 + i]) || 0;
       h += '<td class="rpz-r' + (v < 0 ? ' rpz-neg' : '') + '">' + (v === 0 ? "—" : rpzDin(v, casas)) + '</td>';
@@ -6782,7 +6813,9 @@ function rpzBlocoMapa(ls){
     const va = Number(r[18]) || 0;
     h += '<td class="rpz-r' + (va < 0 ? ' rpz-neg' : '') + '"><b>' + (va === 0 ? "—" : rpzDin(va, casas)) + '</b></td></tr>';
   });
-  h += '</tbody></table></div><p class="nota-dash">Role a tabela para o lado para ver todos os meses.</p>';
+  h += '</tbody></table></div><p class="nota-dash">Role a tabela para o lado para ver todos os meses. ' +
+       'A etiqueta antes do nome diz a unidade da linha: <b>R$</b> reais &middot; <b>L</b> litros &middot; ' +
+       '<b>R$/L</b> reais por litro &middot; <b>qtd</b> quantidade.</p>';
   return h;
 }
 
@@ -6831,7 +6864,7 @@ function rpzBlocoDesp(ls){
   const max = Math.max.apply(null, ord.map(r => Number(r[3]) || 0).concat([1]));
   let h = '<div class="rpz-cards"><div class="rpz-card"><span>Total pago no período</span><b>R$ ' + rpzDin0(tot) + '</b></div>' +
           '<div class="rpz-card"><span>Tipos de despesa</span><b>' + ord.length + '</b></div></div>';
-  h += '<h3 class="cxi-sub">Maiores tipos</h3><div class="cxi-graf">';
+  h += '<h3 class="cxi-sub">Maiores tipos (R$)</h3><div class="cxi-graf">';
   ord.slice(0, 12).forEach(r => {
     const v = Number(r[3]) || 0;
     h += '<div class="cxi-par"><span class="cxi-q">' + escAttr(rpzTxt(r[2] || "").slice(0, 22)) + '</span>' +
@@ -6839,7 +6872,7 @@ function rpzBlocoDesp(ls){
          '<span class="cxi-v">' + rpzDin0(v) + '</span></div>';
   });
   h += '</div>';
-  h += '<h3 class="cxi-sub">Todos os tipos</h3><div class="rpz-rola"><table class="rpz-tab"><thead><tr><th>Tipo</th><th>Categoria</th><th class="rpz-r">Valor</th><th class="rpz-r">%</th></tr></thead><tbody>';
+  h += '<h3 class="cxi-sub">Todos os tipos</h3><div class="rpz-rola"><table class="rpz-tab"><thead><tr><th>Tipo</th><th>Categoria</th><th class="rpz-r">Valor (R$)</th><th class="rpz-r">%</th></tr></thead><tbody>';
   ord.forEach(r => {
     const v = Number(r[3]) || 0;
     h += '<tr><td class="rpz-nome">' + escAttr(rpzTxt(r[2] || "")) + '</td><td class="rpz-nome">' + escAttr(rpzTxt(r[0] || "")) + '</td>' +
@@ -6893,7 +6926,7 @@ function rpzBlocoColab(ls){
   const tot = ord.reduce((sm, r) => sm + (Number(r[2]) || 0), 0);
   let h = '<div class="rpz-cards"><div class="rpz-card"><span>Saldo total</span><b>R$ ' + rpzDin(tot) + '</b></div>' +
           '<div class="rpz-card"><span>Pessoas</span><b>' + ord.length + '</b></div></div>';
-  h += '<div class="rpz-rola"><table class="rpz-tab"><thead><tr><th>Cód.</th><th>Colaborador</th><th class="rpz-r">Saldo</th></tr></thead><tbody>';
+  h += '<div class="rpz-rola"><table class="rpz-tab"><thead><tr><th>Cód.</th><th>Colaborador</th><th class="rpz-r">Saldo (R$)</th></tr></thead><tbody>';
   ord.forEach(r => {
     const v = Number(r[2]) || 0;
     h += '<tr><td>' + escAttr(rpzTxt(r[0] || "")) + '</td><td class="rpz-nome">' + escAttr(rpzTxt(r[1] || "")) + '</td>' +
@@ -6929,7 +6962,7 @@ function rpzBlocoAprazo(ls){
   h += '<div class="rpz-card"><span>Títulos</span><b>' + linhas.length + '</b></div></div>';
   const NOMES = ["Vencido até 30 dias", "Vencido 31 a 90 dias", "Vencido há mais de 90 dias", "Ainda a vencer"];
   const maxF = Math.max.apply(null, faixas.concat([1]));
-  h += '<h3 class="cxi-sub">Como está dividido</h3><div class="cxi-graf">';
+  h += '<h3 class="cxi-sub">Como está dividido (R$)</h3><div class="cxi-graf">';
   faixas.forEach((v, i) => {
     h += '<div class="cxi-par"><span class="cxi-q">' + NOMES[i] + '</span>' +
          '<span class="cxi-wrap"><span class="cxi-bar' + (i < 3 && v > 0 ? ' cxi-bar-alerta' : '') + '" style="width:' + (v / maxF * 100).toFixed(1) + '%"></span></span>' +
@@ -6937,7 +6970,7 @@ function rpzBlocoAprazo(ls){
   });
   h += '</div>';
   const clientes = Object.keys(porCliente).map(k => [k, porCliente[k]]).sort((a, b) => b[1] - a[1]);
-  h += '<h3 class="cxi-sub">Maiores clientes</h3><div class="rpz-rola"><table class="rpz-tab"><thead><tr><th>Cliente</th><th class="rpz-r">Em aberto</th><th class="rpz-r">%</th></tr></thead><tbody>';
+  h += '<h3 class="cxi-sub">Maiores clientes</h3><div class="rpz-rola"><table class="rpz-tab"><thead><tr><th>Cliente</th><th class="rpz-r">Em aberto (R$)</th><th class="rpz-r">%</th></tr></thead><tbody>';
   clientes.slice(0, 15).forEach(c => {
     h += '<tr><td class="rpz-nome">' + escAttr(c[0]) + '</td><td class="rpz-r">' + rpzDin0(c[1]) + '</td><td class="rpz-r">' + (tot ? (c[1] / tot * 100).toFixed(1) : "0.0") + '%</td></tr>';
   });
@@ -6945,7 +6978,7 @@ function rpzBlocoAprazo(ls){
   if (clientes.length > 15) h += '<p class="nota-dash">Mostrando os 15 maiores de ' + clientes.length + ' clientes.</p>';
   const venc = linhas.filter(l => l.atraso > 0).sort((a, b) => b.atraso - a.atraso);
   if (venc.length){
-    h += '<details class="rel-det"><summary>Títulos vencidos (' + venc.length + ')</summary><div class="rpz-rola"><table class="rpz-tab"><thead><tr><th>Cliente</th><th>Título</th><th>Vencimento</th><th class="rpz-r">Dias</th><th class="rpz-r">Valor</th></tr></thead><tbody>';
+    h += '<details class="rel-det"><summary>Títulos vencidos (' + venc.length + ')</summary><div class="rpz-rola"><table class="rpz-tab"><thead><tr><th>Cliente</th><th>Título</th><th>Vencimento</th><th class="rpz-r">Dias</th><th class="rpz-r">Valor (R$)</th></tr></thead><tbody>';
     venc.slice(0, 100).forEach(l => {
       h += '<tr><td class="rpz-nome">' + escAttr(l.nome) + '</td><td>' + escAttr(rpzTxt(l.tit || "")) + '/' + escAttr(rpzTxt(l.parc || "")) + '</td>' +
            '<td>' + escAttr(l.venc ? l.venc.split("-").reverse().join("/") : "—") + '</td>' +
@@ -7026,7 +7059,7 @@ function finBarras(itens, titulo, fmt, subf){
     const v = Number(i[1]) || 0;
     h += '<div class="cxi-par"><span class="cxi-q" title="' + escAttr(i[0]) + '">' + escAttr(String(i[0]).slice(0, 30)) + '</span>' +
          '<span class="cxi-wrap"><span class="cxi-bar" style="width:' + (v / max * 100).toFixed(1) + '%"></span></span>' +
-         '<span class="cxi-v">' + (fmt ? fmt(v) : rpzDin0(v)) + '</span></div>';
+         '<span class="cxi-v">' + (fmt ? fmt(v) : ("R$ " + rpzDin0(v))) + '</span></div>';
     if (subf){ const s = subf(i); if (s) h += '<div class="fin-sub">' + s + '</div>'; }
   });
   return h + '</div>';
@@ -7077,7 +7110,7 @@ function finBlocoAprazoSf(ds){
   h += finBarras(cli.slice(0, 12), "Maiores clientes em aberto", null, i => i[2] + " títulos");
   h += '<h3 class="cxi-sub">Todos os títulos</h3>';
   const ord = todas.slice().sort((a,b) => String(a.r[4]||"").localeCompare(String(b.r[4]||"")));
-  h += finTab(["Cliente", "Título", "Emissão", "Vencimento", "Valor"],
+  h += finTab(["Cliente", "Título", "Emissão", "Vencimento", "Valor (R$)"],
     ord.map(o => [escAttr(rpzTxt(o.r[0])), escAttr(rpzTxt(o.r[1]) + "/" + rpzTxt(o.r[2])), rpzDia(o.r[3]), rpzDia(o.r[4]), rpzDin(o.r[5])]),
     ["Total", "", "", "", rpzDin(tot)]);
   return h;
@@ -7104,7 +7137,7 @@ function finBlocoRec(ds){
   const cli = finJunta(ds.map(x => ({ dados: { cli: ((x.dados && x.dados.cli) || []).map(r => [r[0], r[2], r[1]]) } })), "cli");
   if (cli.length){
     h += '<h3 class="cxi-sub">Maiores clientes a prazo</h3>';
-    h += finTab(["Cliente", "Títulos", "Recebido"],
+    h += finTab(["Cliente", "Títulos", "Recebido (R$)"],
       cli.slice(0, 12).map(r => [escAttr(r[0]), rpzDin0(r[2]), rpzDin(r[1])]));
   }
   const dia = finJunta(ds, "dia").sort((a,b) => String(a[0]).localeCompare(String(b[0])));
@@ -7135,7 +7168,7 @@ function finBlocoPag(ds){
   const tipo = finJunta(ds, "tipo").filter(r => r[0] !== "-" && r[0] !== "—");
   if (tipo.length){
     h += '<h3 class="cxi-sub">Por tipo de despesa</h3>';
-    h += finTab(["Tipo", "Títulos", "Pago"],
+    h += finTab(["Tipo", "Títulos", "Pago (R$)"],
       tipo.slice(0, 25).map(r => [escAttr(r[0]), rpzDin0(r[2]), rpzDin(r[1])]),
       ["Total sem " + finPalCompra(), "", rpzDin(tipo.reduce((s, r) => s + r[1], 0))]);
   }
@@ -7173,10 +7206,10 @@ function finBlocoDesc(ds){
   h += finCard("Maior desconto", "R$ " + rpzDin(cli[0][1]), "", escAttr(String(cli[0][0]).slice(0, 22)));
   h += '</div>';
   const lp = Object.keys(porPosto).map(k => porPosto[k]).sort((a,b) => b[1]-a[1]);
-  if (lp.length > 1) h += finBarras(lp, "Por posto", v => rpzDin(v), i => (i[2] ? (i[1] / i[2] * 100).toFixed(2).replace(".", ",") + "% do bruto" : ""));
-  h += finBarras(itens.slice(0, 10), "Onde vai o desconto", v => rpzDin(v), null);
+  if (lp.length > 1) h += finBarras(lp, "Por posto", v => "R$ " + rpzDin(v), i => (i[2] ? (i[1] / i[2] * 100).toFixed(2).replace(".", ",") + "% do bruto" : ""));
+  h += finBarras(itens.slice(0, 10), "Onde vai o desconto", v => "R$ " + rpzDin(v), null);
   h += '<h3 class="cxi-sub">Por cliente</h3>';
-  h += finTab(["Cliente", "Itens", "Desconto"],
+  h += finTab(["Cliente", "Itens", "Desconto (R$)"],
     cli.slice(0, 30).map(r => [escAttr(r[0]), rpzDin0(r[2]), rpzDin(r[1])]),
     ["Total", rpzDin0(todas.length), rpzDin(desc)]);
   return h;
@@ -7331,7 +7364,7 @@ function flxBlocoFluxo(){
 
 function flxTabela(linhas, dia){
   let h = '<div class="rpz-rola"><table class="rpz-tab flx-tab"><thead><tr>' +
-    '<th class="flx-c1">Vencimento</th><th class="rpz-r flx-c2">Valor</th><th class="flx-c3">Credor</th>' +
+    '<th class="flx-c1">Vencimento</th><th class="rpz-r flx-c2">Valor (R$)</th><th class="flx-c3">Credor</th>' +
     '<th class="flx-c4">Unidade</th><th class="flx-c5">Tipo</th><th class="flx-c6">Situação</th></tr></thead><tbody>';
   linhas.forEach(l => {
     h += '<tr' + (l.d < dia ? ' class="flx-vencida"' : '') + '>' +
@@ -7412,7 +7445,7 @@ function renderFinApagar(box){
     h += '<details class="rel-det"><summary>+ ' + rpzDin0(R.migalha.q) + ' sobras de centavos vencidas, R$ ' +
          rpzDin(R.migalha.v) + ' no total (abaixo de R$ ' + rpzDin0(lim) + ')</summary>' +
          '<p class="nota-dash">São restos de acerto, não dívida &mdash; ficam fora dos quadros acima para não esconder o que importa. Quem mais aparece:</p>';
-    h += finTab(["Credor", "Títulos", "Valor"],
+    h += finTab(["Credor", "Títulos", "Valor (R$)"],
       ((ap.migalhaTop) || []).map(r => [escAttr(r.n), rpzDin0(r.q), rpzDin(r.v)]));
     h += '</details>';
   }
@@ -7560,13 +7593,13 @@ function rpzBlocoVpend(ls){
   }
   if (ate.length){
     h += '<h3 class="cxi-sub">Por atendente</h3>';
-    h += finTab(["Atendente", "Pendentes", "Valor"],
+    h += finTab(["Atendente", "Pendentes", "Valor (R$)"],
       ate.map(r => [escAttr(r[0]), rpzDin0(r[2]), rpzDin(r[1])]),
       ["Total", rpzDin0(pend.length), rpzDin(vPend)]);
   }
   if (fora.length){
     h += '<h3 class="cxi-sub">Baixados fora da data do abastecimento</h3>';
-    h += finTab(["Atendente", "Abastecimento", "Venda", "Valor"],
+    h += finTab(["Atendente", "Abastecimento", "Venda", "Valor (R$)"],
       fora.slice(0, 40).map(r => [escAttr(rpzTxt(r[1])), rpzDia(String(r[2] || "").slice(0,10)), rpzDia(String(r[6] || "").slice(0,10)), rpzDin(r[5])]));
   }
   return h;
@@ -7657,7 +7690,7 @@ function renderDespesas(){
       '. Quando um lançamento que vale o ano inteiro cai num mês só, aquele mês parece péssimo e os vizinhos parecem bons demais.</div>';
   }
 
-  h += '<h3 class="cxi-sub">Despesa por mês</h3><div class="cxi-graf">';
+  h += '<h3 class="cxi-sub">Despesa por mês (R$)</h3><div class="cxi-graf">';
   for (let i=0;i<=ult;i++){
     const ehPico = picos.some(p => p.i===i);
     h += '<div class="cxi-par"><span class="cxi-q">' + DSP_MES[i] + '</span>' +
@@ -7668,9 +7701,9 @@ function renderDespesas(){
 
   const lista = Object.keys(cat).map(k => cat[k]).sort((a,b) => b.total - a.total);
   const totGeral = lista.reduce((s,x) => s + x.total, 0);
-  h += '<h3 class="cxi-sub">Para onde vai o dinheiro</h3><div class="dsp-rola"><table class="dsp-tab"><thead><tr><th>Tipo de despesa</th>' +
+  h += '<h3 class="cxi-sub">Para onde vai o dinheiro (R$)</h3><div class="dsp-rola"><table class="dsp-tab"><thead><tr><th>Tipo de despesa</th>' +
        (dspPostoSel === "todos" ? alvos.map(k => '<th class="dsp-r">'+escAttr(k)+'</th>').join("") : '') +
-       '<th class="dsp-r">Total</th><th class="dsp-r">%</th></tr></thead><tbody>';
+       '<th class="dsp-r">Total (R$)</th><th class="dsp-r">%</th></tr></thead><tbody>';
   lista.slice(0,25).forEach(c => {
     h += '<tr><td>' + escAttr(c.nome) + '</td>' +
       (dspPostoSel === "todos" ? alvos.map(k => '<td class="dsp-r">' + (c.porPosto[k] ? dspDin(c.porPosto[k]) : "—") + '</td>').join("") : '') +
@@ -8345,7 +8378,7 @@ function blocoRelLojaUma(d){
   const hr = d.hora || [];
   if (hr.length){
     const pico = hr.slice().sort((a,b) => (+b[1]||0) - (+a[1]||0))[0];
-    h += '<h4 class="rel-h4">Faturamento por hora</h4>';
+    h += '<h4 class="rel-h4">Faturamento por hora (R$)</h4>';
     h += '<p class="nota-dash">Hora mais forte: <b>'+escAttr(pico[0])+'h</b> ('+fmtR$0(pico[1])+').</p>';
     h += barrasRel(hr.map(x => [x[0]+"h", Math.round(+x[1]||0)]));
   }
