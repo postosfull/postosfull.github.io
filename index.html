@@ -6701,7 +6701,8 @@ function rpzBlocoAnoMes(D){
   const cls = v => (v < 0 ? "rpz-neg" : "rpz-pos");
 
   let h = '<p class="nota-dash">O ano inteiro m\u00eas a m\u00eas: quanto vendeu e quanto sobrou. ' +
-    'O <b>% sobre vendas</b> \u00e9 o lucro l\u00edquido dividido pelas vendas de combust\u00edvel e produtos ' +
+    'O <b>% sobre vendas</b> \u00e9 o lucro l\u00edquido dividido pelas vendas ' +
+    (comLitro ? 'de combust\u00edvel e produtos ' : 'da loja ') +
     '(as outras receitas ficam de fora do divisor, igual ao resto do app).</p>';
 
   // --- quadrinhos do ano ---
@@ -6981,6 +6982,14 @@ const FIN_FONTE = {
    v231 - o "postos" era fixo aqui dentro; virou a sigla da empresa aberta, senao a loja
    leria os documentos dos postos. --- */
 function finSig(){ return siglaEmpresa(empresa); }
+/* v232 - VOCABULARIO POR EMPRESA. A loja nao compra combustivel e nao e' posto.
+   A legenda do "Entrou x Saiu" ficou dizendo "compra de combustivel" na Full Conveniencia
+   porque nasceu escrita a mao na v225, quando o bloco so' existia nos Postos; na v231 as
+   lojas ganharam recliq/pagliq, o bloco apareceu - e a palavra errada apareceu junto.
+   Regra: rotulo que fala de bico, litro ou combustivel sai de funcao, nunca de string fixa. */
+function finEhLoja(){ return finSig() === "conv"; }
+function finPalCompra(){ return finEhLoja() ? "mercadoria" : "combust\u00edvel"; }
+function finPalUnid(){ return finEhLoja() ? "loja" : "posto"; }
 function finUnidNome(u){ const x = UNIDADES_REL.find(v => v.chave === u); return x ? x.nome : u; }
 function finUnidades(){ return finUnidSel === "todos" ? UNIDADES_REL.map(u => u.chave) : [finUnidSel]; }
 function finPeriodos(tipo){
@@ -7096,7 +7105,7 @@ function finBlocoRec(ds){
   h += finCard("Cartões", "R$ " + rpzDin0(cartao), "", "crédito + débito");
   h += '</div>';
   const porPosto = ds.map(x => [x.nome, (x.dados.tot ? Number(x.dados.tot.v) || 0 : 0), (x.dados.tot ? Number(x.dados.tot.q) || 0 : 0)]).sort((a,b) => b[1]-a[1]);
-  if (porPosto.length > 1) h += finBarras(porPosto, "Por posto", null, i => i[2] + " títulos");
+  if (porPosto.length > 1) h += finBarras(porPosto, "Por " + finPalUnid(), null, i => i[2] + " títulos");
   h += finBarras(nat.slice(0, 10), "Como o dinheiro entrou", null, null);
   const cli = finJunta(ds.map(x => ({ dados: { cli: ((x.dados && x.dados.cli) || []).map(r => [r[0], r[2], r[1]]) } })), "cli");
   if (cli.length){
@@ -7121,12 +7130,12 @@ function finBlocoPag(ds){
   let h = '<div class="rpz-cards">';
   h += finCard("Pago no período", "R$ " + rpzDin0(totV), "rpz-neg");
   h += finCard("Títulos liquidados", rpzDin0(totQ));
-  h += finCard("Compra de combustível", "R$ " + rpzDin0(semTipo), "", totV ? (semTipo / totV * 100).toFixed(1).replace(".", ",") + "% do total" : "");
+  h += finCard("Compra de " + finPalCompra(), "R$ " + rpzDin0(semTipo), "", totV ? (semTipo / totV * 100).toFixed(1).replace(".", ",") + "% do total" : "");
   h += finCard("Despesas", "R$ " + rpzDin0(comTipo));
   h += '</div>';
-  h += '<p class="nota-dash">O que vem sem tipo de despesa é nota de compra de combustível — por isso aparece separado.</p>';
+  h += '<p class="nota-dash">O que vem sem tipo de despesa é nota de compra de ' + finPalCompra() + ' — por isso aparece separado.</p>';
   const porPosto = ds.map(x => [x.nome, (x.dados.tot ? Number(x.dados.tot.v) || 0 : 0), (x.dados.tot ? Number(x.dados.tot.q) || 0 : 0)]).sort((a,b) => b[1]-a[1]);
-  if (porPosto.length > 1) h += finBarras(porPosto, "Por posto", null, i => i[2] + " títulos");
+  if (porPosto.length > 1) h += finBarras(porPosto, "Por " + finPalUnid(), null, i => i[2] + " títulos");
   const cred = finJunta(ds.map(x => ({ dados: { cred: ((x.dados && x.dados.cred) || []).map(r => [r[0], r[2], r[1]]) } })), "cred");
   h += finBarras(cred.slice(0, 10), "Maiores credores", null, i => i[2] + " títulos");
   const tipo = finJunta(ds, "tipo").filter(r => r[0] !== "-" && r[0] !== "—");
@@ -7134,7 +7143,7 @@ function finBlocoPag(ds){
     h += '<h3 class="cxi-sub">Por tipo de despesa</h3>';
     h += finTab(["Tipo", "Títulos", "Pago"],
       tipo.slice(0, 25).map(r => [escAttr(r[0]), rpzDin0(r[2]), rpzDin(r[1])]),
-      ["Total sem combustível", "", rpzDin(tipo.reduce((s, r) => s + r[1], 0))]);
+      ["Total sem " + finPalCompra(), "", rpzDin(tipo.reduce((s, r) => s + r[1], 0))]);
   }
   const dia = finJunta(ds, "dia").sort((a,b) => String(a[0]).localeCompare(String(b[0])));
   if (dia.length) h += '<details class="rel-det"><summary>Ver dia a dia (' + dia.length + ' dias)</summary>' +
@@ -7317,12 +7326,12 @@ function flxBlocoFluxo(){
       '</div></div>';
   });
   h += '<div class="flx-leg"><span><s class="flx-le"></s>Entrou (recebido)</span>' +
-       '<span><s class="flx-l1"></s>Saiu &mdash; compra de combustível</span>' +
+       '<span><s class="flx-l1"></s>Saiu &mdash; compra de ' + finPalCompra() + '</span>' +
        '<span><s class="flx-l2"></s>Saiu &mdash; todo o resto</span></div></div>';
   const ult = linhas[linhas.length - 1];
   const pctc = ult.sai ? (ult.comb / ult.sai * 100).toFixed(1).replace(".", ",") : "0";
   h += '<p class="nota-dash">Saiu mais do que entrou, <b>e isso não é prejuízo</b>: ' + pctc +
-       '% do que sai é compra de mercadoria, que volta como venda. O que interessa acompanhar é a faixa vermelha.</p>';
+       '% do que sai é compra de ' + finPalCompra() + ', que volta como venda. O que interessa acompanhar é a faixa vermelha.</p>';
   return h;
 }
 
