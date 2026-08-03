@@ -6791,11 +6791,31 @@ function rpzUnidMapa(sessao, sub, tipo){
 function rpzBlocoMapa(ls){
   if (!ls.length) return '<div class="ana-vazio">Sem linhas neste ano.</div>';
   const ord = ls.slice().sort((a,b) => (Number(a[3])||0) - (Number(b[3])||0));
+  /* v236 - duas linhas que o relatorio devolve e a tela nao devia mostrar:
+     1) na LOJA vêm "Despesa por Litro" e "Lucro Líquido por Litro" sempre ZERADAS - sao de posto,
+        a conveniencia nao tem bico (mesma regra da v231, que tirou volume e "por litro" de la').
+     2) nas DUAS empresas vem uma linha com a sessao VAZIA, sub "Total", tudo zero e ordenacao
+        null - e como null vira 0 na ordenacao, ela ia parar no TOPO da tabela, com uma faixa de
+        secao sem nome e uma fileira inteira de travessoes.
+     Regra do projeto: numero certo > aviso explicito > bloco ausente > ZERO. Some, e a nota do
+     rodape diz o que saiu - se um dia vier com valor, a linha aparece de novo (e isso e' sinal). */
+  const mapaSemBico = (siglaEmpresa(empresa) === "conv");
+  const mapaZerada = r => { for (let i = 6; i <= 18; i++){ if ((Number(r[i]) || 0) !== 0) return false; } return true; };
+  let mapaForaBico = 0, mapaForaSemNome = 0;
+  const vis = ord.filter(r => {
+    const ss = rpzTxt(r[0]), sb = rpzTxt(r[1]);
+    if (!mapaZerada(r)) return true;
+    if (!ss){ mapaForaSemNome++; return false; }
+    const un = rpzUnidMapa(ss, sb, r[2]);
+    if (mapaSemBico && (un === "L" || un === "R$/L")){ mapaForaBico++; return false; }
+    return true;
+  });
+  if (!vis.length) return '<div class="ana-vazio">Sem linhas neste ano.</div>';
   let h = '<p class="nota-dash">O ano inteiro numa tela: cada linha do resultado mês a mês, do jeito que o Petros calcula.</p>';
   h += '<div class="rpz-rola"><table class="rpz-tab"><thead><tr><th>Linha</th>' +
        RPZ_MES3.map(m => '<th class="rpz-r">' + m + '</th>').join("") + '<th class="rpz-r">Ano</th></tr></thead><tbody>';
   let sec = null;
-  ord.forEach(r => {
+  vis.forEach(r => {
     const sessao = rpzTxt(r[0]), sub = rpzTxt(r[1]), casas = Number(r[5]) || 0, tot = (r[4] === "S");
     if (sessao !== sec){
       sec = sessao;
@@ -6816,6 +6836,14 @@ function rpzBlocoMapa(ls){
   h += '</tbody></table></div><p class="nota-dash">Role a tabela para o lado para ver todos os meses. ' +
        'A etiqueta antes do nome diz a unidade da linha: <b>R$</b> reais &middot; <b>L</b> litros &middot; ' +
        '<b>R$/L</b> reais por litro &middot; <b>qtd</b> quantidade.</p>';
+  // v236 - o que saiu da tabela e' dito, nao sumido em silencio
+  if (mapaForaBico || mapaForaSemNome){
+    const partes = [];
+    if (mapaForaBico) partes.push('<b>' + mapaForaBico + (mapaForaBico === 1 ? ' linha "por litro"</b> ficou' : ' linhas "por litro"</b> ficaram') +
+      ' de fora — são indicadores de posto e vieram zeradas (a ' + finPalUnid() + ' não tem bico)');
+    if (mapaForaSemNome) partes.push('<b>' + mapaForaSemNome + (mapaForaSemNome === 1 ? ' linha</b> sem nome e sem valor, que o relatório devolve à toa' : ' linhas</b> sem nome e sem valor, que o relatório devolve à toa'));
+    h += '<p class="nota-dash">Fora da tabela: ' + partes.join(" · ") + '. Se um dia vierem com valor, voltam a aparecer.</p>';
+  }
   return h;
 }
 
