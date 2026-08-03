@@ -1939,7 +1939,7 @@
       <div class="rel-topo"><h2 id="relTituloPosto">📑 Relatórios</h2><div class="rel-topo-bts"></div></div>
       <p class="nota-dash">Números que vêm do Petros/Adaptive. Use as abas para trocar de relatório.</p>
       <div class="evo-filtros">
-        <div class="desc-campo"><label>Posto</label><select id="relPostoEmp" onchange="relPostoSel=this.value;renderRelPosto()"></select></div>
+        <div class="desc-campo"><label id="relPostoEmpLbl">Posto</label><select id="relPostoEmp" onchange="relPostoSel=this.value;renderRelPosto()"></select></div>
         <div class="desc-campo"><label>Mês</label><select id="relPostoMesSel" onchange="relPostoMes=this.value;renderRelPosto()"></select></div>
       </div>
       <div class="doc-tools" id="relPostoAbas"></div>
@@ -6089,9 +6089,12 @@ function mesesDisponiveis(mapa, unidade){
     .sort().reverse();
 }
 // v229 - um mes que so' tem DRE (sem o "res" do painel) tambem tem de aparecer no seletor.
+// v231 - na loja o documento do mes e' o de relatoriosLoja, nao o de relatoriosPosto
+function relDocsDaEmpresa(){ return (siglaEmpresa(empresa) === "conv") ? relLojas : relPostos; }
+function relDocMes(unidade, mes){ return relDocsDaEmpresa()[unidade + "_" + mes] || {}; }
 function mesesRelPosto(unidade){
   const m = {};
-  mesesDisponiveis(relPostos, unidade).forEach(x => { m[x] = 1; });
+  mesesDisponiveis(relDocsDaEmpresa(), unidade).forEach(x => { m[x] = 1; });
   const pre = "dre_" + siglaEmpresa(empresa) + "_" + unidade + "_";
   Object.keys(relPetros || {}).forEach(k => { if (String(k).indexOf(pre) === 0) m[String(k).slice(pre.length)] = 1; });
   return Object.keys(m).sort().reverse();
@@ -6221,8 +6224,10 @@ function renderCaixas(){
    barra so. Cada aba continua morando no seu painel; a barra e' que e' compartilhada.
    Ordem editavel pelo admin, gravada em config/ordemAbasRel. */
 const ABAS_REL_UNIF = [
-  { k:"p:resultado", n:"💵 Resultado do mês",   painel:"painelRelPosto",  aba:"resultado", emp:"postos", menu:"fin" },
-  { k:"p:caixa",     n:"🧾 Caixa",              painel:"painelRelPosto",  aba:"caixa",     emp:"postos", menu:"fin" },
+  /* v231 - as duas passaram a valer na loja: o Resultado monta pelo DRE (dre_conv_*) e a
+     Caixa le o caixaIndicadores, que ja' coleta as tres conveniencias desde 01/08. */
+  { k:"p:resultado", n:"💵 Resultado do mês",   painel:"painelRelPosto",  aba:"resultado", emp:"postos|conv", menu:"fin" },
+  { k:"p:caixa",     n:"🧾 Caixa",              painel:"painelRelPosto",  aba:"caixa",     emp:"postos|conv", menu:"fin" },
   { k:"p:equipe",    n:"👷 Equipe e movimento", painel:"painelRelPosto",  aba:"equipe",    emp:"postos", menu:"rel" },
   { k:"z:mapa",      n:"🗺️ Mapa Anual",         painel:"painelRelPetros", aba:"mapa",      emp:"postos|conv", menu:"fin" },
   { k:"z:anomes",    n:"📆 Ano mês a mês",       painel:"painelRelPetros", aba:"anomes",    emp:"postos|conv", menu:"fin" },   // v212
@@ -6230,18 +6235,21 @@ const ABAS_REL_UNIF = [
   { k:"z:afer",      n:"📏 Aferições",          painel:"painelRelPetros", aba:"afer",      emp:"postos", menu:"rel" },   // v205
   { k:"z:vpend",     n:"⏳ Vendas pendentes",   painel:"painelRelPetros", aba:"vpend",     emp:"postos", menu:"rel" },   // v205
   { k:"z:tanques",   n:"🛢️ Tanques",            painel:"painelRelPetros", aba:"tanques",   emp:"postos", menu:"rel" },
-  /* v224 - Colaboradores: nos Postos o Tiago mandou para o Financeiro; na Conveniencia ele fica
-     no Relatorios, senao aquele menu nasceria vazio na loja. Ele pode trocar os dois quando quiser. */
-  { k:"z:colab",     n:"🙋 Colaboradores",      painel:"painelRelPetros", aba:"colab",     emp:"postos|conv", menu:{postos:"fin", conv:"rel"} },
+  /* v224/v231 - Colaboradores (o saldo de vales de cada funcionario). Na v224 ele ficava no
+     Relatorios da loja so' para aquele menu nao nascer vazio; na v231 o Tiago pediu ele no
+     Financeiro nas DUAS empresas, e o menu Relatorios da loja some da barra mesmo (v224). */
+  { k:"z:colab",     n:"🙋 Colaboradores",      painel:"painelRelPetros", aba:"colab",     emp:"postos|conv", menu:"fin" },
   { k:"z:aprazo",    n:"📄 A Prazo",            painel:"painelRelPetros", aba:"aprazo",    emp:"postos", menu:"fin" },  // v193: a loja nao vende a prazo
-  /* v207 - as seis abas que eram o menu Financeiro (so Postos Full); v224 - voltaram para ele */
+  /* v207 - as seis abas que eram o menu Financeiro; v224 - voltaram para ele;
+     v231 - quatro delas passaram a valer tambem na loja (a "A Prazo sem faturar" nao:
+     a conveniencia nao vende a prazo, mesma razao da v193). */
   { k:"f:aprazosf",  n:"📄 A Prazo sem faturar", painel:"painelFinanceiro", aba:"aprazosf", emp:"postos", menu:"fin" },
-  { k:"f:recliq",    n:"📥 Recebimentos",        painel:"painelFinanceiro", aba:"recliq",   emp:"postos", menu:"fin" },
-  { k:"f:pagliq",    n:"📤 Pagamentos",          painel:"painelFinanceiro", aba:"pagliq",   emp:"postos", menu:"fin" },
-  { k:"f:descv",     n:"🏷️ Descontos",     painel:"painelFinanceiro", aba:"descv",    emp:"postos", menu:"fin" },
-  { k:"f:desp",      n:"💸 Despesas do mês",     painel:"painelFinanceiro", aba:"desp",     emp:"postos", menu:"fin" },
+  { k:"f:recliq",    n:"📥 Recebimentos",        painel:"painelFinanceiro", aba:"recliq",   emp:"postos|conv", menu:"fin" },
+  { k:"f:pagliq",    n:"📤 Pagamentos",          painel:"painelFinanceiro", aba:"pagliq",   emp:"postos|conv", menu:"fin" },
+  { k:"f:descv",     n:"🏷️ Descontos",     painel:"painelFinanceiro", aba:"descv",    emp:"postos", menu:"fin" },   /* v231 - medido: R$ 6,22 em 7 meses fechados nas 3 lojas (3 linhas). A loja nao da desconto a cliente; os dados ficam gravados caso um dia volte. */
+  { k:"f:desp",      n:"💸 Despesas do mês",     painel:"painelFinanceiro", aba:"desp",     emp:"postos|conv", menu:"fin" },
   /* v227 - na loja esta tela era o menu proprio "Despesas"; virou aba, com nome proprio */
-  { k:"f:dspano",    n:{postos:"📅 Despesas do ano", conv:"💸 Despesas"}, painel:"painelDespesas",   aba:"",         emp:"postos|conv", menu:"fin" },
+  { k:"f:dspano",    n:{postos:"📅 Despesas do ano", conv:"📅 Despesas do ano"}, painel:"painelDespesas",   aba:"",         emp:"postos|conv", menu:"fin" },
   /* v225 - o que ainda vai sair de dinheiro (unica tela do app que olha para a frente) */
   { k:"f:apagar",    n:"💰 A Pagar / Fluxo",     painel:"painelFinanceiro", aba:"apagar",   emp:"postos|conv", menu:"fin" }
 ];
@@ -6969,13 +6977,16 @@ const FIN_FONTE = {
   apagar:   "T\u00edtulos a Pagar Pendentes por Vencimento + 01 - Posi\u00e7\u00e3o de Liquidez"
 };
 
-/* --- dados: os documentos ficam em relatoriosPetros, tipo_postos_{unidade}_{periodo} --- */
+/* --- dados: os documentos ficam em relatoriosPetros, {tipo}_{emp}_{unidade}_{periodo}.
+   v231 - o "postos" era fixo aqui dentro; virou a sigla da empresa aberta, senao a loja
+   leria os documentos dos postos. --- */
+function finSig(){ return siglaEmpresa(empresa); }
 function finUnidNome(u){ const x = UNIDADES_REL.find(v => v.chave === u); return x ? x.nome : u; }
 function finUnidades(){ return finUnidSel === "todos" ? UNIDADES_REL.map(u => u.chave) : [finUnidSel]; }
 function finPeriodos(tipo){
   const set = {};
   UNIDADES_REL.forEach(u => {
-    const pre = tipo + "_postos_" + u.chave + "_";
+    const pre = tipo + "_" + finSig() + "_" + u.chave + "_";
     Object.keys(relPetros).forEach(k => { if (k.indexOf(pre) === 0) set[k.slice(pre.length)] = 1; });
   });
   return Object.keys(set).sort().reverse();
@@ -6984,7 +6995,7 @@ function finPeriodos(tipo){
 function finDocs(tipo, per){
   const saida = [];
   finUnidades().forEach(u => {
-    const d = relPetros[tipo + "_postos_" + u + "_" + per];
+    const d = relPetros[tipo + "_" + finSig() + "_" + u + "_" + per];
     if (d) saida.push({ un: u, nome: finUnidNome(u), doc: d, dados: rpzLista(d) });
   });
   return saida;
@@ -7432,6 +7443,10 @@ function renderFinanceiro(){
   preencherSelectRel("finUnid", uns, finUnidSel, c => c === "todos" ? (siglaEmpresa(empresa) === "conv" ? "Todas as lojas" : "Todos os postos") : finUnidNome(c));
   finUnidSel = (document.getElementById("finUnid") || {}).value || finUnidSel;
 
+  // v231 - a loja nao tem todas as abas financeiras; se a que esta' guardada nao valer
+  // aqui, cai na primeira que valer, em vez de mostrar "ainda nao ha dados" para sempre.
+  const abasFin = abasRelDaEmpresa().filter(a => a.painel === "painelFinanceiro");
+  if (abasFin.length && !abasFin.some(a => a.aba === finAba)){ finAba = abasFin[0].aba; finPerSel = ""; }
   if (finAba === "apagar"){ renderFinApagar(box); return; }   // v225
   const pers = finPeriodos(finAba);
   const perLinha = document.getElementById("finPerLinha");
@@ -7772,6 +7787,8 @@ function renderRelPosto(){
   if (!box) return;
   const titP = document.getElementById("relTituloPosto");
   if (titP) titP.innerHTML = tituloRel();
+  const lblP = document.getElementById("relPostoEmpLbl");   // v231 - na loja nao e' "Posto"
+  if (lblP) lblP.textContent = (siglaEmpresa(empresa) === "conv") ? "Loja" : "Posto";
   preencherSelectRel("relPostoEmp", UNIDADES_REL.map(u=>u.chave), relPostoSel, c => (UNIDADES_REL.find(u=>u.chave===c)||{}).nome || c);
   relPostoSel = (document.getElementById("relPostoEmp")||{}).value || relPostoSel;
   const meses = mesesRelPosto(relPostoSel);   // v229 - une os meses do painel com os do DRE
@@ -7779,12 +7796,12 @@ function renderRelPosto(){
     document.getElementById("relPostoAbas").innerHTML = barraAbasRel();
     renderOrdemAbasRel();
     preencherSelectRel("relPostoMesSel", [], "", null);
-    box.innerHTML = '<p class="nota-dash">Ainda não temos os relatórios deste posto. Eles são montados na sincronização — peça ao Claude: "sincroniza os relatórios do posto".</p>';
+    box.innerHTML = '<p class="nota-dash">Ainda não temos os relatórios desta ' + (siglaEmpresa(empresa) === "conv" ? "loja" : "unidade") + '. Eles são montados na sincronização — peça ao Claude: "sincroniza os relatórios do posto".</p>';
     return;
   }
   if (meses.indexOf(relPostoMes) < 0) relPostoMes = meses[0];
   preencherSelectRel("relPostoMesSel", meses, relPostoMes, rotuloMesRel);
-  const d = relPostos[relPostoSel + "_" + relPostoMes] || {};
+  const d = relDocMes(relPostoSel, relPostoMes);   // v231 - relatoriosLoja na Conveniencia
   document.getElementById("relPostoAbas").innerHTML = barraAbasRel();
   renderOrdemAbasRel();
   let h = "";
@@ -7805,6 +7822,9 @@ function renderRelPosto(){
    meses do mesmo posto. Sobrando muito, vira "fora da curva". Retiradas de socios
    sao tratadas a parte, porque nao sao despesa de operacao. */
 function relDespDetDe(posto, mes){
+  // v231 - relatoriosLoja ainda nao tem despDet. Sem esta guarda a loja leria o
+  // despDet do POSTO da mesma cidade e mostraria os lancamentos dele como se fossem dela.
+  if (siglaEmpresa(empresa) === "conv") return [];
   const d = relPostos[posto + "_" + mes];
   const l = d && d.despDet;
   return Array.isArray(l) ? l : [];
@@ -7949,12 +7969,16 @@ function blocoResultadoPosto(d, uni){
   const u = uni || resDoMesRel(d);             // v197 - mesma fonte da aba Resultado do periodo
   const r = u.res;
   if (!r) return '<p class="nota-dash">Sem o resultado deste mês.</p>';
+  // v231 - a conveniencia nao tem bico: nem volume, nem "por litro", nem combustivel.
+  // Sem isto a tela da loja abria com "Volume vendido —", uma coluna inteira de travessoes
+  // e um aviso dizendo que os litros "ainda nao foram coletados" — e eles nunca vao existir.
+  const semBico = (siglaEmpresa(empresa) === "conv");
   const perdeu = (+r.varEst||0) < 0;
   const aj = blocoAjusteResultado(d, r);       // v194
   const despMostra = aj.mexeu ? aj.desp : (+r.desp||0);
   const llMostra   = aj.mexeu ? aj.ll   : (+r.ll||0);
   let h = '<div class="rel-kpis">' +
-    '<div class="rel-kpi"><span>Volume vendido</span><b>'+(r.vol == null ? "\u2014" : fmtL(r.vol))+'</b></div>' +
+    (semBico ? '' : '<div class="rel-kpi"><span>Volume vendido</span><b>'+(r.vol == null ? "\u2014" : fmtL(r.vol))+'</b></div>') +
     '<div class="rel-kpi"><span>Faturamento</span><b>'+fmtR$0((+r.comb||0)+(+r.outros||0)+(+r.outrasRec||0))+'</b></div>' +
     '<div class="rel-kpi"><span>Lucro bruto</span><b>'+fmtR$0(r.lb)+'</b></div>' +
     '<div class="rel-kpi"><span>Despesas'+(aj.mexeu?' (ajustada)':'')+'</span><b>'+fmtR$0(despMostra)+'</b></div>' +
@@ -7964,27 +7988,41 @@ function blocoResultadoPosto(d, uni){
   if (aj.mexeu) h += '<p class="nota-dash">A tabela abaixo mostra os valores <b>como estão lançados no Petros</b>. O ajuste aparece nos quadros acima e no quadro do fim.</p>';
   // v229 - sem os litros do mes (o DRE nao os traz), a coluna "por litro" vira travessao
   // em vez de dividir por 1 e imprimir um numero que nao quer dizer nada.
-  if (r.vol == null) h += '<p class="nota-dash">⚠️ Os <b>litros</b> deste mês ainda não foram coletados dos painéis, então o volume e a coluna “por litro” aparecem como “—”. Os valores em reais vêm do Demonstrativo de Resultado e estão completos.</p>';
-  h += '<div class="rel-scroll"><table class="rel-tab"><thead><tr><th>Linha</th><th class="n">Valor</th><th class="n">Por litro</th></tr></thead><tbody>';
+  if (r.vol == null && !semBico) h += '<p class="nota-dash">⚠️ Os <b>litros</b> deste mês ainda não foram coletados dos painéis, então o volume e a coluna “por litro” aparecem como “—”. Os valores em reais vêm do Demonstrativo de Resultado e estão completos.</p>';
+  h += '<div class="rel-scroll"><table class="rel-tab"><thead><tr><th>Linha</th><th class="n">Valor</th>'+(semBico?'':'<th class="n">Por litro</th>')+'</tr></thead><tbody>';
   const litros = +r.vol || 0;
   const porL = v => litros ? (+v||0)/litros : null;
-  const linha = (nome, valor, porLitro, moeda) => '<tr><td>'+nome+'</td><td class="n">'+(moeda===false?fmtL(valor):fmtR$(valor))+'</td><td class="n">'+(porLitro==null?"—":("R$ "+fmtBR(porLitro,3)))+'</td></tr>';
-  h += linha("Venda de combustível", r.comb, porL(r.comb));
-  h += linha("Venda de outros produtos", r.outros, porL(r.outros));
+  const linha = (nome, valor, porLitro, moeda) => '<tr><td>'+nome+'</td><td class="n">'+(moeda===false?fmtL(valor):fmtR$(valor))+'</td>'+(semBico?'':('<td class="n">'+(porLitro==null?"—":("R$ "+fmtBR(porLitro,3)))+'</td>'))+'</tr>';
+  if (!semBico) h += linha("Venda de combustível", r.comb, porL(r.comb));
+  h += linha(semBico ? "Venda de produtos" : "Venda de outros produtos", r.outros, porL(r.outros));
   h += linha("Outras receitas", r.outrasRec, porL(r.outrasRec));
-  h += linha("Custo do combustível", r.custoComb, porL(r.custoComb));
-  h += linha("Custo dos outros produtos", r.custoOutros, porL(r.custoOutros));
+  if (!semBico) h += linha("Custo do combustível", r.custoComb, porL(r.custoComb));
+  h += linha(semBico ? "Custo dos produtos" : "Custo dos outros produtos", r.custoOutros, porL(r.custoOutros));
   h += linha("<b>Lucro bruto</b>", r.lb, r.lbL);
   h += linha("Despesas", r.desp, r.despL);
-  h += '<tr><td>Variação de estoque</td><td class="n">'+fmtR$(r.varEst)+'</td><td class="n">'+((+r.vol||0) ? ("R$ "+fmtBR((+r.varEst||0)/(+r.vol||1),3)) : "—")+'</td></tr>';
+  h += '<tr><td>Variação de estoque</td><td class="n">'+fmtR$(r.varEst)+'</td>'+(semBico?'':('<td class="n">'+((+r.vol||0) ? ("R$ "+fmtBR((+r.varEst||0)/(+r.vol||1),3)) : "—")+'</td>'))+'</tr>';
   h += linha("<b>Lucro líquido</b>", r.ll, r.llL);
   h += '</tbody></table></div>';
   h += aj.html;                                  // v194
-  if (perdeu) h += '<div class="rel-alerta">⚠️ A variação de estoque do mês está negativa em '+fmtR$(Math.abs(+r.varEst||0))+'. Vale conferir aferições, vazamentos e as entradas de nota.</div>';
+  if (perdeu) h += '<div class="rel-alerta">⚠️ A variação de estoque do mês está negativa em '+fmtR$(Math.abs(+r.varEst||0))+'. Vale conferir '+(semBico ? 'o inventário, as perdas e quebras e as entradas de nota' : 'aferições, vazamentos e as entradas de nota')+'.</div>';
   return h;
 }
+/* v231 - a loja nao tem relatoriosPosto.cx, mas os MESMOS indicadores das tres
+   conveniencias ja' sao coletados no caixaIndicadores desde 01/08 (ramo "conveniencias"),
+   que e' o que alimenta o card do Dashboard. Aqui eles viram o mesmo formato do "cx".
+   "Afericoes" e "Abastecimentos pendentes" nao existem em loja e ficam de fora. */
+function caixaDaLojaRel(){
+  const mes = caixaInd[relPostoMes];
+  if (!mes) return null;
+  const nome = (UNIDADES_REL.find(u => u.chave === relPostoSel) || {}).nome || "";
+  const o = (mes.conveniencias || {})[nome];
+  if (!o) return null;
+  return { pctFech: cxiNum(o.fechados), pctConf: cxiNum(o.confirmados),
+           sobra: cxiNum(o.sobra), falta: cxiNum(o.falta),
+           tempo: o.tempoTexto || "—", semBico: true };
+}
 function blocoCaixaPosto(d){
-  const c = d.cx;
+  const c = (siglaEmpresa(empresa) === "conv") ? caixaDaLojaRel() : d.cx;
   if (!c) return '<p class="nota-dash">Sem os dados de caixa deste mês.</p>';
   const dif = (+c.sobra||0) - (+c.falta||0);
   let h = '<div class="rel-kpis">' +
@@ -7994,8 +8032,9 @@ function blocoCaixaPosto(d){
     '<div class="rel-kpi"><span>Caixas fechados</span><b>'+fmtPctRel(c.pctFech)+'</b></div>' +
     '<div class="rel-kpi '+((+c.pctConf||0)>=95?'bom':'ruim')+'"><span>Caixas confirmados</span><b>'+fmtPctRel(c.pctConf)+'</b></div>' +
     '<div class="rel-kpi"><span>Tempo médio p/ confirmar</span><b style="font-size:.95rem">'+escAttr(c.tempo||"—")+'</b></div>' +
-    '<div class="rel-kpi"><span>Aferições</span><b>'+fmtBR(c.afer,0)+'</b></div>' +
-    '<div class="rel-kpi '+((+c.pend||0)>0?'ruim':'')+'"><span>Abastecimentos pendentes</span><b>'+fmtBR(c.pend,0)+'</b></div>' +
+    (c.semBico ? '' :
+      '<div class="rel-kpi"><span>Aferições</span><b>'+fmtBR(c.afer,0)+'</b></div>' +
+      '<div class="rel-kpi '+((+c.pend||0)>0?'ruim':'')+'"><span>Abastecimentos pendentes</span><b>'+fmtBR(c.pend,0)+'</b></div>') +
     '</div>';
   if ((+c.pctConf||0) < 95) h += '<div class="rel-alerta">⚠️ Só '+fmtPctRel(c.pctConf)+' dos caixas foram confirmados. O tempo médio de confirmação está em '+escAttr(c.tempo||"—")+'.</div>';
   const rec = d.receb || [];
