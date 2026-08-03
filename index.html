@@ -7171,10 +7171,38 @@ function flxDados(tipo, dia){
   const o = rpzLista(d);
   return (o && typeof o === "object" && !Array.isArray(o)) ? o : null;
 }
-/* a liquidez do mesmo dia; se faltar, a mais recente ANTERIOR - nunca uma do futuro */
+/* v228 - a liquidez ja' chegou em DOIS formatos: o certo { data, campos:{unidade:{}} } e o cru
+   { unidade:{...45 blocos} }, que a rotina gravou em 03/08/2026 e deixou a tela mostrando R$ 0.
+   Esta funcao entende os dois e devolve sempre o formato certo. Devolve null quando NAO entende -
+   e' o que faz a tela avisar em vez de somar zero. Ver claude/rotina-a-pagar-e-liquidez.md. */
+function flxLiqTemNumero(c){
+  return !!c && typeof c === "object" && Object.keys(c).some(u =>
+    c[u] && typeof c[u] === "object" && Object.keys(c[u]).some(k => typeof c[u][k] === "number"));
+}
+function flxLiqNorm(o, dia){
+  if (!o || typeof o !== "object" || Array.isArray(o)) return null;
+  if (flxLiqTemNumero(o.campos)) return { data: o.data || dia, campos: o.campos };
+  const uns = UNIDADES_REL.map(u => u.chave).filter(u => o[u] && typeof o[u] === "object");
+  if (!uns.length) return null;
+  const campos = {}, chaves = {};
+  uns.forEach(u => {
+    campos[u] = {};
+    Object.keys(o[u]).forEach(k => { if (typeof o[u][k] === "number"){ campos[u][k] = o[u][k]; chaves[k] = 1; } });
+  });
+  if (!flxLiqTemNumero(campos)) return null;
+  campos.rede = {};                                  // a rede e' sempre a soma das unidades
+  Object.keys(chaves).forEach(k => { campos.rede[k] = uns.reduce((a, u) => a + (Number(campos[u][k]) || 0), 0); });
+  return { data: o.data || dia, campos: campos, cru: true };
+}
+/* a liquidez do mesmo dia; se faltar OU NAO FOR ENTENDIDA, a mais recente ANTERIOR que sirva -
+   nunca uma do futuro. 🔑 rede de protecao que so' testa ausencia nao pega formato errado (v228) */
 function flxLiquidezDe(dia){
   const dias = flxDias("liquidez").filter(d => d <= dia);
-  return dias.length ? flxDados("liquidez", dias[0]) : null;
+  for (let i = 0; i < dias.length; i++){
+    const n = flxLiqNorm(flxDados("liquidez", dias[i]), dias[i]);
+    if (n) return n;
+  }
+  return null;
 }
 /* soma um campo da liquidez respeitando o filtro de unidade da tela */
 function flxLiqSoma(liq, campos){
@@ -7317,6 +7345,12 @@ function renderFinApagar(box){
     h += '</div>';
     h += '<p class="nota-dash">Disponível = caixa + bancos + cartões a receber (crédito e débito) + cheques à vista.' +
          (liq.data && liq.data !== dia ? ' A posição é de ' + rpzDia(liq.data) + ' (o dia escolhido ainda não tem leitura).' : '') + '</p>';
+  } else {
+    /* v228 - bloco que some sozinho vira numero errado na cabeca de quem olha: melhor DIZER. */
+    h += '<div class="flx-sec">1 &middot; Quanto o grupo tem</div>';
+    h += '<div class="ana-vazio">A Posição de Liquidez de ' + rpzDia(dia) + ' não chegou do Adaptive, ' +
+         'ou veio num formato que esta tela não reconhece.<br>Os quadros de dinheiro disponível, ' +
+         'a receber e posição ficam de fora até a próxima coleta &mdash; melhor faltar do que mostrar zero.</div>';
   }
 
   /* ---- 2. o que vence ---- */
