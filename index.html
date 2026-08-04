@@ -193,6 +193,30 @@
     width:100%;border:none;border-left:3px solid transparent;background:transparent;text-align:left;flex:0 0 auto;cursor:pointer;position:relative;
     transition:background-color .2s ease,border-color .35s ease,color .25s ease}
   .menu-badge{position:absolute;left:24px;top:3px;background:var(--vermelho);color:#fff;font-size:.62rem;font-weight:700;border-radius:10px;padding:1px 5px;line-height:1.3}
+  /* ===== v246 - a tela de Novidades ===== */
+  .nvd-topo{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+  .nvd-atual{font-weight:700;font-size:.82rem;color:#fff;border-radius:999px;padding:3px 12px;
+             background-image:linear-gradient(90deg,var(--verde),rgba(var(--verde-rgb),.75))}
+  .nvd-lista{display:flex;flex-direction:column;gap:14px}
+  .nvd-ver{border:1px solid var(--borda);border-radius:12px;padding:12px 14px;
+           background-image:linear-gradient(var(--superficie),var(--superficie))}
+  .nvd-ver.nova{border-color:rgba(var(--verde-rgb),.55);
+                background-image:linear-gradient(90deg,rgba(var(--verde-rgb),.10),transparent 60%)}
+  .nvd-cab{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+  .nvd-num{font-weight:800;font-size:1.02rem;color:var(--verde)}
+  .nvd-data{font-size:.78rem;opacity:.7}
+  .nvd-selo{font-size:.62rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+            color:#fff;border-radius:999px;padding:2px 8px;background-image:linear-gradient(#18a558,#18a558)}
+  .nvd-itens{display:flex;flex-direction:column;gap:10px}
+  .nvd-item{display:flex;gap:10px;align-items:flex-start}
+  .nvd-tag{flex:0 0 auto;font-size:.6rem;font-weight:700;letter-spacing:.4px;text-transform:uppercase;
+           color:#fff;border-radius:6px;padding:3px 7px;margin-top:2px;min-width:74px;text-align:center}
+  .nvd-tag.n{background-image:linear-gradient(#18a558,#18a558)}
+  .nvd-tag.m{background-image:linear-gradient(#2f7fd1,#2f7fd1)}
+  .nvd-tag.c{background-image:linear-gradient(#c0392b,#c0392b)}
+  .nvd-tit{font-weight:700;display:block;margin-bottom:2px}
+  .nvd-txt{font-size:.86rem;opacity:.88;line-height:1.45}
+  @media (max-width:560px){ .nvd-item{flex-direction:column;gap:4px} .nvd-tag{min-width:0;align-self:flex-start} }
   .menu-lateral button:hover{background:var(--superficie-2)}
   /* v243 - o menu aceso ganha barra à esquerda e uma luz que entra na horizontal,
      no lugar do contorno de 2px. background-IMAGE porque o modo escuro forçado do
@@ -1819,6 +1843,7 @@
       <button class="btn-claro" id="btnConta" onclick="alternarConta()"><span class="mi">👤</span><span class="mt">Minha conta</span></button>
       <button class="btn-claro" id="btnConfig" onclick="alternarConfig()"><span class="mi">⚙</span><span class="mt">Configurações</span></button>
       <button class="btn-claro" id="btnUsuarios" style="display:none" onclick="alternarAdmin()"><span class="mi">👥</span><span class="mt">Painel Administrativo</span></button>
+      <button class="btn-claro" id="btnNovidades" onclick="alternarNovidades()"><span class="mi">🎁</span><span class="mt">Novidades</span><span class="menu-badge" id="badgeNovidades" style="display:none">0</span></button>   <!-- v246 -->
     </div>
     <button class="btn-claro menu-ordenar" id="btnOrdenarMenus" style="display:none" onclick="alternarPersonalizarMenus()"><span class="mi" id="ordIcone">✏️</span><span class="mt" id="ordLabel">Personalizar menus</span></button>
     <button class="btn-claro menu-tema" id="btnTema" onclick="alternarTema()"><span class="mi" id="temaIcone">🌙</span><span class="mt" id="temaLabel">Tema escuro</span></button>
@@ -2514,6 +2539,17 @@
       <h2>Concluídos</h2>
       <button class="btn-claro" id="btnToggleRecadoFeitos" onclick="alternarRecadoFeitos()">Mostrar concluídos</button>
       <div id="recadoFeitos" style="display:none;margin-top:10px"></div>
+    </div>
+  </div>
+
+  <div class="config" id="painelNovidades">
+    <div class="grupo">
+      <div class="nvd-topo">
+        <h2 style="margin:0">🎁 Novidades do app</h2>
+        <span class="nvd-atual" id="nvdVersaoAtual"></span>
+      </div>
+      <p class="nota-dash">O que mudou em cada versão, da mais nova para a mais antiga. As versões que você ainda não tinha visto ficam destacadas.</p>
+      <div class="nvd-lista" id="nvdLista"></div>
     </div>
   </div>
 
@@ -3793,8 +3829,12 @@ function admNomeDe(e){ const n = (perfis || {})[e]; return (n && n !== e) ? n : 
 function nomePerfilAdm(id){ return (id && perfisAcesso[id] && perfisAcesso[id].nome) ? perfisAcesso[id].nome : (id || ""); }
 
 /* ----- menus por empresa ----- */
-function menusDaSigla(sig){ return MENUS_APP.filter(m => m.key !== "conta" && m.emp !== "ambos" && menuVisivelEmpresa(m, sig)); }
-function menusComuns(){ return MENUS_APP.filter(m => m.key !== "conta" && m.emp === "ambos"); }
+function menusDaSigla(sig){ return MENUS_APP.filter(m => !MENU_SEMPRE_LIVRE(m.key) && m.emp !== "ambos" && menuVisivelEmpresa(m, sig)); }
+// v246 - menu que TODO MUNDO ve nao entra na lista de permissoes: caixinha que nao decide
+// nada e' caixinha que mente. (O "caixa" fica de fora dessa regra so' porque ja' aparecia
+// na lista antes, e tirar de la' mudaria mapa gravado.)
+function MENU_SEMPRE_LIVRE(k){ return k === "conta" || k === "novidades"; }
+function menusComuns(){ return MENUS_APP.filter(m => !MENU_SEMPRE_LIVRE(m.key) && m.emp === "ambos"); }
 function mapaMenusNovo(mp){ return !!(mp && (mp.postos || mp.transp || mp.conv || mp.todas)); }
 // menu marcado? No formato antigo (mapa plano) o que ja estava gravado vale para as TRES empresas.
 function menuMarcadoEm(mp, sig, key){
@@ -4391,7 +4431,7 @@ function setPermUsuario(email, key, marcado){
   const rule = normPerm(permissoesTodos[email]);
   let menus;
   if (rule && rule.menus){ menus = Object.assign({}, rule.menus); }
-  else { menus = {}; MENUS_APP.forEach(m => { if (m.key !== "conta") menus[m.key] = true; }); }  // base: via tudo
+  else { menus = {}; MENUS_APP.forEach(m => { if (!MENU_SEMPRE_LIVRE(m.key)) menus[m.key] = true; }); }  // base: via tudo
   menus[key] = !!marcado;
   const aviAtual = (permissoesTodos[email] && permissoesTodos[email].avisos) ? permissoesTodos[email].avisos : null;
   permissoesTodos[email] = aviAtual ? { menus, avisos: aviAtual } : { menus };   // vira modo manual (preserva exceção de notificações)
@@ -4593,6 +4633,81 @@ function persistirListas(){
 }
 
 /* ---------- Painel Minha conta ---------- */
+/* ===== v246 - o menu Novidades =====================================================
+   O que mudou em cada versao, escrito em portugues simples. A lista mora AQUI, no
+   proprio arquivo que ela descreve: o texto sobe junto com a versao, e nao existe um
+   segundo lugar para ficar desencontrado.
+   🔴 REGRA PERMANENTE: TODA VERSAO NOVA POE A ENTRADA DELA NO TOPO DESTA LISTA.
+   Esquecer nao da erro nenhum - so' faz a tela dizer que a versao mais nova e' a
+   anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
+   Tipos: n = novidade, m = melhoria, c = correcao. */
+const NOVIDADES_APP = [
+  {v:"v246", data:"05/08/2026", itens:[{t:"n",h:"Este menu \ud83c\udf81 Novidades",d:"Toda versão nova passa a contar aqui o que mudou, da mais recente para a mais antiga. O número vermelho ao lado do menu diz quantas versões você ainda não leu, e some quando você abre esta tela."}]},
+  {v:"v245", data:"04/08/2026", itens:[{t:"n",h:"A barra lateral virou GRUPOS",d:"Os menus agora moram em grupos que abrem e fecham (Dia a dia, Análise, Transportadora, Organização e Ajustes). Só o grupo da tela que você abriu fica aberto, então a barra fica curta e fácil de varrer."}, {t:"n",h:"Personalizar menus: a barra fica do seu jeito",d:"No pé da barra, \u270f\ufe0f Personalizar menus deixa você renomear cada menu, trocar de grupo, mudar a ordem e criar ou apagar grupos \u2014 por empresa, sem precisar pedir para ninguém."}, {t:"n",h:"Nada se perde, e dá para desfazer",d:"Menu não se apaga. Para apagar um grupo, o app pergunta para onde vão os menus dele e faz a mudança nessa ordem. E há um \u21a9 Desfazer que diz o que vai desfazer antes de você clicar."}, {t:"m",h:"O app ganhou movimento",d:"O menu escolhido acende com uma barra e uma luz; uma faixa atravessa o cabeçalho; a tela entra subindo e os quadros aparecem em sequência."}]},
+  {v:"v242", data:"04/08/2026", itens:[{t:"n",h:"Os produtos que só existem em uma loja",d:"64% do que as lojas vendem não tem par nas outras duas \u2014 e por isso ficava fora da comparação de preço. Agora cada um desses é medido contra a margem média da própria categoria naquela loja. Em Produtos e categorias \u2192 \u2696\ufe0f Comparar lojas."}, {t:"n",h:"Aviso de custo de compra que subiu",d:"A tela compara as duas últimas compras de cada item e mostra onde o custo subiu com o preço parado. São 206 produtos nas três lojas."}]},
+  {v:"v241", data:"04/08/2026", itens:[{t:"c",h:"O botão Ver todos no bloco de preço",d:"O aviso contava 158 produtos e a tabela mostrava 20. Agora o próprio aviso diz que está cortando, e o botão abre a lista inteira."}]},
+  {v:"v240", data:"04/08/2026", itens:[{t:"c",h:"Sai da fila o reajuste de R$ 24,99 para R$ 24,99",d:"Produto que já está com o preço de tabela certo saiu da fila de reajuste. O que sobrou virou uma nota à parte: o que está saindo no caixa mais barato do que na etiqueta \u2014 que é desconto na venda, não preço errado."}]},
+  {v:"v239", data:"04/08/2026", itens:[{t:"n",h:"Preço de tabela das três lojas lado a lado",d:"Dentro de Produtos e categorias \u2192 \u2696\ufe0f Comparar lojas, o preço de cada produto nas três lojas, com a margem de reposição (preço menos o último custo de compra) e um preço sugerido."}]},
+  {v:"v238", data:"04/08/2026", itens:[{t:"m",h:"O menu Documentos passou a ter uma porta só",d:"Ficou apenas o \u2795 Novo documento. A barra rápida Enviar arquivo (sem data) saiu, porque o formulário agora faz as duas coisas. Os arquivos que entraram por ela continuam lá, e dá para abrir cada um no \u270f\ufe0f para pôr o vencimento que faltava."}]},
+  {v:"v237", data:"04/08/2026", itens:[{t:"n",h:"O arquivo entra junto com o documento",d:"No \u2795 Novo documento agora tem \ud83d\udcce Arquivo: você preenche nome, tipo, empresa e vencimento e anexa o PDF na mesma tela, de uma vez só."}]},
+  {v:"v236", data:"03/08/2026", itens:[{t:"c",h:"Mapa Anual da loja sem as linhas de posto",d:"As linhas Despesa por Litro e Lucro Líquido por Litro saíam sempre zeradas na Conveniência, porque loja não tem litro. Elas sumiram, e o rodapé diz o que saiu e por quê."}]},
+  {v:"v235", data:"03/08/2026", itens:[{t:"c",h:"Cada número do Mapa Anual diz a unidade",d:"Um selo por linha mostra se aquilo é R$, litro, R$ por litro ou quantidade. E o acento embaralhado que vinha do Petros (Lucro Lí­quido) foi consertado na leitura."}]},
+  {v:"v234", data:"03/08/2026", itens:[{t:"m",h:"(R$) nos cabeçalhos do card Detalhe do mês",d:"Antes não dava para saber, olhando a coluna, se o número era real, litro ou quantidade."}]},
+  {v:"v233", data:"03/08/2026", itens:[{t:"m",h:"As duas abas de resultado viraram uma só",d:"O Resultado do mês ficou com o detalhe por produto, por categoria e por despesa, e a aba Resultado do período saiu. As duas liam a mesma fonte e davam números parecidos, o que só gerava dúvida."}]},
+  {v:"v232", data:"03/08/2026", itens:[{t:"c",h:"A Conveniência deixou de falar em posto",d:"Nas telas financeiras da loja, compra de combustível virou compra de mercadoria e as palavras de posto saíram. O nome muda com a empresa."}]},
+  {v:"v231", data:"03/08/2026", itens:[{t:"n",h:"Menu Financeiro na Full Conveniência",d:"A loja ganhou Resultado do mês, Caixa, Recebimentos, Pagamentos, Despesas do mês e Colaboradores \u2014 inclusive os vales."}]},
+  {v:"v230", data:"03/08/2026", itens:[{t:"c",h:"Tanques avisa quando ainda não mediram",d:"A aba dizia 0 de 16 tanques com perda, que parecia mês sem problema. Agora ela diz que a medição do mês ainda não foi feita."}]},
+  {v:"v229", data:"03/08/2026", itens:[{t:"c",h:"Resultado do mês monta mesmo sem os litros",d:"A tela ficava vazia quando faltava o volume do painel, mesmo com o DRE inteiro disponível."}]},
+  {v:"v228", data:"03/08/2026", itens:[{t:"c",h:"A Pagar / Fluxo entende a liquidez em qualquer formato",d:"A tela mostrava R$ 0 quando a coleta gravava num formato diferente do esperado. Agora ela entende os dois e, quando não entender, avisa em vez de mostrar zero."}]},
+];
+const NVD_TAGS = { n:"Novidade", m:"Melhoria", c:"Corre\u00e7\u00e3o" };
+const CHAVE_NVD_LIDA = "pf_novidades_lida";
+function nvdVersaoApp(){ return (NOVIDADES_APP[0] && NOVIDADES_APP[0].v) || ""; }
+function nvdLida(){ try { return localStorage.getItem(CHAVE_NVD_LIDA) || ""; } catch(e){ return ""; } }
+// Quantas versoes entraram depois da ultima que esta pessoa leu. Quem nunca abriu a tela
+// nao ve "17 novidades" na cara: ve so' a mais nova, que e' a que interessa.
+function nvdNaoLidas(){
+  const lida = nvdLida();
+  if (!lida) return 1;
+  const i = NOVIDADES_APP.findIndex(x => x.v === lida);
+  return i < 0 ? 1 : i;
+}
+function atualizarBadgeNovidades(){
+  const b = document.getElementById("badgeNovidades");
+  if (!b) return;
+  const n = nvdNaoLidas();
+  b.textContent = n > 9 ? "9+" : String(n);
+  b.style.display = n > 0 ? "" : "none";
+}
+function alternarNovidades(){
+  const aberto = abrirPainelExclusivo("painelNovidades");
+  const b = document.getElementById("btnNovidades");
+  if (b) b.classList.toggle("ativo", aberto);
+  if (aberto) renderNovidades();
+  agendarTrocaDeTela();
+}
+function renderNovidades(){
+  const alvo = document.getElementById("nvdLista");
+  if (!alvo) return;
+  const at = document.getElementById("nvdVersaoAtual");
+  if (at) at.textContent = "Voc\u00ea est\u00e1 usando a " + nvdVersaoApp();
+  const lida = nvdLida();
+  const corte = lida ? NOVIDADES_APP.findIndex(x => x.v === lida) : 1;
+  const novas = corte < 0 ? 1 : corte;
+  alvo.innerHTML = NOVIDADES_APP.map((ver, i) => {
+    const itens = (ver.itens || []).map(it =>
+      '<div class="nvd-item"><span class="nvd-tag ' + it.t + '">' + (NVD_TAGS[it.t] || "") + '</span>' +
+      '<span><span class="nvd-tit">' + it.h + '</span><span class="nvd-txt">' + it.d + '</span></span></div>').join("");
+    return '<div class="nvd-ver' + (i < novas ? " nova" : "") + '">' +
+           '<div class="nvd-cab"><span class="nvd-num">' + ver.v + '</span>' +
+           '<span class="nvd-data">' + (ver.data || "") + '</span>' +
+           (i < novas ? '<span class="nvd-selo">novo para voc\u00ea</span>' : '') + '</div>' +
+           '<div class="nvd-itens">' + itens + '</div></div>';
+  }).join("");
+  // abriu = leu: o aviso some agora, nao na proxima vez que a pagina carregar
+  try { localStorage.setItem(CHAVE_NVD_LIDA, nvdVersaoApp()); } catch(e){}
+  atualizarBadgeNovidades();
+}
 function alternarConta(){
   const aberto = abrirPainelExclusivo("painelConta");
   const bc = document.getElementById("btnConta");
@@ -5508,7 +5623,7 @@ function excluir(i){
 
 /* ================== Salvar / Carregar / Exportar ================== */
 // Painéis que ocupam a página; só um fica aberto por vez
-const PAINEIS = ["painelRegistros","painelDash","painelResumoDia","painelHistorico","painelSimular","painelDescontos","painelPuxadas","painelCotacoes","painelInfleet","painelIfood","painelPedido","painelRelPosto","painelRelLoja","painelDespesas","painelFinanceiro","painelRelPetros","painelAnalise","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin"];
+const PAINEIS = ["painelRegistros","painelDash","painelResumoDia","painelHistorico","painelSimular","painelDescontos","painelPuxadas","painelCotacoes","painelInfleet","painelIfood","painelPedido","painelRelPosto","painelRelLoja","painelDespesas","painelFinanceiro","painelRelPetros","painelAnalise","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin","painelNovidades"];
 function fecharTodosPaineis(exceto){
   PAINEIS.forEach(id => {
     const el = document.getElementById(id);
@@ -5555,6 +5670,8 @@ function fecharTodosPaineis(exceto){
   if (bven) bven.classList.toggle("ativo", document.getElementById("painelVencimentos").classList.contains("aberto"));
   const bcx = document.getElementById("btnCaixa");
   if (bcx) bcx.classList.toggle("ativo", document.getElementById("painelCaixa").classList.contains("aberto"));
+  const bnvd = document.getElementById("btnNovidades");   // v246
+  if (bnvd) bnvd.classList.toggle("ativo", document.getElementById("painelNovidades").classList.contains("aberto"));
   // v172 - estes tres faltavam: o botao ficava aceso depois de abrir outro menu
   ["btnRelLoja:painelRelLoja","btnAnalise:painelAnalise","btnIfood:painelIfood"].forEach(par => {
     const p = par.split(":"), b = document.getElementById(p[0]), pan = document.getElementById(p[1]);
@@ -5624,7 +5741,8 @@ const MENUS_APP = [
   {key:"vencimentos", btn:"btnVencimentos", pan:"painelVencimentos", emp:"ambos",  nome:"Documentos"},
   {key:"caixa",       btn:"btnCaixa",       pan:"painelCaixa",       emp:"ambos",  nome:"Caixa de entrada"},
   {key:"conta",       btn:"btnConta",       pan:"painelConta",       emp:"ambos",  nome:"Minha conta"},
-  {key:"config",      btn:"btnConfig",      pan:"painelConfig",      emp:"ambos",  nome:"Configurações"}
+  {key:"config",      btn:"btnConfig",      pan:"painelConfig",      emp:"ambos",  nome:"Configurações"},
+  {key:"novidades",   btn:"btnNovidades",   pan:"painelNovidades",   emp:"ambos",  nome:"Novidades"}   // v246
 ];
 /* ===== v243 - grupos da barra lateral =====
    Os menus moram em grupos que abrem e fecham (inspirado no Concept Hub). Regras:
@@ -5643,7 +5761,8 @@ const GRUPOS_MENU = [
   {key:"analise", nome:"Análise",        icone:"\ud83d\udcca", itens:["relPosto","financeiro","analise","relLoja","ifood"]},
   {key:"transp",  nome:"Transportadora", icone:"\ud83d\ude9a", itens:["infleet","pedido","cotacoes","puxadas"]},
   {key:"org",     nome:"Organização",    icone:"\ud83d\uddc2", itens:["calendario","vencimentos","caixa"]},
-  {key:"ajustes", nome:"Ajustes",        icone:"\u2699",        itens:["conta","config","usuarios"]}
+  {key:"ajustes", nome:"Ajustes",        icone:"\u2699",        itens:["conta","config","usuarios"]},
+  {key:"soltosFim", nome:"",             icone:"",       itens:["novidades"]}   // v246 - o fim da barra, sem titulo
 ];
 // botao que existe na barra e NAO esta em MENUS_APP (por isso precisa de nome proprio aqui)
 const MENU_EXTRA = { usuarios:{ btn:"btnUsuarios", nome:"Painel Administrativo" } };
@@ -5696,7 +5815,7 @@ function marcarGrupoAceso(btn){
 function sincronizarGruposMenu(btn){
   if (!btn) { pintarGruposMenu(); return; }
   const alvo = grupoDoMenu(menuDoBtn(btn.id));
-  if (!alvo || alvo === "soltos"){ pintarGruposMenu(); return; }
+  if (!alvo || ehGrupoSolto(alvo)){ pintarGruposMenu(); return; }   // v246
   const ab = lerGruposAbertos();
   const estavaFechado = !ab.has(alvo);
   ab.clear(); ab.add(alvo);
@@ -5761,6 +5880,10 @@ function agendarTrocaDeTela(){ clearTimeout(_trocaT); _trocaT = setTimeout(aoTro
    (porEmpresa, padrao, nomes, grupos, listaGrupos). Um set() sem um deles apaga o outro. */
 
 const GRUPO_SOLTOS = "soltos";          // o topo da barra, sem titulo - nao se apaga nem se renomeia
+const GRUPO_SOLTOS_FIM = "soltosFim";   // v246 - o FIM da barra, mesmas regras do topo
+// Os dois lugares "sem grupo": sem titulo, sem sanfona, sem lixeira e sem seta.
+function ehGrupoSolto(k){ return k === GRUPO_SOLTOS || k === GRUPO_SOLTOS_FIM; }
+function rotuloGrupoSolto(k){ return k === GRUPO_SOLTOS_FIM ? "\u2014 sem grupo (fim)" : "\u2014 sem grupo (topo)"; }
 function menuExtraNome(k){ return (MENU_EXTRA[k] || {}).nome || ""; }
 function nomeFabricaMenu(k){
   const m = MENUS_APP.find(x => x.key === k);
@@ -5799,9 +5922,12 @@ function gruposDaEmpresa(sig){
   const s = sig || siglaEmpresa(empresa);
   const cfg = (listaGrupos && listaGrupos[s]) ? listaGrupos[s] : null;
   const base = (cfg && cfg.length)
-    ? cfg.filter(g => g && g.key && g.key !== GRUPO_SOLTOS).map(g => ({ key:g.key, nome:g.nome||"Grupo", icone:g.icone||"\ud83d\udcc2" }))
-    : GRUPOS_MENU.filter(g => g.key !== GRUPO_SOLTOS).map(g => ({ key:g.key, nome:g.nome, icone:g.icone }));
-  return [{ key:GRUPO_SOLTOS, nome:"", icone:"", fixo:true }].concat(base);
+    ? cfg.filter(g => g && g.key && !ehGrupoSolto(g.key)).map(g => ({ key:g.key, nome:g.nome||"Grupo", icone:g.icone||"\ud83d\udcc2" }))
+    : GRUPOS_MENU.filter(g => !ehGrupoSolto(g.key)).map(g => ({ key:g.key, nome:g.nome, icone:g.icone }));
+  // v246 - o do topo abre a lista e o do FIM a fecha: os dois sao fixos e nao entram na listaGrupos
+  return [{ key:GRUPO_SOLTOS, nome:"", icone:"", fixo:true }]
+         .concat(base)
+         .concat([{ key:GRUPO_SOLTOS_FIM, nome:"", icone:"", fixo:true }]);
 }
 function grupoDoMenu(k, sig){
   const s = sig || siglaEmpresa(empresa);
@@ -5826,12 +5952,12 @@ function moverMenuGrupo(k, g){
 // a primeira mexida nos grupos congela a lista de fabrica como ponto de partida
 function materializarGrupos(s){
   if (listaGrupos[s] && listaGrupos[s].length) return;
-  listaGrupos[s] = gruposDaEmpresa(s).filter(g => g.key !== GRUPO_SOLTOS)
+  listaGrupos[s] = gruposDaEmpresa(s).filter(g => !ehGrupoSolto(g.key))
                                      .map(g => ({ key:g.key, nome:g.nome, icone:g.icone }));
 }
 function salvarCampoGrupo(g, campo, v){
   const s = siglaEmpresa(empresa);
-  if (g === GRUPO_SOLTOS) return;
+  if (ehGrupoSolto(g)) return;   // v246
   materializarGrupos(s);
   const alvo = listaGrupos[s].find(x => x.key === g);
   if (!alvo) return;
@@ -5898,7 +6024,7 @@ function desfazerMenus(){
 }
 
 function pedirApagarGrupo(g){
-  if (g === GRUPO_SOLTOS) return;
+  if (ehGrupoSolto(g)) return;   // v246
   pmenuResetar = false;
   pmenuApagar = { grupo: g, destino: GRUPO_SOLTOS };
   msgOrdem("");
@@ -5913,7 +6039,7 @@ function confirmarApagarGrupo(){
   if (!pmenuApagar) return;
   const s = siglaEmpresa(empresa);
   const g = pmenuApagar.grupo, destino = pmenuApagar.destino || GRUPO_SOLTOS;
-  if (g === GRUPO_SOLTOS || destino === g) { pmenuApagar = null; renderPersonalizarMenus(); return; }
+  if (ehGrupoSolto(g) || destino === g) { pmenuApagar = null; renderPersonalizarMenus(); return; }   // v246
   const mudam = menusDoGrupo(g, s);
   const gr = gruposDaEmpresa(s).find(x => x.key === g);
   guardarParaDesfazer("apagar o grupo \"" + (gr ? gr.nome : g) + "\"");
@@ -5964,9 +6090,9 @@ function montarBarraMenus(){
   const frag = document.createDocumentFragment();
   gruposDaEmpresa(s).forEach(g => {
     const div = document.createElement("div");
-    div.className = "menu-grp" + (g.key === GRUPO_SOLTOS ? " menu-grp-solto" : "");
+    div.className = "menu-grp" + (ehGrupoSolto(g.key) ? " menu-grp-solto" : "");
     div.id = "grp_" + g.key;
-    if (g.key !== GRUPO_SOLTOS){
+    if (!ehGrupoSolto(g.key)){
       const t = document.createElement("button");
       t.type = "button";
       t.className = "menu-grp-tit";
@@ -6025,7 +6151,7 @@ function renderPersonalizarMenus(){
   if (emp){ const e = EMPRESAS_ADM.find(x => x.sig === s); emp.textContent = e ? e.nome : ""; }
   const opcoes = k => grupos.map(g =>
     '<option value="' + escAttr(g.key) + '"' + (grupoDoMenu(k, s) === g.key ? " selected" : "") + '>' +
-    escAttr(g.key === GRUPO_SOLTOS ? "\u2014 sem grupo (topo)" : (g.icone + " " + g.nome)) + '</option>').join("");
+    escAttr(ehGrupoSolto(g.key) ? rotuloGrupoSolto(g.key) : (g.icone + " " + g.nome)) + '</option>').join("");
   let h = "";
   grupos.forEach((g, gi) => {
     const meus = todasAsChavesDeMenu()
@@ -6033,8 +6159,9 @@ function renderPersonalizarMenus(){
       .sort((a, b) => ordemBarraDe(a, s) - ordemBarraDe(b, s));
     h += '<div class="pmenu-grp">';
     h += '<div class="pmenu-grp-tit">';
-    if (g.key === GRUPO_SOLTOS){
-      h += '<span class="pmenu-fixo">\u2014 Sem grupo (topo da barra)</span>';
+    if (ehGrupoSolto(g.key)){
+      h += '<span class="pmenu-fixo">\u2014 Sem grupo (' +
+           (g.key === GRUPO_SOLTOS_FIM ? "fim" : "topo") + ' da barra)</span>';
     } else {
       h += '<input class="pmenu-ic" maxlength="4" value="' + escAttr(g.icone) + '" title="Ícone" ' +
            'onchange="salvarCampoGrupo(\'' + escAttr(g.key) + '\',\'icone\',this.value)">' +
@@ -6043,7 +6170,7 @@ function renderPersonalizarMenus(){
            '<span class="pmenu-bts">' +
            '<button type="button" class="' + (gi <= 1 ? "off" : "") + '" title="Subir o grupo" ' +
              'onclick="moverGrupoMenu(\'' + escAttr(g.key) + '\',-1)">\u25b2</button>' +
-           '<button type="button" class="' + (gi === grupos.length - 1 ? "off" : "") + '" title="Descer o grupo" ' +
+           '<button type="button" class="' + (gi >= grupos.length - 2 ? "off" : "") + '" title="Descer o grupo" ' +
              'onclick="moverGrupoMenu(\'' + escAttr(g.key) + '\',1)">\u25bc</button>' +
            '<button type="button" class="pmenu-lixo" title="Apagar o grupo (os menus vão para onde você escolher)" ' +
              'onclick="pedirApagarGrupo(\'' + escAttr(g.key) + '\')">\ud83d\uddd1</button>' +
@@ -6059,7 +6186,7 @@ challengeTexto(g, meus) +
            '<select onchange="escolherDestinoApagar(this.value)">' +
            destinos.map(x => '<option value="' + escAttr(x.key) + '"' +
              (pmenuApagar.destino === x.key ? " selected" : "") + '>' +
-             escAttr(x.key === GRUPO_SOLTOS ? "\u2014 sem grupo (topo)" : (x.icone + " " + x.nome)) +
+             escAttr(ehGrupoSolto(x.key) ? rotuloGrupoSolto(x.key) : (x.icone + " " + x.nome)) +
              '</option>').join("") + '</select></div>' +
            '<div class="pmenu-conf-linha">' +
            '<button type="button" class="pmenu-perigo" onclick="confirmarApagarGrupo()">Apagar o grupo</button>' +
@@ -6115,7 +6242,7 @@ function normPerm(v){
   return { menus: flat };
 }
 function menuPermitidoDe(email, key, sig){
-  if (key === "conta" || key === "caixa") return true;
+  if (key === "conta" || key === "caixa" || key === "novidades") return true;   // v246
   // v133: "Vencimentos" e "Arquivos" viraram um menu so (Documentos).
   if (key === "vencimentos") return _menuPermBase(email, "vencimentos", sig) || _menuPermBase(email, "arquivos", sig);
   // v177: o "Comparativo de Precos" virou uma secao dentro de "Cotacoes do Dia".
@@ -6181,7 +6308,7 @@ function administradoresDoApp(){
   return Object.keys(set);
 }
 function menuPermitido(key, sig){
-  if (key === "conta" || key === "caixa") return true;   // Minha conta e Caixa de entrada: todos sempre veem
+  if (key === "conta" || key === "caixa" || key === "novidades") return true;   // Minha conta, Caixa de entrada e Novidades: todos sempre veem
   if (ehAdminAtual()) return true;
   return menuPermitidoDe(usuarioAtual, key, sig);
 }
@@ -6381,6 +6508,7 @@ function aplicarVisibilidadeMenus(){
   if (!podeOrd && pmenuAberta) fecharPersonalizarMenus();
   montarBarraMenus();    // v244 - grupos, ordem e nomes de uma vez
   atualizarGruposMenu(); // v243 - grupo sem nenhum botao visivel some da barra
+  atualizarBadgeNovidades(); // v246
   renderPersonalizarMenus();
   const gpv = document.getElementById("grupoPrecosVenda"); if (gpv) gpv.style.display = (s === "postos") ? "" : "none";
   const gcl = document.getElementById("grupoClientes"); if (gcl) gcl.style.display = (s === "postos") ? "" : "none";
