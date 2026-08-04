@@ -1320,16 +1320,10 @@
   .venc-anexo-x{border:1px solid var(--borda);background:var(--superficie);border-radius:6px;padding:1px 7px;font-size:.72rem;cursor:pointer;color:var(--cinza)}
   .venc-anexo-x.confirmar{border-color:#e11d48;color:#e11d48;font-weight:700}
   .venc-anexo-prog{font-size:.72rem;color:var(--cinza)}
-  .arq-upload{border:1px solid var(--borda);border-radius:12px;padding:12px;margin:8px 0 14px;background:var(--superficie-2)}
-  .arq-up-linha{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px}
-  .arq-up-lbl{display:flex;flex-direction:column;gap:3px;font-size:.78rem;font-weight:600;color:var(--txt)}
-  .arq-up-lbl select{border:1px solid var(--borda);border-radius:8px;padding:7px 9px;font-size:.9rem;background:var(--superficie);color:var(--txt);font-weight:400}
-  .arq-file-btn{display:inline-block;cursor:pointer}
   .doc-arq-linha{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-weight:400}
   .doc-arq-bt{cursor:pointer;display:inline-block;font-size:.82rem;padding:6px 11px;border-radius:8px}
   .doc-arq-nome{font-size:.78rem;color:var(--cinza);font-weight:400;word-break:break-all}
   .doc-arq-dica{font-size:.7rem;color:var(--cinza);font-weight:400;margin-top:4px}
-  .arq-prog{margin-top:8px;font-size:.8rem;color:var(--cinza);font-weight:600}
   .arq-grupo{margin:10px 0}
   .arq-grupo-tit{font-weight:700;font-size:.85rem;margin:12px 0 6px;display:flex;align-items:center;gap:6px}
   .arq-item{display:flex;gap:10px;align-items:center;border:1px solid var(--borda);border-radius:12px;padding:9px 12px;margin:6px 0;background:var(--superficie)}
@@ -2637,7 +2631,6 @@ let docBusca = "";                     // filtro de busca do menu Documentos
 let arquivos = [];                     // arquivos (licenças/contratos) — coleção "arquivos" + Firebase Storage
 let escutaArquivos = null;
 let confirmarExclArq = null, timerExclArq = null;
-let arqUnidadeSel = "Outros", arqTipoSel = "Outro", arqEmpresaSel = "";
 let fbStorage = null;
 let confirmarRemAnexo = null, timerRemAnexo = null;
 // v166 - empresas do grupo (usadas no menu Documentos para dizer de quem e cada arquivo)
@@ -10634,12 +10627,6 @@ function aoTrocarEmpresaDoc(nome){
   if (u && sel){ sel.value = u; docForm.origem = u; }
   docForm.empresa = nome || "";
 }
-function aoTrocarEmpresaArq(nome){
-  arqEmpresaSel = nome || "";
-  const u = unidadeDaEmpresa(nome);
-  const sel = document.getElementById("arqUnidade");
-  if (u && sel){ sel.value = u; arqUnidadeSel = u; }
-}
 function anexoItemDocHtml(i){
   if (i.fonte === "arq"){
     return '<div class="venc-anexo"><span class="venc-anexo-link" onclick="abrirArquivo(\'' + escAspas(i.id) + '\')">📎 Ver arquivo</span></div>';
@@ -10692,33 +10679,22 @@ function renderVencimentos(){
   const cont = document.getElementById("conteudoVencimentos"); if (!cont) return;
   const esc = z => String(z||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
   const pode = podeGerenciarEventos();
-  const st = storageRef();
   let html = "";
-  // --- gestao: novo documento + envio rapido de arquivo ---
+  // --- gestao: uma porta so (v238) ---
+  // A barra rapida "Enviar arquivo (sem data)" saiu na v238. Ela gravava na colecao
+  // `arquivos` sem nome proprio e SEM VENCIMENTO -- e o menu existe justamente para
+  // vigiar vencimento. Desde a v237 o formulario aceita o arquivo junto, entao o
+  // caminho rapido virou so um jeito de criar item que ninguem completava depois.
+  // A LEITURA de `arquivos` continua: os itens antigos aparecem, editam e apagam.
   if (pode){
     html += '<div class="cal-gestao">';
     if (!docFormAberto) html += '<button class="btn-verde" onclick="novoDoc()">➕ Novo documento</button>';
     html += '</div>';
     if (docFormAberto) html += renderFormDoc();
-    if (!docFormAberto){
-      if (st){
-        html += '<div class="arq-upload"><div class="arq-up-linha">' +
-          '<label class="arq-up-lbl">Empresa<select id="arqEmpresa" onchange="aoTrocarEmpresaArq(this.value)">' + opcoesEmpresaHtml(arqEmpresaSel) + '</select></label>' +
-          '<label class="arq-up-lbl">Unidade<select id="arqUnidade" onchange="arqUnidadeSel=this.value">' + ORIGENS_EVENTO.map(o=>'<option value="'+escAttr(o)+'"'+(arqUnidadeSel===o?' selected':'')+'>'+escAttr(o)+'</option>').join("") + '</select></label>' +
-          '<label class="arq-up-lbl">Tipo<select id="arqTipo" onchange="arqTipoSel=this.value">' + CATEGORIAS_DOC.map(t=>'<option value="'+escAttr(t)+'"'+(arqTipoSel===t?' selected':'')+'>'+escAttr(t)+'</option>').join("") + '</select></label>' +
-          '</div>' +
-          '<label class="btn-verde arq-file-btn">📎 Enviar arquivo (sem data)<input type="file" id="arqFile" accept="application/pdf,image/*" style="display:none" onchange="aoEscolherArquivo(this)"></label>' +
-          '<div id="arqProgresso" class="arq-prog"></div>' +
-          '<p class="nota-dash" style="margin:6px 0 0;font-size:.7rem">PDF ou imagem, até 20 MB. Este atalho é o caminho rápido: guarda o arquivo sem nome próprio nem data. Para preencher nome, vencimento e número JUNTO com o arquivo, use ➕ Novo documento.</p>' +
-          '</div>';
-      } else {
-        html += '<p class="nota-dash" style="color:#e11d48">O armazenamento de arquivos ainda não está ligado neste projeto. Peça ao administrador para ativar o Firebase Storage.</p>';
-      }
-    }
   }
   const itens = itensDocsTodos();
   if (!itens.length){
-    html += '<p class="nota-dash">' + (pode ? 'Nada cadastrado ainda. Toque em ➕ Novo documento (CNH, licenças, alvarás, certificado digital…) ou envie um arquivo aqui em cima.' : 'Nenhum documento disponível ainda.') + '</p>';
+    html += '<p class="nota-dash">' + (pode ? 'Nada cadastrado ainda. Toque em ➕ Novo documento (CNH, licenças, alvarás, certificado digital…) — dá para anexar o arquivo no próprio formulário.' : 'Nenhum documento disponível ainda.') + '</p>';
     cont.innerHTML = html; return;
   }
   // --- resumo ---
@@ -10869,22 +10845,9 @@ function removerAnexoDoc(id){
   confirmarRemAnexo = id; renderVencimentos();
   timerRemAnexo = setTimeout(()=>{ confirmarRemAnexo = null; renderVencimentos(); }, 4000);
 }
-// ---- Menu Arquivos (repositório por unidade) ----
-
-function aoEscolherArquivo(input){
-  const file = input && input.files && input.files[0]; if (!file) return;
-  arqUnidadeSel = (document.getElementById("arqUnidade")||{}).value || "Outros";
-  arqTipoSel = (document.getElementById("arqTipo")||{}).value || "Outro";
-  arqEmpresaSel = (document.getElementById("arqEmpresa")||{}).value || "";
-  const prog = document.getElementById("arqProgresso");
-  const slug = origemClasseCal(arqUnidadeSel);
-  if (prog){ prog.style.color = ""; prog.textContent = "Enviando… 0%"; }
-  subirArquivo(file, "arquivos/"+slug, p => { if (prog) prog.textContent = "Enviando… "+p+"%"; })
-    .then(info => colArquivos.add({ nome: info.nome, tipo: arqTipoSel, empresa: arqEmpresaSel, origem: arqUnidadeSel, vencimento: "", url: info.url, path: info.path, tamanho: info.tamanho, contentType: info.contentType, criadoEm: Date.now(), criadoPor: usuarioAtual||"" })
-      .then(ref => { if (prog) prog.textContent = "✓ Enviado!"; logAtividade({acao:"enviou", area:"Documentos", resumo: info.nome+" ("+arqUnidadeSel+")", colecao:"arquivos", docId: ref.id }); }))
-    .catch(err => { if (prog){ prog.style.color = "#e11d48"; prog.textContent = "Erro: " + (err && err.message ? err.message : "não foi possível enviar"); } });
-  try { input.value = ""; } catch(e){}
-}
+// ---- Colecao `arquivos` (legado da barra rapida, retirada na v238) ----
+// Nada escreve mais nessa colecao. O que vem abaixo serve os itens que JA existem:
+// abrir, editar (o formulario coloca a data que faltava) e excluir.
 
 function excluirArquivo(id){
   if (!podeGerenciarEventos()) return;
