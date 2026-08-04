@@ -208,18 +208,55 @@
   /* v196 - modo "ordenar menus" dentro da propria barra lateral */
   .menu-lateral .menu-ordenar{margin-top:auto}
   .menu-lateral.tem-ordenar .menu-tema{margin-top:0}
-  .menu-lateral.ordenando{width:258px;box-shadow:4px 0 18px rgba(0,0,0,.25)}
-  .menu-lateral.ordenando .mt{opacity:1}
-  .ord-setas{margin-left:auto;display:flex;gap:3px;flex:0 0 auto}
-  .ord-seta{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:5px;
-    border:1px solid var(--menu-borda);background:var(--superficie-2);font-size:.68rem;line-height:1;cursor:pointer;user-select:none}
-  .ord-seta:hover{box-shadow:0 0 0 2px var(--verde) inset}
-  .ord-seta.off{opacity:.25;cursor:default}
-  .menu-lateral .ord-barra{display:flex;flex-direction:column;gap:5px;padding:6px 2px 2px;flex:0 0 auto}
-  .menu-lateral .ord-barra button{font-size:.74rem;padding:6px 8px;border-radius:6px;white-space:normal;text-align:left;
-    background:var(--menu-bg);color:var(--menu-txt);border:1px solid var(--menu-borda)}
-  .menu-lateral .ord-barra .ord-dica{font-size:.68rem;opacity:.75;line-height:1.35;white-space:normal}
-  .menu-lateral .ord-barra .msg-admin{font-size:.68rem;white-space:normal}
+  .menu-grupos{display:flex;flex-direction:column;gap:4px;flex:0 0 auto}
+
+  /* ===== v244 - a caixa "Personalizar a barra" ===== */
+  .pmenu-fundo{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000}
+  /* 🔴 v244 - NADA de centralizar com transform aqui: a animacao pfSobe tambem anima
+     transform e, com fill-mode "both", o transform:none do ultimo quadro APAGA o
+     translate(-50%,-50%) - a caixa nascia no canto de baixo. Com inset:0 + margin:auto
+     a centralizacao nao depende de transform nenhum. */
+  .pmenu-box{position:fixed;inset:0;margin:auto;height:fit-content;z-index:9001;
+    width:min(720px,calc(100vw - 32px));max-height:min(86vh,900px);display:flex;flex-direction:column;
+    background:var(--superficie);color:var(--txt);border:1px solid var(--borda);border-radius:14px;
+    box-shadow:0 14px 44px rgba(0,0,0,.45);padding:16px 18px 12px;
+    animation:pfSobe .28s cubic-bezier(.22,1,.36,1) both}
+  .pmenu-topo{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .pmenu-topo b{font-family:"Oswald","Poppins",sans-serif;font-size:1rem;letter-spacing:.4px}
+  .pmenu-emp{font-size:.76rem;color:var(--cinza)}
+  .pmenu-x{margin-left:auto;background:transparent;border:1px solid var(--borda);border-radius:8px;
+    color:var(--txt);cursor:pointer;width:30px;height:30px;line-height:1;padding:0}
+  .pmenu-x:hover{border-color:var(--verde);color:var(--verde)}
+  .pmenu-nota{font-size:.72rem;color:var(--cinza);margin:6px 0 10px}
+  .pmenu-corpo{overflow-y:auto;flex:1 1 auto;padding-right:4px}
+  .pmenu-grp{border:1px solid var(--borda);border-radius:10px;margin-bottom:10px;overflow:hidden}
+  .pmenu-grp-tit{display:flex;align-items:center;gap:8px;padding:8px 10px;
+    background-image:linear-gradient(90deg,rgba(var(--verde-rgb),.10) 0%,transparent 70%)}
+  .pmenu-grp-tit .pmenu-fixo{font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--cinza)}
+  .pmenu-ic{width:52px;text-align:center;flex:0 0 auto}
+  .pmenu-nm{flex:1 1 120px;min-width:0}
+  .pmenu-box input,.pmenu-box select{font:inherit;font-size:.84rem;padding:5px 8px;border:1px solid var(--borda);
+    border-radius:7px;background:var(--superficie-2);color:var(--txt)}
+  .pmenu-box input:focus,.pmenu-box select:focus{outline:2px solid var(--verde);outline-offset:1px}
+  .pmenu-itens{display:flex;flex-direction:column;gap:6px;padding:8px 10px 10px}
+  .pmenu-item{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .pmenu-item .pmenu-ico{flex:0 0 22px;text-align:center;font-size:1rem}
+  .pmenu-item select{flex:0 1 170px;min-width:0}
+  .pmenu-vazio{font-size:.75rem;color:var(--cinza);font-style:italic;padding:2px 0 4px}
+  .pmenu-bts{display:flex;gap:4px;flex:0 0 auto;margin-left:auto}
+  .pmenu-bts button{width:28px;height:28px;padding:0;line-height:1;font-size:.72rem;border-radius:6px;
+    border:1px solid var(--borda);background:var(--superficie-2);color:var(--txt);cursor:pointer}
+  .pmenu-bts button:hover{border-color:var(--verde);color:var(--verde)}
+  .pmenu-bts button.off{opacity:.25;cursor:default}
+  .pmenu-bts button.pmenu-lixo:hover{border-color:var(--vermelho);color:var(--vermelho)}
+  .pmenu-rodape{display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--borda);
+    margin-top:10px;padding-top:10px}
+  .pmenu-rodape button{font-size:.76rem;padding:6px 10px;border-radius:7px;border:1px solid var(--borda);
+    background:var(--superficie-2);color:var(--txt);cursor:pointer}
+  .pmenu-rodape button:hover{border-color:var(--verde);color:var(--verde)}
+  .pmenu-rodape .msg-admin{flex:1 1 100%;font-size:.72rem}
+  @media (max-width:640px){ .pmenu-box{width:calc(100vw - 16px);padding:12px} .pmenu-item select{flex:1 1 100%} }
+  @media print{ .pmenu-fundo,.pmenu-box{display:none !important} }
 
   /* ===== v243 - grupos da barra lateral e animações (inspirado no Concept Hub) =====
      Os menus passaram a morar em grupos que abrem e fecham. O grupo do menu aceso fica
@@ -232,8 +269,7 @@
     transition:background-image .35s ease,border-color .35s ease,color .25s ease}
   .menu-lateral .menu-grp-tit .grp-seta{margin-left:auto;font-size:.66rem;opacity:0;transition:transform .25s ease,opacity .15s ease}
   .menu-lateral:hover .menu-grp-tit .grp-seta,
-  .menu-lateral.aberto .menu-grp-tit .grp-seta,
-  .menu-lateral.ordenando .menu-grp-tit .grp-seta{opacity:.6}
+  .menu-lateral.aberto .menu-grp-tit .grp-seta{opacity:.6}
   .menu-grp.fechado > .menu-grp-tit .grp-seta{transform:rotate(-90deg)}
   .menu-lateral .menu-grp-tit:hover{color:var(--verde);
     background-image:linear-gradient(90deg,rgba(var(--verde-rgb),.10) 0%,transparent 70%)}
@@ -244,8 +280,6 @@
     transition:grid-template-rows .28s cubic-bezier(.22,1,.36,1),opacity .2s ease}
   .menu-grp-cx > .grp-int{overflow:hidden;min-height:0;display:flex;flex-direction:column;gap:4px}
   .menu-grp.fechado > .menu-grp-cx{grid-template-rows:0fr;opacity:0}
-  /* enquanto o admin ordena, todo grupo fica aberto - senão as setas somem de vista */
-  .menu-lateral.ordenando .menu-grp.fechado > .menu-grp-cx{grid-template-rows:1fr;opacity:1}
   .menu-grp.abrindo .grp-int > button{animation:pfEntraItem .26s cubic-bezier(.22,1,.36,1) both}
   .menu-grp.abrindo .grp-int > button:nth-child(1){animation-delay:.02s}
   .menu-grp.abrindo .grp-int > button:nth-child(2){animation-delay:.05s}
@@ -1700,7 +1734,7 @@
 </style>
 </head>
 <body>
-<div id="seloPrevia">PRÉVIA DA v243 — o app de verdade continua na v242</div>
+<div id="seloPrevia">PRÉVIA DA v244 — o app de verdade continua na v242</div>
 <script>
   // aplica o tema salvo o quanto antes, evitando piscar a tela clara
   try { if (localStorage.getItem("margens_tema") !== "claro") document.body.classList.add("tema-escuro"); } catch (e) {}
@@ -1755,64 +1789,52 @@
       <button type="button" id="btnEmp_conv" onclick="definirEmpresa('conveniencia')"><span class="mi">🛒</span><span>Full Conveniência</span></button>
     </div>
     <div class="menu-sep"></div>
-    <div class="menu-grp menu-grp-solto" id="grp_soltos"><div class="menu-grp-cx"><div class="grp-int">
-        <button class="btn-claro" id="btnDash" onclick="alternarDash()"><span class="mi">📈</span><span class="mt">Dashboard</span></button>
-      </div></div>
+    <!-- v244 - os grupos sao montados por JS (montarBarraMenus): o Tiago cria, apaga,
+         renomeia e move menus entre eles pela caixa "Personalizar a barra". -->
+    <div class="menu-grupos" id="menuGrupos">
+      <button class="btn-claro" id="btnDash" onclick="alternarDash()"><span class="mi">📈</span><span class="mt">Dashboard</span></button>
+      <button class="btn-claro" id="btnResumoDia" onclick="alternarResumoDia()"><span class="mi">📊</span><span class="mt">Resumo do dia</span></button>
+      <button class="btn-claro" id="btnRegistros" onclick="alternarRegistros()"><span class="mi">📋</span><span class="mt">Lançamentos</span></button>
+      <button class="btn-claro" id="btnHistorico" onclick="alternarHistorico()"><span class="mi">🕐</span><span class="mt">Histórico</span></button>
+      <button class="btn-claro" id="btnDescontos" onclick="alternarDescontos()"><span class="mi">🏷️</span><span class="mt">Descontos</span></button>
+      <button class="btn-claro" id="btnSimular" onclick="alternarSimular()"><span class="mi">💰</span><span class="mt">Simular Margens</span></button>
+      <button class="btn-claro" id="btnRelPosto" onclick="alternarRelatorios()"><span class="mi">📑</span><span class="mt">Relatórios</span></button>
+      <button class="btn-claro" id="btnFinanceiro" onclick="alternarFinanceiro()"><span class="mi">🏦</span><span class="mt">Financeiro</span></button>
+      <button class="btn-claro" id="btnAnalise" onclick="alternarAnalise()"><span class="mi">🧠</span><span class="mt">Análise</span></button>
+      <button class="btn-claro" id="btnRelLoja" onclick="alternarRelLoja()"><span class="mi">🍫</span><span class="mt">Produtos e categorias</span></button>
+      <button class="btn-claro" id="btnIfood" onclick="alternarIfood()"><span class="mi">🍔</span><span class="mt">iFood</span></button>
+      <button class="btn-claro" id="btnInfleet" onclick="alternarInfleet()"><span class="mi">📡</span><span class="mt">APP Infleet</span></button>
+      <button class="btn-claro" id="btnPedido" onclick="alternarPedido()"><span class="mi">📝</span><span class="mt">Pedido de carregamento</span></button>
+      <button class="btn-claro" id="btnCotacoes" onclick="alternarCotacoes()"><span class="mi">💲</span><span class="mt">Cotações do Dia</span></button>
+      <button class="btn-claro" id="btnPuxadas" onclick="alternarPuxadas()"><span class="mi">🧾</span><span class="mt">Puxadas</span></button>
+      <button class="btn-claro" id="btnCalendario" onclick="alternarCalendario()"><span class="mi">📅</span><span class="mt">Calendário</span></button>
+      <button class="btn-claro" id="btnVencimentos" onclick="alternarVencimentos()"><span class="mi">📁</span><span class="mt">Documentos</span></button>
+      <button class="btn-claro" id="btnCaixa" onclick="alternarCaixa()"><span class="mi">📥</span><span class="mt">Caixa de entrada</span><span class="menu-badge" id="badgeCaixa" style="display:none">0</span></button>
+      <button class="btn-claro" id="btnConta" onclick="alternarConta()"><span class="mi">👤</span><span class="mt">Minha conta</span></button>
+      <button class="btn-claro" id="btnConfig" onclick="alternarConfig()"><span class="mi">⚙</span><span class="mt">Configurações</span></button>
+      <button class="btn-claro" id="btnUsuarios" style="display:none" onclick="alternarAdmin()"><span class="mi">👥</span><span class="mt">Painel Administrativo</span></button>
     </div>
-    <div class="menu-grp" id="grp_dia">
-      <button type="button" class="menu-grp-tit" onclick="alternarGrupoMenu('dia')" aria-expanded="true"><span class="mi">🔁</span><span class="mt">Dia a dia</span><span class="grp-seta">▾</span></button>
-      <div class="menu-grp-cx"><div class="grp-int">
-        <button class="btn-claro" id="btnResumoDia" onclick="alternarResumoDia()"><span class="mi">📊</span><span class="mt">Resumo do dia</span></button>
-        <button class="btn-claro" id="btnRegistros" onclick="alternarRegistros()"><span class="mi">📋</span><span class="mt">Lançamentos</span></button>
-        <button class="btn-claro" id="btnHistorico" onclick="alternarHistorico()"><span class="mi">🕐</span><span class="mt">Histórico</span></button>
-        <button class="btn-claro" id="btnDescontos" onclick="alternarDescontos()"><span class="mi">🏷️</span><span class="mt">Descontos</span></button>
-        <button class="btn-claro" id="btnSimular" onclick="alternarSimular()"><span class="mi">💰</span><span class="mt">Simular Margens</span></button>
-      </div></div>
-    </div>
-    <div class="menu-grp" id="grp_analise">
-      <button type="button" class="menu-grp-tit" onclick="alternarGrupoMenu('analise')" aria-expanded="true"><span class="mi">📊</span><span class="mt">Análise</span><span class="grp-seta">▾</span></button>
-      <div class="menu-grp-cx"><div class="grp-int">
-        <button class="btn-claro" id="btnRelPosto" onclick="alternarRelatorios()"><span class="mi">📑</span><span class="mt">Relatórios</span></button>
-        <button class="btn-claro" id="btnFinanceiro" onclick="alternarFinanceiro()"><span class="mi">🏦</span><span class="mt">Financeiro</span></button>
-        <button class="btn-claro" id="btnAnalise" onclick="alternarAnalise()"><span class="mi">🧠</span><span class="mt">Análise</span></button>
-        <button class="btn-claro" id="btnRelLoja" onclick="alternarRelLoja()"><span class="mi">🍫</span><span class="mt">Produtos e categorias</span></button>
-        <button class="btn-claro" id="btnIfood" onclick="alternarIfood()"><span class="mi">🍔</span><span class="mt">iFood</span></button>
-      </div></div>
-    </div>
-    <div class="menu-grp" id="grp_transp">
-      <button type="button" class="menu-grp-tit" onclick="alternarGrupoMenu('transp')" aria-expanded="true"><span class="mi">🚚</span><span class="mt">Transportadora</span><span class="grp-seta">▾</span></button>
-      <div class="menu-grp-cx"><div class="grp-int">
-        <button class="btn-claro" id="btnInfleet" onclick="alternarInfleet()"><span class="mi">📡</span><span class="mt">APP Infleet</span></button>
-        <button class="btn-claro" id="btnPedido" onclick="alternarPedido()"><span class="mi">📝</span><span class="mt">Pedido de carregamento</span></button>
-        <button class="btn-claro" id="btnCotacoes" onclick="alternarCotacoes()"><span class="mi">💲</span><span class="mt">Cotações do Dia</span></button>
-        <button class="btn-claro" id="btnPuxadas" onclick="alternarPuxadas()"><span class="mi">🧾</span><span class="mt">Puxadas</span></button>
-      </div></div>
-    </div>
-    <div class="menu-grp" id="grp_org">
-      <button type="button" class="menu-grp-tit" onclick="alternarGrupoMenu('org')" aria-expanded="true"><span class="mi">🗂️</span><span class="mt">Organização</span><span class="grp-seta">▾</span></button>
-      <div class="menu-grp-cx"><div class="grp-int">
-        <button class="btn-claro" id="btnCalendario" onclick="alternarCalendario()"><span class="mi">📅</span><span class="mt">Calendário</span></button>
-        <button class="btn-claro" id="btnVencimentos" onclick="alternarVencimentos()"><span class="mi">📁</span><span class="mt">Documentos</span></button>
-        <button class="btn-claro" id="btnCaixa" onclick="alternarCaixa()"><span class="mi">📥</span><span class="mt">Caixa de entrada</span><span class="menu-badge" id="badgeCaixa" style="display:none">0</span></button>
-      </div></div>
-    </div>
-    <div class="menu-grp" id="grp_ajustes">
-      <button type="button" class="menu-grp-tit" onclick="alternarGrupoMenu('ajustes')" aria-expanded="true"><span class="mi">⚙</span><span class="mt">Ajustes</span><span class="grp-seta">▾</span></button>
-      <div class="menu-grp-cx"><div class="grp-int">
-        <button class="btn-claro" id="btnConta" onclick="alternarConta()"><span class="mi">👤</span><span class="mt">Minha conta</span></button>
-        <button class="btn-claro" id="btnConfig" onclick="alternarConfig()"><span class="mi">⚙</span><span class="mt">Configurações</span></button>
-        <button class="btn-claro" id="btnUsuarios" style="display:none" onclick="alternarAdmin()"><span class="mi">👥</span><span class="mt">Painel Administrativo</span></button>
-      </div></div>
-    </div>
-    <button class="btn-claro menu-ordenar" id="btnOrdenarMenus" style="display:none" onclick="alternarModoOrdenar()"><span class="mi" id="ordIcone">↕</span><span class="mt" id="ordLabel">Ordenar menus</span></button>
-    <div class="ord-barra" id="ordBarra" style="display:none">
-      <p class="ord-dica">Use as setas ▲▼ ao lado de cada menu — a ordem vale dentro de cada grupo, para todo mundo desta empresa.</p>
-      <button type="button" data-ordacao="padrao">⭐ Definir ordem padrão</button>
-      <button type="button" data-ordacao="voltar">↩ Voltar ao padrão</button>
-      <div class="msg-admin" id="msgOrdem"></div>
-    </div>
+    <button class="btn-claro menu-ordenar" id="btnOrdenarMenus" style="display:none" onclick="alternarPersonalizarMenus()"><span class="mi" id="ordIcone">✏️</span><span class="mt" id="ordLabel">Personalizar menus</span></button>
     <button class="btn-claro menu-tema" id="btnTema" onclick="alternarTema()"><span class="mi" id="temaIcone">🌙</span><span class="mt" id="temaLabel">Tema escuro</span></button>
     <button class="btn-dourado menu-sair" onclick="sair()"><span class="mi">🚪</span><span class="mt">Sair</span></button>
+  </aside>
+
+  <div class="pmenu-fundo" id="pmenuFundo" style="display:none" onclick="fecharPersonalizarMenus()"></div>
+  <aside class="pmenu-box" id="pmenuBox" style="display:none" aria-label="Personalizar a barra de menus">
+    <div class="pmenu-topo">
+      <b>✏️ Personalizar a barra</b>
+      <span class="pmenu-emp" id="pmenuEmp"></span>
+      <button type="button" class="pmenu-x" onclick="fecharPersonalizarMenus()" title="Fechar">✕</button>
+    </div>
+    <p class="pmenu-nota">Vale para a empresa aberta. Menu que não existe nesta empresa não aparece aqui.</p>
+    <div class="pmenu-corpo" id="pmenuCorpo"></div>
+    <div class="pmenu-rodape">
+      <button type="button" onclick="novoGrupoMenu()">➕ Novo grupo</button>
+      <button type="button" onclick="definirOrdemPadrao(siglaEmpresa(empresa))">⭐ Guardar como padrão</button>
+      <button type="button" onclick="voltarOrdemPadrao(siglaEmpresa(empresa))">↩ Voltar ao padrão</button>
+      <button type="button" onclick="resetarPersonalizacaoMenus()">🧹 Voltar tudo ao original</button>
+      <div class="msg-admin" id="msgOrdem"></div>
+    </div>
   </aside>
 
   <header>
@@ -2800,7 +2822,9 @@ let escutaPermissoes = null;
 let perfisAcesso = {};                 // {id:{nome,menus:{key:true}}} sincronizado da nuvem
 let ordemMenus = {};                   // v188 - {postos:[key,...], conv:[...], transp:[...]}
 let ordemPadrao = {};                  // v189 - a ordem que o Tiago salvou como referencia, por empresa
-let modoOrdenar = false;               // v196 - a barra lateral esta em modo de ordenacao?
+let nomesMenus  = {};                  // v244 - {sigla:{menuKey:"Nome que o Tiago deu"}}
+let gruposMenus = {};                  // v244 - {sigla:{menuKey:"chave do grupo"}} (so as EXCECOES)
+let listaGrupos = {};                  // v244 - {sigla:[{key,nome,icone}]} (so quando ele mexe nos grupos)
 let permissaoEnvioPerfil = {};         // v187 - {perfilId:true} quem pode enviar avisos/tarefas por perfil
 let escutaPerfisAcesso = null;
 let nuvemPronta = false;        // já recebemos o primeiro retrato da nuvem?
@@ -4128,7 +4152,7 @@ function gradeMenusHtml(tipo, id, mapaMenus, dono){
     menusDaSigla(x.sig).forEach(m => {
       const on = menuMarcadoEm(mapaMenus, x.sig, m.key);
       h += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked ' : '') +
-           'onchange="' + chamadaMenu + '(\'' + a + '\', \'' + x.sig + '\', \'' + m.key + '\', this.checked)"> ' + escAttr(m.nome) + '</label>';
+           'onchange="' + chamadaMenu + '(\'' + a + '\', \'' + x.sig + '\', \'' + m.key + '\', this.checked)"> ' + escAttr(nomeMenu(m.key, x.sig)) + '</label>';
     });
     if (!viva) h += '<div class="adm-col-off">empresa desmarcada acima</div>';
     h += '</div></div>';
@@ -4139,7 +4163,7 @@ function gradeMenusHtml(tipo, id, mapaMenus, dono){
     const trava = (m.key === "caixa");
     const on = trava ? true : menuMarcadoEm(mapaMenus, "todas", m.key);
     h += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked ' : '') + (trava ? 'disabled ' : '') +
-         'onchange="' + chamadaMenu + '(\'' + a + '\', \'todas\', \'' + m.key + '\', this.checked)"> ' + escAttr(m.nome) +
+         'onchange="' + chamadaMenu + '(\'' + a + '\', \'todas\', \'' + m.key + '\', this.checked)"> ' + escAttr(nomeMenu(m.key)) +
          (trava ? ' <span class="adm-mini-nota">(todos sempre veem)</span>' : '') + '</label>';
   });
   h += '</div></div>';
@@ -4236,7 +4260,7 @@ function renderAdmMatriz(){
   let h = '<div class="rpz-rola"><table class="rpz-tab adm-mtz"><thead><tr><th>Menu — ' + escAttr(emp.nome) + '</th>' +
     cols.map(c => '<th>' + escAttr(c.nome) + (c.tipo === "pessoa" ? '<br><span class="adm-mini-nota">sem perfil</span>' : '') + '</th>').join("") + '</tr></thead><tbody>';
   linhas.forEach(m => {
-    h += '<tr><td>' + escAttr(m.nome) + '</td>' + cols.map(c => {
+    h += '<tr><td>' + escAttr(nomeMenu(m.key)) + '</td>' + cols.map(c => {
       const on = (c.tipo === "pessoa" && !normPerm(permissoesTodos[c.id])) ? true : veMenu(c, m.key);
       return '<td class="' + (on ? 'adm-sim' : 'adm-nao') + '">' + (on ? '✓' : '—') + '</td>';
     }).join("") + '</tr>';
@@ -4958,8 +4982,11 @@ function iniciarSync(){
     const d = snap.exists ? (snap.data() || {}) : {};
     ordemMenus = (d && d.porEmpresa) ? d.porEmpresa : {};
     ordemPadrao = (d && d.padrao) ? d.padrao : {};   // v189
-    aplicarOrdemMenus();
-    renderSetasOrdem();   // v196 - se estiver ordenando, redesenha as setas
+    nomesMenus  = (d && d.nomes)  ? d.nomes  : {};   // v244
+    gruposMenus = (d && d.grupos) ? d.grupos : {};   // v244
+    listaGrupos = (d && d.listaGrupos) ? d.listaGrupos : {};   // v244
+    montarBarraMenus();
+    renderPersonalizarMenus();   // v244 - a caixa aberta acompanha o que mudou em outro aparelho
   }, ()=>{});
 
   // v185 - indicadores de caixa
@@ -5539,7 +5566,6 @@ function alternarMenuLateral(){
   if (f) f.style.display = abre ? "block" : "none";
 }
 function fecharMenuLateral(){
-  if (modoOrdenar) alternarModoOrdenar();   // v196 - fechar a barra conclui a ordenacao
   const m = document.getElementById("menuLateral");
   const f = document.getElementById("menuFundo");
   if (m) m.classList.remove("aberto");
@@ -5552,7 +5578,7 @@ function fecharMenuLateral(){
   // e' clicando neles que o Tiago entra e sai do modo, sem perder a tela de vista.
   if (m) m.addEventListener("click", e => {
     if (!e.target.closest("button")) return;
-    if (e.target.closest("#btnOrdenarMenus") || e.target.closest("#ordBarra")) return;
+    if (e.target.closest("#btnOrdenarMenus")) return;
     if (e.target.closest(".menu-grp-tit")) return;   // v243 - abrir um grupo nao fecha a barra
     fecharMenuLateral();
   });
@@ -5593,19 +5619,22 @@ const MENUS_APP = [
    A lista abaixo so' guarda a DIVISAO. O icone e o nome de cada grupo moram no HTML,
    em um lugar so' - a mesma regra de sempre: palavra escrita a mao em segundo lugar
    envelhece calada. */
+/* v244 - esta lista virou a DIVISAO DE FABRICA: o nome, o icone e a divisao valem
+   enquanto o Tiago nao mexer. O que ele mudar mora em config/ordemMenus. */
 const GRUPOS_MENU = [
-  {key:"soltos",  itens:["dash"]},
-  {key:"dia",     itens:["resumoDia","registros","historico","descontos","simular"]},
-  {key:"analise", itens:["relPosto","financeiro","analise","relLoja","ifood"]},
-  {key:"transp",  itens:["infleet","pedido","cotacoes","puxadas"]},
-  {key:"org",     itens:["calendario","vencimentos","caixa"]},
-  {key:"ajustes", itens:["conta","config","usuarios"]}
+  {key:"soltos",  nome:"",               icone:"",       itens:["dash"]},
+  {key:"dia",     nome:"Dia a dia",      icone:"\ud83d\udd01", itens:["resumoDia","registros","historico","descontos","simular"]},
+  {key:"analise", nome:"Análise",        icone:"\ud83d\udcca", itens:["relPosto","financeiro","analise","relLoja","ifood"]},
+  {key:"transp",  nome:"Transportadora", icone:"\ud83d\ude9a", itens:["infleet","pedido","cotacoes","puxadas"]},
+  {key:"org",     nome:"Organização",    icone:"\ud83d\uddc2", itens:["calendario","vencimentos","caixa"]},
+  {key:"ajustes", nome:"Ajustes",        icone:"\u2699",        itens:["conta","config","usuarios"]}
 ];
-const BTN_FORA_MENUS = { usuarios:"btnUsuarios" };   // botao da barra que nao esta em MENUS_APP
-function btnDoMenu(k){ const m = MENUS_APP.find(x => x.key === k); return m ? m.btn : (BTN_FORA_MENUS[k] || ""); }
+// botao que existe na barra e NAO esta em MENUS_APP (por isso precisa de nome proprio aqui)
+const MENU_EXTRA = { usuarios:{ btn:"btnUsuarios", nome:"Painel Administrativo" } };
+const BTN_FORA_MENUS = { usuarios:"btnUsuarios" };   // compatibilidade
+function btnDoMenu(k){ const m = MENUS_APP.find(x => x.key === k); return m ? m.btn : ((MENU_EXTRA[k]||{}).btn || ""); }
 function menuDoBtn(id){ const m = MENUS_APP.find(x => x.btn === id); if (m) return m.key;
-  const f = Object.keys(BTN_FORA_MENUS).find(k => BTN_FORA_MENUS[k] === id); return f || ""; }
-function grupoDoMenu(k){ const g = GRUPOS_MENU.find(x => x.itens.indexOf(k) >= 0); return g ? g.key : "soltos"; }
+  const f = Object.keys(MENU_EXTRA).find(k => MENU_EXTRA[k].btn === id); return f || ""; }
 
 const CHAVE_GRUPOS_MENU = "pf_grupos_menu";
 let gruposAbertos = null;
@@ -5621,11 +5650,10 @@ function gravarGruposAbertos(){
 }
 function pintarGruposMenu(){
   const ab = lerGruposAbertos();
-  GRUPOS_MENU.forEach(g => {
-    if (g.key === "soltos") return;
-    const cx = document.getElementById("grp_" + g.key);
-    if (!cx) return;
-    const aberto = ab.has(g.key);
+  // v244 - varre o DOM: os grupos deixaram de ser uma lista fixa
+  document.querySelectorAll("#menuGrupos .menu-grp").forEach(cx => {
+    if (cx.classList.contains("menu-grp-solto")) return;
+    const aberto = ab.has(String(cx.id).replace("grp_", ""));
     cx.classList.toggle("fechado", !aberto);
     const t = cx.querySelector(".menu-grp-tit");
     if (t) t.setAttribute("aria-expanded", aberto ? "true" : "false");
@@ -5638,7 +5666,6 @@ function animarAberturaGrupo(k){
   setTimeout(() => cx.classList.remove("abrindo"), 600);
 }
 function alternarGrupoMenu(k){
-  if (modoOrdenar) return;              // ordenando, os grupos ficam todos abertos
   const ab = lerGruposAbertos();
   if (ab.has(k)) ab.delete(k);
   else { ab.add(k); animarAberturaGrupo(k); }
@@ -5646,10 +5673,8 @@ function alternarGrupoMenu(k){
 }
 // acende o titulo do grupo que contem o menu aceso
 function marcarGrupoAceso(btn){
-  GRUPOS_MENU.forEach(g => {
-    const cx = document.getElementById("grp_" + g.key);
-    if (cx) cx.classList.toggle("tem-aceso", !!(btn && cx.contains(btn)));
-  });
+  document.querySelectorAll("#menuGrupos .menu-grp").forEach(cx =>
+    cx.classList.toggle("tem-aceso", !!(btn && cx.contains(btn))));
 }
 // abre o grupo do menu aceso e fecha os outros
 function sincronizarGruposMenu(btn){
@@ -5664,10 +5689,17 @@ function sincronizarGruposMenu(btn){
 }
 // grupo sem nenhum botao visivel some da barra
 function atualizarGruposMenu(){
-  GRUPOS_MENU.forEach(g => {
+  const s = siglaEmpresa(empresa);
+  // v244 - o dono de cada menu agora e' o grupoDoMenu (que le a excecao do Tiago),
+  // e a lista de grupos e' a EFETIVA - a de fabrica nao serve mais.
+  gruposDaEmpresa(s).forEach(g => {
     const cx = document.getElementById("grp_" + g.key);
     if (!cx) return;
-    const algum = g.itens.some(k => { const b = document.getElementById(btnDoMenu(k)); return b && b.style.display !== "none"; });
+    const algum = todasAsChavesDeMenu().some(k => {
+      if (grupoDoMenu(k, s) !== g.key) return false;
+      const b = document.getElementById(btnDoMenu(k));
+      return b && b.style.display !== "none";
+    });
     cx.style.display = algum ? "" : "none";
   });
   pintarGruposMenu();
@@ -5704,6 +5736,245 @@ function aoTrocarDeTela(){
 }
 let _trocaT = 0;
 function agendarTrocaDeTela(){ clearTimeout(_trocaT); _trocaT = setTimeout(aoTrocarDeTela, 0); }
+
+/* ===== v244 - o Tiago personaliza a barra sozinho =====
+   Nome do menu, grupo de cada menu e a propria LISTA de grupos viraram DADO em
+   config/ordemMenus, ao lado da ordem (v188). E' a mesma receita das abas (v207/v224):
+   guarda-se so' a EXCECAO - o que ele mudou -, nunca o que ja' e' de fabrica.
+   🔴 O documento e' UM SO': quem gravar tem de gravar os CINCO ramos juntos
+   (porEmpresa, padrao, nomes, grupos, listaGrupos). Um set() sem um deles apaga o outro. */
+
+const GRUPO_SOLTOS = "soltos";          // o topo da barra, sem titulo - nao se apaga nem se renomeia
+function menuExtraNome(k){ return (MENU_EXTRA[k] || {}).nome || ""; }
+function nomeFabricaMenu(k){
+  const m = MENUS_APP.find(x => x.key === k);
+  return m ? m.nome : menuExtraNome(k);
+}
+function nomeMenu(k, sig){
+  const s = sig || siglaEmpresa(empresa);
+  const v = (nomesMenus && nomesMenus[s]) ? nomesMenus[s][k] : "";
+  return (v && String(v).trim()) ? String(v) : nomeFabricaMenu(k);
+}
+function salvarNomeMenu(k, v){
+  const s = siglaEmpresa(empresa);
+  if (!nomesMenus[s]) nomesMenus[s] = {};
+  const t = String(v == null ? "" : v).trim().slice(0, 30);
+  // voltou ao nome de fabrica? apaga a excecao em vez de gravar o obvio
+  if (!t || t === nomeFabricaMenu(k)) delete nomesMenus[s][k];
+  else nomesMenus[s][k] = t;
+  gravarOrdemMenus("Renomeou o menu \"" + nomeMenu(k, s) + "\"");
+  montarBarraMenus(); renderPersonalizarMenus();
+}
+// todos os menus que a barra conhece (os de MENUS_APP + os botoes soltos, como o Painel Administrativo)
+function todasAsChavesDeMenu(){ return MENUS_APP.map(m => m.key).concat(Object.keys(MENU_EXTRA)); }
+function menuVisivelNaEmpresa(k, s){
+  const m = MENUS_APP.find(x => x.key === k);
+  if (m) return menuVisivelEmpresa(m, s);
+  return true;                                   // botao solto (admin) vale nas tres
+}
+function grupoFabricaDoMenu(k){
+  const g = GRUPOS_MENU.find(x => x.itens.indexOf(k) >= 0);
+  return g ? g.key : GRUPO_SOLTOS;
+}
+// lista de grupos que vale nesta empresa: a que ele montou, ou a de fabrica
+function gruposDaEmpresa(sig){
+  const s = sig || siglaEmpresa(empresa);
+  const cfg = (listaGrupos && listaGrupos[s]) ? listaGrupos[s] : null;
+  const base = (cfg && cfg.length)
+    ? cfg.filter(g => g && g.key && g.key !== GRUPO_SOLTOS).map(g => ({ key:g.key, nome:g.nome||"Grupo", icone:g.icone||"\ud83d\udcc2" }))
+    : GRUPOS_MENU.filter(g => g.key !== GRUPO_SOLTOS).map(g => ({ key:g.key, nome:g.nome, icone:g.icone }));
+  return [{ key:GRUPO_SOLTOS, nome:"", icone:"", fixo:true }].concat(base);
+}
+function grupoDoMenu(k, sig){
+  const s = sig || siglaEmpresa(empresa);
+  const existe = {};
+  gruposDaEmpresa(s).forEach(g => { existe[g.key] = true; });
+  const e = (gruposMenus && gruposMenus[s]) ? gruposMenus[s][k] : "";
+  if (e && existe[e]) return e;
+  const f = grupoFabricaDoMenu(k);
+  return existe[f] ? f : GRUPO_SOLTOS;      // grupo apagado devolve o menu ao topo
+}
+function moverMenuGrupo(k, g){
+  const s = siglaEmpresa(empresa);
+  if (!gruposMenus[s]) gruposMenus[s] = {};
+  if (grupoFabricaDoMenu(k) === g) delete gruposMenus[s][k];
+  else gruposMenus[s][k] = g;
+  const gr = gruposDaEmpresa(s).find(x => x.key === g);
+  gravarOrdemMenus("Moveu o menu \"" + nomeMenu(k, s) + "\" para " + (gr && gr.nome ? gr.nome : "o topo da barra"));
+  montarBarraMenus(); atualizarGruposMenu(); renderPersonalizarMenus();
+}
+// a primeira mexida nos grupos congela a lista de fabrica como ponto de partida
+function materializarGrupos(s){
+  if (listaGrupos[s] && listaGrupos[s].length) return;
+  listaGrupos[s] = gruposDaEmpresa(s).filter(g => g.key !== GRUPO_SOLTOS)
+                                     .map(g => ({ key:g.key, nome:g.nome, icone:g.icone }));
+}
+function salvarCampoGrupo(g, campo, v){
+  const s = siglaEmpresa(empresa);
+  if (g === GRUPO_SOLTOS) return;
+  materializarGrupos(s);
+  const alvo = listaGrupos[s].find(x => x.key === g);
+  if (!alvo) return;
+  const t = String(v == null ? "" : v).trim().slice(0, campo === "icone" ? 4 : 24);
+  alvo[campo] = t || (campo === "icone" ? "\ud83d\udcc2" : "Grupo");
+  gravarOrdemMenus("Mudou o " + (campo === "icone" ? "ícone" : "nome") + " de um grupo da barra");
+  montarBarraMenus(); renderPersonalizarMenus();
+}
+function moverGrupoMenu(g, dir){
+  const s = siglaEmpresa(empresa);
+  materializarGrupos(s);
+  const l = listaGrupos[s];
+  const i = l.findIndex(x => x.key === g), j = i + dir;
+  if (i < 0 || j < 0 || j >= l.length) return;
+  l.splice(j, 0, l.splice(i, 1)[0]);
+  gravarOrdemMenus("Mudou a ordem dos grupos da barra");
+  montarBarraMenus(); renderPersonalizarMenus();
+}
+function novoGrupoMenu(){
+  const s = siglaEmpresa(empresa);
+  materializarGrupos(s);
+  let n = 1;
+  while (listaGrupos[s].some(x => x.key === "g" + n)) n++;
+  listaGrupos[s].push({ key:"g" + n, nome:"Grupo novo", icone:"\ud83d\udcc2" });
+  gravarOrdemMenus("Criou um grupo na barra");
+  montarBarraMenus(); atualizarGruposMenu(); renderPersonalizarMenus();
+  msgOrdem("Grupo criado. Troque o nome e mande os menus para ele pela lista de cada um.", "ok");
+}
+function apagarGrupoMenu(g){
+  const s = siglaEmpresa(empresa);
+  if (g === GRUPO_SOLTOS) return;
+  const dentro = todasAsChavesDeMenu().filter(k => menuVisivelNaEmpresa(k, s) && grupoDoMenu(k, s) === g);
+  if (dentro.length){
+    msgOrdem("Esse grupo ainda tem " + dentro.length + " menu(s). Mova todos para outro grupo antes de apagar.", "erro");
+    return;
+  }
+  materializarGrupos(s);
+  listaGrupos[s] = listaGrupos[s].filter(x => x.key !== g);
+  if (gruposMenus[s]) Object.keys(gruposMenus[s]).forEach(k => { if (gruposMenus[s][k] === g) delete gruposMenus[s][k]; });
+  gravarOrdemMenus("Apagou um grupo da barra");
+  montarBarraMenus(); atualizarGruposMenu(); renderPersonalizarMenus();
+  msgOrdem("Grupo apagado.", "ok");
+}
+function resetarPersonalizacaoMenus(){
+  const s = siglaEmpresa(empresa);
+  delete nomesMenus[s]; delete gruposMenus[s]; delete listaGrupos[s]; delete ordemMenus[s];
+  gravarOrdemMenus("Voltou a barra de menus ao original");
+  montarBarraMenus(); atualizarGruposMenu(); renderPersonalizarMenus();
+  msgOrdem("Pronto: nomes, grupos e ordem voltaram ao original desta empresa.", "ok");
+}
+
+/* ===== v244 - a barra e' MONTADA por JS (antes os grupos eram HTML fixo) ===== */
+function montarBarraMenus(){
+  const cx = document.getElementById("menuGrupos");
+  if (!cx) return;
+  const s = siglaEmpresa(empresa);
+  const pos = {};
+  (ordemMenus && ordemMenus[s] ? ordemMenus[s] : []).forEach((k, i) => { pos[k] = i; });
+  const fab = {};
+  todasAsChavesDeMenu().forEach((k, i) => { fab[k] = i; });
+  const ondeEstou = k => (pos[k] === undefined ? 1000 + fab[k] : pos[k]);
+  const frag = document.createDocumentFragment();
+  gruposDaEmpresa(s).forEach(g => {
+    const div = document.createElement("div");
+    div.className = "menu-grp" + (g.key === GRUPO_SOLTOS ? " menu-grp-solto" : "");
+    div.id = "grp_" + g.key;
+    if (g.key !== GRUPO_SOLTOS){
+      const t = document.createElement("button");
+      t.type = "button";
+      t.className = "menu-grp-tit";
+      t.setAttribute("onclick", "alternarGrupoMenu('" + g.key + "')");
+      t.innerHTML = '<span class="mi">' + escAttr(g.icone) + '</span><span class="mt">' +
+                    escAttr(g.nome) + '</span><span class="grp-seta">\u25be</span>';
+      div.appendChild(t);
+    }
+    const caixa = document.createElement("div"); caixa.className = "menu-grp-cx";
+    const dentro = document.createElement("div"); dentro.className = "grp-int";
+    todasAsChavesDeMenu()
+      .filter(k => grupoDoMenu(k, s) === g.key)
+      .sort((a, b) => ondeEstou(a) - ondeEstou(b))
+      .forEach(k => {
+        const b = document.getElementById(btnDoMenu(k));
+        if (!b) return;
+        const r = b.querySelector(".mt");
+        if (r) r.textContent = nomeMenu(k, s);        // o nome que ele deu
+        dentro.appendChild(b);                        // MOVE o botao (nao recria: ele tem id e onclick)
+      });
+    caixa.appendChild(dentro); div.appendChild(caixa); frag.appendChild(div);
+  });
+  cx.innerHTML = "";            // seguro: os botoes ja sairam daqui para o fragmento
+  cx.appendChild(frag);
+  pintarGruposMenu();
+  marcarGrupoAceso(document.querySelector(".menu-lateral .grp-int button.ativo"));
+}
+
+/* ===== v244 - a caixa "Personalizar a barra" ===== */
+let pmenuAberta = false;
+function alternarPersonalizarMenus(){
+  if (!pmenuAberta && !ehAdminAtual()) return;
+  pmenuAberta = !pmenuAberta;
+  const b = document.getElementById("pmenuBox"), f = document.getElementById("pmenuFundo");
+  if (b) b.style.display = pmenuAberta ? "flex" : "none";
+  if (f) f.style.display = pmenuAberta ? "block" : "none";
+  const bt = document.getElementById("btnOrdenarMenus");
+  if (bt) bt.classList.toggle("ativo", pmenuAberta);
+  msgOrdem("");
+  if (pmenuAberta) renderPersonalizarMenus();
+}
+function fecharPersonalizarMenus(){ if (pmenuAberta) alternarPersonalizarMenus(); }
+function renderPersonalizarMenus(){
+  const cx = document.getElementById("pmenuCorpo");
+  if (!cx || !pmenuAberta) return;
+  const s = siglaEmpresa(empresa);
+  const grupos = gruposDaEmpresa(s);
+  const emp = document.getElementById("pmenuEmp");
+  if (emp){ const e = EMPRESAS_ADM.find(x => x.sig === s); emp.textContent = e ? e.nome : ""; }
+  const opcoes = k => grupos.map(g =>
+    '<option value="' + escAttr(g.key) + '"' + (grupoDoMenu(k, s) === g.key ? " selected" : "") + '>' +
+    escAttr(g.key === GRUPO_SOLTOS ? "\u2014 sem grupo (topo)" : (g.icone + " " + g.nome)) + '</option>').join("");
+  let h = "";
+  grupos.forEach((g, gi) => {
+    const meus = todasAsChavesDeMenu()
+      .filter(k => menuVisivelNaEmpresa(k, s) && grupoDoMenu(k, s) === g.key)
+      .sort((a, b) => ordemBarraDe(a, s) - ordemBarraDe(b, s));
+    h += '<div class="pmenu-grp">';
+    h += '<div class="pmenu-grp-tit">';
+    if (g.key === GRUPO_SOLTOS){
+      h += '<span class="pmenu-fixo">\u2014 Sem grupo (topo da barra)</span>';
+    } else {
+      h += '<input class="pmenu-ic" maxlength="4" value="' + escAttr(g.icone) + '" title="Ícone" ' +
+           'onchange="salvarCampoGrupo(\'' + escAttr(g.key) + '\',\'icone\',this.value)">' +
+           '<input class="pmenu-nm" maxlength="24" value="' + escAttr(g.nome) + '" title="Nome do grupo" ' +
+           'onchange="salvarCampoGrupo(\'' + escAttr(g.key) + '\',\'nome\',this.value)">' +
+           '<span class="pmenu-bts">' +
+           '<button type="button" class="' + (gi <= 1 ? "off" : "") + '" title="Subir o grupo" ' +
+             'onclick="moverGrupoMenu(\'' + escAttr(g.key) + '\',-1)">\u25b2</button>' +
+           '<button type="button" class="' + (gi === grupos.length - 1 ? "off" : "") + '" title="Descer o grupo" ' +
+             'onclick="moverGrupoMenu(\'' + escAttr(g.key) + '\',1)">\u25bc</button>' +
+           '<button type="button" class="pmenu-lixo" title="Apagar o grupo" ' +
+             'onclick="apagarGrupoMenu(\'' + escAttr(g.key) + '\')">\ud83d\uddd1</button>' +
+           '</span>';
+    }
+    h += '</div><div class="pmenu-itens">';
+    if (!meus.length) h += '<p class="pmenu-vazio">Nenhum menu aqui nesta empresa.</p>';
+    meus.forEach((k, i) => {
+      const b = document.getElementById(btnDoMenu(k));
+      const ico = b && b.querySelector(".mi") ? b.querySelector(".mi").textContent : "";
+      h += '<div class="pmenu-item">' +
+           '<span class="pmenu-ico">' + escAttr(ico) + '</span>' +
+           '<input class="pmenu-nm" maxlength="30" value="' + escAttr(nomeMenu(k, s)) + '" ' +
+             'onchange="salvarNomeMenu(\'' + escAttr(k) + '\',this.value)">' +
+           '<select onchange="moverMenuGrupo(\'' + escAttr(k) + '\',this.value)">' + opcoes(k) + '</select>' +
+           '<span class="pmenu-bts">' +
+           '<button type="button" class="' + (i === 0 ? "off" : "") + '" title="Subir" ' +
+             'onclick="moverMenuOrdem(siglaEmpresa(empresa),\'' + escAttr(k) + '\',-1)">\u25b2</button>' +
+           '<button type="button" class="' + (i === meus.length - 1 ? "off" : "") + '" title="Descer" ' +
+             'onclick="moverMenuOrdem(siglaEmpresa(empresa),\'' + escAttr(k) + '\',1)">\u25bc</button>' +
+           '</span></div>';
+    });
+    h += '</div></div>';
+  });
+  cx.innerHTML = h;
+}
 
 function ehAdminAtual(){ return ehAdminEmail(usuarioAtual); }
 // v221 - Um menu e' permitido se: a pessoa e' admin, OU a regra dela marca true.
@@ -5804,28 +6075,16 @@ function menuVisivelEmpresa(m, sigla){
   return String(m.emp).split("|").indexOf(s) >= 0;
 }
 // v188 - reordena os botoes da barra lateral conforme o que o admin salvou
-function aplicarOrdemMenus(){
-  const s = siglaEmpresa(empresa);
-  const ordem = (ordemMenus && ordemMenus[s]) ? ordemMenus[s] : null;
-  if (!ordem || !ordem.length) return;
-  // v243 - os botoes agora moram dentro de grupos, entao a ordem vale DENTRO de cada
-  // grupo. Antes isto empurrava todos os botoes para o pai do primeiro - o que, com
-  // grupos, esvaziaria os outros grupos.
-  const pos = {};
-  ordem.forEach((k, i) => { pos[k] = i; });
-  const pais = new Map();
-  MENUS_APP.forEach((m, i) => {
-    const b = document.getElementById(m.btn);
-    if (!b || !b.parentNode || !b.parentNode.classList.contains("grp-int")) return;
-    if (!pais.has(b.parentNode)) pais.set(b.parentNode, []);
-    pais.get(b.parentNode).push({ b: b, p: (pos[m.key] === undefined ? 1000 + i : pos[m.key]) });
-  });
-  pais.forEach((lista, pai) => {
-    lista.sort((x, y) => x.p - y.p);
-    const frag = document.createDocumentFragment();
-    lista.forEach(o => frag.appendChild(o.b));
-    pai.appendChild(frag);
-  });
+// v244 - quem desenha a barra e' o montarBarraMenus (grupos + ordem + nomes de uma vez).
+// Este nome continua existindo porque varios lugares chamam por ele desde a v188.
+function aplicarOrdemMenus(){ montarBarraMenus(); }
+// posicao de um menu na lista da empresa (a ordem salva vale dentro do grupo)
+function ordemBarraDe(k, s){
+  const l = (ordemMenus && ordemMenus[s]) ? ordemMenus[s] : [];
+  const i = l.indexOf(k);
+  if (i >= 0) return i;
+  const f = todasAsChavesDeMenu().indexOf(k);
+  return 1000 + (f < 0 ? 999 : f);
 }
 // v188 - lista de menus de uma empresa, na ordem que esta valendo
 function menusDaEmpresa(s){
@@ -5838,27 +6097,32 @@ function menusDaEmpresa(s){
   return saida;
 }
 function moverMenuOrdem(s, key, dir){
-  const lista = menusDaEmpresa(s).map(m => m.key);
+  // v244 - a lista completa da empresa inclui o Painel Administrativo, que nao esta em MENUS_APP
+  const lista = todasAsChavesDeMenu()
+    .filter(k => menuVisivelNaEmpresa(k, s))
+    .sort((a, b) => ordemBarraDe(a, s) - ordemBarraDe(b, s));
   const i = lista.indexOf(key);
   if (i < 0) return;
-  // v243 - so' troca de lugar com um vizinho DO MESMO GRUPO
-  const g = grupoDoMenu(key);
+  // so' troca de lugar com um vizinho DO MESMO GRUPO
+  const g = grupoDoMenu(key, s);
   let j = i + dir;
-  while (j >= 0 && j < lista.length && grupoDoMenu(lista[j]) !== g) j += dir;
+  while (j >= 0 && j < lista.length && grupoDoMenu(lista[j], s) !== g) j += dir;
   if (j < 0 || j >= lista.length) return;
   lista.splice(j, 0, lista.splice(i, 1)[0]);
   if (!ordemMenus) ordemMenus = {};
   ordemMenus[s] = lista;
-  gravarOrdemMenus(); aplicarOrdemMenus(); renderSetasOrdem();
+  gravarOrdemMenus("Mudou a ordem dos menus");
+  montarBarraMenus(); renderPersonalizarMenus();
 }
 // v189 - guarda a ordem que esta na tela como a referencia desta empresa
 function definirOrdemPadrao(s){
   if (!ordemPadrao) ordemPadrao = {};
   if (!ordemMenus) ordemMenus = {};
-  const lista = menusDaEmpresa(s).map(m => m.key);
+  const lista = todasAsChavesDeMenu().filter(k => menuVisivelNaEmpresa(k, s))
+                                     .sort((a, b) => ordemBarraDe(a, s) - ordemBarraDe(b, s));
   ordemPadrao[s] = lista.slice();
   ordemMenus[s] = lista.slice();
-  gravarOrdemMenus(); renderSetasOrdem();
+  gravarOrdemMenus("Guardou a ordem padrão dos menus"); renderPersonalizarMenus();
   msgOrdem("Pronto. Esta ordem virou o padrão desta empresa — o botão abaixo agora volta para ela.", "ok");
 }
 // v189 - volta para o padrao salvo; se nao houver padrao, volta para a ordem de fabrica
@@ -5866,7 +6130,7 @@ function voltarOrdemPadrao(s){
   if (ordemPadrao && ordemPadrao[s] && ordemPadrao[s].length){
     if (!ordemMenus) ordemMenus = {};
     ordemMenus[s] = ordemPadrao[s].slice();
-    gravarOrdemMenus(); aplicarOrdemMenus(); renderSetasOrdem();
+    gravarOrdemMenus("Voltou os menus ao padrão"); montarBarraMenus(); renderPersonalizarMenus();
     msgOrdem("Voltou para o padrão que você salvou.", "ok");
     return;
   }
@@ -5879,107 +6143,28 @@ function resetarOrdemMenus(s){
   gravarOrdemMenus();
   location.reload();   // a ordem de fabrica volta com o HTML original
 }
-function gravarOrdemMenus(){
-  docOrdemMenus.set({ porEmpresa: ordemMenus || {}, padrao: ordemPadrao || {} })
-    .then(()=>{ if (typeof logAtividade === "function") logAtividade("menus", "Mudou a ordem dos menus", ""); })
+/* v244 - grava os CINCO ramos juntos. O documento e' um so': um set() sem um deles
+   apagaria o trabalho do outro - a mesma armadilha do gravarAbasRel. */
+function gravarOrdemMenus(msg){
+  return docOrdemMenus.set({ porEmpresa: ordemMenus || {}, padrao: ordemPadrao || {},
+                             nomes: nomesMenus || {}, grupos: gruposMenus || {}, listaGrupos: listaGrupos || {} })
+    .then(()=>{ if (typeof logAtividade === "function") logAtividade("menus", msg || "Mudou a barra de menus", siglaEmpresa(empresa)); })
     .catch(()=>{});
 }
-/* ===== v196 - ordenar os menus pela propria barra lateral =====
-   Antes isso morava num quadro do Painel Administrativo. Agora o admin clica em
-   "↕ Ordenar menus" no rodape da barra, as setas aparecem nos proprios botoes e
-   ele ve a ordem mudando ao vivo. Vale sempre para a empresa que esta aberta. */
+/* v244 - o modo de ordenacao DENTRO da barra saiu. Ele fazia metade do trabalho
+   (so' a ordem) num espaco de 258px, e desde a v244 a caixa "Personalizar a barra"
+   faz ordem, nome e grupo com folga. Duas portas para a mesma coisa e' divida.
+   O msgOrdem abaixo continua vivo: e' o recado do rodape da caixa. */
 function msgOrdem(texto, tipo){
   const el = document.getElementById("msgOrdem");
   if (!el) return;
   el.textContent = texto || "";
   el.className = "msg-admin " + (tipo || "");
 }
-function alternarModoOrdenar(){
-  if (!modoOrdenar && !ehAdminAtual()) return;   // so admin entra; sair sempre pode
-  modoOrdenar = !modoOrdenar;
-  const barra = document.getElementById("menuLateral");
-  if (barra) barra.classList.toggle("ordenando", modoOrdenar);
-  const bt = document.getElementById("btnOrdenarMenus");
-  if (bt) bt.classList.toggle("ativo", modoOrdenar);
-  const ic = document.getElementById("ordIcone");
-  if (ic) ic.textContent = modoOrdenar ? "\u2714" : "\u2195";
-  const lb = document.getElementById("ordLabel");
-  if (lb) lb.textContent = modoOrdenar ? "Concluir" : "Ordenar menus";
-  const cx = document.getElementById("ordBarra");
-  if (cx) cx.style.display = modoOrdenar ? "" : "none";
-  const eb = document.getElementById("empresaBox");
-  if (modoOrdenar && eb) eb.style.display = "none";   // o seletor de empresa fica fora do caminho
-  msgOrdem("");
-  renderSetasOrdem();
-}
-// tira as setas de todos os botoes (chamado antes de redesenhar e ao sair do modo)
-function limparSetasOrdem(){
-  const barra = document.getElementById("menuLateral");
-  if (!barra) return;
-  const velhas = barra.querySelectorAll(".ord-setas");
-  for (let i = 0; i < velhas.length; i++){
-    if (velhas[i].parentNode) velhas[i].parentNode.removeChild(velhas[i]);
-  }
-}
-// desenha ▲▼ dentro de cada botao de menu da empresa aberta, na ordem que esta valendo
-function renderSetasOrdem(){
-  limparSetasOrdem();
-  if (!modoOrdenar) return;
-  const s = siglaEmpresa(empresa);
-  const lista = menusDaEmpresa(s);
-  // v243 - a seta de cima do PRIMEIRO de cada grupo e a de baixo do ULTIMO ficam apagadas,
-  // porque a ordem vale dentro do grupo.
-  const porGrupo = {};
-  lista.forEach(m => { const g = grupoDoMenu(m.key); (porGrupo[g] = porGrupo[g] || []).push(m.key); });
-  lista.forEach(m => {
-    const b = document.getElementById(m.btn);
-    if (!b) return;
-    const irmaos = porGrupo[grupoDoMenu(m.key)] || [m.key];
-    const i = irmaos.indexOf(m.key);
-    const cx = document.createElement("span");
-    cx.className = "ord-setas";
-    cx.innerHTML =
-      '<span class="ord-seta' + (i === 0 ? ' off' : '') + '" data-ordsobe="' + escAttr(m.key) + '" title="Subir">\u25b2</span>' +
-      '<span class="ord-seta' + (i === irmaos.length - 1 ? ' off' : '') + '" data-orddesce="' + escAttr(m.key) + '" title="Descer">\u25bc</span>';
-    b.appendChild(cx);
-  });
-  const temPadrao = !!(ordemPadrao && ordemPadrao[s] && ordemPadrao[s].length);
-  const bv = document.querySelector('#ordBarra [data-ordacao="voltar"]');
-  if (bv) bv.textContent = temPadrao ? "\u21a9 Voltar ao padr\u00e3o" : "\u21a9 Voltar \u00e0 ordem original";
-  const dica = document.querySelector("#ordBarra .ord-dica");
-  if (dica) dica.textContent = temPadrao
-    ? "Use as setas \u25b2\u25bc \u2014 a ordem vale dentro de cada grupo. Se algo sair do lugar, \u21a9 devolve a ordem padr\u00e3o desta empresa."
-    : "Use as setas \u25b2\u25bc \u2014 a ordem vale dentro de cada grupo. Quando estiver do seu jeito, clique em \u2b50 para guardar como padr\u00e3o.";
-}
-// Enquanto ordena, a barra nao navega: todo clique dentro dela e' interceptado aqui.
-// O ouvinte e' de captura, entao roda antes do onclick de cada botao e antes do
-// ouvinte que fecha a barra no celular.
-(function(){
-  const barra = document.getElementById("menuLateral");
-  if (!barra) return;
-  barra.addEventListener("click", function(e){
-    if (!modoOrdenar) return;
-    const alvo = (e.target && e.target.closest) ? e.target : null;
-    e.stopPropagation();
-    e.preventDefault();
-    if (!alvo) return;
-    if (alvo.closest("#btnOrdenarMenus")){ alternarModoOrdenar(); return; }
-    const s = siglaEmpresa(empresa);
-    const sobe = alvo.closest("[data-ordsobe]");
-    if (sobe){ if (!sobe.classList.contains("off")) moverMenuOrdem(s, sobe.getAttribute("data-ordsobe"), -1); return; }
-    const desce = alvo.closest("[data-orddesce]");
-    if (desce){ if (!desce.classList.contains("off")) moverMenuOrdem(s, desce.getAttribute("data-orddesce"), 1); return; }
-    const acao = alvo.closest("[data-ordacao]");
-    if (acao){
-      const a = acao.getAttribute("data-ordacao");
-      if (a === "padrao") definirOrdemPadrao(s);
-      else if (a === "voltar") voltarOrdemPadrao(s);
-    }
-  }, true);
-  document.addEventListener("keydown", function(e){
-    if (modoOrdenar && e.key === "Escape") alternarModoOrdenar();
-  });
-})();
+/* v244 - a tecla Esc fecha a caixa de personalizar (era o Esc do modo antigo) */
+document.addEventListener("keydown", function(e){
+  if (pmenuAberta && e.key === "Escape") fecharPersonalizarMenus();
+});
 
 
 /* v221 - a tarefa que avisa o administrador. Id fixo: e' UMA tarefa, que se reescreve.
@@ -6068,10 +6253,10 @@ function aplicarVisibilidadeMenus(){
   if (btOrd) btOrd.style.display = podeOrd ? "" : "none";
   const barraLat = document.getElementById("menuLateral");
   if (barraLat) barraLat.classList.toggle("tem-ordenar", podeOrd);
-  if (!podeOrd && modoOrdenar) alternarModoOrdenar();
-  aplicarOrdemMenus();   // v188
+  if (!podeOrd && pmenuAberta) fecharPersonalizarMenus();
+  montarBarraMenus();    // v244 - grupos, ordem e nomes de uma vez
   atualizarGruposMenu(); // v243 - grupo sem nenhum botao visivel some da barra
-  renderSetasOrdem();    // v196 - so faz algo se estiver em modo de ordenacao
+  renderPersonalizarMenus();
   const gpv = document.getElementById("grupoPrecosVenda"); if (gpv) gpv.style.display = (s === "postos") ? "" : "none";
   const gcl = document.getElementById("grupoClientes"); if (gcl) gcl.style.display = (s === "postos") ? "" : "none";
 }
@@ -15459,7 +15644,7 @@ async function atzConferirVersao() {
   if (v !== atzVersaoInicial) mostrarAvisoVersao();
 }
 
-if (false) {   /* PREVIA v243 - nao registra service worker nem avisa de versao */
+if (false) {   /* PREVIA - nao registra service worker nem avisa de versao */
   // se nao havia service worker no comando quando a pagina abriu, esta e a PRIMEIRA
   // instalacao: o codigo ja e o mais novo e nao se deve avisar nada.
   const atzTinhaControlador = !!navigator.serviceWorker.controller;
