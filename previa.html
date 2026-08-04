@@ -255,6 +255,18 @@
     background:var(--superficie-2);color:var(--txt);cursor:pointer}
   .pmenu-rodape button:hover{border-color:var(--verde);color:var(--verde)}
   .pmenu-rodape .msg-admin{flex:1 1 100%;font-size:.72rem}
+  /* v245 - a faixa de confirmacao (apagar grupo / voltar tudo ao original) */
+  .pmenu-conf{display:flex;flex-direction:column;gap:8px;padding:10px 12px;
+    border:1px solid var(--vermelho);border-radius:10px;margin:8px 0;
+    background-image:linear-gradient(90deg,rgba(192,57,43,.12) 0%,transparent 75%)}
+  .pmenu-conf p{font-size:.8rem;line-height:1.4}
+  .pmenu-conf .pmenu-conf-linha{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .pmenu-conf label{font-size:.78rem;color:var(--cinza)}
+  .pmenu-conf select{flex:0 1 220px;min-width:0}
+  .pmenu-conf .pmenu-tranq{font-size:.74rem;color:var(--cinza);font-style:italic}
+  .pmenu-box .pmenu-perigo{border-color:var(--vermelho);color:var(--vermelho);font-weight:600}
+  .pmenu-box .pmenu-perigo:hover{background-image:linear-gradient(90deg,rgba(192,57,43,.18),rgba(192,57,43,.18))}
+  .pmenu-box .pmenu-desfazer{border-color:var(--verde);color:var(--verde);font-weight:600}
   @media (max-width:640px){ .pmenu-box{width:calc(100vw - 16px);padding:12px} .pmenu-item select{flex:1 1 100%} }
   @media print{ .pmenu-fundo,.pmenu-box{display:none !important} }
 
@@ -1734,7 +1746,7 @@
 </style>
 </head>
 <body>
-<div id="seloPrevia">PRÉVIA DA v244 — o app de verdade continua na v242</div>
+<div id="seloPrevia">PRÉVIA DA v245 — o app de verdade continua na v242</div>
 <script>
   // aplica o tema salvo o quanto antes, evitando piscar a tela clara
   try { if (localStorage.getItem("margens_tema") !== "claro") document.body.classList.add("tema-escuro"); } catch (e) {}
@@ -1832,7 +1844,17 @@
       <button type="button" onclick="novoGrupoMenu()">➕ Novo grupo</button>
       <button type="button" onclick="definirOrdemPadrao(siglaEmpresa(empresa))">⭐ Guardar como padrão</button>
       <button type="button" onclick="voltarOrdemPadrao(siglaEmpresa(empresa))">↩ Voltar ao padrão</button>
-      <button type="button" onclick="resetarPersonalizacaoMenus()">🧹 Voltar tudo ao original</button>
+      <button type="button" onclick="pedirResetarMenus()">🧹 Voltar tudo ao original</button>
+      <div class="pmenu-conf" id="pmenuConfReset" style="display:none">
+        <p><b>Voltar tudo ao original?</b> Os nomes, os grupos e a ordem que você montou nesta
+           empresa somem. <b>Nenhum menu é apagado</b> — todos voltam para o grupo de fábrica.</p>
+        <div class="pmenu-conf-linha">
+          <button type="button" class="pmenu-perigo" onclick="resetarPersonalizacaoMenus()">Voltar tudo</button>
+          <button type="button" onclick="cancelarResetarMenus()">Cancelar</button>
+          <span class="pmenu-tranq">Dá para desfazer depois.</span>
+        </div>
+      </div>
+      <button type="button" class="pmenu-desfazer" id="pmenuBtDesfazer" style="display:none" onclick="desfazerMenus()">↩ Desfazer</button>
       <div class="msg-admin" id="msgOrdem"></div>
     </div>
   </aside>
@@ -5759,6 +5781,8 @@ function salvarNomeMenu(k, v){
   const s = siglaEmpresa(empresa);
   if (!nomesMenus[s]) nomesMenus[s] = {};
   const t = String(v == null ? "" : v).trim().slice(0, 30);
+  if (t === nomeMenu(k, s)) return;                       // v245 - nao mudou nada, nao entra no desfazer
+  guardarParaDesfazer("renomear o menu \"" + nomeMenu(k, s) + "\"");
   // voltou ao nome de fabrica? apaga a excecao em vez de gravar o obvio
   if (!t || t === nomeFabricaMenu(k)) delete nomesMenus[s][k];
   else nomesMenus[s][k] = t;
@@ -5796,6 +5820,8 @@ function grupoDoMenu(k, sig){
 }
 function moverMenuGrupo(k, g){
   const s = siglaEmpresa(empresa);
+  if (grupoDoMenu(k, s) === g) return;                    // v245
+  guardarParaDesfazer("mover o menu \"" + nomeMenu(k, s) + "\" de grupo");
   if (!gruposMenus[s]) gruposMenus[s] = {};
   if (grupoFabricaDoMenu(k) === g) delete gruposMenus[s][k];
   else gruposMenus[s][k] = g;
@@ -5816,6 +5842,8 @@ function salvarCampoGrupo(g, campo, v){
   const alvo = listaGrupos[s].find(x => x.key === g);
   if (!alvo) return;
   const t = String(v == null ? "" : v).trim().slice(0, campo === "icone" ? 4 : 24);
+  if (t === alvo[campo]) return;                          // v245
+  guardarParaDesfazer("mudar o " + (campo === "icone" ? "ícone" : "nome") + " do grupo \"" + alvo.nome + "\"");
   alvo[campo] = t || (campo === "icone" ? "\ud83d\udcc2" : "Grupo");
   gravarOrdemMenus("Mudou o " + (campo === "icone" ? "ícone" : "nome") + " de um grupo da barra");
   montarBarraMenus(); renderPersonalizarMenus();
@@ -5826,6 +5854,7 @@ function moverGrupoMenu(g, dir){
   const l = listaGrupos[s];
   const i = l.findIndex(x => x.key === g), j = i + dir;
   if (i < 0 || j < 0 || j >= l.length) return;
+  guardarParaDesfazer("mudar a ordem dos grupos");         // v245
   l.splice(j, 0, l.splice(i, 1)[0]);
   gravarOrdemMenus("Mudou a ordem dos grupos da barra");
   montarBarraMenus(); renderPersonalizarMenus();
@@ -5833,6 +5862,7 @@ function moverGrupoMenu(g, dir){
 function novoGrupoMenu(){
   const s = siglaEmpresa(empresa);
   materializarGrupos(s);
+  guardarParaDesfazer("criar um grupo");                   // v245
   let n = 1;
   while (listaGrupos[s].some(x => x.key === "g" + n)) n++;
   listaGrupos[s].push({ key:"g" + n, nome:"Grupo novo", icone:"\ud83d\udcc2" });
@@ -5840,27 +5870,91 @@ function novoGrupoMenu(){
   montarBarraMenus(); atualizarGruposMenu(); renderPersonalizarMenus();
   msgOrdem("Grupo criado. Troque o nome e mande os menus para ele pela lista de cada um.", "ok");
 }
-function apagarGrupoMenu(g){
-  const s = siglaEmpresa(empresa);
+/* ===== v245 - NADA SE PERDE =====
+   Regra que o Tiago escreveu: "é proibido apagar menus e para apagar um grupo os menus
+   têm de ser transferidos para algum lugar para eles nunca serem perdidos".
+   Por isso: (1) menu nao tem botao de apagar em lugar nenhum; (2) apagar grupo passa por
+   uma faixa de confirmacao que PERGUNTA PARA ONDE vao os menus; (3) toda mexida entra numa
+   pilha de desfazer. */
+let pmenuApagar = null;      // {grupo, destino} enquanto a confirmacao esta na tela
+let pmenuResetar = false;    // a confirmacao do "voltar tudo ao original"
+let pmenuHist = [];          // pilha de desfazer: [{rotulo, estado}]
+const PMENU_HIST_MAX = 30;
+
+function estadoMenusAgora(){
+  return JSON.stringify({ ordem: ordemMenus || {}, padrao: ordemPadrao || {},
+                          nomes: nomesMenus || {}, grupos: gruposMenus || {}, lista: listaGrupos || {} });
+}
+// chamada ANTES de cada mudanca: guarda a foto de como estava e o nome do que foi feito
+function guardarParaDesfazer(rotulo){
+  pmenuHist.push({ rotulo: rotulo || "a última mudança", estado: estadoMenusAgora() });
+  if (pmenuHist.length > PMENU_HIST_MAX) pmenuHist.shift();
+}
+function desfazerMenus(){
+  const p = pmenuHist.pop();
+  if (!p) return;
+  let e;
+  try { e = JSON.parse(p.estado); } catch(err){ return; }
+  ordemMenus = e.ordem || {}; ordemPadrao = e.padrao || {};
+  nomesMenus = e.nomes || {}; gruposMenus = e.grupos || {}; listaGrupos = e.lista || {};
+  pmenuApagar = null; pmenuResetar = false;
+  gravarOrdemMenus("Desfez: " + p.rotulo);
+  montarBarraMenus(); atualizarGruposMenu(); renderPersonalizarMenus();
+  msgOrdem("Desfeito: " + p.rotulo + ".", "ok");
+}
+
+function pedirApagarGrupo(g){
   if (g === GRUPO_SOLTOS) return;
-  const dentro = todasAsChavesDeMenu().filter(k => menuVisivelNaEmpresa(k, s) && grupoDoMenu(k, s) === g);
-  if (dentro.length){
-    msgOrdem("Esse grupo ainda tem " + dentro.length + " menu(s). Mova todos para outro grupo antes de apagar.", "erro");
-    return;
-  }
+  pmenuResetar = false;
+  pmenuApagar = { grupo: g, destino: GRUPO_SOLTOS };
+  msgOrdem("");
+  renderPersonalizarMenus();
+}
+function escolherDestinoApagar(v){ if (pmenuApagar) pmenuApagar.destino = v; }
+function cancelarApagarGrupo(){ pmenuApagar = null; renderPersonalizarMenus(); }
+function menusDoGrupo(g, s){
+  return todasAsChavesDeMenu().filter(k => menuVisivelNaEmpresa(k, s) && grupoDoMenu(k, s) === g);
+}
+function confirmarApagarGrupo(){
+  if (!pmenuApagar) return;
+  const s = siglaEmpresa(empresa);
+  const g = pmenuApagar.grupo, destino = pmenuApagar.destino || GRUPO_SOLTOS;
+  if (g === GRUPO_SOLTOS || destino === g) { pmenuApagar = null; renderPersonalizarMenus(); return; }
+  const mudam = menusDoGrupo(g, s);
+  const gr = gruposDaEmpresa(s).find(x => x.key === g);
+  guardarParaDesfazer("apagar o grupo \"" + (gr ? gr.nome : g) + "\"");
   materializarGrupos(s);
+  if (!gruposMenus[s]) gruposMenus[s] = {};
+  // 🔴 primeiro os menus mudam de casa, so depois o grupo some. Nesta ordem, e' impossivel
+  // um menu ficar orfao no meio do caminho.
+  mudam.forEach(k => {
+    if (grupoFabricaDoMenu(k) === destino) delete gruposMenus[s][k];
+    else gruposMenus[s][k] = destino;
+  });
+  // quem apontava para o grupo em OUTRA empresa nao e' tocado: a personalizacao e' por empresa
+  Object.keys(gruposMenus[s]).forEach(k => { if (gruposMenus[s][k] === g) gruposMenus[s][k] = destino; });
   listaGrupos[s] = listaGrupos[s].filter(x => x.key !== g);
-  if (gruposMenus[s]) Object.keys(gruposMenus[s]).forEach(k => { if (gruposMenus[s][k] === g) delete gruposMenus[s][k]; });
+  pmenuApagar = null;
   gravarOrdemMenus("Apagou um grupo da barra");
   montarBarraMenus(); atualizarGruposMenu(); renderPersonalizarMenus();
-  msgOrdem("Grupo apagado.", "ok");
+  const nd = gruposDaEmpresa(s).find(x => x.key === destino);
+  msgOrdem("Grupo apagado. " + (mudam.length ? (mudam.length + " menu(s) foram para " +
+    (nd && nd.nome ? nd.nome : "o topo da barra") + ".") : "Ele estava vazio.") +
+    " Nenhum menu foi apagado — dá para desfazer.", "ok");
 }
+// compatibilidade: quem chamar direto cai na confirmacao, nunca no apagar seco
+function apagarGrupoMenu(g){ pedirApagarGrupo(g); }
+
+function pedirResetarMenus(){ pmenuApagar = null; pmenuResetar = true; msgOrdem(""); renderPersonalizarMenus(); }
+function cancelarResetarMenus(){ pmenuResetar = false; renderPersonalizarMenus(); }
 function resetarPersonalizacaoMenus(){
   const s = siglaEmpresa(empresa);
+  guardarParaDesfazer("voltar a barra ao original");
   delete nomesMenus[s]; delete gruposMenus[s]; delete listaGrupos[s]; delete ordemMenus[s];
+  pmenuResetar = false;
   gravarOrdemMenus("Voltou a barra de menus ao original");
   montarBarraMenus(); atualizarGruposMenu(); renderPersonalizarMenus();
-  msgOrdem("Pronto: nomes, grupos e ordem voltaram ao original desta empresa.", "ok");
+  msgOrdem("Pronto: nomes, grupos e ordem voltaram ao original desta empresa. Dá para desfazer.", "ok");
 }
 
 /* ===== v244 - a barra e' MONTADA por JS (antes os grupos eram HTML fixo) ===== */
@@ -5920,7 +6014,14 @@ function alternarPersonalizarMenus(){
   msgOrdem("");
   if (pmenuAberta) renderPersonalizarMenus();
 }
-function fecharPersonalizarMenus(){ if (pmenuAberta) alternarPersonalizarMenus(); }
+function fecharPersonalizarMenus(){ pmenuApagar = null; pmenuResetar = false; if (pmenuAberta) alternarPersonalizarMenus(); }
+// v245 - o texto da faixa de confirmacao, em portugues simples
+function challengeTexto(g, meus){
+  const nome = escAttr(g.icone + " " + g.nome);
+  if (!meus.length) return '<p><b>Apagar o grupo ' + nome + '?</b> Ele está vazio.</p>';
+  return '<p><b>Apagar o grupo ' + nome + '?</b> Ele tem <b>' + meus.length +
+         ' menu(s)</b>. Eles <b>não são apagados</b>: escolha para onde vão.</p>';
+}
 function renderPersonalizarMenus(){
   const cx = document.getElementById("pmenuCorpo");
   if (!cx || !pmenuAberta) return;
@@ -5950,11 +6051,29 @@ function renderPersonalizarMenus(){
              'onclick="moverGrupoMenu(\'' + escAttr(g.key) + '\',-1)">\u25b2</button>' +
            '<button type="button" class="' + (gi === grupos.length - 1 ? "off" : "") + '" title="Descer o grupo" ' +
              'onclick="moverGrupoMenu(\'' + escAttr(g.key) + '\',1)">\u25bc</button>' +
-           '<button type="button" class="pmenu-lixo" title="Apagar o grupo" ' +
-             'onclick="apagarGrupoMenu(\'' + escAttr(g.key) + '\')">\ud83d\uddd1</button>' +
+           '<button type="button" class="pmenu-lixo" title="Apagar o grupo (os menus vão para onde você escolher)" ' +
+             'onclick="pedirApagarGrupo(\'' + escAttr(g.key) + '\')">\ud83d\uddd1</button>' +
            '</span>';
     }
-    h += '</div><div class="pmenu-itens">';
+    h += '</div>';
+    // v245 - a confirmacao mora DENTRO do grupo que vai sumir, com o destino dos menus
+    if (pmenuApagar && pmenuApagar.grupo === g.key){
+      const destinos = grupos.filter(x => x.key !== g.key);
+      h += '<div class="pmenu-conf">' +
+challengeTexto(g, meus) +
+           '<div class="pmenu-conf-linha"><label>Mover os menus para:</label>' +
+           '<select onchange="escolherDestinoApagar(this.value)">' +
+           destinos.map(x => '<option value="' + escAttr(x.key) + '"' +
+             (pmenuApagar.destino === x.key ? " selected" : "") + '>' +
+             escAttr(x.key === GRUPO_SOLTOS ? "\u2014 sem grupo (topo)" : (x.icone + " " + x.nome)) +
+             '</option>').join("") + '</select></div>' +
+           '<div class="pmenu-conf-linha">' +
+           '<button type="button" class="pmenu-perigo" onclick="confirmarApagarGrupo()">Apagar o grupo</button>' +
+           '<button type="button" onclick="cancelarApagarGrupo()">Cancelar</button>' +
+           '<span class="pmenu-tranq">Nenhum menu é apagado — e dá para desfazer depois.</span>' +
+           '</div></div>';
+    }
+    h += '<div class="pmenu-itens">';
     if (!meus.length) h += '<p class="pmenu-vazio">Nenhum menu aqui nesta empresa.</p>';
     meus.forEach((k, i) => {
       const b = document.getElementById(btnDoMenu(k));
@@ -5974,6 +6093,15 @@ function renderPersonalizarMenus(){
     h += '</div></div>';
   });
   cx.innerHTML = h;
+  // v245 - o botao de desfazer diz O QUE vai desfazer, e some quando nao ha o que desfazer
+  const bd = document.getElementById("pmenuBtDesfazer");
+  if (bd){
+    const ult = pmenuHist[pmenuHist.length - 1];
+    bd.style.display = ult ? "" : "none";
+    if (ult) bd.textContent = "\u21a9 Desfazer: " + ult.rotulo;
+  }
+  const cr = document.getElementById("pmenuConfReset");
+  if (cr) cr.style.display = pmenuResetar ? "flex" : "none";
 }
 
 function ehAdminAtual(){ return ehAdminEmail(usuarioAtual); }
@@ -6108,6 +6236,7 @@ function moverMenuOrdem(s, key, dir){
   let j = i + dir;
   while (j >= 0 && j < lista.length && grupoDoMenu(lista[j], s) !== g) j += dir;
   if (j < 0 || j >= lista.length) return;
+  guardarParaDesfazer("mudar a ordem dos menus");           // v245
   lista.splice(j, 0, lista.splice(i, 1)[0]);
   if (!ordemMenus) ordemMenus = {};
   ordemMenus[s] = lista;
@@ -6116,6 +6245,7 @@ function moverMenuOrdem(s, key, dir){
 }
 // v189 - guarda a ordem que esta na tela como a referencia desta empresa
 function definirOrdemPadrao(s){
+  guardarParaDesfazer("guardar a ordem como padrão");       // v245
   if (!ordemPadrao) ordemPadrao = {};
   if (!ordemMenus) ordemMenus = {};
   const lista = todasAsChavesDeMenu().filter(k => menuVisivelNaEmpresa(k, s))
@@ -6128,6 +6258,7 @@ function definirOrdemPadrao(s){
 // v189 - volta para o padrao salvo; se nao houver padrao, volta para a ordem de fabrica
 function voltarOrdemPadrao(s){
   if (ordemPadrao && ordemPadrao[s] && ordemPadrao[s].length){
+    guardarParaDesfazer("voltar à ordem padrão");           // v245
     if (!ordemMenus) ordemMenus = {};
     ordemMenus[s] = ordemPadrao[s].slice();
     gravarOrdemMenus("Voltou os menus ao padrão"); montarBarraMenus(); renderPersonalizarMenus();
