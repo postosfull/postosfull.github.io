@@ -889,6 +889,10 @@
     border-left:3px solid var(--vermelho);border-radius:0 10px 10px 0;padding:10px 12px;font-size:.84rem;line-height:1.5;margin:12px 0}
   .prc-caixa-l{margin:6px 0 0;padding-left:18px}
   .prc-caixa-l li{margin:2px 0}
+  .prc-mais{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0 2px}
+  .prc-btn{color:var(--txt);border-color:var(--laranja)}
+  .prc-btn:hover{background:var(--superficie-2)}
+  .prc-mais-n{font-size:.78rem;color:var(--cinza)}
   @media (max-width:620px){
     .cmp-tab th:first-child,.cmp-tab td:first-child{white-space:normal;max-width:120px;font-size:.78rem}
     .cmp-tab th,.cmp-tab td{padding:6px 6px}
@@ -8376,7 +8380,9 @@ function compUmaCategoria(l, lojas){
    E diferente da margem contabil da venda (que usa custo medio) - e e' esta que serve
    para decidir preco, porque olha para o custo de repor o produto HOJE.                    */
 const PRC_MIN_CUSTO = 0.40;   // custo unitario abaixo de 40% do maior nao serve de referencia (quase sempre e' cadastro errado)
-const PRC_TOPO      = 20;     // quantas linhas a lista de oportunidades mostra
+const PRC_TOPO      = 20;     // quantas linhas a lista de oportunidades mostra FECHADA
+let prcTudo = false;          // v241 - o botao "Ver todos" abre a lista inteira
+function prcVerTudo(){ prcTudo = !prcTudo; renderRelLoja(); }
 
 function prcMargem(preco, custo){ return preco > 0 ? (preco - custo) / preco * 100 : 0; }
 
@@ -8481,12 +8487,16 @@ function blocoPrecoTop(mes){
   const total = fila.reduce((a,x) => a + x.c.ganho, 0);
   h += '<div class="cmp-destaque">\u{1F4A1} <b>' + fila.length + ' produtos estão mais baratos do que na loja que ganha mais neles.</b> '
      + 'Alinhando o preço de cada um, o grupo somaria mais <b>' + fmtR$0(total) + '</b> no mês. '
-     + 'A conta supõe que a quantidade vendida não cai — é o teto, não a previsão.</div>';
+     + 'A conta supõe que a quantidade vendida não cai — é o teto, não a previsão.'
+     + (fila.length > PRC_TOPO && !prcTudo
+        ? ' A tabela abaixo mostra os ' + PRC_TOPO + ' de maior ganho; o botão no fim abre a lista inteira.' : '')
+     + '</div>';
   h += '<div class="rel-scroll"><table class="rel-tab prc-tab"><thead><tr>' +
        '<th>Produto</th><th>Loja</th><th class="n">Preço hoje</th><th class="n">Sugerido</th>' +
        '<th class="n">Margem de reposição</th><th class="n">Ganho no mês</th>' +
        '</tr></thead><tbody>';
-  fila.slice(0, PRC_TOPO).forEach(f => {
+  const mostrar = prcTudo ? fila : fila.slice(0, PRC_TOPO);
+  mostrar.forEach(f => {
     h += '<tr class="cmp-linha" onclick="escolherCatComp(\'' + escAspas(f.it.cat) + '\')">' +
       '<td>' + escAttr(f.it.nome) + '<small class="prc-cat">' + escAttr(f.it.cat) + '</small>' +
         '<small class="cmp-op-mob">' + fmtR$(f.c.preco) + ' → ' + fmtR$(f.c.sugerido) + ' · ' + fmtR$0(f.c.ganho) + ' a ganhar</small></td>' +
@@ -8503,9 +8513,13 @@ function blocoPrecoTop(mes){
      + 'É diferente da margem da venda, que usa custo médio antigo — esta olha o custo de repor o produto hoje. '
      + 'O sugerido é o preço da loja de melhor margem; quando o custo daqui é maior, aparece também o preço que empata a margem. '
      + 'Toque numa linha para ver a categoria inteira.</p>';
-  if (fila.length > PRC_TOPO)
-    h += '<p class="nota-dash">Mostrando os ' + PRC_TOPO + ' de maior ganho, de ' + fila.length + '. '
-       + 'Escolha uma categoria acima para ver os produtos dela.</p>';
+  if (fila.length > PRC_TOPO){
+    h += '<div class="prc-mais"><button type="button" class="doc-chip prc-btn" onclick="prcVerTudo()">'
+       + (prcTudo ? '\u2191 Mostrar só os ' + PRC_TOPO + ' maiores'
+                  : '\u2193 Ver todos os ' + fila.length + ' produtos')
+       + '</button><span class="prc-mais-n">' + (prcTudo ? 'mostrando os ' + fila.length + ' — a lista inteira'
+                                                         : 'mostrando ' + PRC_TOPO + ' de ' + fila.length) + '</span></div>';
+  }
   h += prcNotaCaixa(dados, "");
   if (dados.semPrecos.length)
     h += '<p class="nota-dash">Sem preço coletado em: ' + dados.semPrecos.map(escAttr).join(", ") + '.</p>';
