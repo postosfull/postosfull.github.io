@@ -893,6 +893,12 @@
   .prc-btn{color:var(--txt);border-color:var(--laranja)}
   .prc-btn:hover{background:var(--superficie-2)}
   .prc-mais-n{font-size:.78rem;color:var(--cinza)}
+  .prc-alerta{background:var(--superficie-2);border:1px solid var(--borda);border-left:3px solid var(--vermelho);
+    border-radius:0 10px 10px 0;padding:10px 12px;font-size:.84rem;line-height:1.5;margin:8px 0 4px}
+  .prc-alerta.neutro{border-left-color:var(--laranja)}
+  .prc-sobe2{background-image:linear-gradient(rgba(211,47,47,.10),rgba(211,47,47,.10))}
+  .prc-sobe2 b{color:var(--vermelho)}
+  .prc-susp{color:var(--amarelo,#c9a227);font-weight:600}
   @media (max-width:620px){
     .cmp-tab th:first-child,.cmp-tab td:first-child{white-space:normal;max-width:120px;font-size:.78rem}
     .cmp-tab th,.cmp-tab td{padding:6px 6px}
@@ -6068,7 +6074,7 @@ function alternarSimular(){
 
 /* ================== v168 - Relatórios do posto e da conveniência (Adaptive) ================== */
 // Firestore não guarda lista dentro de lista: as tabelas vêm como texto JSON.
-const CAMPOS_LISTA_REL = ["aten","hora","comb","lbm","receb","cat","itens","despDet","precos"];  // v194 - precos na v239
+const CAMPOS_LISTA_REL = ["aten","hora","comb","lbm","receb","cat","itens","despDet","precos","custoSubiu"];  // v194 - precos na v239, custoSubiu na v242
 function normalizaRel(o){
   if (!o) return o;
   CAMPOS_LISTA_REL.forEach(k => {
@@ -8301,6 +8307,12 @@ function blocoRelLojaComp(){
                   : compTodasCategorias(linhas, lojas);
   // v239 - preco de tabela das 3 lojas, lado a lado
   h += relLojaCat ? blocoPrecoCategoria(mes, relLojaCat) : blocoPrecoTop(mes);
+  // v242 - o que nao da' para comparar, e o custo que subiu
+  const dPrc = dadosPrecoLojas(mes);
+  if (dPrc.temAlgum){
+    h += blocoExclusivos(dPrc, mes, relLojaCat || "");
+    h += blocoCustoSubiu(mes, relLojaCat || "");
+  }
   return h;
 }
 function compTodasCategorias(linhas, lojas){
@@ -8385,6 +8397,8 @@ let prcTudo = false;          // v241 - o botao "Ver todos" abre a lista inteira
 function prcVerTudo(){ prcTudo = !prcTudo; renderRelLoja(); }
 
 function prcMargem(preco, custo){ return preco > 0 ? (preco - custo) / preco * 100 : 0; }
+function dataCurtaRel(iso){ const p = String(iso||"").split("-");
+  return p.length === 3 ? p[2] + "/" + p[1] : (iso || "—"); }
 
 function dadosPrecoLojas(mes){
   const lojas = [], mapa = {};
@@ -8407,11 +8421,17 @@ function dadosPrecoLojas(mes){
         pmed: qtd > 0 ? rec / qtd : preco };
     });
   });
-  const itens = [];
+  const itens = [], exclusivos = [];
   Object.keys(mapa).forEach(cod => {
     const it = mapa[cod], por = it.por;
+    const todas = lojas.filter(l => por[l.chave]);
     const validas = lojas.filter(l => por[l.chave] && por[l.chave].preco > 0
                                    && por[l.chave].custo > 0 && por[l.chave].custo < por[l.chave].preco);
+    // v242 - vendido numa loja so': nao da' para comparar, mas nao pode sumir do radar
+    if (todas.length === 1){
+      exclusivos.push({ cod:cod, nome:it.nome, cat:it.cat, por:por, todas:todas });
+      return;
+    }
     if (validas.length < 2) return;
     const custoMax = Math.max.apply(null, validas.map(l => por[l.chave].custo));
     const pool = validas.filter(l => por[l.chave].custo >= PRC_MIN_CUSTO * custoMax);
@@ -8429,10 +8449,10 @@ function dadosPrecoLojas(mes){
       c.eRef      = (l.chave === ref.chave);
       ganho += c.ganho;
     });
-    itens.push({ cod:cod, nome:it.nome, cat:it.cat, por:por, validas:validas,
+    itens.push({ cod:cod, nome:it.nome, cat:it.cat, por:por, validas:validas, todas:todas,
                  ref:ref, margRef:margRef, precoRef:precoRef, ganho:ganho });
   });
-  return { lojas:lojas, itens:itens, temAlgum:temAlgum, semPrecos:semPrecos };
+  return { lojas:lojas, itens:itens, exclusivos:exclusivos, temAlgum:temAlgum, semPrecos:semPrecos };
 }
 
 /* uma linha por produto x loja que da' para ajustar, ordenada pelo ganho do mes */
@@ -8491,7 +8511,7 @@ function blocoPrecoTop(mes){
      + (fila.length > PRC_TOPO && !prcTudo
         ? ' A tabela abaixo mostra os ' + PRC_TOPO + ' de maior ganho; o botão no fim abre a lista inteira.' : '')
      + '</div>';
-  h += '<div class="rel-scroll"><table class="rel-tab prc-tab"><thead><tr>' +
+  h += '<div class="rel-scroll"><table class="rel-tab prc-tab prc-fila"><thead><tr>' +
        '<th>Produto</th><th>Loja</th><th class="n">Preço hoje</th><th class="n">Sugerido</th>' +
        '<th class="n">Margem de reposição</th><th class="n">Ganho no mês</th>' +
        '</tr></thead><tbody>';
@@ -8551,7 +8571,7 @@ function blocoPrecoCategoria(mes, cat){
   let h = '<h5 class="cmp-h5">\u{1F4B2} Preço de tabela e margem de reposição</h5>';
   if (!doCat.length)
     return h + '<p class="nota-dash">Nenhum produto desta categoria vendido em duas ou mais lojas com custo de compra lançado.</p>';
-  h += '<div class="rel-scroll"><table class="rel-tab prc-tab"><thead><tr><th>Produto</th>' +
+  h += '<div class="rel-scroll"><table class="rel-tab prc-tab prc-cat-tab"><thead><tr><th>Produto</th>' +
        lojas.map(l => '<th class="n">' + escAttr(l.nome) + '</th>').join("") +
        '<th class="n">Ganho no mês</th></tr></thead><tbody>';
   doCat.forEach(it => {
@@ -8573,6 +8593,159 @@ function blocoPrecoCategoria(mes, cat){
   h += '<p class="nota-dash">Preço de tabela do cadastro do Petros. A célula verde é a loja com a melhor '
      + 'margem de reposição naquele produto; a seta mostra para quanto o preço das outras subiria para alcançá-la. '
      + 'Produto que aparece em uma loja só, ou sem custo de compra lançado, fica de fora da conta.</p>';
+  return h;
+}
+
+/* ---------- v242 - o que NAO da' para comparar, e o custo que subiu ----------
+   Dois buracos que a v239-v241 deixaram:
+   (1) 600 dos 943 produtos vendidos em julho so' existem em UMA loja — 64% do que a
+       conveniencia vende ficava fora do radar de reajuste, porque nao tinha par.
+   (2) preco de tabela parado + custo de compra subindo = margem caindo sem ninguem ver.
+   Para (1) a referencia passa a ser a MARGEM MEDIA DA CATEGORIA NA PROPRIA LOJA — mesmo
+   custo, mesmo publico, meta realista. Para (2) a fonte sao as DUAS ULTIMAS COMPRAS de
+   verdade (natureza COMPRA), coletadas pelo passo `precosloja`.                            */
+const PRC_EXC_TOPO   = 15;    // exclusivos mostrados por loja com a lista fechada
+const PRC_ALTA_SUSP  = 50;    // acima disso a alta e' marcada como "conferir a nota"
+let prcExcTudo = false, prcCstTudo = false;
+function prcVerExc(){ prcExcTudo = !prcExcTudo; renderRelLoja(); }
+function prcVerCst(){ prcCstTudo = !prcCstTudo; renderRelLoja(); }
+
+/* margem media de reposicao de cada categoria, POR LOJA, ponderada pela receita do mes */
+function prcMediaCategoria(dados){
+  const acc = {};   // loja -> categoria -> {peso, soma}
+  dados.itens.concat(dados.exclusivos || []).forEach(it => {
+    it.todas.forEach(l => {
+      const c = it.por[l.chave];
+      if (!c || !(c.preco > 0) || !(c.custo > 0) || c.custo >= c.preco) return;
+      const peso = Math.max(c.rec, 1);
+      if (!acc[l.chave]) acc[l.chave] = {};
+      const a = acc[l.chave][it.cat] = acc[l.chave][it.cat] || { peso:0, soma:0, n:0 };
+      a.peso += peso; a.soma += c.marg * peso; a.n++;
+    });
+  });
+  const out = {};
+  Object.keys(acc).forEach(l => { out[l] = {};
+    Object.keys(acc[l]).forEach(c => { const a = acc[l][c];
+      out[l][c] = { media: a.peso ? a.soma / a.peso : 0, n: a.n }; }); });
+  return out;
+}
+
+/* os produtos que so' existem em UMA loja, medidos contra a media da categoria dela */
+function prcExclusivos(dados){
+  const media = prcMediaCategoria(dados);
+  const out = [];
+  (dados.exclusivos || []).forEach(it => {
+    const l = it.todas[0], c = it.por[l.chave];
+    if (!c || !(c.preco > 0) || !(c.custo > 0) || c.custo >= c.preco) return;
+    const m = (media[l.chave] || {})[it.cat];
+    if (!m || m.n < 3) return;                       // categoria com menos de 3 produtos nao vira meta
+    const gap = m.media - c.marg;
+    const alvo = m.media < 95 ? c.custo / (1 - m.media / 100) : c.preco;
+    out.push({ it:it, loja:l, c:c, mediaCat:m.media, nCat:m.n, gap:gap,
+               alvo:alvo, ganho: gap > 0 ? Math.max(0, alvo - c.pmed) * c.qtd : 0 });
+  });
+  return out.sort((a,b) => b.ganho - a.ganho || b.c.rec - a.c.rec);
+}
+
+/* custo que subiu entre as duas ultimas compras */
+function prcCustoSubiu(mes, cat){
+  const out = [];
+  UNIDADES_REL.forEach(u => {
+    const d = relLojas[u.chave + "_" + mes];
+    if (!d || !Array.isArray(d.custoSubiu)) return;
+    d.custoSubiu.forEach(x => {
+      const catx = String(x[2] || "");
+      if (cat && catx !== cat) return;
+      const velho = +x[3]||0, novo = +x[4]||0, preco = +x[7]||0;
+      if (!(velho > 0) || !(novo > velho) || !(preco > novo)) return;
+      const margAntes = (preco - velho) / preco * 100;
+      const margAgora = (preco - novo) / preco * 100;
+      out.push({ cod:String(x[0]||""), nome:String(x[1]||""), cat:catx, loja:u,
+        velho:velho, novo:novo, dia:String(x[5]||""), diaVelho:String(x[6]||""), preco:preco,
+        pct:(novo/velho - 1) * 100, margAntes:margAntes, margAgora:margAgora,
+        pp: margAntes - margAgora, alvo: margAntes < 95 ? novo / (1 - margAntes/100) : preco,
+        suspeito: (novo/velho - 1) * 100 >= PRC_ALTA_SUSP });
+    });
+  });
+  return out.sort((a,b) => b.pp - a.pp);
+}
+
+/* ---- bloco: custo subiu ---- */
+function blocoCustoSubiu(mes, cat){
+  const lista = prcCustoSubiu(mes, cat);
+  if (!lista.length) return "";
+  const firmes = lista.filter(x => !x.suspeito), susp = lista.filter(x => x.suspeito);
+  const mostrar = prcCstTudo ? lista : lista.slice(0, PRC_EXC_TOPO);
+  let h = '<h5 class="cmp-h5">\u{2B06}\u{FE0F} O custo de compra subiu — a margem caiu junto</h5>';
+  h += '<div class="prc-alerta">Estes produtos foram comprados mais caro na última nota, e o preço de venda '
+     + 'continua o mesmo. <b>' + lista.length + (lista.length===1?' produto':' produtos') + '</b> nesta situação'
+     + (cat ? ' nesta categoria' : ' nas três lojas') + '. Comparação entre as <b>duas últimas compras de verdade</b> '
+     + '(nota de compra; devolução de venda e bonificação ficam de fora).</div>';
+  h += '<div class="rel-scroll"><table class="rel-tab prc-tab prc-cst"><thead><tr>'
+     + '<th>Produto</th><th>Loja</th><th class="n">Custo antes</th><th class="n">Custo agora</th>'
+     + '<th class="n">Comprou em</th><th class="n">Margem</th><th class="n">Preço p/ recuperar</th>'
+     + '</tr></thead><tbody>';
+  mostrar.forEach(x => {
+    h += '<tr><td>' + escAttr(x.nome) + '<small class="prc-cat">' + escAttr(x.cat) + '</small>'
+       + (x.suspeito ? '<small class="prc-susp">⚠️ alta muito grande — confira a nota de entrada</small>' : '')
+       + '<small class="cmp-op-mob">margem ' + fmtPctRel(x.margAntes) + ' → ' + fmtPctRel(x.margAgora) + '</small></td>'
+       + '<td>' + escAttr(x.loja.nome) + '</td>'
+       + '<td class="n">' + fmtR$(x.velho) + '<small>' + (x.diaVelho ? dataCurtaRel(x.diaVelho) : '—') + '</small></td>'
+       + '<td class="n prc-sobe2"><b>' + fmtR$(x.novo) + '</b><small>+' + fmtPctRel(x.pct) + '</small></td>'
+       + '<td class="n">' + dataCurtaRel(x.dia) + '</td>'
+       + '<td class="n">' + fmtPctRel(x.margAntes) + ' → <b class="rel-desce">' + fmtPctRel(x.margAgora) + '</b>'
+       + '<small>' + x.pp.toFixed(1) + ' pp a menos</small></td>'
+       + (x.suspeito
+          ? '<td class="n cmp-sem">—<small>confira a nota antes</small></td></tr>'
+          : '<td class="n prc-sug"><b>' + fmtR$(x.alvo) + '</b><small>hoje ' + fmtR$(x.preco) + '</small></td></tr>');
+  });
+  h += '</tbody></table></div>';
+  if (lista.length > PRC_EXC_TOPO){
+    h += '<div class="prc-mais"><button type="button" class="doc-chip prc-btn" onclick="prcVerCst()">'
+       + (prcCstTudo ? '↑ Mostrar só os ' + PRC_EXC_TOPO + ' maiores' : '↓ Ver todos os ' + lista.length + ' produtos')
+       + '</button><span class="prc-mais-n">' + (prcCstTudo ? 'mostrando os ' + lista.length : 'mostrando ' + PRC_EXC_TOPO + ' de ' + lista.length) + '</span></div>';
+  }
+  h += '<p class="nota-dash">"Preço p/ recuperar" é quanto o preço precisaria subir para a margem voltar ao que era antes desta compra. '
+     + (susp.length ? susp.length + ' com alta acima de ' + PRC_ALTA_SUSP + '% estão marcados: costuma ser embalagem diferente na nota, não preço novo do fornecedor. ' : '')
+     + 'Produto sem duas compras no último ano não aparece aqui.</p>';
+  return h;
+}
+
+/* ---- bloco: so' nesta loja ---- */
+function blocoExclusivos(dados, mes, cat){
+  let lista = prcExclusivos(dados);
+  if (cat) lista = lista.filter(x => x.it.cat === cat);
+  if (!lista.length) return "";
+  const abaixo = lista.filter(x => x.gap > 0);
+  const mostrar = prcExcTudo ? lista : lista.slice(0, PRC_EXC_TOPO);
+  let h = '<h5 class="cmp-h5">\u{1F3F7}\u{FE0F} Só existe em uma loja</h5>';
+  h += '<div class="prc-alerta neutro">Produtos vendidos em <b>uma loja só</b> — não têm par para comparar. '
+     + 'A régua aqui é a <b>margem média da própria categoria naquela loja</b>. '
+     + '<b>' + lista.length + '</b> ' + (lista.length===1?'produto':'produtos') + (cat ? ' nesta categoria' : '')
+     + ', dos quais <b>' + abaixo.length + '</b> estão abaixo da média da sua categoria.</div>';
+  h += '<div class="rel-scroll"><table class="rel-tab prc-tab prc-exc"><thead><tr>'
+     + '<th>Produto</th><th>Loja</th><th class="n">Preço</th><th class="n">Custo</th>'
+     + '<th class="n">Margem</th><th class="n">Média da categoria</th><th class="n">Preço p/ chegar lá</th>'
+     + '</tr></thead><tbody>';
+  mostrar.forEach(x => {
+    const ruim = x.gap > 0;
+    h += '<tr><td>' + escAttr(x.it.nome) + '<small class="prc-cat">' + escAttr(x.it.cat) + '</small>'
+       + '<small class="cmp-op-mob">' + fmtR$0(x.c.rec) + ' no mês · margem ' + fmtPctRel(x.c.marg) + '</small></td>'
+       + '<td>' + escAttr(x.loja.nome) + '</td>'
+       + '<td class="n">' + fmtR$(x.c.preco) + '<small>' + fmtR$0(x.c.rec) + ' no mês</small></td>'
+       + '<td class="n">' + fmtR$(x.c.custo) + '</td>'
+       + '<td class="n' + (ruim ? ' rel-desce' : '') + '"><b>' + fmtPctRel(x.c.marg) + '</b></td>'
+       + '<td class="n">' + fmtPctRel(x.mediaCat) + '<small>' + x.nCat + ' produtos</small></td>'
+       + '<td class="n' + (ruim ? ' prc-sug' : '') + '">' + (ruim ? '<b>' + fmtR$(x.alvo) + '</b><small>+' + fmtR$0(x.ganho) + ' no mês</small>' : '<span class="cmp-sem">já está acima</span>') + '</td></tr>';
+  });
+  h += '</tbody></table></div>';
+  if (lista.length > PRC_EXC_TOPO){
+    h += '<div class="prc-mais"><button type="button" class="doc-chip prc-btn" onclick="prcVerExc()">'
+       + (prcExcTudo ? '↑ Mostrar só os ' + PRC_EXC_TOPO + ' maiores' : '↓ Ver todos os ' + lista.length + ' produtos')
+       + '</button><span class="prc-mais-n">' + (prcExcTudo ? 'mostrando os ' + lista.length : 'mostrando ' + PRC_EXC_TOPO + ' de ' + lista.length) + '</span></div>';
+  }
+  h += '<p class="nota-dash">Categoria com menos de 3 produtos na loja não vira régua — média de dois produtos não é média. '
+     + 'Produto sem preço ou sem custo de compra lançado também fica de fora.</p>';
   return h;
 }
 
