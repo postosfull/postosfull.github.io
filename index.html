@@ -1325,6 +1325,10 @@
   .arq-up-lbl{display:flex;flex-direction:column;gap:3px;font-size:.78rem;font-weight:600;color:var(--txt)}
   .arq-up-lbl select{border:1px solid var(--borda);border-radius:8px;padding:7px 9px;font-size:.9rem;background:var(--superficie);color:var(--txt);font-weight:400}
   .arq-file-btn{display:inline-block;cursor:pointer}
+  .doc-arq-linha{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-weight:400}
+  .doc-arq-bt{cursor:pointer;display:inline-block;font-size:.82rem;padding:6px 11px;border-radius:8px}
+  .doc-arq-nome{font-size:.78rem;color:var(--cinza);font-weight:400;word-break:break-all}
+  .doc-arq-dica{font-size:.7rem;color:var(--cinza);font-weight:400;margin-top:4px}
   .arq-prog{margin-top:8px;font-size:.8rem;color:var(--cinza);font-weight:600}
   .arq-grupo{margin:10px 0}
   .arq-grupo-tit{font-weight:700;font-size:.85rem;margin:12px 0 6px;display:flex;align-items:center;gap:6px}
@@ -2625,6 +2629,7 @@ let relSemFora = false, relSemRetiradas = false;   // v194 - ajustes do resultad
 let fdcConferidos = {}, fdcVerConferidos = false, fdcListaAtual = null;   // v211
 let relLojaSel = "teresina", relLojaMes = "", relLojaOrdem = "lb";
 let docFormAberto = false, editandoDoc = null;
+let docArqPend = null;   // v237: arquivo escolhido no formulario, ainda nao enviado
 let confirmarExclDoc = null, timerExclDoc = null;
 let docForm = { fonte:"doc", id:null, titulo:"", categoria:"Outro", empresa:"", origem:"Outros", vencimento:"", avisarDias:30, numero:"", obs:"" };
 let docVista = "tudo";                 // "tudo" | "venc" | "uni"  (menu unificado Documentos)
@@ -10431,6 +10436,50 @@ function avisoDoc(msg, tipo){
   el.style.cssText = "margin-top:8px;font-size:.82rem;font-weight:600;color:" + (tipo==="ok" ? "#18a558" : "#e11d48");
   clearTimeout(avisoDoc._t); avisoDoc._t = setTimeout(()=>{ if (el){ el.textContent=""; el.style.cssText="margin-top:8px;font-size:.82rem"; } }, 5000);
 }
+// v237: recado neutro (sem o vermelho de erro e sem apagar sozinho) para a barra de envio
+function progDoc(msg){
+  const el = document.getElementById("msgDoc"); if (!el) return;
+  clearTimeout(avisoDoc._t);
+  el.textContent = msg;
+  el.style.cssText = "margin-top:8px;font-size:.82rem;font-weight:600;color:var(--cinza)";
+}
+// v237: o formulario de documento passou a aceitar arquivo. O arquivo fica GUARDADO
+// em docArqPend e so sobe no Salvar, para nao criar anexo de documento que nao foi salvo.
+function aoEscolherArqDoc(input){
+  const f = input && input.files && input.files[0]; if (!f) return;
+  if (f.size > 20*1024*1024){ avisoDoc("Arquivo muito grande (m\u00e1ximo 20 MB).", "erro"); try { input.value = ""; } catch(e){} return; }
+  _lerFormDoc();
+  docArqPend = f;
+  const t = document.getElementById("docTitulo");
+  if (t && !String(t.value||"").trim()){
+    const n = String(f.name||"").replace(/\.[A-Za-z0-9]{1,6}$/, "").replace(/[_]+/g, " ").trim();
+    if (n){ t.value = n.slice(0,80); docForm.titulo = t.value; }
+  }
+  const el = document.getElementById("docArqNome"); if (el) el.textContent = "\ud83d\udcc4 " + f.name;
+  const bt = document.getElementById("docArqLbl"); if (bt) bt.childNodes[0].nodeValue = "\ud83d\udcce Trocar arquivo";
+  progDoc("");
+}
+function docAnexoCampoHtml(){
+  const esc = z => String(z||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  if (!storageRef()) return '<span class="doc-arq-nome">O armazenamento de arquivos ainda n\u00e3o est\u00e1 ligado neste projeto.</span>';
+  const ehArq = (docForm.fonte||"doc") === "arq";
+  let atual = "";
+  if (ehArq){
+    const a = (arquivos||[]).find(x => x.id === editandoDoc); if (a) atual = a.nome || "";
+  } else if (editandoDoc){
+    const d = (documentos||[]).find(x => x.id === editandoDoc); if (d) atual = d.anexoNome || "";
+  }
+  const sel = docArqPend ? docArqPend.name : "";
+  const txt = sel ? ("\ud83d\udcc4 " + esc(sel))
+            : (atual ? ("\ud83d\udcc4 " + esc(atual) + " \u2014 j\u00e1 anexado") : "Nenhum arquivo escolhido");
+  if (ehArq) return '<span class="doc-arq-nome" id="docArqNome">' + txt + '</span>';
+  const rot = (sel || atual) ? "\ud83d\udcce Trocar arquivo" : "\ud83d\udcce Escolher arquivo";
+  return '<div class="doc-arq-linha">' +
+    '<label class="btn-claro doc-arq-bt" id="docArqLbl">' + rot +
+      '<input type="file" id="docArqFile" accept="application/pdf,image/*" style="display:none" onchange="aoEscolherArqDoc(this)"></label>' +
+    '<span class="doc-arq-nome" id="docArqNome">' + txt + '</span></div>' +
+    '<span class="doc-arq-dica">PDF ou imagem, at\u00e9 20 MB. Deixe vazio se o documento n\u00e3o tem arquivo.</span>';
+}
 function _lerFormDoc(){
   const g = id => { const el = document.getElementById(id); return el ? el.value : undefined; };
   if (document.getElementById("docTitulo")){
@@ -10442,23 +10491,23 @@ function _lerFormDoc(){
 }
 
 function novoDoc(){
-  editandoDoc = null; docFormAberto = true;
+  editandoDoc = null; docFormAberto = true; docArqPend = null;
   docForm = { fonte:"doc", id:null, titulo:"", categoria:"Outro", empresa:"", origem:"Outros", vencimento:"", avisarDias:30, numero:"", obs:"" };
   renderVencimentos();
 }
 
 function editarDoc(id){
   const d = (documentos||[]).find(x => x.id === id); if (!d) return;
-  editandoDoc = id; docFormAberto = true;
+  editandoDoc = id; docFormAberto = true; docArqPend = null;
   docForm = { fonte:"doc", id:id, titulo:d.titulo||"", categoria:d.categoria||"Outro", empresa:d.empresa||"", origem:d.origem||"Outros", vencimento:d.vencimento||"", avisarDias:(typeof d.avisarDias==="number"?d.avisarDias:30), numero:d.numero||"", obs:d.obs||"" };
   renderVencimentos();
 }
-function cancelarDoc(){ docFormAberto = false; editandoDoc = null; renderVencimentos(); }
+function cancelarDoc(){ docFormAberto = false; editandoDoc = null; docArqPend = null; renderVencimentos(); }
 // v133 - menu unificado Documentos: editar/excluir funcionam para as 2 origens (documentos + arquivos)
 function editarItemDoc(fonte, id){
   if (fonte === "arq"){
     const a = (arquivos||[]).find(x => x.id === id); if (!a) return;
-    editandoDoc = id; docFormAberto = true;
+    editandoDoc = id; docFormAberto = true; docArqPend = null;
     docForm = { fonte:"arq", id:id, titulo:a.nome||"", categoria:a.tipo||"Outro", empresa:a.empresa||"", origem:a.origem||"Outros",
       vencimento:a.vencimento||"", avisarDias:(typeof a.avisarDias==="number"?a.avisarDias:30),
       numero:a.numero||"", obs:a.obs||"" };
@@ -10507,18 +10556,37 @@ function salvarDoc(){
   const dados = { titulo, categoria: docForm.categoria||"Outro", empresa: docForm.empresa||"", origem: docForm.origem||"Outros", vencimento: venc,
     avisarDias: avDias, numero: (docForm.numero||"").trim(), obs: (docForm.obs||"").trim(),
     atualizadoEm: Date.now(), atualizadoPor: usuarioAtual||"" };
-  if (editandoDoc){
-    const antes = (documentos||[]).find(x => x.id === editandoDoc) || null; const alvo = editandoDoc;
-    colDocumentos.doc(alvo).set(dados, { merge:true })
-      .then(()=> logAtividade({acao:"editou", area:"Documentos", resumo: resumoTxt, colecao:"documentos", docId:alvo, tipoUndo:"editar", antes: antes}))
-      .catch(er => avisoDoc(msgErro(er), "erro"));
-  } else {
-    dados.criadoEm = Date.now(); dados.criadoPor = usuarioAtual||"";
-    colDocumentos.add(dados)
-      .then(ref => logAtividade({acao:"criou", area:"Documentos", resumo: resumoTxt, colecao:"documentos", docId: ref.id, tipoUndo:"criar"}))
-      .catch(er => avisoDoc(msgErro(er), "erro"));
-  }
-  docFormAberto = false; editandoDoc = null; renderVencimentos();
+  // v237: o formulario aceita anexo. O arquivo sobe ANTES da gravacao e o id do documento
+  // e reservado antes (colDocumentos.doc() sem argumento), para o documento nascer JA com o
+  // anexo dentro — uma gravacao so, sem documento orfao se o envio falhar no meio.
+  const antesDoc = editandoDoc ? ((documentos||[]).find(x => x.id === editandoDoc) || null) : null;
+  const refDoc = editandoDoc ? colDocumentos.doc(editandoDoc) : colDocumentos.doc();
+  const gravar = () => {
+    if (editandoDoc){
+      const alvo = editandoDoc;
+      refDoc.set(dados, { merge:true })
+        .then(()=> logAtividade({acao:"editou", area:"Documentos", resumo: resumoTxt, colecao:"documentos", docId:alvo, tipoUndo:"editar", antes: antesDoc}))
+        .catch(er => avisoDoc(msgErro(er), "erro"));
+    } else {
+      dados.criadoEm = Date.now(); dados.criadoPor = usuarioAtual||"";
+      refDoc.set(dados)
+        .then(()=> logAtividade({acao:"criou", area:"Documentos", resumo: resumoTxt, colecao:"documentos", docId: refDoc.id, tipoUndo:"criar"}))
+        .catch(er => avisoDoc(msgErro(er), "erro"));
+    }
+    docFormAberto = false; editandoDoc = null; docArqPend = null; renderVencimentos();
+  };
+  if (!docArqPend){ gravar(); return; }
+  const arqNovo = docArqPend;
+  const btSalvar = document.getElementById("btSalvarDoc"); if (btSalvar) btSalvar.disabled = true;
+  progDoc("Enviando arquivo\u2026 0%");
+  subirArquivo(arqNovo, "documentos/" + refDoc.id, p => progDoc("Enviando arquivo\u2026 " + p + "%"))
+    .then(info => {
+      const antigo = antesDoc && antesDoc.anexoPath;
+      dados.anexoUrl = info.url; dados.anexoPath = info.path; dados.anexoNome = info.nome; dados.anexoTamanho = info.tamanho;
+      if (antigo && antigo !== info.path) apagarArquivoStorage(antigo);
+      gravar();
+    })
+    .catch(er => { if (btSalvar) btSalvar.disabled = false; avisoDoc(msgErro(er), "erro"); });
 }
 
 function excluirDoc(id){
@@ -10547,6 +10615,7 @@ function renderFormDoc(){
   if (!avO.some(o => o[0] === avA)){ avO.push([avA, avA + " dia(s) antes"]); avO.sort((a,b)=>a[0]-b[0]); }
   let h = '<div class="ev-form"><div class="ev-form-tit">'+(editandoDoc?'\u270f\ufe0f Editar documento':'\u2795 Novo documento')+'</div>';
   h += '<label class="ev-lbl">Nome do documento<input id="docTitulo" maxlength="80" value="'+esc(docForm.titulo)+'" placeholder="Ex: CNH do Jo\u00e3o / Licen\u00e7a ambiental - Teresina"></label>';
+  h += '<div class="ev-lbl">\ud83d\udcce Arquivo (opcional)' + docAnexoCampoHtml() + '</div>';
   h += '<label class="ev-lbl">Tipo<select id="docCategoria">'+catOpt+'</select></label>';
   h += '<label class="ev-lbl">Empresa<select id="docEmpresa" onchange="aoTrocarEmpresaDoc(this.value)">'+opcoesEmpresaHtml(docForm.empresa)+'</select></label>';
   h += '<label class="ev-lbl">Unidade<select id="docOrigem">'+uniOpt+'</select></label>';
@@ -10554,7 +10623,7 @@ function renderFormDoc(){
   h += '<label class="ev-lbl">\ud83d\udd14 Avisar com anteced\u00eancia<select id="docAvisar">'+avO.map(o=>'<option value="'+o[0]+'"'+(avA===o[0]?' selected':'')+'>'+o[1]+'</option>').join("")+'</select></label>';
   h += '<label class="ev-lbl">N\u00famero (opcional)<input id="docNumero" maxlength="40" value="'+esc(docForm.numero)+'" placeholder="N\u00ba do documento"></label>';
   h += '<label class="ev-lbl">Observa\u00e7\u00e3o (opcional)<input id="docObs" maxlength="120" value="'+esc(docForm.obs)+'" placeholder="Detalhes"></label>';
-  h += '<div class="ev-form-acoes"><button class="btn-verde" onclick="salvarDoc()">Salvar</button><button class="btn-claro" onclick="cancelarDoc()">Cancelar</button></div>';
+  h += '<div class="ev-form-acoes"><button class="btn-verde" id="btSalvarDoc" onclick="salvarDoc()">Salvar</button><button class="btn-claro" onclick="cancelarDoc()">Cancelar</button></div>';
   h += '<div id="msgDoc" style="margin-top:8px;font-size:.82rem"></div></div>';
   return h;
 }
@@ -10640,7 +10709,7 @@ function renderVencimentos(){
           '</div>' +
           '<label class="btn-verde arq-file-btn">📎 Enviar arquivo (sem data)<input type="file" id="arqFile" accept="application/pdf,image/*" style="display:none" onchange="aoEscolherArquivo(this)"></label>' +
           '<div id="arqProgresso" class="arq-prog"></div>' +
-          '<p class="nota-dash" style="margin:6px 0 0;font-size:.7rem">PDF ou imagem, até 20 MB. Se o arquivo tiver data de vencimento, use ➕ Novo documento — ou envie aqui e depois toque em ✏️ para colocar a data.</p>' +
+          '<p class="nota-dash" style="margin:6px 0 0;font-size:.7rem">PDF ou imagem, até 20 MB. Este atalho é o caminho rápido: guarda o arquivo sem nome próprio nem data. Para preencher nome, vencimento e número JUNTO com o arquivo, use ➕ Novo documento.</p>' +
           '</div>';
       } else {
         html += '<p class="nota-dash" style="color:#e11d48">O armazenamento de arquivos ainda não está ligado neste projeto. Peça ao administrador para ativar o Firebase Storage.</p>';
