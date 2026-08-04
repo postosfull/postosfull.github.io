@@ -885,6 +885,10 @@
   .prc-sug{background-image:linear-gradient(rgba(24,165,88,.10),rgba(24,165,88,.10))}
   .prc-sug b{color:#18a558}
   .prc-sobe{color:#18a558;font-weight:600}
+  .prc-caixa{background-image:linear-gradient(var(--superficie-2),var(--superficie-2));border:1px solid var(--borda);
+    border-left:3px solid var(--vermelho);border-radius:0 10px 10px 0;padding:10px 12px;font-size:.84rem;line-height:1.5;margin:12px 0}
+  .prc-caixa-l{margin:6px 0 0;padding-left:18px}
+  .prc-caixa-l li{margin:2px 0}
   @media (max-width:620px){
     .cmp-tab th:first-child,.cmp-tab td:first-child{white-space:normal;max-width:120px;font-size:.78rem}
     .cmp-tab th,.cmp-tab td{padding:6px 6px}
@@ -8432,13 +8436,32 @@ function prcFilaDeAjuste(dados, cat){
     if (cat && it.cat !== cat) return;
     it.validas.forEach(l => {
       const c = it.por[l.chave];
-      if (c.eRef || c.ganho <= 0) return;
+      // v240 - so' entra quem tem preco de tabela A SUBIR. Quando o sugerido e' igual ao preco
+      // que ja' esta' na tabela, nao ha' reajuste a fazer: o que existe e' desconto no caixa,
+      // e isso vai para a nota separada de prcSaiMaisBarato().
+      if (c.eRef || c.ganho <= 0 || c.sugerido <= c.preco + 0.005) return;
       fila.push({ it:it, loja:l, c:c });
     });
   });
   return fila.sort((a,b) => b.c.ganho - a.c.ganho);
 }
 
+/* v240 - preco de tabela ja' esta' no lugar, mas a venda esta' saindo abaixo dele.
+   Nao e' reajuste: ou o cadastro esta' velho, ou esta' saindo desconto no caixa. */
+function prcSaiMaisBarato(dados, cat){
+  const fora = [];
+  dados.itens.forEach(it => {
+    if (cat && it.cat !== cat) return;
+    it.validas.forEach(l => {
+      const c = it.por[l.chave];
+      if (!(c.qtd > 0) || !(c.preco > 0)) return;
+      if (c.pmed >= c.preco * 0.97) return;          // menos de 3% de diferenca nao conta
+      fora.push({ it:it, loja:l, c:c, dif:(c.pmed - c.preco) / c.preco * 100,
+                  valor:(c.preco - c.pmed) * c.qtd });
+    });
+  });
+  return fora.sort((a,b) => b.valor - a.valor);
+}
 function prcAvisoSemDado(dados, mes){
   return '<p class="nota-dash">\u{1F4B2} <b>Preço de tabela entre as lojas</b> — ainda não coletado para '
     + rotuloMesRel(mes) + '. Peça ao Claude: "sincroniza os preços da conveniência".</p>';
@@ -8483,8 +8506,25 @@ function blocoPrecoTop(mes){
   if (fila.length > PRC_TOPO)
     h += '<p class="nota-dash">Mostrando os ' + PRC_TOPO + ' de maior ganho, de ' + fila.length + '. '
        + 'Escolha uma categoria acima para ver os produtos dela.</p>';
+  h += prcNotaCaixa(dados, "");
   if (dados.semPrecos.length)
     h += '<p class="nota-dash">Sem preço coletado em: ' + dados.semPrecos.map(escAttr).join(", ") + '.</p>';
+  return h;
+}
+
+/* a nota do "sai mais barato no caixa", usada nos dois blocos */
+function prcNotaCaixa(dados, cat){
+  const fora = prcSaiMaisBarato(dados, cat);
+  if (!fora.length) return "";
+  const total = fora.reduce((a,x) => a + x.valor, 0);
+  let h = '<div class="prc-caixa">\u{1F9FE} <b>' + fora.length + (fora.length === 1 ? ' produto saiu' : ' produtos saíram')
+    + ' mais barato no caixa do que o preço da tabela</b> — diferença de ' + fmtR$0(total) + ' no mês. '
+    + 'Aqui não é reajuste: ou o cadastro está desatualizado, ou está saindo desconto na hora da venda.<ul class="prc-caixa-l">';
+  fora.slice(0, 5).forEach(f => {
+    h += '<li>' + escAttr(f.it.nome) + ' <b>(' + escAttr(f.loja.nome) + ')</b> — tabela ' + fmtR$(f.c.preco)
+       + ', saiu a ' + fmtR$(f.c.pmed) + ' <span class="rel-desce">(' + fmtPctRel(f.dif) + ')</span></li>';
+  });
+  h += '</ul>' + (fora.length > 5 ? '<small>e mais ' + (fora.length - 5) + '.</small>' : '') + '</div>';
   return h;
 }
 
@@ -8515,6 +8555,7 @@ function blocoPrecoCategoria(mes, cat){
     h += '<td class="n' + (it.ganho > 0 ? ' rel-desce' : '') + '">' + (it.ganho > 0 ? fmtR$0(it.ganho) : "—") + '</td></tr>';
   });
   h += '</tbody></table></div>';
+  h += prcNotaCaixa(dados, cat);
   h += '<p class="nota-dash">Preço de tabela do cadastro do Petros. A célula verde é a loja com a melhor '
      + 'margem de reposição naquele produto; a seta mostra para quanto o preço das outras subiria para alcançá-la. '
      + 'Produto que aparece em uma loja só, ou sem custo de compra lançado, fica de fora da conta.</p>';
