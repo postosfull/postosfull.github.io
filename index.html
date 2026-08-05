@@ -2485,8 +2485,9 @@
       <div class="sim-fonte" id="simFonte"></div>
       <div class="sim-resultados" id="simResultados"></div>
       <div class="sim-acoes" id="simAcoes" style="display:none">
-        <button class="btn-verde" onclick="compartilharSimulacao()">📲 Compartilhar como imagem</button>
-        <span class="sim-dica-share">Gera uma imagem pronta para enviar no WhatsApp e outros apps.</span>
+        <button class="btn-verde" id="simBtnImg" onclick="compartilharSimulacao()">📲 Compartilhar como imagem</button>
+        <button class="btn-claro" id="simBtnTxt" onclick="compartilharTextoSimulacao()">📝 Compartilhar como texto</button>
+        <span class="sim-dica-share">A imagem vai pronta para o WhatsApp; o texto dá para colar em qualquer lugar.</span>
       </div>
       <canvas id="simCanvas" width="1080" height="1920" style="display:none"></canvas>
     </div>
@@ -5408,6 +5409,10 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v260", data:"05/08/2026", tit:"Compartilhar a simulação como texto", itens:[
+    {t:"n",h:"Um botão novo: 📝 Compartilhar como texto",d:"Além da imagem, o Simular Margens agora manda a simulação escrita: posto, combustível, preço de compra, frete, preço de venda, a margem e — quando você simulou um preço novo — a margem de hoje e a diferença por litro. No celular abre o menu de compartilhar; no computador o texto é copiado e é só colar."},
+    {t:"m",h:"Dá para compartilhar a margem de hoje sem simular nada",d:"Os dois botões agora aparecem assim que a tela mostra a margem de hoje, sem precisar digitar um preço novo. A imagem também passou a usar o preço de hoje quando o campo está vazio."}
+  ]},
   {v:"v259", data:"05/08/2026", tit:"O Simular Margens abre pronto para você digitar", itens:[
     {t:"m",h:"O campo do preço de venda abre vazio",d:"Antes o preço de hoje vinha escrito dentro do campo, e quem queria simular tinha de selecionar, apagar e só então digitar. Agora o campo abre livre, com o preço de hoje aparecendo em cinza no fundo dele — é só digitar o preço novo."},
     {t:"m",h:"A margem de hoje aparece na hora",d:"O quadro com a margem do preço atual já vem montado ao abrir a tela, sem precisar digitar nada. Quando você digita um preço novo, o quadro “Simulado” aparece ao lado, com a diferença por litro."}
@@ -15878,7 +15883,9 @@ function calcularSimulacao(){
     if (acoes) acoes.style.display = "none";
     return;
   }
-  if (acoes) acoes.style.display = (custo > 0 && venda > 0) ? "flex" : "none";
+  /* v260 - os botoes de compartilhar seguem OS QUADROS, nao o campo digitado: se ha' margem
+     de hoje na tela, ela ja' pode ser compartilhada. */
+  if (acoes) acoes.style.display = (temHoje || temSim) ? "flex" : "none";
 
   // Mesma fórmula dos lançamentos (margem COM frete)
   const mh = temHoje ? margens({ custo, frete, venda: simBase.venda }) : null;
@@ -15908,11 +15915,94 @@ function calcularSimulacao(){
   alvo.innerHTML = h;
 }
 
+/* ===================== v260 - COMPARTILHAR COMO TEXTO =====================
+   A imagem e' bonita e serve para mandar no grupo; o texto serve para COLAR - num e-mail,
+   numa planilha, numa conversa com quem esta' no computador. Sao usos diferentes, e agora
+   a tela tem os dois.
+   🔑 O texto diz de ONDE veio cada numero, igual a tela: quem recebe no WhatsApp nao tem a
+   linha de fonte na frente, entao ela vai junto. Numero sem procedencia vira boato. */
+function textoDaSimulacao(){
+  const num = id => {
+    const bruto = ((document.getElementById(id)||{}).value || "").replace(/\./g, "").replace(",", ".");
+    const v = parseFloat(bruto);
+    return isFinite(v) ? v : 0;
+  };
+  const posto = ((document.getElementById("simPosto")||{}).value || "").trim();
+  const comb  = ((document.getElementById("simCombustivel")||{}).value || "").trim();
+  const forma = ((document.getElementById("simForma")||{}).value || "vista") === "prazo" ? "a prazo" : "à vista";
+  const custo = num("simCusto"), frete = num("simFrete");
+  const digitado = num("simVenda");
+  const temHoje = (typeof simBase !== "undefined") && simBase.venda !== null && custo > 0;
+  const temSim  = digitado > 0 && (!temHoje || Math.abs(simBase.venda - digitado) > 0.00001);
+  const venda   = digitado > 0 ? digitado : (temHoje ? simBase.venda : 0);
+
+  const rs = (v, c) => "R$ " + fmtBR(v, c === undefined ? 3 : c);
+  const pc = v => isFinite(v) ? fmtBR(v, 2) + "%" : "—";
+  const m  = margens({ custo, frete, venda });
+
+  const L = [];
+  L.push("📊 *Simulação de margem — Postos Full*");
+  L.push(posto + (comb ? " · " + comb : "") + " (" + forma + ")");
+  L.push("");
+  L.push("Preço de compra: " + rs(custo, 4));
+  L.push("Custo do frete: " + rs(frete, 4));
+  L.push("Preço de venda: " + rs(venda, 2) + (temSim ? " (simulado)" : " (preço de hoje)"));
+  L.push("");
+  L.push("*" + (temSim ? "Margem simulada" : "Margem de hoje") + ": " + rs(m.cfR) + "/L · " + pc(m.cfP) + "*");
+  if (temSim && temHoje){
+    const mh = margens({ custo, frete, venda: simBase.venda });
+    const dR = m.cfR - mh.cfR, dP = m.cfP - mh.cfP;
+    const sinal = v => (v > 0 ? "+" : "");
+    L.push("Hoje, a " + rs(simBase.venda, 2) + ": " + rs(mh.cfR) + "/L · " + pc(mh.cfP));
+    L.push("Diferença: " + sinal(dR) + rs(dR) + "/L" + (isFinite(dP) ? " · " + sinal(dP) + fmtBR(dP, 2) + " p.p." : ""));
+  }
+  /* a mesma procedencia que a tela mostra na linha de fonte */
+  const proc = [];
+  if (typeof simBase !== "undefined"){
+    if (simBase.custo !== null && simBase.dataLanc) proc.push("compra e frete do lançamento de " + simDiaBR(simBase.dataLanc));
+    if (simBase.venda !== null) proc.push("preço de venda cadastrado no app");
+  }
+  L.push("");
+  if (proc.length) L.push("_" + proc.join(" · ") + "_");
+  L.push("Margem com frete · " + new Date().toLocaleDateString("pt-BR"));
+  return L.join("\n");
+}
+
+async function compartilharTextoSimulacao(){
+  const btn = document.getElementById("simBtnTxt");
+  const txtOrig = btn ? btn.textContent : "";
+  const texto = textoDaSimulacao();
+  try {
+    if (navigator.share){
+      await navigator.share({ title: "Simulação de Margem — Postos Full", text: texto });
+    } else {
+      await navigator.clipboard.writeText(texto);
+      avisar("Texto da simulação copiado — é só colar.", "ok");
+    }
+  } catch(e){
+    /* o "cancelou" do proprio menu de compartilhar nao e' erro e nao merece aviso */
+    if (e && (e.name === "AbortError" || /abort|cancel/i.test(String(e.message||"")))) { }
+    else {
+      /* reserva da reserva: area de transferencia por elemento, para navegador antigo */
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = texto; ta.style.position = "fixed"; ta.style.opacity = "0";
+        document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove();
+        avisar("Texto da simulação copiado — é só colar.", "ok");
+      } catch(e2){ avisar("Não consegui compartilhar o texto neste aparelho.", "alerta"); }
+    }
+  }
+  if (btn){ btn.textContent = txtOrig; btn.disabled = false; }
+}
+
 // Desenha a imagem da simulação (formato vertical 1080x1920, ideal para WhatsApp)
 function desenharImagemSimulacao(){
   return new Promise((resolve) => {
     const num = id => { const v = parseFloat((document.getElementById(id).value||"").replace(",",".")); return isFinite(v)?v:0; };
-    const custo = num("simCusto"), frete = num("simFrete"), venda = num("simVenda");
+    const custo = num("simCusto"), frete = num("simFrete");
+    /* v260 - campo de venda vazio (o normal desde a v259): a imagem sai com o preco de HOJE,
+       em vez de desenhar 0,00 e uma margem negativa que ninguem pediu. */
+    const venda = num("simVenda") || (typeof simBase !== "undefined" && simBase.venda) || 0;
     const combustivel = document.getElementById("simCombustivel").value || "";
     const posto = ((document.getElementById("simPosto")||{}).value || "").trim();   /* v258 */
     const m = margens({ custo, frete, venda });
@@ -16017,7 +16107,7 @@ function desenharImagemSimulacao(){
 }
 
 async function compartilharSimulacao(){
-  const btn = document.querySelector("#simAcoes button");
+  const btn = document.getElementById("simBtnImg");     /* v260 - agora ha' DOIS botoes aqui */
   const txtOrig = btn.textContent;
   btn.textContent = "Gerando imagem…"; btn.disabled = true;
   try {
