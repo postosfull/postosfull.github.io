@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v256 — Postos Full (não é o app)</title>
+<title>PRÉVIA v257 — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -5374,6 +5374,9 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v257", data:"05/08/2026", tit:"O lucro por litro do card Vendas do dia também fica verde", itens:[
+    {t:"m",h:"Lucro Bruto/L e Lucro Líquido/L agora acompanham a cor",d:"Na v256 só o valor em R$ tinha ganhado cor. Agora as três linhas de lucro do card Vendas do dia dos postos — o lucro do dia, o Lucro Bruto por litro e o Lucro Líquido por litro — aparecem em verde, e em vermelho se o número for negativo, do mesmo jeito que no menu Resultado do mês. O Volume continua sem cor, porque é quantidade vendida e não resultado."}
+  ]},
   {v:"v256", data:"05/08/2026", tit:"O lucro do dia fica verde, igual ao Resultado do mês", itens:[
     {t:"m",h:"O lucro do card Vendas do dia agora é verde",d:"No card Vendas do dia, o valor em R$ do lucro aparecia em preto, enquanto o mesmo número no card Resultado do mês já vinha em verde. Agora os dois falam a mesma língua: verde quando o dia deu lucro, vermelho quando deu prejuízo. Vale para os Postos Full e para a Full Conveniência. Nenhum número mudou — mudou só a cor."}
   ]},
@@ -16043,7 +16046,11 @@ function renderPetrosResumo(){
      As classes e as cores ja existiam (.pet-l b.rpz-pos = #18a558, .pet-l b.rpz-neg = #c0392b,
      postas na v198 pela licao da v197): o que faltava era o card do topo usa-las.
      Vale para os POSTOS e para as CONVENIENCIAS, e vale tambem quando o rotulo ainda e'
-     "Lucro Bruto" - o numero e' o mesmo, so' o nome dele muda (v220). */
+     "Lucro Bruto" - o numero e' o mesmo, so' o nome dele muda (v220).
+     v257 - AS LINHAS POR LITRO TAMBEM. O card Resultado do mes ja' colore o lucro liquido
+     POR LITRO desde a v202; aqui elas ficavam cinzas. Quem NAO ganha cor e' o VOLUME (e as
+     "Vendas" da loja): quantidade e faturamento nao sao resultado, e card com tudo colorido
+     e' card sem destaque. */
   const corLucroDia = v => ((+v || 0) < 0 ? "rpz-neg" : "rpz-pos");
 
   if (soLojas){
@@ -16066,10 +16073,10 @@ function renderPetrosResumo(){
         '<div class="pet-l"><span>Volume'+bul('volume')+'</span><b>'+fmtBR(d.volume||0,0)+' L</b></div>' +
         (cd
           ? '<div class="pet-l"><span>Lucro Líquido'+bul('lucroDia')+'</span><b class="'+corLucroDia(d.lucroLiquido)+'">R$ '+fmtBR(d.lucroLiquido||0,2)+'</b></div>' +   /* v256 */
-            '<div class="pet-l"><span>Lucro Bruto/L'+bul('lucroDiaL')+'</span><b>R$ '+fmtBR(d.lucroBrutoL||0,4)+'</b></div>' +
-            '<div class="pet-l"><span>Lucro Líquido/L'+bul('lucroDiaL')+'</span><b>R$ '+fmtBR(d.lucroLiquidoL||0,4)+'</b></div>'
+            '<div class="pet-l"><span>Lucro Bruto/L'+bul('lucroDiaL')+'</span><b class="'+corLucroDia(d.lucroBrutoL)+'">R$ '+fmtBR(d.lucroBrutoL||0,4)+'</b></div>'   /* v257 */ +
+            '<div class="pet-l"><span>Lucro Líquido/L'+bul('lucroDiaL')+'</span><b class="'+corLucroDia(d.lucroLiquidoL)+'">R$ '+fmtBR(d.lucroLiquidoL||0,4)+'</b></div>'   /* v257 */
           : '<div class="pet-l"><span>Lucro Bruto'+bul('lucroDia')+'</span><b class="'+corLucroDia(d.lucroLiquido)+'">R$ '+fmtBR(d.lucroLiquido||0,2)+'</b></div>' +   /* v256 */
-            '<div class="pet-l"><span>Lucro Bruto/L'+bul('lucroDiaL')+'</span><b>R$ '+fmtBR(d.lucroBrutoL||0,4)+'</b></div>') +
+            '<div class="pet-l"><span>Lucro Bruto/L'+bul('lucroDiaL')+'</span><b class="'+corLucroDia(d.lucroBrutoL)+'">R$ '+fmtBR(d.lucroBrutoL||0,4)+'</b></div>'   /* v257 */) +
         '</div></div>';
     });
     html += '</div></div>';
