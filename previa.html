@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v258 — Postos Full (não é o app)</title>
+<title>PRÉVIA v259 — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -5408,6 +5408,10 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v259", data:"05/08/2026", tit:"O Simular Margens abre pronto para você digitar", itens:[
+    {t:"m",h:"O campo do preço de venda abre vazio",d:"Antes o preço de hoje vinha escrito dentro do campo, e quem queria simular tinha de selecionar, apagar e só então digitar. Agora o campo abre livre, com o preço de hoje aparecendo em cinza no fundo dele — é só digitar o preço novo."},
+    {t:"m",h:"A margem de hoje aparece na hora",d:"O quadro com a margem do preço atual já vem montado ao abrir a tela, sem precisar digitar nada. Quando você digita um preço novo, o quadro “Simulado” aparece ao lado, com a diferença por litro."}
+  ]},
   {v:"v258", data:"05/08/2026", tit:"O Simular Margens já vem com os preços do posto", itens:[
     {t:"n",h:"Escolha o posto e o combustível — o resto vem sozinho",d:"O menu 💰 Simular Margens ganhou um seletor de posto. Ao escolher o posto e o combustível, o app já preenche o preço de compra e o frete do último lançamento daquele posto, e o preço de venda que está cadastrado em Configurações. Você mexe só no preço de venda e vê a margem nova na hora."},
     {t:"n",h:"A margem de hoje aparece ao lado da simulada",d:"Quando você muda o preço de venda, a tela mostra dois quadros: a margem com o preço de hoje e a margem com o preço que você digitou, mais a diferença em centavos por litro e em pontos percentuais."},
@@ -15777,15 +15781,28 @@ function preencherSimulacao(){
 
   simPorNoCampo("simCusto", simBase.custo);
   simPorNoCampo("simFrete", simBase.frete);
-  simPorNoCampo("simVenda", simBase.venda);
+  simVendaEmBranco();                       /* v259 */
   escreverFonteSimulacao();
   calcularSimulacao();
+}
+
+/* v259 - O CAMPO DE VENDA ABRE VAZIO, DE PROPOSITO.
+   Na v258 ele nascia com o preco de hoje escrito dentro, e quem queria simular tinha de
+   selecionar, apagar e so' entao digitar - tres gestos para fazer a unica coisa que a tela
+   existe para fazer. Agora o preco de hoje fica no FUNDO do campo (placeholder) e o quadro
+   "Hoje" ja' aparece pronto embaixo: o numero continua a' vista, o campo continua livre.
+   🔑 Campo que a pessoa SEMPRE vai trocar nao se preenche: se enche o placeholder. */
+function simVendaEmBranco(){
+  const campo = document.getElementById("simVenda");
+  if (!campo) return;
+  campo.value = "";
+  campo.placeholder = simBase.venda === null ? "0,00" : fmtBR(simBase.venda, 2);
 }
 
 function restaurarSimulacao(){
   simPorNoCampo("simCusto", simBase.custo);
   simPorNoCampo("simFrete", simBase.frete);
-  simPorNoCampo("simVenda", simBase.venda);
+  simVendaEmBranco();                       /* v259 - volta ao vazio, nao ao preco escrito */
   escreverFonteSimulacao();
   calcularSimulacao();
 }
@@ -15809,7 +15826,7 @@ function escreverFonteSimulacao(){
   let h = "";
   if (partes.length) h += partes.join(" · ") + ".";
   if (simBase.custo !== null || simBase.venda !== null)
-    h += ' <button type="button" class="sim-volta" onclick="restaurarSimulacao()">↺ Voltar aos preços do posto</button>';
+    h += ' <button type="button" class="sim-volta" onclick="restaurarSimulacao()">↺ Recomeçar</button>';
   if (faltas.length) h += (h ? "<br>" : "") + "⚠️ " + faltas.join("; ") + ".";
 
   box.className = "sim-fonte" + (faltas.length ? " alerta" : "");
@@ -15842,45 +15859,52 @@ function calcularSimulacao(){
   const alvo = document.getElementById("simResultados");
 
   const acoes = document.getElementById("simAcoes");
-  if (custo <= 0 && venda <= 0 && frete <= 0){
-    alvo.innerHTML = '<div class="sim-vazio">Preencha os valores acima para ver a margem.</div>';
+  const cls = v => v < 0 ? " neg" : "";
+  const rs = v => isFinite(v) ? "R$ " + fmtBR(v, 3) : "—";
+  const pc = v => isFinite(v) ? fmtBR(v, 2) + "%" : "—";
+
+  /* v259 - o quadro HOJE nao espera ninguem digitar.
+     Ele existe assim que ha' custo e preco cadastrado; e' a foto da margem de agora.
+     O quadro SIMULADO so' nasce quando a pessoa digita um preco - e some se ela apagar.
+     Quando o preco digitado e' o mesmo de hoje, fica um quadro so': dois quadros com o
+     mesmo numero lado a lado seriam ruido. */
+  const temHoje = simBase.venda !== null && custo > 0;
+  const temSim  = venda > 0 && (!temHoje || Math.abs(simBase.venda - venda) > 0.00001);
+
+  if (!temHoje && venda <= 0){
+    alvo.innerHTML = custo > 0
+      ? '<div class="sim-vazio">Digite o preço de venda para ver a margem.</div>'
+      : '<div class="sim-vazio">Preencha os valores acima para ver a margem.</div>';
     if (acoes) acoes.style.display = "none";
     return;
   }
   if (acoes) acoes.style.display = (custo > 0 && venda > 0) ? "flex" : "none";
 
   // Mesma fórmula dos lançamentos (margem COM frete)
-  const m = margens({ custo, frete, venda });
-  const cls = v => v < 0 ? " neg" : "";
-  const rs = v => isFinite(v) ? "R$ " + fmtBR(v, 3) : "—";
-  const pc = v => isFinite(v) ? fmtBR(v, 2) + "%" : "—";
-
-  /* v258 - a margem de HOJE fica ao lado da simulada. "Hoje" e' com o preco CADASTRADO do
-     posto; so' aparece quando existe esse preco E ele e' diferente do que esta' na tela -
-     dois blocos iguais lado a lado seriam ruido. */
-  const temHoje = simBase.venda !== null && custo > 0 && Math.abs(simBase.venda - venda) > 0.00001;
   const mh = temHoje ? margens({ custo, frete, venda: simBase.venda }) : null;
+  const m  = temSim  ? margens({ custo, frete, venda }) : null;
+
+  const quadro = (titulo, preco, mm, extra) =>
+    '<div class="sim-bloco' + (mm === mh ? ' hoje' : '') + '">' +
+    '<h4>' + titulo + (preco === null ? '' : ' <span class="sim-selo">R$ ' + fmtBR(preco, 2) + '</span>') + '</h4>' +
+    '<div class="sim-linha"><span class="rot">Em reais</span><span class="val' + cls(mm.cfR) + '">' + rs(mm.cfR) + '</span></div>' +
+    '<div class="sim-linha"><span class="rot">Em percentual</span><span class="val' + cls(mm.cfP) + '">' + pc(mm.cfP) + '</span></div>' +
+    (extra || '') + '</div>';
 
   let h = "";
-  if (temHoje){
-    h += '<div class="sim-bloco hoje">' +
-         '<h4>Hoje <span class="sim-selo">R$ ' + fmtBR(simBase.venda, 2) + '</span></h4>' +
-         '<div class="sim-linha"><span class="rot">Em reais</span><span class="val' + cls(mh.cfR) + '">' + rs(mh.cfR) + '</span></div>' +
-         '<div class="sim-linha"><span class="rot">Em percentual</span><span class="val' + cls(mh.cfP) + '">' + pc(mh.cfP) + '</span></div>' +
-         '</div>';
+  if (temHoje) h += quadro(temSim ? "Hoje" : "Margem de hoje", simBase.venda, mh,
+    temSim ? "" : '<div class="sim-dif"><span class="rot">Digite um preço de venda acima para simular</span></div>');
+  if (temSim){
+    let extra = "";
+    if (temHoje){
+      const dR = m.cfR - mh.cfR, dP = m.cfP - mh.cfP;
+      const sinal = v => (v > 0 ? "+" : "");
+      extra = '<div class="sim-dif"><span class="rot">Diferença por litro</span>' +
+              '<span class="val' + (dR < 0 ? " neg" : "") + '">' + sinal(dR) + "R$ " + fmtBR(dR, 3) +
+              (isFinite(dP) ? " · " + sinal(dP) + fmtBR(dP, 2) + " p.p." : "") + '</span></div>';
+    }
+    h += quadro(temHoje ? "Simulado" : "Margem com frete", temHoje ? venda : null, m, extra);
   }
-  h += '<div class="sim-bloco">' +
-       '<h4>' + (temHoje ? 'Simulado <span class="sim-selo">R$ ' + fmtBR(venda, 2) + '</span>' : 'Margem com frete') + '</h4>' +
-       '<div class="sim-linha"><span class="rot">Em reais</span><span class="val' + cls(m.cfR) + '">' + rs(m.cfR) + '</span></div>' +
-       '<div class="sim-linha"><span class="rot">Em percentual</span><span class="val' + cls(m.cfP) + '">' + pc(m.cfP) + '</span></div>';
-  if (temHoje){
-    const dR = m.cfR - mh.cfR, dP = m.cfP - mh.cfP;
-    const sinal = v => (v > 0 ? "+" : "");
-    h += '<div class="sim-dif"><span class="rot">Diferença por litro</span>' +
-         '<span class="val' + (dR < 0 ? " neg" : "") + '">' + sinal(dR) + "R$ " + fmtBR(dR, 3) +
-         (isFinite(dP) ? " · " + sinal(dP) + fmtBR(dP, 2) + " p.p." : "") + '</span></div>';
-  }
-  h += '</div>';
   alvo.innerHTML = h;
 }
 
