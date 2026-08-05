@@ -255,6 +255,53 @@
   .header-busca{background:none;border:0;cursor:pointer;font-size:1.05rem;line-height:1;padding:4px 6px;opacity:.85}
   .header-busca:hover{opacity:1}
   @media (max-width:560px){ .bsc-fundo{padding-top:6vh} .bsc-sub{display:none} .bsc-pe{display:none} }
+  /* ===== v248 - tela vazia com desenho ============================================
+     Reveste as classes de vazio que JA' existiam. Uma regra, ~30 telas.
+     🔴 `td.vazio` e nao `.vazio`: o `.vazio` pelado tambem e' modificador de card. */
+  .ana-vazio, .dash-vazio, .hist-vazio, .doc-vazio, td.vazio, .vz-cx{
+    text-align:center;color:var(--cinza);font-style:normal;font-size:.9rem;line-height:1.6;
+    padding:26px 16px 24px}
+  .ana-vazio::before, .dash-vazio::before, .hist-vazio::before, .doc-vazio::before,
+  td.vazio::before, .vz-cx::before{
+    content:"";display:block;width:104px;height:70px;margin:0 auto 12px;opacity:.75;
+    background-repeat:no-repeat;background-position:center;background-size:contain;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 80'><rect x='13' y='12' width='94' height='58' rx='9' fill='none' stroke='%23C9C9C9' stroke-width='3'/><path d='M13 32h94' stroke='%23C9C9C9' stroke-width='3'/><circle cx='24' cy='22' r='3.2' fill='%23FF6401'/><circle cx='35' cy='22' r='3.2' fill='%23DDDDDD'/><path d='M30 48h60M30 59h38' stroke='%23DEDEDE' stroke-width='6' stroke-linecap='round'/></svg>")}
+  .vz-tit{display:block;font-weight:700;color:var(--txt);opacity:.85;margin-bottom:4px;font-size:.98rem}
+  .vz-bt{margin-top:14px}
+  /* ===== v248 - esqueleto enquanto carrega ===== */
+  @keyframes esqBrilho{ 0%{background-position:-320px 0} 100%{background-position:320px 0} }
+  .esq{border-radius:7px;height:13px;
+       background-image:linear-gradient(90deg,rgba(140,140,140,.12) 25%,rgba(140,140,140,.26) 37%,rgba(140,140,140,.12) 63%);
+       background-size:640px 100%;animation:esqBrilho 1.3s linear infinite}
+  td .esq{height:15px}
+  .esq-cx{display:flex;flex-direction:column;gap:10px;padding:14px 4px}
+  /* ===== v248 - a barra de progresso do topo ===== */
+  @keyframes prgAnda{ 0%{left:-40%;width:40%} 50%{width:55%} 100%{left:100%;width:35%} }
+  #prgGlobal{position:fixed;top:0;left:0;right:0;height:3px;z-index:9600;display:none;overflow:hidden;
+             background-image:linear-gradient(rgba(var(--verde-rgb),.16),rgba(var(--verde-rgb),.16))}
+  #prgGlobal.ativo{display:block}
+  #prgGlobal i{position:absolute;top:0;height:100%;
+               background-image:linear-gradient(90deg,rgba(var(--verde-rgb),.2),var(--verde),rgba(var(--verde-rgb),.2));
+               animation:prgAnda 1.15s ease-in-out infinite}
+  /* ===== v248 - o aviso colorido por tipo (toast) ===== */
+  #tstCx{position:fixed;right:16px;bottom:16px;z-index:9500;display:flex;flex-direction:column;gap:8px;
+         max-width:min(380px,calc(100% - 32px));pointer-events:none}
+  @keyframes tstEntra{ from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+  .tst{display:flex;gap:9px;align-items:flex-start;border:1px solid var(--borda);border-left-width:4px;
+       border-radius:10px;padding:10px 13px;font-size:.86rem;line-height:1.4;color:var(--txt);
+       background-image:linear-gradient(var(--superficie),var(--superficie));
+       box-shadow:0 8px 24px rgba(0,0,0,.18);animation:tstEntra .18s ease-out}
+  .tst.some{opacity:0;transition:opacity .3s}
+  .tst-ic{flex:0 0 auto}
+  .tst.ok{border-left-color:#18a558} .tst.erro{border-left-color:#c0392b}
+  .tst.alerta{border-left-color:#e0a106} .tst.info{border-left-color:#2f7fd1}
+  /* ===== v248 - paginacao de verdade ===== */
+  .pgn{display:flex;align-items:center;gap:10px;justify-content:flex-end;padding:8px 4px;font-size:.82rem;flex-wrap:wrap}
+  .pgn-nota{margin-right:auto;opacity:.7}
+  .pgn button{border:1px solid var(--borda);border-radius:8px;padding:4px 11px;cursor:pointer;color:var(--txt);
+              background-image:linear-gradient(var(--superficie),var(--superficie))}
+  .pgn button[disabled]{opacity:.4;cursor:default}
+  @media (max-width:560px){ #tstCx{left:12px;right:12px;bottom:12px;max-width:none} }
   .menu-lateral button:hover{background:var(--superficie-2)}
   /* v243 - o menu aceso ganha barra à esquerda e uma luz que entra na horizontal,
      no lugar do contorno de 2px. background-IMAGE porque o modo escuro forçado do
@@ -1848,6 +1895,8 @@
 
 <div class="container" id="appPrincipal" style="display:none">
 
+  <div id="prgGlobal" aria-hidden="true"><i></i></div>            <!-- v248 -->
+  <div id="tstCx" aria-live="polite" aria-atomic="false"></div>   <!-- v248 -->
   <div class="menu-fundo" id="menuFundo" onclick="fecharMenuLateral()"></div>
   <aside class="menu-lateral" id="menuLateral" aria-label="Menu principal">
     <button class="btn-claro menu-empresa-btn" id="btnEmpresa" onclick="alternarSeletorEmpresa(event)"><span class="mi">🏢</span><span class="mt"><b id="empresaNome">Postos Full</b> ▾</span></button>
@@ -2750,6 +2799,7 @@
       <tfoot id="rodapeTabela"></tfoot>
     </table>
   </div>
+  <div class="pgn" id="pgnRegistros"></div>   <!-- v248 -->
 
   <div class="rodape">
     <span class="dica">Edite qualquer célula diretamente — tudo é salvo na nuvem e sincronizado automaticamente entre os aparelhos conectados. <span id="infoUltimaSync"></span> Em ⚙ Configurações você gerencia postos, distribuidoras e o frete padrão.</span>
@@ -4693,6 +4743,7 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v248", data:"04/08/2026", tit:"Telas vazias com desenho, esqueleto ao carregar, avisos coloridos e páginas", itens:[{t:"n",h:"A tela avisa que está carregando, em vez de dizer que não há nada",d:"A tabela de Lançamentos dizia \u201cNenhum registro\u201d enquanto os dados ainda estavam vindo da nuvem. Agora ela mostra linhas cinzas piscando, e um fio fino anda no alto da tela enquanto o app espera. Só depois, se realmente não houver nada, aparece o aviso."},{t:"n",h:"Avisos coloridos, no canto da tela",d:"Recado importante \u2014 ficar sem conexão, por exemplo \u2014 passou a aparecer numa caixinha no canto, com a cor do tipo: verde deu certo, vermelho deu erro, amarelo é atenção e azul é informação. Antes ele piscava no cabeçalho e sumia sem ninguém ver."},{t:"n",h:"Lançamentos em páginas de 50",d:"Com muitos registros a tabela agora vem em páginas, com Anterior e Próxima. As médias do rodapé continuam somando TODOS os registros filtrados, não só a página que está na tela \u2014 e o rodapé diz isso."},{t:"m",h:"Tela sem nada ficou com cara de tela, não de erro",d:"Onde não há dado, aparece um desenho, uma frase explicando e \u2014 quando existe uma ação óbvia \u2014 o botão dela. Em Documentos, por exemplo, o \u2795 Novo documento aparece ali mesmo."}]},
   {v:"v247", data:"04/08/2026", tit:"Busca por atalho e a tela de Novidades em três colunas", itens:[{t:"n",h:"Buscar tela pelo nome, com Ctrl+K",d:"Aperte Ctrl+K (ou toque na lupa \ud83d\udd0e do cabeçalho) em qualquer tela e digite o nome do que você procura: os menus, as abas de Relatórios e Financeiro e algumas ações aparecem na hora. Enter abre. Some assim o preço de ter os menus em grupos: chegar a um menu de outro grupo custava dois cliques, e agora não custa nenhum."},{t:"m",h:"Esta tela ficou em três colunas",d:"Cada versão passou a ter um título além do número, e o que ela trouxe aparece em três colunas \u2014 o que é novo, o que melhorou e o que foi consertado \u2014 em vez de uma lista só. A versão que está no ar leva o selo Versão atual."}]},
   {v:"v246", data:"04/08/2026", tit:"O menu Novidades", itens:[{t:"n",h:"Este menu \ud83c\udf81 Novidades",d:"Toda versão nova passa a contar aqui o que mudou, da mais recente para a mais antiga. O número vermelho ao lado do menu diz quantas versões você ainda não leu, e some quando você abre esta tela."}]},
   {v:"v245", data:"04/08/2026", tit:"A barra lateral virou grupos, e ficou do seu jeito", itens:[{t:"n",h:"A barra lateral virou GRUPOS",d:"Os menus agora moram em grupos que abrem e fecham (Dia a dia, Análise, Transportadora, Organização e Ajustes). Só o grupo da tela que você abriu fica aberto, então a barra fica curta e fácil de varrer."}, {t:"n",h:"Personalizar menus: a barra fica do seu jeito",d:"No pé da barra, \u270f\ufe0f Personalizar menus deixa você renomear cada menu, trocar de grupo, mudar a ordem e criar ou apagar grupos \u2014 por empresa, sem precisar pedir para ninguém."}, {t:"n",h:"Nada se perde, e dá para desfazer",d:"Menu não se apaga. Para apagar um grupo, o app pergunta para onde vão os menus dele e faz a mudança nessa ordem. E há um \u21a9 Desfazer que diz o que vai desfazer antes de você clicar."}, {t:"m",h:"O app ganhou movimento",d:"O menu escolhido acende com uma barra e uma luz; uma faixa atravessa o cabeçalho; a tela entra subindo e os quadros aparecem em sequência."}]},
@@ -4771,6 +4822,70 @@ function renderNovidades(){
   try { localStorage.setItem(CHAVE_NVD_LIDA, nvdVersaoApp()); } catch(e){}
   atualizarBadgeNovidades();
 }
+/* ===== v248 - o app diz o que esta acontecendo ====================================
+   Quatro pecas pequenas, todas da varredura do Concept Hub. Elas existem para acabar com
+   o pior resultado que uma tela pode dar: o ZERO enquanto o dado ainda esta' vindo.
+   🔑 Ordem de qualidade das saidas (v228/v230/v236): numero certo > aviso explicito >
+   bloco ausente > zero. O esqueleto e a barra de progresso sao o "aviso explicito" para
+   o instante em que ainda nao existe numero nenhum. */
+
+/* --- a barra fina do topo -------------------------------------------------------- */
+let _prgT = 0;
+function progGlobal(ligar){
+  const el = document.getElementById("prgGlobal");
+  if (!el) return;
+  clearTimeout(_prgT);
+  el.classList.toggle("ativo", !!ligar);
+  // 🔴 teto de 20 s: barra que nunca para de andar deixa de significar "espere" e vira enfeite
+  if (ligar) _prgT = setTimeout(() => { el.classList.remove("ativo"); }, 20000);
+}
+
+/* --- o aviso colorido por tipo ---------------------------------------------------- */
+const TST_IC = { ok:"\u2714", erro:"\u26a0", alerta:"\u26a0", info:"\u2139" };
+function avisar(texto, tipo, ms){
+  const cx = document.getElementById("tstCx");
+  if (!cx || !texto) return;
+  const t = (tipo && TST_IC[tipo]) ? tipo : "info";
+  const el = document.createElement("div");
+  el.className = "tst " + t;
+  el.innerHTML = '<span class="tst-ic">' + TST_IC[t] + '</span><span>' + escAttr(texto) + '</span>';
+  cx.appendChild(el);
+  // o mais velho sai quando passam de tres: pilha de aviso ninguem le
+  while (cx.children.length > 3) cx.removeChild(cx.firstChild);
+  setTimeout(() => { el.classList.add("some"); setTimeout(() => el.remove(), 350); }, ms || 4200);
+}
+
+/* --- o bloco de tela vazia --------------------------------------------------------
+   `bt` e' opcional e so' deve existir quando ha UMA acao obvia para aquela tela.
+   👉 Tela vazia sem acao nenhuma nao ganha botao inventado. */
+function vazioHtml(tit, txt, btRotulo, btAcao){
+  return '<div class="vz-cx">' +
+    (tit ? '<span class="vz-tit">' + escAttr(tit) + '</span>' : '') +
+    (txt ? '<span>' + txt + '</span>' : '') +
+    (btRotulo && btAcao
+      ? '<div class="vz-bt"><button class="btn-verde" onclick="' + escAttr(btAcao) + '">' + escAttr(btRotulo) + '</button></div>'
+      : '') + '</div>';
+}
+
+/* --- esqueleto -------------------------------------------------------------------- */
+function esqueletoLinhas(linhas, colunas){
+  let h = "";
+  for (let i = 0; i < (linhas || 5); i++){
+    h += "<tr>";
+    for (let c = 0; c < (colunas || 6); c++){
+      // larguras diferentes por coluna: bloco todo igual parece tabela travada, nao carregando
+      h += '<td><span class="esq" style="display:block;width:' + (56 + ((i + c) % 4) * 12) + '%"></span></td>';
+    }
+    h += "</tr>";
+  }
+  return h;
+}
+function esqueletoCaixa(linhas){
+  let h = '<div class="esq-cx">';
+  for (let i = 0; i < (linhas || 4); i++) h += '<span class="esq" style="width:' + (100 - i * 13) + '%"></span>';
+  return h + "</div>";
+}
+
 /* ===== v247 - a busca por atalho (Ctrl+K) ==========================================
    Nasceu da varredura do Concept Hub, e conserta um preco que a v243 cobrou: com os
    menus em grupos que se fecham, chegar a um menu de outro grupo custa DOIS cliques.
@@ -5109,6 +5224,13 @@ registros.forEach(r => { if (!r.id) r.id = "l_" + Date.now().toString(36) + "_" 
 
 let avisoSalvo = null;
 function statusSync(txto){
+  /* v248 - o que NAO e' "✓" e' problema, e problema no cantinho do cabecalho ninguem ve:
+     vai tambem para o aviso colorido. O "✓ Sincronizado" continua so' no cabecalho -
+     avisar a cada gravacao bem-sucedida treina a pessoa a ignorar o aviso. */
+  if (txto && txto.indexOf("\u2713") !== 0 && txto.indexOf("\u2714") !== 0){
+    const ruim = /offline|sem conex|erro|falh/i.test(txto);
+    if (ruim || /enviando/i.test(txto)) avisar(txto, ruim ? "alerta" : "info");
+  }
   const el = document.getElementById("statusSalvo");
   if (el){
     el.textContent = txto;
@@ -5678,6 +5800,7 @@ function iniciarSync(){
     if (pa && pa.classList.contains("aberto")) renderAvisos();
   }, ()=>{});
 
+  progGlobal(true);   // v248 - o fio no topo anda ate a nuvem responder
   // Lançamentos
   escutaLancamentos = colLancamentos.onSnapshot(async snap => {
     const daNuvem = [];
@@ -5686,6 +5809,7 @@ function iniciarSync(){
     // Primeira carga: se a nuvem está vazia e há dados locais, migra para a nuvem
     if (!nuvemPronta && daNuvem.length === 0 && registros.length && registros.some(r => r.data)){
       nuvemPronta = true;
+      progGlobal(false);   // v248
       statusSync("Enviando seus dados para a nuvem…");
       const lote = db.batch();
       registros.forEach(r => {
@@ -5698,11 +5822,12 @@ function iniciarSync(){
     }
 
     nuvemPronta = true;
+    progGlobal(false);   // v248
     registros = daNuvem.sort((a,b)=>(a.data||"9999-99-99").localeCompare(b.data||"9999-99-99"));
     salvarCache();
     statusSync("✓ Sincronizado");
     render();
-  }, ()=>{ statusSync("Modo offline — sincroniza ao reconectar"); });
+  }, ()=>{ progGlobal(false); statusSync("Modo offline — sincroniza ao reconectar"); });   // v248
 }
 
 /* ================== Formatação BR ================== */
@@ -5768,12 +5893,33 @@ function render(){
     .sort((a,b)=>(a.r.data || "9999-99-99").localeCompare(b.r.data || "9999-99-99"));
 
   if(!visiveis.length){
-    corpo.innerHTML = '<tr><td colspan="13" class="vazio">Nenhum registro para os filtros escolhidos. Ajuste os filtros ou adicione um registro.</td></tr>';
+    /* 🔴 v248 - ANTES daqui morava um defeito silencioso: enquanto a nuvem nao tinha
+       respondido, a tabela ja' dizia "Nenhum registro para os filtros escolhidos".
+       Nao ha registro nenhum porque nao chegou nada ainda - a tela dizia uma coisa
+       falsa, com educacao. Agora, sem nuvem, ela mostra ESQUELETO. */
+    corpo.innerHTML = !nuvemPronta
+      ? esqueletoLinhas(6, 13)
+      : '<tr><td colspan="13" class="vazio">' +
+        vazioHtml("Nenhum registro para os filtros escolhidos",
+                  "Ajuste os filtros acima \u2014 ou lance o primeiro registro deste per\u00edodo.",
+                  "\u2795 Adicionar registro", "novaLinha()") + '</td></tr>';
     document.getElementById("rodapeTabela").innerHTML = "";
+    const pv = document.getElementById("pgnRegistros"); if (pv) pv.innerHTML = "";
     return;
   }
 
-  corpo.innerHTML = visiveis.map(({r,i})=>{
+  /* v248 - paginacao de verdade. O corte e' so' do DESENHO das linhas: as medias do
+     rodape continuam somando TODOS os registros filtrados (`visiveis`), e a tela diz
+     isso. 🔑 Media da pagina seria numero errado com cara de certo. */
+  const totPag = Math.max(1, Math.ceil(visiveis.length / REG_POR_PAG));
+  if (regPag > totPag) regPag = totPag;
+  if (regPag < 1) regPag = 1;
+  const daPagina = visiveis.length > REG_POR_PAG
+    ? visiveis.slice((regPag - 1) * REG_POR_PAG, regPag * REG_POR_PAG)
+    : visiveis;
+  renderPaginacaoRegistros(visiveis.length, totPag, daPagina.length);
+
+  corpo.innerHTML = daPagina.map(({r,i})=>{
     const m = margens(r);
     return `<tr>
       <td><input type="date" value="${r.data}" onchange="atualizar(${i},'data',this.value)"></td>
@@ -5799,7 +5945,7 @@ function render(){
   const media = arr => arr.reduce((a,b)=>a+b,0)/arr.length;
   const ms = rs.map(margens);
   document.getElementById("rodapeTabela").innerHTML = `<tr>
-    <td colspan="4">Média (${rs.length} registro${rs.length>1?"s":""})</td>
+    <td colspan="4">Média (${rs.length} registro${rs.length>1?"s":""}${visiveis.length > REG_POR_PAG ? ", de todas as páginas" : ""})</td>
     <td>${fmtRS(media(rs.map(r=>r.custo)))}</td>
     <td>${fmtRS(media(rs.map(r=>r.frete)))}</td>
     <td>${fmtRS(media(rs.map(r=>r.venda)))}</td>
@@ -5812,6 +5958,22 @@ function render(){
 }
 
 /* ================== Ações ================== */
+/* v248 - o estado da paginacao da tabela de Lancamentos */
+const REG_POR_PAG = 50;
+let regPag = 1;
+function irParaPaginaRegistros(n){ regPag = n; render();
+  const t = document.querySelector("#painelRegistros .tabela-wrap");
+  if (t && t.scrollIntoView) t.scrollIntoView({ block:"start" }); }
+function renderPaginacaoRegistros(total, totPag, nesta){
+  const cx = document.getElementById("pgnRegistros");
+  if (!cx) return;
+  if (total <= REG_POR_PAG){ cx.innerHTML = ""; return; }
+  cx.innerHTML =
+    '<span class="pgn-nota">Mostrando ' + nesta + ' de ' + total + ' registros</span>' +
+    '<button onclick="irParaPaginaRegistros(' + (regPag - 1) + ')"' + (regPag <= 1 ? " disabled" : "") + '>\u2039 Anterior</button>' +
+    '<span>P\u00e1gina ' + regPag + ' de ' + totPag + '</span>' +
+    '<button onclick="irParaPaginaRegistros(' + (regPag + 1) + ')"' + (regPag >= totPag ? " disabled" : "") + '>Pr\u00f3xima \u203a</button>';
+}
 function novoId(){ return "l_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2,8); }
 function atualizar(i, chave, valor){ registros[i][chave] = valor; salvarRegistro(registros[i], "editou"); render(); }
 function atualizarNum(i, chave, el){ registros[i][chave] = lerNum(el.value); salvarRegistro(registros[i], "editou"); render(); }
@@ -6637,6 +6799,7 @@ function gravarOrdemMenus(msg){
    faz ordem, nome e grupo com folga. Duas portas para a mesma coisa e' divida.
    O msgOrdem abaixo continua vivo: e' o recado do rodape da caixa. */
 function msgOrdem(texto, tipo){
+  if (texto) avisar(texto, tipo === "erro" ? "erro" : "ok");   // v248
   const el = document.getElementById("msgOrdem");
   if (!el) return;
   el.textContent = texto || "";
@@ -12002,13 +12165,18 @@ function renderVencimentos(){
   // A LEITURA de `arquivos` continua: os itens antigos aparecem, editam e apagam.
   if (pode){
     html += '<div class="cal-gestao">';
-    if (!docFormAberto) html += '<button class="btn-verde" onclick="novoDoc()">➕ Novo documento</button>';
+    if (!docFormAberto && itensDocsTodos().length) html += '<button class="btn-verde" onclick="novoDoc()">➕ Novo documento</button>';   // v248 - na tela vazia quem convida e' o bloco
     html += '</div>';
     if (docFormAberto) html += renderFormDoc();
   }
   const itens = itensDocsTodos();
   if (!itens.length){
-    html += '<p class="nota-dash">' + (pode ? 'Nada cadastrado ainda. Toque em ➕ Novo documento (CNH, licenças, alvarás, certificado digital…) — dá para anexar o arquivo no próprio formulário.' : 'Nenhum documento disponível ainda.') + '</p>';
+    // v248 - tela vazia com desenho, e o botao da acao para quem pode
+    html += pode
+      ? vazioHtml("Nada cadastrado ainda",
+          "CNH, licen\u00e7as, alvar\u00e1s, certificado digital\u2026 \u2014 d\u00e1 para anexar o arquivo no pr\u00f3prio formul\u00e1rio.",
+          "\u2795 Novo documento", "novoDoc()")
+      : vazioHtml("Nenhum documento dispon\u00edvel ainda", "");
     cont.innerHTML = html; return;
   }
   // --- resumo ---
