@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v257 — Postos Full (não é o app)</title>
+<title>PRÉVIA v258 — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -2234,6 +2234,28 @@
     text-transform:none;letter-spacing:0;font-weight:400}
   @media print{ .bul-i,.bul-card{display:none !important} }
 
+  /* ===================== v258 - O SIMULADOR JA' VEM PREENCHIDO =====================
+     Duas peças novas: a linha que diz DE ONDE veio cada número (e de QUANDO), e o par
+     "hoje x simulado". Regra da casa: numero certo > aviso explicito > bloco ausente >
+     zero. Por isso, quando falta o lancamento ou o preco cadastrado, o campo fica VAZIO
+     e esta linha explica - nunca entra zero. */
+  .sim-campo.sim-largo{flex:1.7}          /* cabe "Gasolina Aditivada" sem cortar */
+  .sim-fonte{margin:10px 0 0;font-size:.8rem;color:var(--cinza);line-height:1.5}
+  .sim-fonte b{color:var(--txt);font-weight:600}
+  .sim-fonte.alerta{color:#c0392b}
+  .sim-fonte .sim-volta{
+    margin-left:8px;padding:3px 10px;border-radius:999px;cursor:pointer;
+    border:1px solid var(--borda);background:transparent;color:var(--txt);font-size:.76rem}
+  .sim-fonte .sim-volta:hover{border-color:var(--verde)}
+  .sim-bloco.hoje{opacity:.9}
+  .sim-bloco .sim-selo{
+    display:inline-block;margin-left:8px;padding:1px 8px;border-radius:999px;
+    font-size:.68rem;font-weight:600;background:rgba(var(--verde-rgb),.16);color:var(--verde)}
+  .sim-dif{display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+    padding:8px 0 0;margin-top:6px;border-top:1px dashed var(--borda)}
+  .sim-dif .rot{font-size:.78rem;color:var(--cinza)}
+  .sim-dif .val{font-size:1rem;font-weight:700;font-variant-numeric:tabular-nums;color:#18a558}
+  .sim-dif .val.neg{color:#c0392b}
 </style>
 </head>
 <body>
@@ -2433,8 +2455,19 @@
       <p class="nota-dash">Preencha os valores para calcular a margem na hora, sem precisar criar um lançamento. Ideal para testar cenários de preço.</p>
       <div class="sim-campos">
         <div class="sim-campo">
+          <label for="simPosto">Posto</label>
+          <select id="simPosto" onchange="onSimPostoChange()"></select>
+        </div>
+        <div class="sim-campo sim-largo">
           <label for="simCombustivel">Combustível</label>
-          <select id="simCombustivel"></select>
+          <select id="simCombustivel" onchange="preencherSimulacao()"></select>
+        </div>
+        <div class="sim-campo">
+          <label for="simForma">Tipo de preço</label>
+          <select id="simForma" onchange="preencherSimulacao()">
+            <option value="vista">À vista</option>
+            <option value="prazo">A prazo</option>
+          </select>
         </div>
         <div class="sim-campo">
           <label for="simCusto">Preço de compra (R$)</label>
@@ -2449,6 +2482,7 @@
           <input type="text" id="simVenda" inputmode="numeric" placeholder="0,00" oninput="mascaraMoeda(this); calcularSimulacao()">
         </div>
       </div>
+      <div class="sim-fonte" id="simFonte"></div>
       <div class="sim-resultados" id="simResultados"></div>
       <div class="sim-acoes" id="simAcoes" style="display:none">
         <button class="btn-verde" onclick="compartilharSimulacao()">📲 Compartilhar como imagem</button>
@@ -5374,6 +5408,12 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v258", data:"05/08/2026", tit:"O Simular Margens já vem com os preços do posto", itens:[
+    {t:"n",h:"Escolha o posto e o combustível — o resto vem sozinho",d:"O menu 💰 Simular Margens ganhou um seletor de posto. Ao escolher o posto e o combustível, o app já preenche o preço de compra e o frete do último lançamento daquele posto, e o preço de venda que está cadastrado em Configurações. Você mexe só no preço de venda e vê a margem nova na hora."},
+    {t:"n",h:"A margem de hoje aparece ao lado da simulada",d:"Quando você muda o preço de venda, a tela mostra dois quadros: a margem com o preço de hoje e a margem com o preço que você digitou, mais a diferença em centavos por litro e em pontos percentuais."},
+    {t:"n",h:"À vista ou a prazo",d:"Um seletor troca entre o preço à vista e o preço a prazo cadastrados para aquele posto."},
+    {t:"m",h:"A tela diz de onde veio cada número",d:"Embaixo dos campos aparece de que dia é o lançamento e de quando é o preço cadastrado — e, se faltar algum dos dois, um aviso em vermelho no lugar de um zero. Um botão “↺ Voltar aos preços do posto” desfaz suas edições."}
+  ]},
   {v:"v257", data:"05/08/2026", tit:"O lucro por litro do card Vendas do dia também fica verde", itens:[
     {t:"m",h:"Lucro Bruto/L e Lucro Líquido/L agora acompanham a cor",d:"Na v256 só o valor em R$ tinha ganhado cor. Agora as três linhas de lucro do card Vendas do dia dos postos — o lucro do dia, o Lucro Bruto por litro e o Lucro Líquido por litro — aparecem em verde, e em vermelho se o número for negativo, do mesmo jeito que no menu Resultado do mês. O Volume continua sem cor, porque é quantidade vendida e não resultado."}
   ]},
@@ -15622,23 +15662,177 @@ function mascaraMoeda(campo){
   campo.value = reaisFmt + "," + centavos;
 }
 
-function prepararSimulador(){
-  // Preenche o seletor de combustível com as mesmas opções dos lançamentos
+/* ===================== v258 - o Simulador ja' vem com os precos do posto =====================
+   O que mudou: a tela ganhou POSTO e um seletor A' VISTA / A PRAZO, e ao escolher posto +
+   combustivel ela mesma busca:
+     - preco de COMPRA e FRETE -> o ULTIMO LANCAMENTO daquele posto + combustivel (menu Lancamentos);
+     - preco de VENDA          -> o preco CADASTRADO em Configuracoes (config/precosVenda).
+   A pessoa mexe so' no preco de venda e ve' a margem nova ao lado da margem de hoje.
+
+   🔴 O DE-PARA QUE NAO E' ENFEITE: a lista de precos usa "Diesel S10 Grid" em Teresina
+   (combustiveisDoPosto), e os lancamentos usam "Diesel S10" (OPCOES.combustivel). Sem a
+   traducao, Teresina nunca acharia o custo do S10 - e a tela mostraria "sem lancamento"
+   com 89 lancamentos na mao. */
+const SIM_COMB_LANC = { "Diesel S10 Grid": "Diesel S10" };
+const simCombDoLancamento = c => SIM_COMB_LANC[c] || c;
+const SIM_CHAVE = "pf_simular";           // lembra posto e forma escolhidos, por aparelho
+
+/* o que a tela preencheu sozinha - e' o que o botao "voltar aos precos do posto" restaura */
+let simBase = { custo:null, frete:null, venda:null, dataLanc:"", dataPreco:"", posto:"", comb:"" };
+
+function simEscolhaSalva(){
+  try { return JSON.parse(localStorage.getItem(SIM_CHAVE) || "{}") || {}; } catch(e){ return {}; }
+}
+function simGuardarEscolha(){
+  try {
+    localStorage.setItem(SIM_CHAVE, JSON.stringify({
+      posto: (document.getElementById("simPosto")||{}).value || "",
+      comb:  (document.getElementById("simCombustivel")||{}).value || "",
+      forma: (document.getElementById("simForma")||{}).value || "vista"
+    }));
+  } catch(e){}
+}
+
+/* O ULTIMO lancamento daquele posto + combustivel. `registros` ja' vem ordenado por data
+   (comparacao de texto AAAA-MM-DD), entao o ultimo da lista filtrada e' o mais recente -
+   e no empate de data vence o que foi lancado depois, que e' o certo. */
+function simUltimoLancamento(posto, comb){
+  if (!Array.isArray(registros)) return null;
+  const alvo = simCombDoLancamento(comb);
+  let achado = null;
+  registros.forEach(r => {
+    if (r.posto !== posto || r.combustivel !== alvo) return;
+    if (!achado || String(r.data||"") >= String(achado.data||"")) achado = r;
+  });
+  return achado;
+}
+
+function simPrecoCadastrado(posto, comb, forma){
+  const mapa = forma === "prazo" ? (precosVenda.porPostoPrazo || {}) : (precosVenda.porPosto || {});
+  const v = (mapa[posto] || {})[comb];
+  return isFinite(v) && v > 0 ? +v : null;
+}
+
+/* Escreve o numero no campo do jeito que o campo le': virgula decimal. Ate' 4 casas, porque
+   o custo do lancamento tem 4 (ex.: 6,0651) e arredondar aqui seria mentir num numero que a
+   pessoa nao digitou. */
+function simPorNoCampo(id, valor){
+  const campo = document.getElementById(id);
+  if (!campo) return;
+  if (valor === null || valor === undefined || !isFinite(valor)){ campo.value = ""; return; }
+  let s = (+valor).toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
+  if (s.indexOf(".") < 0) s += ".00";
+  const p = s.split(".");
+  if (p[1].length < 2) p[1] = (p[1] + "00").slice(0, 2);
+  campo.value = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".") + "," + p[1];
+}
+
+function simDiaBR(iso){
+  if (!iso || typeof iso !== "string" || iso.length < 10) return "";
+  return iso.slice(8,10) + "/" + iso.slice(5,7) + "/" + iso.slice(0,4);
+}
+
+function popularSimPosto(){
+  const sel = document.getElementById("simPosto");
+  if (!sel) return;
+  const salvo = simEscolhaSalva();
+  const postos = opcoesDe("posto") || [];
+  const atual = sel.value || salvo.posto || postos[0] || "";
+  sel.innerHTML = postos.map(p => '<option' + (p === atual ? ' selected' : '') + '>' + escAttr(p) + '</option>').join("");
+}
+
+/* A lista de combustiveis segue o POSTO, como no menu Descontos - e' a mesma lista que
+   da' nome as chaves de precosVenda. Teresina tem Podium e S10 Grid; os outros tem S500. */
+function popularSimComb(){
   const sel = document.getElementById("simCombustivel");
-  const atual = sel.value;
-  const opcoes = opcoesDe("combustivel");
-  sel.innerHTML = opcoes.map(c => `<option${c===atual?" selected":""}>${c}</option>`).join("");
-  // Frete já vem preenchido com o custo padrão (mas continua editável)
-  const fCampo = document.getElementById("simFrete");
-  if (!fCampo.value && isFinite(fretePadrao) && fretePadrao > 0){
-    fCampo.value = fretePadrao.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
-  }
+  if (!sel) return;
+  const posto = (document.getElementById("simPosto")||{}).value || "";
+  const salvo = simEscolhaSalva();
+  const combs = combustiveisDoPosto(posto);
+  const atual = combs.indexOf(sel.value) >= 0 ? sel.value
+              : (combs.indexOf(salvo.comb) >= 0 ? salvo.comb : combs[0]);
+  sel.innerHTML = combs.map(c => '<option' + (c === atual ? ' selected' : '') + '>' + escAttr(c) + '</option>').join("");
+}
+
+function onSimPostoChange(){ popularSimComb(); preencherSimulacao(); }
+
+/* O coracao da v258: enche os tres campos e DIZ de onde veio cada numero. */
+function preencherSimulacao(){
+  const posto = (document.getElementById("simPosto")||{}).value || "";
+  const comb  = (document.getElementById("simCombustivel")||{}).value || "";
+  const forma = (document.getElementById("simForma")||{}).value || "vista";
+  simGuardarEscolha();
+
+  const lanc  = simUltimoLancamento(posto, comb);
+  const preco = simPrecoCadastrado(posto, comb, forma);
+
+  simBase = {
+    custo: lanc && isFinite(lanc.custo) ? +lanc.custo : null,
+    frete: lanc && isFinite(lanc.frete) ? +lanc.frete : null,
+    venda: preco,
+    dataLanc: lanc ? (lanc.data || "") : "",
+    dataPreco: forma === "prazo" ? (precosVenda.atualizadoPrazoEm || "") : (precosVenda.atualizadoEm || ""),
+    posto: posto, comb: comb, forma: forma
+  };
+
+  simPorNoCampo("simCusto", simBase.custo);
+  simPorNoCampo("simFrete", simBase.frete);
+  simPorNoCampo("simVenda", simBase.venda);
+  escreverFonteSimulacao();
   calcularSimulacao();
+}
+
+function restaurarSimulacao(){
+  simPorNoCampo("simCusto", simBase.custo);
+  simPorNoCampo("simFrete", simBase.frete);
+  simPorNoCampo("simVenda", simBase.venda);
+  escreverFonteSimulacao();
+  calcularSimulacao();
+}
+
+function escreverFonteSimulacao(){
+  const box = document.getElementById("simFonte");
+  if (!box) return;
+  const nomeForma = simBase.forma === "prazo" ? "a prazo" : "à vista";
+  const faltas = [];
+  const partes = [];
+
+  if (simBase.custo === null) faltas.push("nenhum lançamento de compra de <b>" + escAttr(simBase.comb) +
+      "</b> em <b>" + escAttr(simBase.posto) + "</b> — digite o preço de compra");
+  else partes.push("Compra e frete: <b>lançamento de " + simDiaBR(simBase.dataLanc) + "</b>");
+
+  if (simBase.venda === null) faltas.push("não há preço <b>" + nomeForma + "</b> cadastrado para " +
+      escAttr(simBase.comb) + " em " + escAttr(simBase.posto) + " — digite o preço de venda");
+  else partes.push("Venda " + nomeForma + ": <b>preço cadastrado" +
+      (simBase.dataPreco ? " em " + fmtQuandoLocal(simBase.dataPreco).split(" ")[0] : "") + "</b>");
+
+  let h = "";
+  if (partes.length) h += partes.join(" · ") + ".";
+  if (simBase.custo !== null || simBase.venda !== null)
+    h += ' <button type="button" class="sim-volta" onclick="restaurarSimulacao()">↺ Voltar aos preços do posto</button>';
+  if (faltas.length) h += (h ? "<br>" : "") + "⚠️ " + faltas.join("; ") + ".";
+
+  box.className = "sim-fonte" + (faltas.length ? " alerta" : "");
+  box.innerHTML = h;
+}
+
+function prepararSimulador(){
+  popularSimPosto();
+  popularSimComb();
+  const selF = document.getElementById("simForma");
+  if (selF) selF.value = simEscolhaSalva().forma || "vista";
+  // Frete continua editavel; se o lancamento nao trouxer frete, cai no custo padrao
+  preencherSimulacao();
+  const fCampo = document.getElementById("simFrete");
+  if (fCampo && !fCampo.value && isFinite(fretePadrao) && fretePadrao > 0){
+    simPorNoCampo("simFrete", fretePadrao);
+    calcularSimulacao();
+  }
 }
 
 function calcularSimulacao(){
   const num = id => {
-    const bruto = (document.getElementById(id).value || "").replace(/\./g, "").replace(",", ".");
+    const bruto = ((document.getElementById(id)||{}).value || "").replace(/\./g, "").replace(",", ".");
     const v = parseFloat(bruto);
     return isFinite(v) ? v : 0;
   };
@@ -15661,12 +15855,33 @@ function calcularSimulacao(){
   const rs = v => isFinite(v) ? "R$ " + fmtBR(v, 3) : "—";
   const pc = v => isFinite(v) ? fmtBR(v, 2) + "%" : "—";
 
-  alvo.innerHTML = `
-    <div class="sim-bloco">
-      <h4>Margem com frete</h4>
-      <div class="sim-linha"><span class="rot">Em reais</span><span class="val${cls(m.cfR)}">${rs(m.cfR)}</span></div>
-      <div class="sim-linha"><span class="rot">Em percentual</span><span class="val${cls(m.cfP)}">${pc(m.cfP)}</span></div>
-    </div>`;
+  /* v258 - a margem de HOJE fica ao lado da simulada. "Hoje" e' com o preco CADASTRADO do
+     posto; so' aparece quando existe esse preco E ele e' diferente do que esta' na tela -
+     dois blocos iguais lado a lado seriam ruido. */
+  const temHoje = simBase.venda !== null && custo > 0 && Math.abs(simBase.venda - venda) > 0.00001;
+  const mh = temHoje ? margens({ custo, frete, venda: simBase.venda }) : null;
+
+  let h = "";
+  if (temHoje){
+    h += '<div class="sim-bloco hoje">' +
+         '<h4>Hoje <span class="sim-selo">R$ ' + fmtBR(simBase.venda, 2) + '</span></h4>' +
+         '<div class="sim-linha"><span class="rot">Em reais</span><span class="val' + cls(mh.cfR) + '">' + rs(mh.cfR) + '</span></div>' +
+         '<div class="sim-linha"><span class="rot">Em percentual</span><span class="val' + cls(mh.cfP) + '">' + pc(mh.cfP) + '</span></div>' +
+         '</div>';
+  }
+  h += '<div class="sim-bloco">' +
+       '<h4>' + (temHoje ? 'Simulado <span class="sim-selo">R$ ' + fmtBR(venda, 2) + '</span>' : 'Margem com frete') + '</h4>' +
+       '<div class="sim-linha"><span class="rot">Em reais</span><span class="val' + cls(m.cfR) + '">' + rs(m.cfR) + '</span></div>' +
+       '<div class="sim-linha"><span class="rot">Em percentual</span><span class="val' + cls(m.cfP) + '">' + pc(m.cfP) + '</span></div>';
+  if (temHoje){
+    const dR = m.cfR - mh.cfR, dP = m.cfP - mh.cfP;
+    const sinal = v => (v > 0 ? "+" : "");
+    h += '<div class="sim-dif"><span class="rot">Diferença por litro</span>' +
+         '<span class="val' + (dR < 0 ? " neg" : "") + '">' + sinal(dR) + "R$ " + fmtBR(dR, 3) +
+         (isFinite(dP) ? " · " + sinal(dP) + fmtBR(dP, 2) + " p.p." : "") + '</span></div>';
+  }
+  h += '</div>';
+  alvo.innerHTML = h;
 }
 
 // Desenha a imagem da simulação (formato vertical 1080x1920, ideal para WhatsApp)
@@ -15675,6 +15890,7 @@ function desenharImagemSimulacao(){
     const num = id => { const v = parseFloat((document.getElementById(id).value||"").replace(",",".")); return isFinite(v)?v:0; };
     const custo = num("simCusto"), frete = num("simFrete"), venda = num("simVenda");
     const combustivel = document.getElementById("simCombustivel").value || "";
+    const posto = ((document.getElementById("simPosto")||{}).value || "").trim();   /* v258 */
     const m = margens({ custo, frete, venda });
 
     const cv = document.getElementById("simCanvas");
@@ -15703,7 +15919,7 @@ function desenharImagemSimulacao(){
       if (combustivel){
         ctx.fillStyle = laranja;
         ctx.font = "600 46px Oswald, Arial, sans-serif";
-        ctx.fillText(combustivel.toUpperCase(), centro, 500);
+        ctx.fillText(combustivel.toUpperCase() + (posto ? "  •  " + posto.toUpperCase() : ""), centro, 500);   /* v258 */
       }
 
       // Caixa dos valores de entrada
