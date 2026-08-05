@@ -2121,6 +2121,50 @@
   }
 .pux-grafia{display:inline-block;font-size:11px;padding:1px 7px;border-radius:10px;margin-left:6px;
   color:#8a5a00;background-color:#fff3d6;background-image:linear-gradient(#fff3d6,#fff3d6);border:1px solid #f0d9a0;cursor:help}
+
+  /* ===== v251 - TEMA DE ICONES (classico | minimalista | vivo) ==========================
+     🔑 O desenho e' UM so'. O que muda e' a moldura:
+       - minimalista: traco em `currentColor`, entao ele acompanha o tema claro/escuro E o
+         laranja do menu aceso sem uma linha de codigo a mais;
+       - vivo: o MESMO traco dentro de uma pastilha de 24x24 com a cor do grupo.
+     🔴 A pastilha tem exatamente 24px porque a barra recolhida alinha todos os icones em
+     x=37 (medido na v250f). Qualquer outra largura entortaria a fila de novo.
+     🔴 So' recebe pastilha quem TEM desenho (`.mi-svg`): os grupos que o usuario criou a
+     mao continuam com emoji, e emoji dentro de pastilha fica com cara de erro. */
+  body.ico-min .menu-lateral .mi.mi-svg svg,
+  body.ico-vivo .menu-lateral .mi.mi-svg svg{width:19px;height:19px;display:block}
+  .menu-lateral .mi.mi-svg{display:flex;align-items:center;justify-content:center;height:24px}
+  body.ico-vivo .menu-lateral .mi.mi-svg{
+    border-radius:7px;color:var(--ico-cor,var(--verde));
+    background-image:linear-gradient(155deg, rgba(var(--ico-rgb,var(--verde-rgb)),.30),
+                                             rgba(var(--ico-rgb,var(--verde-rgb)),.12));
+  }
+  /* no escuro os tons cheios do manual (verde 008457, grafite 6D6D6D) somem no fundo preto */
+  body.tema-escuro.ico-vivo .menu-lateral .mi.mi-svg{filter:brightness(1.3) saturate(1.05)}
+  /* o menu ACESO manda na cor: o laranja do trilho vence a cor do grupo */
+  body.ico-vivo .menu-lateral button.ativo .mi.mi-svg{
+    color:#fff;
+    background-image:linear-gradient(155deg, var(--verde), rgba(var(--verde-rgb),.72));
+  }
+  body.tema-escuro.ico-vivo .menu-lateral button.ativo .mi.mi-svg{filter:none}
+
+  /* --- o seletor dentro de Ajustes > Minha conta --- */
+  .ico-escolha{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
+  .ico-op{display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;
+    padding:11px 13px 9px;border-radius:12px;border:1.5px solid rgba(128,128,128,.30);
+    background-image:linear-gradient(rgba(128,128,128,.07),rgba(128,128,128,.07));
+    color:inherit;font:inherit;min-width:112px;transition:border-color .15s,transform .12s}
+  .ico-op:hover{border-color:rgba(var(--verde-rgb),.55);transform:translateY(-1px)}
+  /* 🔴 .10 e nao .14: no tema escuro o laranja por cima do cinza da caixa vira marrom.
+     Quem diz qual esta' escolhido e' a BORDA laranja; o fundo so' acompanha. */
+  .ico-op.ativo{border-color:var(--verde);
+    background-image:linear-gradient(rgba(var(--verde-rgb),.10),rgba(var(--verde-rgb),.10))}
+  .ico-op .ico-mostra{display:flex;gap:9px;align-items:center;height:26px}
+  .ico-op .ico-mostra span{display:flex;align-items:center;justify-content:center;
+    width:24px;height:24px;border-radius:7px;font-size:1.05rem}
+  .ico-op .ico-mostra svg{width:19px;height:19px}
+  .ico-op b{font-size:.82rem;font-weight:600}
+  .ico-op i{font-style:normal;font-size:.72rem;opacity:.7;line-height:1.25;text-align:center}
 </style>
 </head>
 <body>
@@ -2966,6 +3010,11 @@
       <div class="msg-admin" id="msgConta"></div>
     </div>
     <div class="grupo">
+      <h2>Ícones da barra de menus</h2>
+      <p class="nota-dash">Escolha como os ícones do menu lateral aparecem. Vale só neste aparelho — cada pessoa escolhe o seu.</p>
+      <div class="ico-escolha" id="icoEscolha"></div>
+    </div>
+    <div class="grupo">
       <h2>Sua conta</h2>
       <p class="nota-dash">Você está conectado como <b id="contaEmail"></b>.</p>
     </div>
@@ -3563,6 +3612,147 @@ function concluir2FASePreciso(){
     .catch(e => { limparUrl(); avisoLogin(msgErro(e), "erro"); });
 }
 
+
+/* ===================== v251 - O TEMA DE ICONES DA BARRA =====================
+   Ate aqui os icones da barra eram emoji escrito direto no HTML. Emoji tem duas falhas que
+   apareceram na pratica: o desenho MUDA de aparelho para aparelho (o 🗂 da Organizacao virou
+   uma coisa que ninguem soube dizer o que era) e ele nao acompanha a cor do menu aceso.
+
+   👉 O conserto NAO e' trocar emoji por emoji: e' deixar a pessoa escolher.
+     classico    - o que sempre houve
+     minimalista - traco de 1.7 em `currentColor`
+     vivo        - o MESMO traco numa pastilha com a cor do grupo
+
+   🔑 O emoji original fica guardado em `data-ico0` no proprio elemento na PRIMEIRA vez que
+   se mexe nele. E' o que permite voltar ao classico sem recarregar a pagina - e sem uma
+   segunda copia da lista de emojis vivendo no JS para sair do lugar com o tempo.
+   🔴 `montarBarraMenus()` RECRIA os titulos de grupo (nao os botoes, que ele so' move de
+   lugar). Por isso ele termina chamando `aplicarTemaIcones` de novo: sem essa linha, trocar
+   de empresa devolveria os emojis nos titulos e deixaria os menus com o traco. */
+const ICO_SVG = {
+  dash:"<path d='M3 17.5 9 11l4 3.5L21 6'/><path d='M15.5 6H21v5.5'/>",
+  resumoDia:"<path d='M4 20V10M9.5 20V4M15 20v-7M20.5 20v-4'/>",
+  registros:"<rect x='4.5' y='3.5' width='15' height='17' rx='2.5'/><path d='M8.5 8.5h7M8.5 12.5h7M8.5 16.5h4'/>",
+  historico:"<circle cx='12' cy='12' r='8.5'/><path d='M12 7v5.2l3.4 2'/>",
+  descontos:"<path d='M3.6 12.9V4.6a1 1 0 0 1 1-1h8.3a1 1 0 0 1 .7.3l7 7a1 1 0 0 1 0 1.4l-7.7 7.7a1 1 0 0 1-1.4 0l-7-7a1 1 0 0 1-.3-.7z'/><circle cx='8' cy='8' r='1.4'/>",
+  simular:"<rect x='5' y='2.8' width='14' height='18.4' rx='2.3'/><path d='M8.5 7.5h7M8.5 12h2M14 12h1.5M8.5 16.5h2M14 16.5h1.5'/>",
+  relPosto:"<path d='M6.5 2.8h7.6L19 7.7v13.5H6.5z'/><path d='M13.8 2.9v5h5'/><path d='M9.8 17.4v-3.4M12.7 17.4v-5.6M15.6 17.4v-2.2'/>",
+  financeiro:"<path d='M3.2 9.4 12 4.2l8.8 5.2'/><path d='M5.6 10.6v7.6M10 10.6v7.6M14 10.6v7.6M18.4 10.6v7.6'/><path d='M3 20.2h18'/>",
+  analise:"<path d='M9.2 17.6h5.6'/><path d='M10 20.6h4'/><path d='M12 3.4a6 6 0 0 0-3.5 10.9c.5.4.7.9.7 1.3h5.6c0-.4.2-.9.7-1.3A6 6 0 0 0 12 3.4z'/>",
+  relLoja:"<path d='M2.8 3.6h2.6l2.4 11.2h9.6l2-7.6H6.6'/><circle cx='9.4' cy='19' r='1.6'/><circle cx='16.6' cy='19' r='1.6'/>",
+  ifood:"<path d='M5.4 8h13.2l-1.2 12.4H6.6z'/><path d='M8.8 8V6.2a3.2 3.2 0 0 1 6.4 0V8'/>",
+  infleet:"<circle cx='12' cy='12' r='2.1'/><path d='M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4'/><path d='M5 5a9.9 9.9 0 0 0 0 14M19 5a9.9 9.9 0 0 1 0 14'/>",
+  pedido:"<path d='M6.5 2.8h7.6L19 7.7v3.4'/><path d='M13.8 2.9v5h5'/><path d='M6.5 2.8v18.4h5.2'/><path d='M9.8 12.4h4.4'/><path d='M13.2 21.2l.7-2.9 5.4-5.4a1.45 1.45 0 0 1 2.1 2.1l-5.4 5.4z'/>",
+  cotacoes:"<circle cx='12' cy='12' r='8.6'/><path d='M14.4 9.1c-.5-.8-1.4-1.2-2.4-1.2-1.5 0-2.5.8-2.5 1.9 0 2.7 5.2 1.4 5.2 4.2 0 1.2-1.1 2.1-2.7 2.1-1.2 0-2.2-.5-2.7-1.4'/><path d='M12 6.2v11.6'/>",
+  puxadas:"<path d='M5.4 2.9h13.2v18.2l-2.2-1.5-2.2 1.5-2.2-1.5-2.2 1.5-2.2-1.5-2.2 1.5z'/><path d='M8.8 8.2h6.4M8.8 12.2h6.4'/>",
+  calendario:"<rect x='3.4' y='5' width='17.2' height='15.6' rx='2.2'/><path d='M3.4 10h17.2M8.2 3.2v3.6M15.8 3.2v3.6'/>",
+  vencimentos:"<path d='M6.5 2.8h7.6L19 7.7v4.6'/><path d='M13.8 2.9v5h5'/><path d='M6.5 2.8v18.4h5.6'/><path d='M9.8 12.4h4.4'/><circle cx='17' cy='17.2' r='4.4'/><path d='M17 14.9v2.5l1.7 1'/>",
+  caixa:"<path d='M3.2 13.6h4.4l1.4 2.6h6l1.4-2.6h4.4'/><path d='M5.6 4.4h12.8l2.4 9.2v5.2a1.6 1.6 0 0 1-1.6 1.6H4.8a1.6 1.6 0 0 1-1.6-1.6v-5.2z'/>",
+  conta:"<circle cx='12' cy='8.2' r='3.9'/><path d='M4.6 20.4a7.4 7.4 0 0 1 14.8 0'/>",
+  config:"<circle cx='12' cy='12' r='3.1'/><path d='M19.1 14.6a1.5 1.5 0 0 0 .3 1.7l.1.1a1.9 1.9 0 1 1-2.6 2.6l-.1-.1a1.5 1.5 0 0 0-2.6 1v.2a1.9 1.9 0 0 1-3.7 0v-.1a1.5 1.5 0 0 0-2.6-1l-.1.1a1.9 1.9 0 1 1-2.6-2.6l.1-.1a1.5 1.5 0 0 0-1-2.6h-.2a1.9 1.9 0 1 1 0-3.7h.1a1.5 1.5 0 0 0 1-2.6l-.1-.1a1.9 1.9 0 1 1 2.6-2.6l.1.1a1.5 1.5 0 0 0 1.7.3h.1a1.5 1.5 0 0 0 .9-1.4v-.2a1.9 1.9 0 0 1 3.7 0v.1a1.5 1.5 0 0 0 2.6 1l.1-.1a1.9 1.9 0 1 1 2.6 2.6l-.1.1a1.5 1.5 0 0 0 1 2.6h.2a1.9 1.9 0 0 1 0 3.7h-.1a1.5 1.5 0 0 0-1.4.9z'/>",
+  usuarios:"<circle cx='9.2' cy='8.4' r='3.4'/><path d='M2.8 20a6.4 6.4 0 0 1 12.8 0'/><path d='M16.4 5.4a3.4 3.4 0 0 1 0 6.6M17.6 14.4a6.4 6.4 0 0 1 3.6 5.6'/>",
+  novidades:"<path d='M12 3.4 14.4 8.6l5.7.7-4.2 4 1.1 5.6L12 16.2l-5 2.7 1.1-5.6-4.2-4 5.7-.7z'/>",
+  ordenarMenus:"<path d='M4 20.2h4.2L20 8.4a2 2 0 0 0-2.8-2.8L5.4 17.4z'/><path d='M15.6 7 17 8.4'/>",
+  sair:"<path d='M9.6 20.4H5.4a1.8 1.8 0 0 1-1.8-1.8V5.4a1.8 1.8 0 0 1 1.8-1.8h4.2'/><path d='M15.4 16.6 20 12l-4.6-4.6M20 12H9.2'/>",
+  g_dia:"<path d='M20.4 11.2a8.4 8.4 0 1 0-.6 4.4'/><path d='M20.6 5.6v5.6h-5.6'/>",
+  g_analise:"<path d='M3.4 20.6h17.2'/><rect x='5' y='11' width='3.6' height='7'/><rect x='10.2' y='6.6' width='3.6' height='11.4'/><rect x='15.4' y='13.6' width='3.6' height='4.4'/>",
+  g_transp:"<path d='M2.6 6.4h10.6v9.4H2.6z'/><path d='M13.2 9.6h3.6l3 3.2v3h-6.6z'/><circle cx='7' cy='18' r='1.9'/><circle cx='17.4' cy='18' r='1.9'/>",
+  g_org:"<path d='M3.2 18.6V6.2a1.6 1.6 0 0 1 1.6-1.6h4.2l2.2 2.6h7.2a1.6 1.6 0 0 1 1.6 1.6v9.8a1.6 1.6 0 0 1-1.6 1.6H4.8a1.6 1.6 0 0 1-1.6-1.6z'/>",
+  empresa:"<path d='M3.6 20.4h16.8'/><path d='M5.4 20.4V6.2L12 3.6l6.6 2.6v14.2'/><path d='M9.6 20.4v-4.4h4.8v4.4'/><path d='M9.4 9.2h1.2M13.4 9.2h1.2M9.4 12.6h1.2M13.4 12.6h1.2'/>",
+  g_ajustes:"<circle cx='12' cy='12' r='3.1'/><path d='M19.1 14.6a1.5 1.5 0 0 0 .3 1.7l.1.1a1.9 1.9 0 1 1-2.6 2.6l-.1-.1a1.5 1.5 0 0 0-2.6 1v.2a1.9 1.9 0 0 1-3.7 0v-.1a1.5 1.5 0 0 0-2.6-1l-.1.1a1.9 1.9 0 1 1-2.6-2.6l.1-.1a1.5 1.5 0 0 0-1-2.6h-.2a1.9 1.9 0 1 1 0-3.7h.1a1.5 1.5 0 0 0 1-2.6l-.1-.1a1.9 1.9 0 1 1 2.6-2.6l.1.1a1.5 1.5 0 0 0 1.7.3h.1a1.5 1.5 0 0 0 .9-1.4v-.2a1.9 1.9 0 0 1 3.7 0v.1a1.5 1.5 0 0 0 2.6 1l.1-.1a1.9 1.9 0 1 1 2.6 2.6l-.1.1a1.5 1.5 0 0 0 1 2.6h.2a1.9 1.9 0 0 1 0 3.7h-.1a1.5 1.5 0 0 0-1.4.9z'/>"
+};
+const ICO_BTN = {btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnRegistros:"registros",btnHistorico:"historico",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnFinanceiro:"financeiro",btnAnalise:"analise",btnRelLoja:"relLoja",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
+const ICO_GRP = {dia:"g_dia",analise:"g_analise",transp:"g_transp",org:"g_org",ajustes:"g_ajustes"};
+/* 🔑 cor por GRUPO, tirada da paleta do MIV (laranja da marca + verde e dourado Petrobras).
+   Assim a cor diz de que familia e' o menu, em vez de ser arco-iris. */
+const ICO_COR = {soltos:["#FE7030","254,112,48"],dia:["#FE7030","254,112,48"],analise:["#008457","0,132,87"],transp:["#F5C211","245,194,17"],org:["#0E7C86","14,124,134"],ajustes:["#6D6D6D","109,109,109"],soltosFim:["#F5C211","245,194,17"]};
+const CHAVE_TEMA_ICONES = "pf_tema_icones";
+let temaIcones = "classico";
+
+function icoDesenho(k){
+  const d = ICO_SVG[k];
+  if (!d) return "";
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" ' +
+         'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
+}
+/* de qual desenho e' este quadradinho: pelo id do botao, pela classe do Sair, ou - no caso
+   do titulo - pelo grupo em que ele esta (`grp_analise` -> `analise`). */
+function icoChaveDe(el){
+  const b = el.closest("button");
+  if (!b) return "";
+  if (b.id && ICO_BTN[b.id]) return ICO_BTN[b.id];
+  if (b.classList.contains("menu-sair")) return "sair";
+  if (b.classList.contains("menu-grp-tit")){
+    const g = b.closest(".menu-grp");
+    const k = (g && g.id) ? g.id.replace("grp_", "") : "";
+    return ICO_GRP[k] || "";
+  }
+  return "";
+}
+function icoGrupoDe(el){
+  const g = el.closest(".menu-grp");
+  return (g && g.id) ? g.id.replace("grp_", "") : "";
+}
+function aplicarTemaIcones(t, salvar){
+  if (t !== "minimalista" && t !== "vivo") t = "classico";
+  temaIcones = t;
+  document.body.classList.toggle("ico-min",  t === "minimalista");
+  document.body.classList.toggle("ico-vivo", t === "vivo");
+  const alvos = document.querySelectorAll(".menu-lateral .mi");
+  for (let i = 0; i < alvos.length; i++){
+    const el = alvos[i];
+    if (!el.hasAttribute("data-ico0")) el.setAttribute("data-ico0", el.innerHTML);
+    const k = (t === "classico") ? "" : icoChaveDe(el);
+    const d = k ? icoDesenho(k) : "";
+    el.innerHTML = d || el.getAttribute("data-ico0");
+    el.classList.toggle("mi-svg", !!d);
+    const c = d ? ICO_COR[icoGrupoDe(el)] : null;
+    if (c){ el.style.setProperty("--ico-cor", c[0]); el.style.setProperty("--ico-rgb", c[1]); }
+    else  { el.style.removeProperty("--ico-cor");    el.style.removeProperty("--ico-rgb"); }
+  }
+  const ops = document.querySelectorAll(".ico-op");
+  for (let i = 0; i < ops.length; i++) ops[i].classList.toggle("ativo", ops[i].dataset.ico === t);
+  if (salvar){ try { localStorage.setItem(CHAVE_TEMA_ICONES, t); } catch(e){} }
+}
+function restaurarTemaIcones(){
+  let t = "classico";
+  try { t = localStorage.getItem(CHAVE_TEMA_ICONES) || "classico"; } catch(e){}
+  aplicarTemaIcones(t, false);   // sem gravar: so' o clique da pessoa grava
+}
+/* as tres amostras da tela Minha conta */
+function icoAmostra(t){
+  const chaves = ["dash", "financeiro", "calendario"];
+  const grupos = ["dia", "analise", "org"];
+  let h = "";
+  for (let i = 0; i < 3; i++){
+    if (t === "classico"){
+      h += '<span>' + ["\ud83d\udcc8", "\ud83c\udfe6", "\ud83d\udcc5"][i] + '</span>';
+    } else if (t === "minimalista"){
+      h += '<span>' + icoDesenho(chaves[i]) + '</span>';
+    } else {
+      const c = ICO_COR[grupos[i]];
+      h += '<span style="color:' + c[0] + ';background-image:linear-gradient(155deg,rgba(' +
+           c[1] + ',.30),rgba(' + c[1] + ',.12))">' + icoDesenho(chaves[i]) + '</span>';
+    }
+  }
+  return h;
+}
+function pintarEscolhaIcones(){
+  const cx = document.getElementById("icoEscolha");
+  if (!cx) return;
+  const OPS = [
+    ["classico",    "Cl\u00e1ssico",    "os desenhos coloridos de sempre"],
+    ["minimalista", "Minimalista",       "s\u00f3 o tra\u00e7o, como no Concept Hub"],
+    ["vivo",        "Vivo",              "o tra\u00e7o numa pastilha com a cor do grupo"]
+  ];
+  cx.innerHTML = OPS.map(o =>
+    '<button type="button" class="ico-op" data-ico="' + o[0] + '" onclick="aplicarTemaIcones(\'' +
+    o[0] + '\', true)"><span class="ico-mostra">' + icoAmostra(o[0]) + '</span><b>' + o[1] +
+    '</b><i>' + o[2] + '</i></button>').join("");
+  const ops = cx.querySelectorAll(".ico-op");
+  for (let i = 0; i < ops.length; i++) ops[i].classList.toggle("ativo", ops[i].dataset.ico === temaIcones);
+}
+
 // Restaura a preferência do "Lembrar-me" salva neste aparelho
 function aplicarTema(tema, salvar=true){
   const escuro = (tema === "escuro");
@@ -3638,6 +3828,7 @@ function restaurarTema(){
   let tema = "escuro";
   try { tema = localStorage.getItem("margens_tema") || "escuro"; } catch {}
   aplicarTema(tema, false);   // aplica sem gravar: só o clique do usuário grava a preferência
+  restaurarTemaIcones();      // v251 - o tema de icones e' preferencia do aparelho, igual
 }
 
 function restaurarLembrarMe(){
@@ -5083,6 +5274,10 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v251", data:"05/08/2026", tit:"Agora você escolhe a cara dos ícones do menu", itens:[
+    {t:"n",h:"Três estilos de ícone, em Ajustes › Minha conta",d:"Clássico (os desenhos coloridos de sempre), Minimalista (só o traço, mais sóbrio) e Vivo (o traço dentro de uma pastilha com a cor do grupo). A escolha vale só no seu aparelho: cada pessoa deixa do jeito que gosta, sem mexer no de ninguém."},
+    {t:"c",h:"O ícone da Organização agora é uma pasta",d:"O desenho anterior aparecia diferente em cada celular e ficava difícil de reconhecer. Virou uma pasta simples, que todo mundo entende."}
+  ]},
   {v:"v250", data:"05/08/2026", tit:"O app ganhou a cara da marca, e o sino parou de trocar a sua tela", itens:[{t:"n",h:"\u201cOlá, seu nome\u201d no lugar do e-mail",d:"A barra de cima mostrava o e-mail inteiro. Agora ela cumprimenta pelo primeiro nome — o mesmo que está no cadastro de Pessoas. O e-mail completo continua na Minha conta e aparece ao passar o mouse no seu nome, no pé da barra lateral."},{t:"n",h:"Seu nome e sua função no pé da barra lateral",d:"No canto de baixo da barra lateral entrou um círculo com a sua inicial, o seu nome e, logo abaixo, a sua função — o perfil de acesso que você segue. Com a barra fechada aparece só o círculo; passando o mouse, o nome e a função."},{t:"m",h:"A busca virou um botão que diz \u201cBuscar\u201d",d:"Era só uma lupinha, e quem não sabia do atalho não usava. Agora é um botão escrito Buscar, com a tecla Ctrl K ao lado. No celular ele volta a ser só a lupa, para caber."},{t:"m",h:"O tema claro/escuro subiu para a barra de cima",d:"Ele estava escondido no pé da barra lateral. Virou a luinha ao lado do sino, onde se acha. Saiu de baixo — é um botão só, não dois."},{t:"m",h:"O cabeçalho virou uma barra fina no alto da tela",d:"Era um bloco alto, com o logo grande e um cartão arredondado. Virou uma faixa fina colada no topo, atravessando a tela inteira: você à esquerda, a marca no meio, e a busca, o tema e o sino à direita. Os ícones perderam a bolinha em volta — só o círculo com a sua inicial continua preenchido. Sobra mais tela para o que interessa."},{t:"m",h:"O app ganhou a cara da marca",d:"Os elementos do nosso manual de identidade entraram na tela: o padrão de pontos que cresce (os \u201ccírculos em expansão\u201d), as linhas sinuosas que representam óleo e estrada, e o laranja como fio condutor entre as seções. Os quadrinhos de número ganharam um fio da marca no topo, e os títulos, a tarja laranja embaixo."},{t:"c",h:"O laranja do app agora é o laranja da marca",d:"O app usava um laranja um pouco mais escuro do que o do nosso manual de identidade. Foi acertado: agora a cor da tela é a mesma da fachada, da bandeira e dos copos."},{t:"c",h:"As três logomarcas voltaram a sair do mesmo tamanho",d:"A palavra FULL saía em três tamanhos diferentes ao trocar de empresa — a da Transportadora era a menor. A conta que ajusta cada logo usava proporções estimadas de olho; foram medidas nos arquivos, e agora as três saem iguais."},{t:"n",h:"O sino abre um cartão, em vez de trocar a sua tela",d:"Antes, clicar no sino fechava o que você estava vendo e abria a Caixa de entrada inteira. Agora ele abre um cartãozinho por cima, com os avisos mais urgentes resumidos. Clicou fora, ele some e você continua exatamente onde estava. Se quiser mesmo ir para a Caixa de entrada, tem um botão dentro dele."}]},
   {v:"v249", data:"04/08/2026", tit:"Cada aba diz quantos itens tem", itens:[{t:"n",h:"O número aparece na própria aba",d:"As abas de Relatórios e Financeiro que são lista — Aferições, Vendas pendentes, Tanques, Colaboradores, A Prazo, A Prazo sem faturar, Recebimentos, Pagamentos, Descontos, Despesas do mês e A Pagar — passaram a mostrar quantos itens têm, ao lado do nome. O número é o do período e do posto que estão escolhidos na tela, então ele bate com a lista que você vai ver."},{t:"n",h:"A Caixa de entrada e os Documentos têm a conta feita",d:"Na Caixa de entrada, uma linha diz quantos avisos estão pendentes, quantos venceram, quantos são de hoje e quantos vencem em sete dias. Nos Documentos, as visões Por unidade e Por empresa dizem quantos grupos existem. E em Comparar lojas cada bloco mostra quantos produtos entraram nele."},{t:"c",h:"O Financeiro não diz mais que não há dados antes de olhar",d:"Quem abrisse o Financeiro nos primeiros instantes via \u201cAinda não há dados deste relatório\u201d e ficava com esse aviso na tela até clicar em alguma coisa. Agora aparece o esqueleto cinza enquanto os dados vêm, e a aba onde ainda não se sabe o número simplesmente não mostra número nenhum."}]},
   {v:"v248", data:"04/08/2026", tit:"Telas vazias com desenho, esqueleto ao carregar, avisos coloridos e páginas", itens:[{t:"n",h:"A tela avisa que está carregando, em vez de dizer que não há nada",d:"A tabela de Lançamentos dizia \u201cNenhum registro\u201d enquanto os dados ainda estavam vindo da nuvem. Agora ela mostra linhas cinzas piscando, e um fio fino anda no alto da tela enquanto o app espera. Só depois, se realmente não houver nada, aparece o aviso."},{t:"n",h:"Avisos coloridos, no canto da tela",d:"Recado importante \u2014 ficar sem conexão, por exemplo \u2014 passou a aparecer numa caixinha no canto, com a cor do tipo: verde deu certo, vermelho deu erro, amarelo é atenção e azul é informação. Antes ele piscava no cabeçalho e sumia sem ninguém ver."},{t:"n",h:"Lançamentos em páginas de 50",d:"Com muitos registros a tabela agora vem em páginas, com Anterior e Próxima. As médias do rodapé continuam somando TODOS os registros filtrados, não só a página que está na tela \u2014 e o rodapé diz isso."},{t:"m",h:"Tela sem nada ficou com cara de tela, não de erro",d:"Onde não há dado, aparece um desenho, uma frase explicando e \u2014 quando existe uma ação óbvia \u2014 o botão dela. Em Documentos, por exemplo, o \u2795 Novo documento aparece ali mesmo."}]},
@@ -5406,6 +5601,7 @@ function renderConta(){
   const ce = document.getElementById("contaEmail");
   if (ce) ce.textContent = usuarioAtual || "";
   const m = document.getElementById("msgConta"); if (m) m.textContent = "";
+  pintarEscolhaIcones();      // v251
 }
 function salvarNomeConta(){
   const input = document.getElementById("contaNome");
@@ -6499,7 +6695,7 @@ const GRUPOS_MENU = [
   {key:"dia",     nome:"Dia a dia",      icone:"\ud83d\udd01", itens:["resumoDia","registros","historico","descontos","simular"]},
   {key:"analise", nome:"Análise",        icone:"\ud83d\udcca", itens:["relPosto","financeiro","analise","relLoja","ifood"]},
   {key:"transp",  nome:"Transportadora", icone:"\ud83d\ude9a", itens:["infleet","pedido","cotacoes","puxadas"]},
-  {key:"org",     nome:"Organização",    icone:"\ud83d\uddc2", itens:["calendario","vencimentos","caixa"]},
+  {key:"org",     nome:"Organização",    icone:"\ud83d\udcc1", itens:["calendario","vencimentos","caixa"]},   /* v251 - o 🗂 ninguem reconhecia */
   {key:"ajustes", nome:"Ajustes",        icone:"\u2699",        itens:["conta","config","usuarios"]},
   {key:"soltosFim", nome:"",             icone:"",       itens:["novidades"]}   // v246 - o fim da barra, sem titulo
 ];
@@ -6858,6 +7054,7 @@ function montarBarraMenus(){
   cx.appendChild(frag);
   pintarGruposMenu();
   marcarGrupoAceso(document.querySelector(".menu-lateral .grp-int button.ativo"));
+  aplicarTemaIcones(temaIcones, false);   // v251 - os titulos de grupo acabaram de nascer de novo
 }
 
 /* ===== v244 - a caixa "Personalizar a barra" ===== */
