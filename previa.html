@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v260 — Postos Full (não é o app)</title>
+<title>PRÉVIA v261 — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -2256,6 +2256,10 @@
   .sim-dif .rot{font-size:.78rem;color:var(--cinza)}
   .sim-dif .val{font-size:1rem;font-weight:700;font-variant-numeric:tabular-nums;color:#18a558}
   .sim-dif .val.neg{color:#c0392b}
+  /* v261 - o selo que diz que o numero veio do ERP, nao da mao de ninguem */
+  .sim-selo-fonte{
+    display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;
+    font-size:.68rem;font-weight:600;background:rgba(24,165,88,.16);color:#18a558}
 </style>
 </head>
 <body>
@@ -3302,6 +3306,10 @@ const docAvisos = db.collection("config").doc("avisos");          // notificaç�
 const docAvisosStatus = db.collection("config").doc("avisosStatus"); // marca de "concluído" das notificações (não é tocado pela sincronização)
 const docAlertas = db.collection("config").doc("alertas");        // limites dos alertas de cotação (usados pelo servidor)
 const docPrecosVenda = db.collection("config").doc("precosVenda"); // preço de venda padrão por posto/combustível (pré-preenche o Descontos)
+/* v261 - o que o coletor do VPS grava com o custo da ULTIMA NOTA DE COMPRA do Petros.
+   Formato: { postos: { "Teresina": { "Gasolina Comum": {custo, frete, dia, nota, litros} } },
+              atualizadoEm, por }. Documento AUSENTE = o app segue no lançamento manual. */
+const docCustosCompra = db.collection("config").doc("custosCompra");
 const docTransportadora = db.collection("config").doc("transportadora"); // cadastro de motoristas/caminhões da Full Transportadora
 const colPuxadas = db.collection("puxadas");                      // registro de puxadas da Full Transportadora
 const colDescontos = db.collection("descontos");                  // descontos dados aos clientes (Postos Full)
@@ -3505,6 +3513,8 @@ let convProdutos = { porUnidade: {} };       // produtos já lançados por unida
 let escutaConvFornec = null, escutaConvProdutos = null;
 let precosVenda = { porPosto: {}, porPostoPrazo: {}, atualizadoEm: "", por: "", atualizadoPrazoEm: "", porPrazo: "" };  // à vista (Petros) + a prazo (manual)
 let escutaPrecosVenda = null;
+let escutaCustosCompra = null;                                              /* v261 */
+let custosCompra = { postos: {}, atualizadoEm: "", por: "" };               /* v261 */
 let clientes = { porPosto: {} };       // clientes por posto (cadastro do Descontos)
 let escutaClientes = null;
 let puxadas = [];                  // [{id, data, motoristaId, motorista, caminhao, distribuidora, valorNotas, valorFrete, fretePorLitro, litros}]
@@ -4024,6 +4034,7 @@ function aoMudarLogin(usuario){
     if (escutaDescontos){ escutaDescontos(); escutaDescontos = null; }
     if (escutaDescontosMes){ escutaDescontosMes(); escutaDescontosMes = null; }
     if (escutaPrecosVenda){ escutaPrecosVenda(); escutaPrecosVenda = null; }
+    if (escutaCustosCompra){ escutaCustosCompra(); escutaCustosCompra = null; }   /* v261 */
     if (escutaClientes){ escutaClientes(); escutaClientes = null; }
     if (escutaConvVendas){ escutaConvVendas(); escutaConvVendas = null; }
     if (escutaConvVendasMes){ escutaConvVendasMes(); escutaConvVendasMes = null; }
@@ -5409,6 +5420,10 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v261", data:"05/08/2026", tit:"O preço de compra passa a vir do Petros, sozinho", itens:[
+    {t:"n",h:"O custo e o frete vêm da nota de compra",d:"O Simular Margens agora usa o preço de compra da última nota de entrada lançada no Petros, e o frete da carga. A tela mostra o número da nota e o dia, com o selo “direto do Petros”. Enquanto a coleta automática não estiver ligada, tudo continua vindo do lançamento manual, como antes."},
+    {t:"m",h:"O lançamento manual vira reserva",d:"Se um produto ainda não tiver nota de compra no banco, a tela cai no último lançamento do menu Lançamentos e diz isso. Nenhuma tela fica sem número por causa da troca."}
+  ]},
   {v:"v260", data:"05/08/2026", tit:"Compartilhar a simulação como texto", itens:[
     {t:"n",h:"Um botão novo: 📝 Compartilhar como texto",d:"Além da imagem, o Simular Margens agora manda a simulação escrita: posto, combustível, preço de compra, frete, preço de venda, a margem e — quando você simulou um preço novo — a margem de hoje e a diferença por litro. No celular abre o menu de compartilhar; no computador o texto é copiado e é só colar."},
     {t:"m",h:"Dá para compartilhar a margem de hoje sem simular nada",d:"Os dois botões agora aparecem assim que a tela mostra a margem de hoje, sem precisar digitar um preço novo. A imagem também passou a usar o preço de hoje quando o campo está vazio."}
@@ -6394,6 +6409,18 @@ function iniciarSync(){
     if (pcv && pcv.classList.contains("aberto")) renderPrecosVenda();
     const pdv = document.getElementById("painelDescontos");
     if (pdv && pdv.classList.contains("aberto")) autofillValorL();
+  }, ()=>{});
+
+  /* v261 - o custo que veio do Petros pelo coletor do VPS */
+  escutaCustosCompra = docCustosCompra.onSnapshot(snap => {
+    const d = snap.exists ? (snap.data() || {}) : {};
+    custosCompra = {
+      postos: (d && d.postos) ? d.postos : {},
+      atualizadoEm: (d && d.atualizadoEm) ? d.atualizadoEm : "",
+      por: (d && d.por) ? d.por : ""
+    };
+    const ps = document.getElementById("painelSimular");
+    if (ps && ps.classList.contains("aberto") && typeof preencherSimulacao === "function") preencherSimulacao();
   }, ()=>{});
 
   // Clientes cadastrados por posto (autocompletar do Descontos)
@@ -15716,6 +15743,31 @@ function simUltimoLancamento(posto, comb){
   return achado;
 }
 
+/* v261 - DE ONDE VEM O CUSTO: primeiro o banco, depois o lançamento.
+   O documento config/custosCompra é gravado 1x por dia pelo coletor do VPS, com o
+   `valor_unitario` da última nota de compra e o frete da CARGA (frete da carga ÷ litros da
+   carga = R$ 0,20/L, medido em 23 de 23 cargas). Sem o documento — ou sem aquele produto
+   dentro dele — cai no último lançamento manual, que é o comportamento da v258.
+   👉 Nenhuma tela fica sem número por causa da troca de fonte. */
+function simCustoDoBanco(posto, comb){
+  const p = ((custosCompra || {}).postos || {})[posto];
+  const c = p ? p[comb] : null;
+  if (!c || !isFinite(c.custo) || +c.custo <= 0) return null;
+  return { custo: +c.custo, frete: isFinite(c.frete) ? +c.frete : 0,
+           dia: c.dia || "", nota: c.nota || "", fonte: "banco" };
+}
+
+function simCustoDoLancamento(posto, comb){
+  const l = simUltimoLancamento(posto, comb);
+  if (!l || !isFinite(l.custo)) return null;
+  return { custo: +l.custo, frete: isFinite(l.frete) ? +l.frete : 0,
+           dia: l.data || "", nota: "", fonte: "lancamento" };
+}
+
+function simCusto(posto, comb){
+  return simCustoDoBanco(posto, comb) || simCustoDoLancamento(posto, comb);
+}
+
 function simPrecoCadastrado(posto, comb, forma){
   const mapa = forma === "prazo" ? (precosVenda.porPostoPrazo || {}) : (precosVenda.porPosto || {});
   const v = (mapa[posto] || {})[comb];
@@ -15772,14 +15824,16 @@ function preencherSimulacao(){
   const forma = (document.getElementById("simForma")||{}).value || "vista";
   simGuardarEscolha();
 
-  const lanc  = simUltimoLancamento(posto, comb);
-  const preco = simPrecoCadastrado(posto, comb, forma);
+  const compra = simCusto(posto, comb);                                   /* v261 */
+  const preco  = simPrecoCadastrado(posto, comb, forma);
 
   simBase = {
-    custo: lanc && isFinite(lanc.custo) ? +lanc.custo : null,
-    frete: lanc && isFinite(lanc.frete) ? +lanc.frete : null,
+    custo: compra ? compra.custo : null,
+    frete: compra ? compra.frete : null,
     venda: preco,
-    dataLanc: lanc ? (lanc.data || "") : "",
+    dataLanc: compra ? compra.dia : "",
+    fonteCusto: compra ? compra.fonte : "",                               /* v261 */
+    nota: compra ? compra.nota : "",                                      /* v261 */
     dataPreco: forma === "prazo" ? (precosVenda.atualizadoPrazoEm || "") : (precosVenda.atualizadoEm || ""),
     posto: posto, comb: comb, forma: forma
   };
@@ -15819,8 +15873,11 @@ function escreverFonteSimulacao(){
   const faltas = [];
   const partes = [];
 
-  if (simBase.custo === null) faltas.push("nenhum lançamento de compra de <b>" + escAttr(simBase.comb) +
+  if (simBase.custo === null) faltas.push("nenhuma compra de <b>" + escAttr(simBase.comb) +
       "</b> em <b>" + escAttr(simBase.posto) + "</b> — digite o preço de compra");
+  else if (simBase.fonteCusto === "banco")                                 /* v261 */
+    partes.push("Compra e frete: <b>nota " + escAttr(simBase.nota) + " de " + simDiaBR(simBase.dataLanc) +
+                "</b> <span class=\"sim-selo-fonte\">direto do Petros</span>");
   else partes.push("Compra e frete: <b>lançamento de " + simDiaBR(simBase.dataLanc) + "</b>");
 
   if (simBase.venda === null) faltas.push("não há preço <b>" + nomeForma + "</b> cadastrado para " +
