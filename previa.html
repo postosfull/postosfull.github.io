@@ -1893,7 +1893,8 @@
      Faixa fina colada no topo da JANELA, atravessando a tela inteira - a barra lateral
      passa a comecar embaixo dela. Sem cartao arredondado, sem degrade e SEM CIRCULO
      atras dos icones: no Hub so' o avatar e' preenchido, e e' isso que da' o ar de barra
-     de sistema. 🔴 background-IMAGE, nunca background-color (armadilha da v186). */
+     de sistema. 🔴 background-IMAGE, nunca background-color (armadilha da v186).
+     Tres faixas: quem esta logado a ESQUERDA, a marca no MEIO, as acoes a DIREITA. */
   header{
     position:fixed;top:0;left:0;right:0;z-index:90;
     height:52px;padding:0 14px;border-radius:0;gap:0;justify-content:center;
@@ -1907,16 +1908,23 @@
   /* com a faixa laranja de "Atualizar agora" (v214) sao tres andares: barra, cabecalho, conteudo */
   body.com-atz header{top:70px}
   body.com-atz .menu-lateral{top:122px}
-  .header-topo{gap:14px;width:100%}
-  /* 🔴 `flex:0 1` e nao `0 0`: com `0 0` o h1 nao encolhe, e no celular ele empurrava o
-     tema, o sino e o ☰ para FORA da tela. Foi a foto de 390px que pegou. */
-  .header-topo > h1{flex:0 1 auto;min-width:0;overflow:hidden}
+  .header-topo{gap:12px;width:100%;align-items:center}
+  /* 🔴 `flex:1 1 0` nos DOIS lados e' o que centraliza a marca de verdade: as duas pontas
+     recebem a mesma fatia do espaco livre, entao o meio cai no meio, nao importa o tamanho
+     do nome de quem esta logado. E `min-width:0` + overflow para o texto ceder antes de
+     empurrar os botoes para fora (foi o que a foto de 390px pegou). */
+  .header-topo > .hdr-esq{flex:1 1 0;min-width:0;display:inline-flex;align-items:center;gap:9px;overflow:hidden}
+  .header-topo > h1{flex:0 0 auto;min-width:0;overflow:hidden}
+  .header-topo > .header-acoes-topo{flex:1 1 0;justify-content:flex-end}
   header h1{gap:10px;flex-wrap:nowrap}
-  #statusSalvo{margin-left:2px}
-  /* o nome da tela aberta, no meio da barra - e' o "ATENDE" do Hub */
-  .barra-tela{flex:1 1 auto;text-align:center;min-width:0;overflow:hidden;text-overflow:ellipsis;
-    white-space:nowrap;font-family:"Oswald","Poppins",sans-serif;font-size:.82rem;font-weight:500;
-    letter-spacing:1.5px;text-transform:uppercase;color:var(--verde)}
+  /* quem esta logado, na ponta esquerda: o avatar e' o UNICO preenchido da barra */
+  .hdr-av{width:28px;height:28px;flex:0 0 28px;border-radius:999px;color:#fff;
+    font-size:.76rem;font-weight:700;display:flex;align-items:center;justify-content:center;
+    background:var(--verde);background-image:linear-gradient(var(--verde),var(--verde))}
+  header .usuario-logado{width:auto;font-size:.78rem;color:#E4E4E4;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+  header .titulo-app{min-width:0;overflow:hidden}
+  #statusSalvo{margin-left:0}
   /* icones puros, sem a pastilha redonda */
   .header-sino,.header-tema{background:none;background-image:none;border:0;
     width:34px;height:34px;border-radius:8px;color:#DDD;font-size:1.02rem}
@@ -1930,18 +1938,39 @@
     background:none;background-image:none;border:1px solid rgba(255,255,255,.14)}
   .header-busca:hover{color:#fff;border-color:rgba(255,255,255,.32);background-image:none}
   .header-busca .hb-txt{font-size:.78rem;font-weight:500}
-  .header-busca .hb-kbd{border-color:rgba(255,255,255,.20);opacity:.65}
-  /* quem esta logado, no fim da barra: o avatar e' o UNICO preenchido */
-  .hdr-user{display:inline-flex;align-items:center;gap:8px;margin-left:6px;min-width:0}
-  .hdr-av{width:28px;height:28px;flex:0 0 28px;border-radius:999px;color:#fff;
-    font-size:.76rem;font-weight:700;display:flex;align-items:center;justify-content:center;
-    background:var(--verde);background-image:linear-gradient(var(--verde),var(--verde))}
-  header .usuario-logado{width:auto;font-size:.76rem;color:#E4E4E4;overflow:hidden;
-    text-overflow:ellipsis;white-space:nowrap}
-  /* tela media: o nome da tela sai antes do nome da pessoa; depois sai a pessoa; por fim a
-     busca vira so' a lupa (essa regra ja' e' da v250, no 820px). */
-  @media (max-width:1040px){ .barra-tela{display:none} }
-  @media (max-width:860px){ header .usuario-logado{display:none} }
+
+  /* ===== v250b - O CARD DO SINO =====
+     Espiar nao e' navegar: o sino deixou de TROCAR a tela e virou um cartao flutuante por
+     cima do que ja estava aberto. Clicar fora fecha e a pessoa continua onde estava. */
+  .sino-card{position:fixed;top:58px;right:12px;z-index:95;
+    width:min(380px, calc(100vw - 20px));max-height:min(70vh, 560px);
+    display:flex;flex-direction:column;overflow:hidden;
+    background:var(--superficie);background-image:linear-gradient(var(--superficie),var(--superficie));
+    border:1px solid var(--borda);border-radius:12px;box-shadow:0 16px 44px rgba(0,0,0,.45)}
+  .sino-cab{display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid var(--borda)}
+  .sino-cab b{font-size:.86rem;color:var(--txt)}
+  .sino-cab .sino-cnt{margin-left:auto;font-size:.7rem;font-weight:700;color:var(--cinza);
+    border-radius:999px;padding:1px 8px;
+    background-image:linear-gradient(rgba(0,0,0,.07),rgba(0,0,0,.07))}
+  .sino-corpo{overflow-y:auto;padding:6px 0}
+  .sino-it{display:flex;align-items:center;gap:9px;padding:8px 14px;border-left:3px solid transparent}
+  .sino-it + .sino-it{border-top:1px solid var(--borda)}
+  .sino-it .sino-q{flex:0 0 auto;font-size:.64rem;font-weight:700;letter-spacing:.3px;
+    color:var(--cinza);white-space:nowrap}
+  .sino-it .sino-t{flex:1 1 auto;min-width:0;font-size:.79rem;color:var(--txt);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .sino-it .sino-o{flex:0 0 auto;font-size:.63rem;color:var(--cinza);opacity:.8}
+  .sino-it.vencido{border-left-color:var(--vermelho)}
+  .sino-it.vencido .sino-q{color:var(--vermelho)}
+  .sino-it.hoje{border-left-color:var(--verde)}
+  .sino-it.hoje .sino-q{color:var(--verde)}
+  .sino-vazio{padding:22px 14px;text-align:center;font-size:.8rem;color:var(--cinza)}
+  .sino-pe{border-top:1px solid var(--borda);padding:9px 12px;display:flex;gap:8px;align-items:center}
+  .sino-pe button{flex:1 1 auto;justify-content:center}
+  .sino-mais{font-size:.7rem;color:var(--cinza);padding:6px 14px 2px;text-align:center}
+
+  /* tela media: some o nome de quem esta logado; depois a busca vira so' a lupa (v250, 820px) */
+  @media (max-width:900px){ header .usuario-logado{display:none} }
   @media (max-width:560px){
     header{height:48px;padding:0 10px}
     header{ --fullh:14px; }
@@ -1949,15 +1978,15 @@
     .menu-lateral{top:48px}
     body.com-atz header{top:96px}
     body.com-atz .menu-lateral{top:144px}
-    /* no celular a barra tem lugar para o logo e os quatro botoes, e mais nada:
+    /* no celular a barra tem lugar para o avatar, a marca e os botoes, e mais nada:
        o "Dados enviados para a nuvem" e' recado passageiro e ja' tem o aviso da v248. */
     #statusSalvo{display:none}
-    .header-topo{gap:8px}
+    .header-topo{gap:6px}
     .header-acoes-topo{gap:2px}
     .header-busca{width:34px;padding:0;justify-content:center}
     .header-sino,.header-tema{width:32px;height:32px}
-    .hdr-user{margin-left:2px}
     .hdr-av{width:26px;height:26px;flex:0 0 26px}
+    .sino-card{top:54px;right:8px;left:8px;width:auto}
   }
 .pux-grafia{display:inline-block;font-size:11px;padding:1px 7px;border-radius:10px;margin-left:6px;
   color:#8a5a00;background-color:#fff3d6;background-image:linear-gradient(#fff3d6,#fff3d6);border:1px solid #f0d9a0;cursor:help}
@@ -2055,6 +2084,15 @@
     </div>
   </aside>
 
+  <!-- v250b - o card do sino: espiar sem sair da tela em que a pessoa esta -->
+  <div class="sino-card" id="sinoCard" style="display:none" role="dialog" aria-label="Notificações">
+    <div class="sino-cab"><b>🔔 Notificações</b><span class="sino-cnt" id="sinoCnt"></span></div>
+    <div class="sino-corpo" id="sinoCorpo"></div>
+    <div class="sino-pe">
+      <button class="btn-claro" onclick="abrirCaixaDoSino()">Abrir a Caixa de entrada</button>
+    </div>
+  </div>
+
   <!-- v247 - a busca por atalho -->
   <div class="bsc-fundo" id="bscFundo" onclick="if(event.target===this)fecharBusca()">
     <div class="bsc-cx" role="dialog" aria-label="Buscar tela">
@@ -2097,20 +2135,22 @@
 
   <header>
     <div class="header-topo">
+      <span class="hdr-esq">
+        <span class="hdr-av" id="hdrAv">•</span>
+        <span class="usuario-logado" id="usuarioLogado"></span>
+        <span class="titulo-app"><span id="statusSalvo" aria-live="polite"></span></span>
+      </span>
       <h1>
         <img src="logo-full.png" alt="Postos Full" class="logo-app logo-postos">
         <img src="logo-transportadora.png?v=1" alt="Full Transportadora" class="logo-app logo-transp">
         <img src="logo-conveniencia.png?v=1" alt="Full Conveniência" class="logo-app logo-conv">
-        <span class="titulo-app"><span id="statusSalvo" aria-live="polite"></span></span>
       </h1>
-      <span class="barra-tela" id="barraTela"></span>
       <div class="header-acoes-topo">
-        <button class="header-busca" id="btnBuscaHeader" onclick="abrirBusca()" title="Buscar tela (Ctrl+K)" aria-label="Buscar tela"><span class="hb-lupa">🔎</span><span class="hb-txt">Buscar</span><span class="hb-kbd">Ctrl K</span></button>   <!-- v247, pilula na v250 -->
+        <button class="header-busca" id="btnBuscaHeader" onclick="abrirBusca()" title="Buscar tela (Ctrl+K)" aria-label="Buscar tela"><span class="hb-lupa">🔎</span><span class="hb-txt">Buscar</span></button>   <!-- v247, pilula na v250 -->
         <button class="header-tema" id="btnTemaTopo" onclick="alternarTema()" title="Trocar entre tema claro e escuro" aria-label="Trocar tema"><span id="temaIcone">🌙</span></button>   <!-- v250 -->
-        <button class="header-sino" id="btnSinoHeader" onclick="alternarAvisos()" title="Notificações" aria-label="Notificações">
+        <button class="header-sino" id="btnSinoHeader" onclick="alternarSinoCard()" title="Notificações" aria-label="Notificações">
           🔔<span class="header-sino-badge" id="badgeSinoHeader" style="display:none">0</span>
         </button>
-        <span class="hdr-user"><span class="hdr-av" id="hdrAv">•</span><span class="usuario-logado" id="usuarioLogado"></span></span>
         <button class="menu-hamb" id="btnMenuHamb" onclick="alternarMenuLateral()" title="Abrir menu" aria-label="Abrir menu">☰</button>
       </div>
     </div>
@@ -3416,13 +3456,13 @@ function aplicarTema(tema, salvar=true){
    nao dizia nada sobre a pessoa. Desenho vindo do Concept Hub: sauda\u00e7\u00e3o em cima, e no pe da
    barra o avatar com a inicial + nome + fun\u00e7\u00e3o.
 
-   \U0001f511 As tres pe\u00e7as ja' existiam no app, cada uma no seu canto:
+   🔑 As tres pe\u00e7as ja' existiam no app, cada uma no seu canto:
      - `nomeUsuario`            (o nome amigavel, que chega no snapshot de `perfis`)
      - `perfilDoUsuario(email)` (v187: qual perfil de acesso a pessoa segue)
      - `nomePerfilAdm(id)`      (o nome que o Tiago deu aquele perfil)
-   \U0001f449 Nada de coletar nada novo: e' costura, nao dado.
+   👉 Nada de coletar nada novo: e' costura, nao dado.
 
-   \U0001f534 E o nome CHEGA DEPOIS do login (vem do snapshot de `perfis`), entao isto e' chamado
+   🔴 E o nome CHEGA DEPOIS do login (vem do snapshot de `perfis`), entao isto e' chamado
    em tres momentos: ao entrar, quando a lista de pessoas chega, e quando a permissao muda. */
 function pfNomeCompleto(){
   return String(nomeUsuario || "").trim() || String(usuarioAtual || "");
@@ -4915,7 +4955,7 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
-  {v:"v250", data:"04/08/2026", tit:"O cabeçalho virou uma barra, e agora ele diz com quem está falando", itens:[{t:"n",h:"\u201cOlá, seu nome\u201d no lugar do e-mail",d:"A barra de cima mostrava o e-mail inteiro. Agora ela cumprimenta pelo primeiro nome — o mesmo que está no cadastro de Pessoas. O e-mail completo continua na Minha conta e aparece ao passar o mouse no seu nome, no pé da barra lateral."},{t:"n",h:"Seu nome e sua função no pé da barra lateral",d:"No canto de baixo da barra lateral entrou um círculo com a sua inicial, o seu nome e, logo abaixo, a sua função — o perfil de acesso que você segue. Com a barra fechada aparece só o círculo; passando o mouse, o nome e a função."},{t:"m",h:"A busca virou um botão que diz \u201cBuscar\u201d",d:"Era só uma lupinha, e quem não sabia do atalho não usava. Agora é um botão escrito Buscar, com a tecla Ctrl K ao lado. No celular ele volta a ser só a lupa, para caber."},{t:"m",h:"O tema claro/escuro subiu para a barra de cima",d:"Ele estava escondido no pé da barra lateral. Virou a luinha ao lado do sino, onde se acha. Saiu de baixo — é um botão só, não dois."},{t:"m",h:"O cabeçalho virou uma barra fina no alto da tela",d:"Era um bloco alto, com o logo grande e um cartão arredondado. Virou uma faixa fina colada no topo, atravessando a tela inteira, com o logo menor à esquerda, o nome da tela em que você está no meio, e a busca, o tema, o sino e você à direita. Os ícones perderam a bolinha em volta — só o círculo com a sua inicial continua preenchido. Sobra mais tela para o que interessa."}]},
+  {v:"v250", data:"04/08/2026", tit:"O cabeçalho virou uma barra, e o sino deixou de trocar a sua tela", itens:[{t:"n",h:"\u201cOlá, seu nome\u201d no lugar do e-mail",d:"A barra de cima mostrava o e-mail inteiro. Agora ela cumprimenta pelo primeiro nome — o mesmo que está no cadastro de Pessoas. O e-mail completo continua na Minha conta e aparece ao passar o mouse no seu nome, no pé da barra lateral."},{t:"n",h:"Seu nome e sua função no pé da barra lateral",d:"No canto de baixo da barra lateral entrou um círculo com a sua inicial, o seu nome e, logo abaixo, a sua função — o perfil de acesso que você segue. Com a barra fechada aparece só o círculo; passando o mouse, o nome e a função."},{t:"m",h:"A busca virou um botão que diz \u201cBuscar\u201d",d:"Era só uma lupinha, e quem não sabia do atalho não usava. Agora é um botão escrito Buscar, com a tecla Ctrl K ao lado. No celular ele volta a ser só a lupa, para caber."},{t:"m",h:"O tema claro/escuro subiu para a barra de cima",d:"Ele estava escondido no pé da barra lateral. Virou a luinha ao lado do sino, onde se acha. Saiu de baixo — é um botão só, não dois."},{t:"m",h:"O cabeçalho virou uma barra fina no alto da tela",d:"Era um bloco alto, com o logo grande e um cartão arredondado. Virou uma faixa fina colada no topo, atravessando a tela inteira: você à esquerda, a marca no meio, e a busca, o tema e o sino à direita. Os ícones perderam a bolinha em volta — só o círculo com a sua inicial continua preenchido. Sobra mais tela para o que interessa."},{t:"n",h:"O sino abre um cartão, em vez de trocar a sua tela",d:"Antes, clicar no sino fechava o que você estava vendo e abria a Caixa de entrada inteira. Agora ele abre um cartãozinho por cima, com os avisos mais urgentes resumidos. Clicou fora, ele some e você continua exatamente onde estava. Se quiser mesmo ir para a Caixa de entrada, tem um botão dentro dele."}]},
   {v:"v249", data:"04/08/2026", tit:"Cada aba diz quantos itens tem", itens:[{t:"n",h:"O número aparece na própria aba",d:"As abas de Relatórios e Financeiro que são lista — Aferições, Vendas pendentes, Tanques, Colaboradores, A Prazo, A Prazo sem faturar, Recebimentos, Pagamentos, Descontos, Despesas do mês e A Pagar — passaram a mostrar quantos itens têm, ao lado do nome. O número é o do período e do posto que estão escolhidos na tela, então ele bate com a lista que você vai ver."},{t:"n",h:"A Caixa de entrada e os Documentos têm a conta feita",d:"Na Caixa de entrada, uma linha diz quantos avisos estão pendentes, quantos venceram, quantos são de hoje e quantos vencem em sete dias. Nos Documentos, as visões Por unidade e Por empresa dizem quantos grupos existem. E em Comparar lojas cada bloco mostra quantos produtos entraram nele."},{t:"c",h:"O Financeiro não diz mais que não há dados antes de olhar",d:"Quem abrisse o Financeiro nos primeiros instantes via \u201cAinda não há dados deste relatório\u201d e ficava com esse aviso na tela até clicar em alguma coisa. Agora aparece o esqueleto cinza enquanto os dados vêm, e a aba onde ainda não se sabe o número simplesmente não mostra número nenhum."}]},
   {v:"v248", data:"04/08/2026", tit:"Telas vazias com desenho, esqueleto ao carregar, avisos coloridos e páginas", itens:[{t:"n",h:"A tela avisa que está carregando, em vez de dizer que não há nada",d:"A tabela de Lançamentos dizia \u201cNenhum registro\u201d enquanto os dados ainda estavam vindo da nuvem. Agora ela mostra linhas cinzas piscando, e um fio fino anda no alto da tela enquanto o app espera. Só depois, se realmente não houver nada, aparece o aviso."},{t:"n",h:"Avisos coloridos, no canto da tela",d:"Recado importante \u2014 ficar sem conexão, por exemplo \u2014 passou a aparecer numa caixinha no canto, com a cor do tipo: verde deu certo, vermelho deu erro, amarelo é atenção e azul é informação. Antes ele piscava no cabeçalho e sumia sem ninguém ver."},{t:"n",h:"Lançamentos em páginas de 50",d:"Com muitos registros a tabela agora vem em páginas, com Anterior e Próxima. As médias do rodapé continuam somando TODOS os registros filtrados, não só a página que está na tela \u2014 e o rodapé diz isso."},{t:"m",h:"Tela sem nada ficou com cara de tela, não de erro",d:"Onde não há dado, aparece um desenho, uma frase explicando e \u2014 quando existe uma ação óbvia \u2014 o botão dela. Em Documentos, por exemplo, o \u2795 Novo documento aparece ali mesmo."}]},
   {v:"v247", data:"04/08/2026", tit:"Busca por atalho e a tela de Novidades em três colunas", itens:[{t:"n",h:"Buscar tela pelo nome, com Ctrl+K",d:"Aperte Ctrl+K (ou toque na lupa \ud83d\udd0e do cabeçalho) em qualquer tela e digite o nome do que você procura: os menus, as abas de Relatórios e Financeiro e algumas ações aparecem na hora. Enter abre. Some assim o preço de ter os menus em grupos: chegar a um menu de outro grupo custava dois cliques, e agora não custa nenhum."},{t:"m",h:"Esta tela ficou em três colunas",d:"Cada versão passou a ter um título além do número, e o que ela trouxe aparece em três colunas \u2014 o que é novo, o que melhorou e o que foi consertado \u2014 em vez de uma lista só. A versão que está no ar leva o selo Versão atual."}]},
@@ -6424,30 +6464,10 @@ function luzCabecalho(){
 // o fecharTodosPaineis roda ANTES de o painel novo receber a classe "aberto" em um
 // dos dois caminhos de abertura. Por isso tudo aqui e' agendado com setTimeout 0,
 // quando os dois caminhos ja' terminaram.
-/* ===================== v250b - O NOME DA TELA NO MEIO DA BARRA =====================
-   \U0001f511 Nao existe variavel "tela aberta" no app — quem sabe disso e' o DOM: o botao
-   com a classe `ativo` dentro da barra lateral. Ler dali (e nao guardar um terceiro
-   estado) e' o que faz o titulo respeitar de graca o nome que o Tiago deu ao menu na
-   caixa Personalizar a barra, e mudar sozinho ao trocar de empresa.
-   \U0001f449 Mesma familia da regra da v247: quem decide o que aparece e' a BARRA. */
-function nomeTelaAberta(){
-  const b = document.querySelector(".menu-lateral .grp-int button.ativo");
-  if (!b) return "";
-  const m = MENUS_APP.find(x => x.btn === b.id);
-  if (m) return nomeMenu(m.key, siglaEmpresa(empresa));
-  /* o Painel Administrativo nao esta em MENUS_APP (v244) */
-  const k = Object.keys(MENU_EXTRA || {}).find(x => MENU_EXTRA[x].btn === b.id);
-  return k ? (MENU_EXTRA[k].nome || "") : "";
-}
-function atualizarTituloBarra(){
-  const el = document.getElementById("barraTela");
-  if (el) el.textContent = nomeTelaAberta();
-}
 function aoTrocarDeTela(){
   const b = document.querySelector(".menu-lateral .grp-int button.ativo");
   const id = b ? b.id : "";
   marcarGrupoAceso(b);
-  atualizarTituloBarra();          // v250b - antes do early return: o nome tem de acompanhar sempre
   if (id === menuAcesoAtual) return;
   menuAcesoAtual = id;
   if (!id) return;
@@ -7064,7 +7084,6 @@ function sincronizarAvisoSemPerfil(){
 function aplicarVisibilidadeMenus(){
   instalarFerramentasPaineis();
   if (typeof atualizarUsuarioNaTela === "function") atualizarUsuarioNaTela();   // v250 - a funcao muda com a permissao
-  if (typeof atualizarTituloBarra === "function") atualizarTituloBarra();       // v250b - e o nome da tela muda com a empresa e com o renomear
   // v221 - liga/desliga a tela de espera de quem ainda nao tem perfil.
   // Enquanto os dados de acesso nao chegaram, nao mostrar a tela: senao ela pisca na cara de quem
   // TEM perfil. (Os menus, no meio-tempo, ficam escondidos - que e' o lado seguro do erro.)
@@ -11779,6 +11798,96 @@ function cancelarPreco(dist, comb){
 }
 
 /* ================== Notificações (avisos das agendas) ================== */
+/* ===================== v250b - O CARD DO SINO =====================
+   Ate aqui o sino chamava `alternarAvisos()`, que **troca a tela**: quem estava no meio de
+   um lançamento perdia o que estava vendo para dar uma olhada num aviso, e depois tinha de
+   voltar na mao.
+   🔑 ESPIAR NAO E' NAVEGAR. O sino agora abre um cartao POR CIMA do que ja esta aberto,
+   com os avisos resumidos e um botao para quem quiser mesmo ir para a Caixa de entrada.
+   Clicar fora fecha, e a pessoa continua exatamente onde estava.
+
+   🔴 Duas armadilhas conhecidas, resolvidas aqui:
+   1. O `alternarAvisos()` ALTERNA — chamado com o painel ja' aberto, ele FECHA. O botao do
+      card confere antes, como o `abrirMenuPorChave` da v247.
+   2. O Esc ja' tinha dois donos (a caixa Personalizar, v244, e a busca, v247). Agora sao
+      tres, e cada um so' age quando a SUA caixa esta aberta. */
+const SINO_TOPO = 6;                  // quantos avisos cabem no cartao antes do "e mais N"
+let sinoCardAberto = false;
+function sinoPendentes(){
+  try { return avisosVisiveis().filter(e => !avisoConcluido(e)); } catch(e){ return []; }
+}
+function sinoRotuloData(e){
+  const dd = diasAte(e.data), ddmm = fmtDataCurta(e.data).slice(0,5);
+  if (dd < 0)  return { cls:"vencido", rot:"VENCIDO " + ddmm };
+  if (dd === 0) return { cls:"hoje",    rot:"HOJE" };
+  if (dd === 1) return { cls:"perto",   rot:"AMANH\u00c3" };
+  if (dd <= 7)  return { cls:"perto",   rot:ddmm + " \u00b7 " + dd + " dias" };
+  return { cls:"", rot: fmtDataCurta(e.data) };
+}
+function renderSinoCard(){
+  const corpo = document.getElementById("sinoCorpo"), cnt = document.getElementById("sinoCnt");
+  if (!corpo) return;
+  const pend = sinoPendentes();
+  if (cnt) cnt.textContent = pend.length ? (pend.length + (pend.length === 1 ? " pendente" : " pendentes")) : "em dia";
+  if (!pend.length){
+    /* 🔴 SEM emoji por escape aqui: `\U` MAIUSCULO nao e' escape valido em JavaScript e
+       vaza na tela como "U0001f389" — foi o que a foto pegou. Emoji em string ou vira
+       PAR SUBSTITUTO (\ud83c\udf89) ou nao entra. Aqui nao precisa. */
+    corpo.innerHTML = '<div class="sino-vazio">Nenhum aviso pendente.</div>';
+    return;
+  }
+  let h = "";
+  pend.slice(0, SINO_TOPO).forEach(e => {
+    const d = sinoRotuloData(e);
+    h += '<div class="sino-it ' + d.cls + '">' +
+         '<span class="sino-q">' + escAttr(d.rot) + '</span>' +
+         '<span class="sino-t" title="' + escAttr(e.titulo || "") + '">' + escAttr(e.titulo || "") + '</span>' +
+         (e.origem ? '<span class="sino-o">' + escAttr(e.origem) + '</span>' : '') +
+         '</div>';
+  });
+  /* v241 - resumo que conta N e lista que mostra menos TEM de dizer isso */
+  if (pend.length > SINO_TOPO)
+    h += '<div class="sino-mais">e mais ' + (pend.length - SINO_TOPO) + ' na Caixa de entrada</div>';
+  corpo.innerHTML = h;
+}
+function _sinoCliqueFora(ev){
+  const c = document.getElementById("sinoCard"), b = document.getElementById("btnSinoHeader");
+  if (c && c.contains(ev.target)) return;
+  if (b && b.contains(ev.target)) return;
+  fecharSinoCard();
+}
+function abrirSinoCard(){
+  const c = document.getElementById("sinoCard");
+  if (!c) return;
+  renderSinoCard();
+  c.style.display = "flex";
+  sinoCardAberto = true;
+  const b = document.getElementById("btnSinoHeader");
+  if (b) b.classList.add("ativo");
+  /* o setTimeout evita que o proprio clique que abriu o cartao ja o feche */
+  setTimeout(() => document.addEventListener("click", _sinoCliqueFora), 0);
+}
+function fecharSinoCard(){
+  const c = document.getElementById("sinoCard");
+  if (c) c.style.display = "none";
+  sinoCardAberto = false;
+  document.removeEventListener("click", _sinoCliqueFora);
+  /* o sino so' continua aceso se a TELA de avisos estiver aberta */
+  const b = document.getElementById("btnSinoHeader");
+  const p = document.getElementById("painelAvisos");
+  if (b) b.classList.toggle("ativo", !!(p && p.classList.contains("aberto")));
+}
+function alternarSinoCard(){ sinoCardAberto ? fecharSinoCard() : abrirSinoCard(); }
+/* 🔴 `alternarAvisos()` ALTERNA: com o painel ja' aberto ele fecharia. Regra da v247. */
+function abrirCaixaDoSino(){
+  fecharSinoCard();
+  const p = document.getElementById("painelAvisos");
+  if (p && p.classList.contains("aberto")){ renderAvisos(); return; }
+  alternarAvisos();
+}
+document.addEventListener("keydown", ev => {
+  if (ev.key === "Escape" && sinoCardAberto) fecharSinoCard();
+});
 function alternarAvisos(){
   const aberto = abrirPainelExclusivo("painelAvisos");
   const b = document.getElementById("btnAvisos");
@@ -11834,6 +11943,7 @@ function chaveAviso(e){
 }
 function avisoConcluido(e){ return !!(avisosStatus && avisosStatus.concluidos && avisosStatus.concluidos[chaveAviso(e)]); }
 function atualizarBadgeAvisos(){
+  if (typeof sinoCardAberto !== "undefined" && sinoCardAberto) renderSinoCard();   // v250b
   const n = avisosVisiveis().filter(e => !avisoConcluido(e)).length;  // pendentes: vencidos + os que já entraram na janela de antecedência de cada evento
   const b = document.getElementById("badgeAvisos");
   if (b){ b.textContent = n; b.style.display = n ? "" : "none"; }
