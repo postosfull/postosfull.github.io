@@ -217,6 +217,44 @@
   .nvd-tit{font-weight:700;display:block;margin-bottom:2px}
   .nvd-txt{font-size:.86rem;opacity:.88;line-height:1.45}
   @media (max-width:560px){ .nvd-item{flex-direction:column;gap:4px} .nvd-tag{min-width:0;align-self:flex-start} }
+  /* ===== v247 - a tela de Novidades em tres colunas ===== */
+  .nvd-cab-tit{font-weight:700;font-size:.95rem;flex:1 1 220px}
+  .nvd-atualsel{font-size:.6rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#fff;
+                border-radius:999px;padding:2px 8px;background-image:linear-gradient(#18a558,#18a558)}
+  .nvd-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+  .nvd-col{border-radius:10px;padding:10px 12px}
+  .nvd-col-tit{font-size:.62rem;font-weight:800;letter-spacing:.6px;text-transform:uppercase;margin-bottom:8px;display:block}
+  .nvd-col.n{background-image:linear-gradient(rgba(24,165,88,.10),rgba(24,165,88,.10))}
+  .nvd-col.m{background-image:linear-gradient(rgba(47,127,209,.10),rgba(47,127,209,.10))}
+  .nvd-col.c{background-image:linear-gradient(rgba(192,57,43,.10),rgba(192,57,43,.10))}
+  .nvd-col.n .nvd-col-tit{color:#18a558} .nvd-col.m .nvd-col-tit{color:#2f7fd1} .nvd-col.c .nvd-col-tit{color:#c0392b}
+  .nvd-li{display:flex;gap:7px;align-items:flex-start;margin-bottom:9px}
+  .nvd-li:last-child{margin-bottom:0}
+  .nvd-pt{flex:0 0 auto;line-height:1.35;opacity:.55}
+  /* ===== v247 - a busca por atalho (Ctrl+K) ===== */
+  .bsc-fundo{position:fixed;inset:0;z-index:9000;display:none;align-items:flex-start;justify-content:center;
+             padding:12vh 14px 14px;background-image:linear-gradient(rgba(0,0,0,.45),rgba(0,0,0,.45))}
+  .bsc-fundo.aberto{display:flex}
+  .bsc-cx{width:100%;max-width:560px;border:1px solid var(--borda);border-radius:14px;overflow:hidden;
+          background-image:linear-gradient(var(--superficie),var(--superficie));box-shadow:0 18px 50px rgba(0,0,0,.28)}
+  .bsc-topo{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--borda)}
+  .bsc-lupa{opacity:.6;font-size:.95rem}
+  .bsc-inp{flex:1;border:0;outline:0;font-size:1rem;color:var(--txt);
+           background-image:linear-gradient(var(--superficie),var(--superficie))}
+  .bsc-lista{max-height:52vh;overflow-y:auto;padding:6px}
+  .bsc-grp{font-size:.6rem;font-weight:800;letter-spacing:.6px;text-transform:uppercase;opacity:.55;padding:8px 10px 4px}
+  .bsc-it{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;border-radius:9px;
+          padding:8px 10px;cursor:pointer;color:var(--txt);
+          background-image:linear-gradient(var(--superficie),var(--superficie))}
+  .bsc-it.sel{background-image:linear-gradient(rgba(var(--verde-rgb),.14),rgba(var(--verde-rgb),.14))}
+  .bsc-ic{flex:0 0 22px;text-align:center;font-size:1rem}
+  .bsc-nm{font-weight:600}
+  .bsc-sub{font-size:.74rem;opacity:.6;margin-left:auto;padding-left:10px;white-space:nowrap}
+  .bsc-vazio{padding:18px 12px;text-align:center;opacity:.7;font-size:.88rem}
+  .bsc-pe{display:flex;gap:14px;padding:8px 14px;border-top:1px solid var(--borda);font-size:.7rem;opacity:.6}
+  .header-busca{background:none;border:0;cursor:pointer;font-size:1.05rem;line-height:1;padding:4px 6px;opacity:.85}
+  .header-busca:hover{opacity:1}
+  @media (max-width:560px){ .bsc-fundo{padding-top:6vh} .bsc-sub{display:none} .bsc-pe{display:none} }
   .menu-lateral button:hover{background:var(--superficie-2)}
   /* v243 - o menu aceso ganha barra à esquerda e uma luz que entra na horizontal,
      no lugar do contorno de 2px. background-IMAGE porque o modo escuro forçado do
@@ -1850,6 +1888,18 @@
     <button class="btn-dourado menu-sair" onclick="sair()"><span class="mi">🚪</span><span class="mt">Sair</span></button>
   </aside>
 
+  <!-- v247 - a busca por atalho -->
+  <div class="bsc-fundo" id="bscFundo" onclick="if(event.target===this)fecharBusca()">
+    <div class="bsc-cx" role="dialog" aria-label="Buscar tela">
+      <div class="bsc-topo">
+        <span class="bsc-lupa">🔎</span>
+        <input class="bsc-inp" id="bscInp" type="text" autocomplete="off" spellcheck="false"
+               placeholder="Buscar tela, aba ou ação..." oninput="bscRender()">
+      </div>
+      <div class="bsc-lista" id="bscLista"></div>
+      <div class="bsc-pe"><span>↑↓ escolher</span><span>Enter abrir</span><span>Esc fechar</span></div>
+    </div>
+  </div>
   <div class="pmenu-fundo" id="pmenuFundo" style="display:none" onclick="fecharPersonalizarMenus()"></div>
   <aside class="pmenu-box" id="pmenuBox" style="display:none" aria-label="Personalizar a barra de menus">
     <div class="pmenu-topo">
@@ -1888,6 +1938,7 @@
         <span class="usuario-logado" id="usuarioLogado"></span>
       </h1>
       <div class="header-acoes-topo">
+        <button class="header-busca" id="btnBuscaHeader" onclick="abrirBusca()" title="Buscar tela (Ctrl+K)" aria-label="Buscar tela">🔎</button>   <!-- v247 -->
         <button class="header-sino" id="btnSinoHeader" onclick="alternarAvisos()" title="Notificações" aria-label="Notificações">
           🔔<span class="header-sino-badge" id="badgeSinoHeader" style="display:none">0</span>
         </button>
@@ -4642,25 +4693,28 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
-  {v:"v246", data:"04/08/2026", itens:[{t:"n",h:"Este menu \ud83c\udf81 Novidades",d:"Toda versão nova passa a contar aqui o que mudou, da mais recente para a mais antiga. O número vermelho ao lado do menu diz quantas versões você ainda não leu, e some quando você abre esta tela."}]},
-  {v:"v245", data:"04/08/2026", itens:[{t:"n",h:"A barra lateral virou GRUPOS",d:"Os menus agora moram em grupos que abrem e fecham (Dia a dia, Análise, Transportadora, Organização e Ajustes). Só o grupo da tela que você abriu fica aberto, então a barra fica curta e fácil de varrer."}, {t:"n",h:"Personalizar menus: a barra fica do seu jeito",d:"No pé da barra, \u270f\ufe0f Personalizar menus deixa você renomear cada menu, trocar de grupo, mudar a ordem e criar ou apagar grupos \u2014 por empresa, sem precisar pedir para ninguém."}, {t:"n",h:"Nada se perde, e dá para desfazer",d:"Menu não se apaga. Para apagar um grupo, o app pergunta para onde vão os menus dele e faz a mudança nessa ordem. E há um \u21a9 Desfazer que diz o que vai desfazer antes de você clicar."}, {t:"m",h:"O app ganhou movimento",d:"O menu escolhido acende com uma barra e uma luz; uma faixa atravessa o cabeçalho; a tela entra subindo e os quadros aparecem em sequência."}]},
-  {v:"v242", data:"04/08/2026", itens:[{t:"n",h:"Os produtos que só existem em uma loja",d:"64% do que as lojas vendem não tem par nas outras duas \u2014 e por isso ficava fora da comparação de preço. Agora cada um desses é medido contra a margem média da própria categoria naquela loja. Em Produtos e categorias \u2192 \u2696\ufe0f Comparar lojas."}, {t:"n",h:"Aviso de custo de compra que subiu",d:"A tela compara as duas últimas compras de cada item e mostra onde o custo subiu com o preço parado. São 206 produtos nas três lojas."}]},
-  {v:"v241", data:"04/08/2026", itens:[{t:"c",h:"O botão Ver todos no bloco de preço",d:"O aviso contava 158 produtos e a tabela mostrava 20. Agora o próprio aviso diz que está cortando, e o botão abre a lista inteira."}]},
-  {v:"v240", data:"04/08/2026", itens:[{t:"c",h:"Sai da fila o reajuste de R$ 24,99 para R$ 24,99",d:"Produto que já está com o preço de tabela certo saiu da fila de reajuste. O que sobrou virou uma nota à parte: o que está saindo no caixa mais barato do que na etiqueta \u2014 que é desconto na venda, não preço errado."}]},
-  {v:"v239", data:"04/08/2026", itens:[{t:"n",h:"Preço de tabela das três lojas lado a lado",d:"Dentro de Produtos e categorias \u2192 \u2696\ufe0f Comparar lojas, o preço de cada produto nas três lojas, com a margem de reposição (preço menos o último custo de compra) e um preço sugerido."}]},
-  {v:"v238", data:"04/08/2026", itens:[{t:"m",h:"O menu Documentos passou a ter uma porta só",d:"Ficou apenas o \u2795 Novo documento. A barra rápida Enviar arquivo (sem data) saiu, porque o formulário agora faz as duas coisas. Os arquivos que entraram por ela continuam lá, e dá para abrir cada um no \u270f\ufe0f para pôr o vencimento que faltava."}]},
-  {v:"v237", data:"04/08/2026", itens:[{t:"n",h:"O arquivo entra junto com o documento",d:"No \u2795 Novo documento agora tem \ud83d\udcce Arquivo: você preenche nome, tipo, empresa e vencimento e anexa o PDF na mesma tela, de uma vez só."}]},
-  {v:"v236", data:"03/08/2026", itens:[{t:"c",h:"Mapa Anual da loja sem as linhas de posto",d:"As linhas Despesa por Litro e Lucro Líquido por Litro saíam sempre zeradas na Conveniência, porque loja não tem litro. Elas sumiram, e o rodapé diz o que saiu e por quê."}]},
-  {v:"v235", data:"03/08/2026", itens:[{t:"c",h:"Cada número do Mapa Anual diz a unidade",d:"Um selo por linha mostra se aquilo é R$, litro, R$ por litro ou quantidade. E o acento embaralhado que vinha do Petros (Lucro Lí­quido) foi consertado na leitura."}]},
-  {v:"v234", data:"03/08/2026", itens:[{t:"m",h:"(R$) nos cabeçalhos do card Detalhe do mês",d:"Antes não dava para saber, olhando a coluna, se o número era real, litro ou quantidade."}]},
-  {v:"v233", data:"03/08/2026", itens:[{t:"m",h:"As duas abas de resultado viraram uma só",d:"O Resultado do mês ficou com o detalhe por produto, por categoria e por despesa, e a aba Resultado do período saiu. As duas liam a mesma fonte e davam números parecidos, o que só gerava dúvida."}]},
-  {v:"v232", data:"03/08/2026", itens:[{t:"c",h:"A Conveniência deixou de falar em posto",d:"Nas telas financeiras da loja, compra de combustível virou compra de mercadoria e as palavras de posto saíram. O nome muda com a empresa."}]},
-  {v:"v231", data:"03/08/2026", itens:[{t:"n",h:"Menu Financeiro na Full Conveniência",d:"A loja ganhou Resultado do mês, Caixa, Recebimentos, Pagamentos, Despesas do mês e Colaboradores \u2014 inclusive os vales."}]},
-  {v:"v230", data:"03/08/2026", itens:[{t:"c",h:"Tanques avisa quando ainda não mediram",d:"A aba dizia 0 de 16 tanques com perda, que parecia mês sem problema. Agora ela diz que a medição do mês ainda não foi feita."}]},
-  {v:"v229", data:"03/08/2026", itens:[{t:"c",h:"Resultado do mês monta mesmo sem os litros",d:"A tela ficava vazia quando faltava o volume do painel, mesmo com o DRE inteiro disponível."}]},
-  {v:"v228", data:"03/08/2026", itens:[{t:"c",h:"A Pagar / Fluxo entende a liquidez em qualquer formato",d:"A tela mostrava R$ 0 quando a coleta gravava num formato diferente do esperado. Agora ela entende os dois e, quando não entender, avisa em vez de mostrar zero."}]},
+  {v:"v247", data:"04/08/2026", tit:"Busca por atalho e a tela de Novidades em três colunas", itens:[{t:"n",h:"Buscar tela pelo nome, com Ctrl+K",d:"Aperte Ctrl+K (ou toque na lupa \ud83d\udd0e do cabeçalho) em qualquer tela e digite o nome do que você procura: os menus, as abas de Relatórios e Financeiro e algumas ações aparecem na hora. Enter abre. Some assim o preço de ter os menus em grupos: chegar a um menu de outro grupo custava dois cliques, e agora não custa nenhum."},{t:"m",h:"Esta tela ficou em três colunas",d:"Cada versão passou a ter um título além do número, e o que ela trouxe aparece em três colunas \u2014 o que é novo, o que melhorou e o que foi consertado \u2014 em vez de uma lista só. A versão que está no ar leva o selo Versão atual."}]},
+  {v:"v246", data:"04/08/2026", tit:"O menu Novidades", itens:[{t:"n",h:"Este menu \ud83c\udf81 Novidades",d:"Toda versão nova passa a contar aqui o que mudou, da mais recente para a mais antiga. O número vermelho ao lado do menu diz quantas versões você ainda não leu, e some quando você abre esta tela."}]},
+  {v:"v245", data:"04/08/2026", tit:"A barra lateral virou grupos, e ficou do seu jeito", itens:[{t:"n",h:"A barra lateral virou GRUPOS",d:"Os menus agora moram em grupos que abrem e fecham (Dia a dia, Análise, Transportadora, Organização e Ajustes). Só o grupo da tela que você abriu fica aberto, então a barra fica curta e fácil de varrer."}, {t:"n",h:"Personalizar menus: a barra fica do seu jeito",d:"No pé da barra, \u270f\ufe0f Personalizar menus deixa você renomear cada menu, trocar de grupo, mudar a ordem e criar ou apagar grupos \u2014 por empresa, sem precisar pedir para ninguém."}, {t:"n",h:"Nada se perde, e dá para desfazer",d:"Menu não se apaga. Para apagar um grupo, o app pergunta para onde vão os menus dele e faz a mudança nessa ordem. E há um \u21a9 Desfazer que diz o que vai desfazer antes de você clicar."}, {t:"m",h:"O app ganhou movimento",d:"O menu escolhido acende com uma barra e uma luz; uma faixa atravessa o cabeçalho; a tela entra subindo e os quadros aparecem em sequência."}]},
+  {v:"v242", data:"04/08/2026", tit:"Os produtos que só existem em uma loja, e o custo que subiu", itens:[{t:"n",h:"Os produtos que só existem em uma loja",d:"64% do que as lojas vendem não tem par nas outras duas \u2014 e por isso ficava fora da comparação de preço. Agora cada um desses é medido contra a margem média da própria categoria naquela loja. Em Produtos e categorias \u2192 \u2696\ufe0f Comparar lojas."}, {t:"n",h:"Aviso de custo de compra que subiu",d:"A tela compara as duas últimas compras de cada item e mostra onde o custo subiu com o preço parado. São 206 produtos nas três lojas."}]},
+  {v:"v241", data:"04/08/2026", tit:"O botão Ver todos no bloco de preço", itens:[{t:"c",h:"O botão Ver todos no bloco de preço",d:"O aviso contava 158 produtos e a tabela mostrava 20. Agora o próprio aviso diz que está cortando, e o botão abre a lista inteira."}]},
+  {v:"v240", data:"04/08/2026", tit:"Some da fila o reajuste que não é reajuste", itens:[{t:"c",h:"Sai da fila o reajuste de R$ 24,99 para R$ 24,99",d:"Produto que já está com o preço de tabela certo saiu da fila de reajuste. O que sobrou virou uma nota à parte: o que está saindo no caixa mais barato do que na etiqueta \u2014 que é desconto na venda, não preço errado."}]},
+  {v:"v239", data:"04/08/2026", tit:"Preço de tabela das três lojas lado a lado", itens:[{t:"n",h:"Preço de tabela das três lojas lado a lado",d:"Dentro de Produtos e categorias \u2192 \u2696\ufe0f Comparar lojas, o preço de cada produto nas três lojas, com a margem de reposição (preço menos o último custo de compra) e um preço sugerido."}]},
+  {v:"v238", data:"04/08/2026", tit:"O menu Documentos com uma porta só", itens:[{t:"m",h:"O menu Documentos passou a ter uma porta só",d:"Ficou apenas o \u2795 Novo documento. A barra rápida Enviar arquivo (sem data) saiu, porque o formulário agora faz as duas coisas. Os arquivos que entraram por ela continuam lá, e dá para abrir cada um no \u270f\ufe0f para pôr o vencimento que faltava."}]},
+  {v:"v237", data:"04/08/2026", tit:"O arquivo entra junto com o documento", itens:[{t:"n",h:"O arquivo entra junto com o documento",d:"No \u2795 Novo documento agora tem \ud83d\udcce Arquivo: você preenche nome, tipo, empresa e vencimento e anexa o PDF na mesma tela, de uma vez só."}]},
+  {v:"v236", data:"03/08/2026", tit:"Mapa Anual da loja sem as linhas de posto", itens:[{t:"c",h:"Mapa Anual da loja sem as linhas de posto",d:"As linhas Despesa por Litro e Lucro Líquido por Litro saíam sempre zeradas na Conveniência, porque loja não tem litro. Elas sumiram, e o rodapé diz o que saiu e por quê."}]},
+  {v:"v235", data:"03/08/2026", tit:"Cada número do Mapa Anual diz a unidade", itens:[{t:"c",h:"Cada número do Mapa Anual diz a unidade",d:"Um selo por linha mostra se aquilo é R$, litro, R$ por litro ou quantidade. E o acento embaralhado que vinha do Petros (Lucro Lí­quido) foi consertado na leitura."}]},
+  {v:"v234", data:"03/08/2026", tit:"(R$) nos cabeçalhos do Detalhe do mês", itens:[{t:"m",h:"(R$) nos cabeçalhos do card Detalhe do mês",d:"Antes não dava para saber, olhando a coluna, se o número era real, litro ou quantidade."}]},
+  {v:"v233", data:"03/08/2026", tit:"As duas abas de resultado viraram uma só", itens:[{t:"m",h:"As duas abas de resultado viraram uma só",d:"O Resultado do mês ficou com o detalhe por produto, por categoria e por despesa, e a aba Resultado do período saiu. As duas liam a mesma fonte e davam números parecidos, o que só gerava dúvida."}]},
+  {v:"v232", data:"03/08/2026", tit:"A Conveniência deixou de falar em posto", itens:[{t:"c",h:"A Conveniência deixou de falar em posto",d:"Nas telas financeiras da loja, compra de combustível virou compra de mercadoria e as palavras de posto saíram. O nome muda com a empresa."}]},
+  {v:"v231", data:"03/08/2026", tit:"Menu Financeiro na Full Conveniência", itens:[{t:"n",h:"Menu Financeiro na Full Conveniência",d:"A loja ganhou Resultado do mês, Caixa, Recebimentos, Pagamentos, Despesas do mês e Colaboradores \u2014 inclusive os vales."}]},
+  {v:"v230", data:"03/08/2026", tit:"Tanques avisa quando ainda não mediram", itens:[{t:"c",h:"Tanques avisa quando ainda não mediram",d:"A aba dizia 0 de 16 tanques com perda, que parecia mês sem problema. Agora ela diz que a medição do mês ainda não foi feita."}]},
+  {v:"v229", data:"03/08/2026", tit:"Resultado do mês monta mesmo sem os litros", itens:[{t:"c",h:"Resultado do mês monta mesmo sem os litros",d:"A tela ficava vazia quando faltava o volume do painel, mesmo com o DRE inteiro disponível."}]},
+  {v:"v228", data:"03/08/2026", tit:"A Pagar / Fluxo entende a liquidez em qualquer formato", itens:[{t:"c",h:"A Pagar / Fluxo entende a liquidez em qualquer formato",d:"A tela mostrava R$ 0 quando a coleta gravava num formato diferente do esperado. Agora ela entende os dois e, quando não entender, avisa em vez de mostrar zero."}]},
 ];
 const NVD_TAGS = { n:"Novidade", m:"Melhoria", c:"Corre\u00e7\u00e3o" };
+// v247 - o titulo de cada coluna da tela (o NVD_TAGS continua sendo a etiqueta de um item)
+const NVD_COLS = { n:"Novidade", m:"Melhorado", c:"Corrigido" };
 const CHAVE_NVD_LIDA = "pf_novidades_lida";
 function nvdVersaoApp(){ return (NOVIDADES_APP[0] && NOVIDADES_APP[0].v) || ""; }
 function nvdLida(){ try { return localStorage.getItem(CHAVE_NVD_LIDA) || ""; } catch(e){ return ""; } }
@@ -4695,19 +4749,194 @@ function renderNovidades(){
   const corte = lida ? NOVIDADES_APP.findIndex(x => x.v === lida) : 1;
   const novas = corte < 0 ? 1 : corte;
   alvo.innerHTML = NOVIDADES_APP.map((ver, i) => {
-    const itens = (ver.itens || []).map(it =>
-      '<div class="nvd-item"><span class="nvd-tag ' + it.t + '">' + (NVD_TAGS[it.t] || "") + '</span>' +
-      '<span><span class="nvd-tit">' + it.h + '</span><span class="nvd-txt">' + it.d + '</span></span></div>').join("");
+    /* v247 - tres colunas: o que e' NOVO, o que MELHOROU e o que foi CONSERTADO.
+       Coluna sem nenhum item nao e' desenhada - quadro vazio nao informa nada. */
+    const cols = ["n","m","c"].map(t => {
+      const its = (ver.itens || []).filter(x => x.t === t);
+      if (!its.length) return "";
+      return '<div class="nvd-col ' + t + '"><span class="nvd-col-tit">' + (NVD_COLS[t] || "") + '</span>' +
+        its.map(it => '<div class="nvd-li"><span class="nvd-pt">\u2022</span><span>' +
+          '<span class="nvd-tit">' + it.h + '</span><span class="nvd-txt">' + it.d + '</span></span></div>').join("") +
+        '</div>';
+    }).join("");
     return '<div class="nvd-ver' + (i < novas ? " nova" : "") + '">' +
            '<div class="nvd-cab"><span class="nvd-num">' + ver.v + '</span>' +
+           (ver.tit ? '<span class="nvd-cab-tit">' + ver.tit + '</span>' : '') +
            '<span class="nvd-data">' + (ver.data || "") + '</span>' +
+           (i === 0 ? '<span class="nvd-atualsel">Vers\u00e3o atual</span>' : '') +
            (i < novas ? '<span class="nvd-selo">novo para voc\u00ea</span>' : '') + '</div>' +
-           '<div class="nvd-itens">' + itens + '</div></div>';
+           '<div class="nvd-cols">' + cols + '</div></div>';
   }).join("");
   // abriu = leu: o aviso some agora, nao na proxima vez que a pagina carregar
   try { localStorage.setItem(CHAVE_NVD_LIDA, nvdVersaoApp()); } catch(e){}
   atualizarBadgeNovidades();
 }
+/* ===== v247 - a busca por atalho (Ctrl+K) ==========================================
+   Nasceu da varredura do Concept Hub, e conserta um preco que a v243 cobrou: com os
+   menus em grupos que se fecham, chegar a um menu de outro grupo custa DOIS cliques.
+   Aqui nao custa nenhum - digita o nome e cai na tela.
+
+   🔴 A LISTA DE DESTINOS NAO E' ESCRITA A MAO. Ela sai, toda vez que a caixa abre, de:
+     - todasAsChavesDeMenu() + nomeMenu(k, s)  -> os menus, com o nome que o Tiago deu;
+     - abasRelDaEmpresa(s) + nomeAba(a, s)     -> as abas de Relatorios e Financeiro;
+     - uma lista curta de ACOES do proprio app.
+   👉 Menu novo, aba nova ou menu renomeado entram sozinhos. Lista escrita a mao
+   envelhece calada (v217) - esta nao existe.
+
+   🔑 QUEM DECIDE O QUE APARECE E' A BARRA, nao uma regra nova: so' entra o menu cujo
+   botao esta' visivel (`style.display !== "none"`), que e' exatamente o teste que o
+   atualizarGruposMenu() usa. Assim permissao, empresa e admin valem sem nenhuma copia. */
+let bscAberta = false, bscSel = 0, bscItens = [];
+
+function bscSemAcento(t){
+  t = String(t == null ? "" : t).toLowerCase();
+  try { return t.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); } catch(e){ return t; }
+}
+/* Separa o emoji da frente do texto ("💵 Resultado do mes" -> ["💵","Resultado do mes"]).
+   ⚠️ O teste e' pelo CODIGO do primeiro caractere (acima de U+2000), nao por uma lista de
+   emojis: aba renomeada pelo Tiago pode nao ter emoji nenhum, e ai o icone fica generico. */
+function bscQuebraIcone(txt){
+  const t = String(txt || "").trim();
+  const m = t.match(/^(\S+)\s+(.+)$/);
+  if (m && m[1].length <= 3 && m[1].charCodeAt(0) > 0x2000) return [m[1], m[2]];
+  return ["", t];
+}
+function bscBotaoVisivel(k){
+  const b = document.getElementById(btnDoMenu(k));
+  return !!(b && b.style.display !== "none");
+}
+/* Abre um menu pela chave. ⚠️ Os alternarX() ALTERNAM: chamar com o painel ja' aberto
+   FECHARIA a tela. Por isso, se ja' esta' aberto, nao se faz nada. */
+function abrirMenuPorChave(k){
+  const m = MENUS_APP.find(x => x.key === k);
+  const pan = document.getElementById(m ? m.pan : "painelAdmin");
+  if (pan && pan.classList.contains("aberto")) return true;
+  const b = document.getElementById(btnDoMenu(k));
+  if (!b) return false;
+  b.click();                      // o clique tambem fecha a barra no celular (gancho da v133)
+  return true;
+}
+function bscDestinos(){
+  const s = siglaEmpresa(empresa);
+  const saida = [];
+  // 1) os menus da barra
+  todasAsChavesDeMenu().forEach(k => {
+    if (!bscBotaoVisivel(k)) return;
+    const b = document.getElementById(btnDoMenu(k));
+    const ic = b ? (b.querySelector(".mi") || {}).textContent || "" : "";
+    saida.push({ g:"Telas", ic:(ic || "▦").trim(), nm:nomeMenu(k, s), sub:"Menu",
+                 run:() => abrirMenuPorChave(k) });
+  });
+  // 2) as abas de Relatorios e Financeiro (so' as do menu que esta' na barra)
+  const donoDaAba = { rel:"relPosto", fin:"financeiro" };
+  abasRelDaEmpresa(s).forEach(a => {
+    const mk = donoDaAba[menuDaAba(a, s)] || "relPosto";
+    if (!bscBotaoVisivel(mk)) return;
+    const par = bscQuebraIcone(nomeAba(a, s));
+    saida.push({ g:"Abas", ic:par[0] || "📑", nm:par[1],
+                 sub:"Aba de " + nomeMenu(mk, s), run:() => irParaAbaRel(a.k) });
+  });
+  // 3) as acoes
+  Object.keys(NOME_EMPRESA).forEach(e => {
+    if (e === empresa) return;
+    saida.push({ g:"Ações", ic:"🏢", nm:"Ir para " + NOME_EMPRESA[e],
+                 sub:"Trocar de empresa", run:() => definirEmpresa(e) });
+  });
+  if (ehAdminAtual()) saida.push({ g:"Ações", ic:"✏️", nm:"Personalizar a barra",
+                                   sub:"Nome, grupo e ordem dos menus", run:() => alternarPersonalizarMenus() });
+  saida.push({ g:"Ações", ic:"🔄", nm:"Recarregar o app",
+               sub:"Buscar a versão mais nova", run:() => location.reload() });
+  return saida;
+}
+/* Ordena por PERTINENCIA: quem comeca com o que foi digitado vem antes de quem so' contem.
+   Sem isso, digitar "caixa" traz "Caixa de entrada" depois de tres abas que citam caixa. */
+function bscFiltrar(termo){
+  const todos = bscDestinos();
+  const t = bscSemAcento(termo).trim();
+  if (!t) return todos;
+  const pontos = d => {
+    const n = bscSemAcento(d.nm), sb = bscSemAcento(d.sub);
+    if (n === t) return 0;
+    if (n.indexOf(t) === 0) return 1;
+    if ((" " + n).indexOf(" " + t) > 0) return 2;      // comeco de qualquer palavra
+    if (n.indexOf(t) >= 0) return 3;
+    if (sb.indexOf(t) >= 0) return 4;
+    return 99;
+  };
+  /* 🔴 O GRUPO MANDA NA ORDEM, e a pertinencia manda DENTRO do grupo. Ordenar so' por
+     pertinencia embaralha os grupos e o titulo "ABAS" aparece duas vezes na mesma lista -
+     foi o que a primeira foto mostrou, e nenhuma assercao pegava. */
+  const peso = { "Telas":0, "Abas":1, "Ações":2 };
+  return todos.map((d, i) => ({ d, i, p:pontos(d) })).filter(x => x.p < 99)
+              .sort((a, b) => ((peso[a.d.g]||0) - (peso[b.d.g]||0)) || (a.p - b.p) || (a.i - b.i))
+              .map(x => x.d);
+}
+function bscRender(){
+  const cx = document.getElementById("bscLista"), inp = document.getElementById("bscInp");
+  if (!cx || !inp) return;
+  bscItens = bscFiltrar(inp.value);
+  if (bscSel >= bscItens.length) bscSel = 0;
+  if (!bscItens.length){
+    cx.innerHTML = '<div class="bsc-vazio">Nada com esse nome nesta empresa.</div>';
+    return;
+  }
+  let h = "", grp = "";
+  bscItens.forEach((d, i) => {
+    if (d.g !== grp){ grp = d.g; h += '<div class="bsc-grp">' + escAttr(grp) + '</div>'; }
+    h += '<button type="button" class="bsc-it' + (i === bscSel ? " sel" : "") + '" data-i="' + i + '" ' +
+         'onclick="bscExecutar(' + i + ')" onmousemove="bscMarcar(' + i + ')">' +
+         '<span class="bsc-ic">' + escAttr(d.ic) + '</span>' +
+         '<span class="bsc-nm">' + escAttr(d.nm) + '</span>' +
+         '<span class="bsc-sub">' + escAttr(d.sub) + '</span></button>';
+  });
+  cx.innerHTML = h;
+}
+function bscMarcar(i){
+  if (i === bscSel) return;
+  bscSel = i;
+  document.querySelectorAll("#bscLista .bsc-it").forEach(b => b.classList.toggle("sel", Number(b.dataset.i) === i));
+}
+function bscMover(d){
+  if (!bscItens.length) return;
+  bscSel = (bscSel + d + bscItens.length) % bscItens.length;
+  bscRender();
+  const el = document.querySelector("#bscLista .bsc-it.sel");
+  if (el && el.scrollIntoView) el.scrollIntoView({ block:"nearest" });
+}
+function bscExecutar(i){
+  const d = bscItens[i === undefined ? bscSel : i];
+  if (!d) return;
+  fecharBusca();
+  try { d.run(); } catch(e){}
+  agendarTrocaDeTela();          // a luz do cabecalho e a animacao do painel (v243)
+}
+function abrirBusca(){
+  const f = document.getElementById("bscFundo"), inp = document.getElementById("bscInp");
+  if (!f || !inp) return;
+  bscAberta = true; bscSel = 0;
+  f.classList.add("aberto");
+  inp.value = "";
+  bscRender();
+  setTimeout(() => { try { inp.focus(); } catch(e){} }, 0);
+}
+function fecharBusca(){
+  const f = document.getElementById("bscFundo");
+  bscAberta = false;
+  if (f) f.classList.remove("aberto");
+}
+function alternarBusca(){ if (bscAberta) fecharBusca(); else abrirBusca(); }
+/* Ctrl+K no Windows, Cmd+K no Mac. ⚠️ O preventDefault e' obrigatorio: no Chrome o
+   Ctrl+K sozinho joga o cursor na barra de endereco do navegador. */
+document.addEventListener("keydown", function(e){
+  if ((e.ctrlKey || e.metaKey) && String(e.key).toLowerCase() === "k"){
+    e.preventDefault(); alternarBusca(); return;
+  }
+  if (!bscAberta) return;
+  if (e.key === "Escape"){ e.preventDefault(); fecharBusca(); }
+  else if (e.key === "ArrowDown"){ e.preventDefault(); bscMover(1); }
+  else if (e.key === "ArrowUp"){ e.preventDefault(); bscMover(-1); }
+  else if (e.key === "Enter"){ e.preventDefault(); bscExecutar(); }
+});
 function alternarConta(){
   const aberto = abrirPainelExclusivo("painelConta");
   const bc = document.getElementById("btnConta");
