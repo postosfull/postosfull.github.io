@@ -46,11 +46,16 @@
 <style>
   :root{
     /* Identidade visual Postos Full */
-    --verde:#FF6401;          /* laranja da marca (cor primária) */
-    --verde-rgb:255,100,1;    /* v243 - o mesmo laranja em RGB, para rgba() nas animações */
+    /* v250e - LARANJA OFICIAL DO MIV (#FE7030). Ate aqui o app usava #FF6401, que nunca
+       esteve no manual - era a cor que alguem digitou na v1 e ninguem mais conferiu.
+       🔑 O nome da variavel continua `--verde` por heranca: trocar o NOME custaria 57
+       substituicoes em troca de zero pixel na tela. O que importa e' que ela guarda o
+       laranja da marca - e agora guarda o certo. Fonte: claude/miv-identidade-visual.md */
+    --verde:#FE7030;          /* laranja da marca (cor primária) - MIV pagina 9 */
+    --verde-rgb:254,112,48;    /* v243 - o mesmo laranja em RGB, para rgba() nas animações */
     --verde-escuro:#1E1E1E;   /* grafite */
     --verde-claro:#FFF0E6;    /* laranja bem claro (fundos suaves) */
-    --dourado:#FF6401;        /* ações de destaque = laranja */
+    --dourado:#FE7030;        /* ações de destaque = laranja */
     --grafite:#1E1E1E;
     --grafite-2:#3A3A3A;
     --cinza:#6E6E6E;
@@ -116,7 +121,7 @@
   body.empresa-conveniencia header img.logo-conv{display:block}
 
   /* A tela de login mantém a identidade Postos Full (laranja) */
-  #telaLogin{ --verde:#FF6401; --verde-rgb:255,100,1; --dourado:#FF6401; --verde-claro:#FFF0E6; }
+  #telaLogin{ --verde:#FE7030; --verde-rgb:254,112,48; --dourado:#FE7030; --verde-claro:#FFF0E6; }
 
   *{box-sizing:border-box;margin:0;padding:0}
   body{
@@ -301,7 +306,7 @@
   td.vazio::before, .vz-cx::before{
     content:"";display:block;width:104px;height:70px;margin:0 auto 12px;opacity:.75;
     background-repeat:no-repeat;background-position:center;background-size:contain;
-    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 80'><rect x='13' y='12' width='94' height='58' rx='9' fill='none' stroke='%23C9C9C9' stroke-width='3'/><path d='M13 32h94' stroke='%23C9C9C9' stroke-width='3'/><circle cx='24' cy='22' r='3.2' fill='%23FF6401'/><circle cx='35' cy='22' r='3.2' fill='%23DDDDDD'/><path d='M30 48h60M30 59h38' stroke='%23DEDEDE' stroke-width='6' stroke-linecap='round'/></svg>")}
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 80'><rect x='13' y='12' width='94' height='58' rx='9' fill='none' stroke='%23C9C9C9' stroke-width='3'/><path d='M13 32h94' stroke='%23C9C9C9' stroke-width='3'/><circle cx='24' cy='22' r='3.2' fill='%23FE7030'/><circle cx='35' cy='22' r='3.2' fill='%23DDDDDD'/><path d='M30 48h60M30 59h38' stroke='%23DEDEDE' stroke-width='6' stroke-linecap='round'/></svg>")}
   .vz-tit{display:block;font-weight:700;color:var(--txt);opacity:.85;margin-bottom:4px;font-size:.98rem}
   .vz-bt{margin-top:14px}
   /* ===== v248 - esqueleto enquanto carrega ===== */
@@ -677,7 +682,7 @@
     padding:11px 14px;border:1px solid var(--borda);border-radius:8px;
     font-size:1rem;font-weight:600;color:var(--txt);
   }
-  .campo-nome input:focus{outline:none;border-color:var(--verde);box-shadow:0 0 0 3px rgba(255,100,1,.15)}
+  .campo-nome input:focus{outline:none;border-color:var(--verde);box-shadow:0 0 0 3px rgba(254,112,48,.15)}
   .campo-nome .btn-verde{white-space:nowrap;padding:11px 22px}
   .nota-nome{display:block;font-size:.75rem;color:var(--cinza);font-style:italic;margin-top:8px;max-width:560px}
 
@@ -915,7 +920,7 @@
   #telaLogin{
     position:fixed;inset:0;z-index:1000;
     background:
-      radial-gradient(circle at 0% 0%, rgba(255,100,1,.14) 0 2.5px, transparent 3.5px),
+      radial-gradient(circle at 0% 0%, rgba(254,112,48,.14) 0 2.5px, transparent 3.5px),
       linear-gradient(120deg,#141414 0%,#3A3A3A 100%);
     background-size:26px 26px, cover;
     display:flex;align-items:center;justify-content:center;padding:20px;
@@ -935,7 +940,7 @@
     content:"";position:absolute;right:-120px;bottom:-140px;
     width:420px;height:420px;border-radius:50%;
     border:2px solid var(--verde);opacity:.85;
-    box-shadow:0 0 0 60px rgba(255,100,1,.06);
+    box-shadow:0 0 0 60px rgba(254,112,48,.06);
     pointer-events:none;
   }
   .cartao-login{
@@ -953,7 +958,7 @@
     padding:6px 11px;font-size:1rem;line-height:1;cursor:pointer;border-radius:0;
     transition:background .15s,color .15s;
   }
-  .tema-switch .tema-op:hover{filter:none;background:rgba(255,100,1,.12)}
+  .tema-switch .tema-op:hover{filter:none;background:rgba(254,112,48,.12)}
   .tema-switch .tema-op.ativo{background:var(--verde);color:#fff}
   .tema-bloco{display:inline-flex;flex-direction:column;align-items:center;gap:3px}
   .tema-rotulo{
@@ -1081,7 +1086,7 @@
   .pet-l span{color:var(--cinza)}
   .pet-l b{color:var(--txt);white-space:nowrap}
   /* v221 - tela de quem ainda nao tem perfil. background-image por causa do modo escuro forcado */
-  .aguarda-perfil{display:none;border:1px solid var(--borda);border-left:6px solid #FF6401;border-radius:12px;
+  .aguarda-perfil{display:none;border:1px solid var(--borda);border-left:6px solid #FE7030;border-radius:12px;
     padding:20px 22px;margin:0 0 16px;background:var(--superficie-2);background-image:linear-gradient(var(--superficie-2),var(--superficie-2))}
   .aguarda-perfil h2{font-family:"Oswald","Poppins",sans-serif;font-size:1.1rem;letter-spacing:.4px;margin:0 0 10px}
   .aguarda-perfil p{font-size:.92rem;line-height:1.55;color:var(--cinza);margin:0 0 8px}
@@ -1209,7 +1214,7 @@
   .mov-bts{display:flex;gap:4px;flex:0 0 auto;flex-wrap:wrap;justify-content:flex-end}
   .mov-bts button{padding:3px 10px;font-size:.76rem;line-height:1.35;white-space:nowrap}
   .mov-linha .ord-nome{overflow-wrap:anywhere}
-  .mov-bt.ativo{border-color:#FF6401;color:#FF6401;background:rgba(255,100,1,.10);background-image:linear-gradient(rgba(255,100,1,.10),rgba(255,100,1,.10));font-weight:700}
+  .mov-bt.ativo{border-color:#FE7030;color:#FE7030;background:rgba(254,112,48,.10);background-image:linear-gradient(rgba(254,112,48,.10),rgba(254,112,48,.10));font-weight:700}
   /* v187 - quem pode enviar avisos/tarefas */
   .pe-sub{font-weight:600;font-size:.9rem;margin:14px 0 6px}
   .pe-item{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--borda);flex-wrap:wrap}
@@ -1559,13 +1564,13 @@
   .rec-feito{font-size:.76rem;color:#18a558;margin-top:6px;font-weight:600}
   .rec-acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
   .rec-acoes .btn-verde,.rec-acoes .btn-claro{font-size:.8rem;padding:7px 12px}
-  .rec-tag.exige{background:rgba(255,100,1,.14);color:#FF6401}
+  .rec-tag.exige{background:rgba(254,112,48,.14);color:#FE7030}
   .rec-box{border:1px dashed var(--borda);border-radius:10px;padding:10px 12px;margin-top:10px;background:var(--superficie)}
   .rec-box-tit{font-size:.8rem;font-weight:700;color:var(--txt);margin-bottom:6px}
   .rec-obs{width:100%;box-sizing:border-box;border:1px solid var(--borda);border-radius:8px;padding:8px;font-size:.9rem;background:var(--superficie);color:var(--txt);font-family:inherit}
   .rec-comprov{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px}
   .rec-comprov-item{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;color:var(--txt);border:1px solid var(--borda);border-radius:20px;padding:3px 5px 3px 10px}
-  .rec-comprov-link{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:.78rem;color:#FF6401;font-weight:600;border:1px solid var(--borda);border-radius:20px;padding:3px 10px}
+  .rec-comprov-link{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:.78rem;color:#FE7030;font-weight:600;border:1px solid var(--borda);border-radius:20px;padding:3px 10px}
   .rec-exige{font-size:.76rem;color:#e11d48;margin-top:8px;font-weight:600}
   .rec-obs-feita{font-size:.86rem;color:var(--txt);margin-top:6px;white-space:pre-wrap;border-left:3px solid var(--borda);padding-left:8px}
   .recado-exigir{display:inline-flex;align-items:center;gap:8px;font-size:.88rem;cursor:pointer}
@@ -1599,15 +1604,15 @@
   .venc-tile b{display:block;font-size:1.5rem;line-height:1.1}
   .venc-tile span{font-size:.72rem;color:var(--cinza)}
   .venc-tile.vermelho b{color:#e11d48}
-  .venc-tile.laranja b{color:#FF6401}
+  .venc-tile.laranja b{color:#FE7030}
   .venc-tile.verde b{color:#18a558}
   .venc-grupo-tit{font-weight:700;font-size:.85rem;margin:14px 0 6px}
   .venc-grupo-tit.vermelho{color:#e11d48}
-  .venc-grupo-tit.laranja{color:#FF6401}
+  .venc-grupo-tit.laranja{color:#FE7030}
   .venc-grupo-tit.verde{color:#18a558}
   .venc-item{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--borda);border-radius:12px;padding:10px 12px;margin:6px 0;background:var(--superficie)}
   .venc-item.vencido{border-color:rgba(225,29,72,.35);background:rgba(225,29,72,.06)}
-  .venc-item.hoje,.venc-item.perto{border-color:rgba(255,100,1,.35)}
+  .venc-item.hoje,.venc-item.perto{border-color:rgba(254,112,48,.35)}
   .venc-ic{font-size:1.4rem;line-height:1.3}
   .venc-main{flex:1;min-width:0}
   .venc-tit{font-weight:700;font-size:.95rem;word-break:break-word}
@@ -1620,10 +1625,10 @@
   .venc-data{font-weight:700;font-size:.85rem}
   .venc-rot{font-size:.72rem;color:var(--cinza)}
   .venc-rot.vencido,.venc-data.vencido{color:#e11d48}
-  .venc-rot.hoje,.venc-rot.perto{color:#FF6401}
+  .venc-rot.hoje,.venc-rot.perto{color:#FE7030}
   .venc-acoes{margin-top:2px}
   .venc-anexo{margin-top:5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  .venc-anexo a,.venc-anexo-add,.venc-anexo-link{color:#FF6401;font-size:.78rem;font-weight:600;cursor:pointer;text-decoration:none}
+  .venc-anexo a,.venc-anexo-add,.venc-anexo-link{color:#FE7030;font-size:.78rem;font-weight:600;cursor:pointer;text-decoration:none}
   .venc-anexo-x{border:1px solid var(--borda);background:var(--superficie);border-radius:6px;padding:1px 7px;font-size:.72rem;cursor:pointer;color:var(--cinza)}
   .venc-anexo-x.confirmar{border-color:#e11d48;color:#e11d48;font-weight:700}
   .venc-anexo-prog{font-size:.72rem;color:var(--cinza)}
@@ -1637,11 +1642,11 @@
   .doc-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0 4px}
   .doc-busca{flex:1;min-width:190px;padding:9px 11px;border:1px solid var(--borda);border-radius:10px;background:var(--superficie-2);color:var(--txt);font-size:.88rem;box-sizing:border-box}
   .doc-chip{border:1px solid var(--borda);background:var(--superficie);border-radius:999px;padding:6px 12px;font-size:.78rem;font-weight:600;color:var(--cinza);cursor:pointer}
-  .doc-chip.ativo{border-color:#FF6401;color:#FF6401;background:rgba(255,100,1,.08)}
+  .doc-chip.ativo{border-color:#FE7030;color:#FE7030;background:rgba(254,112,48,.08)}
   /* v249 - a etiqueta do contador. background-IMAGE, nunca background-color: o modo
      escuro forcado do Chrome apaga a segunda (armadilha da v186). */
   .cnt-eti{display:inline-block;margin-left:6px;padding:0 7px;border-radius:999px;font-size:.70rem;font-weight:700;line-height:1.7;vertical-align:1px;color:var(--cinza);background-image:linear-gradient(rgba(0,0,0,.07),rgba(0,0,0,.07))}
-  .doc-chip.ativo .cnt-eti{color:#FF6401;background-image:linear-gradient(rgba(255,100,1,.16),rgba(255,100,1,.16))}
+  .doc-chip.ativo .cnt-eti{color:#FE7030;background-image:linear-gradient(rgba(254,112,48,.16),rgba(254,112,48,.16))}
   .cnt-linha{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 10px}
   .cnt-fil{display:inline-flex;align-items:center;border:1px solid var(--borda);border-radius:999px;padding:4px 10px;font-size:.78rem;font-weight:600;color:var(--cinza)}
   .cnt-fil.cnt-mau{border-color:#c0392b;color:#c0392b}
@@ -1653,15 +1658,15 @@
   .adm-filtros input,.adm-filtros select{border:1px solid var(--borda);border-radius:8px;padding:6px 9px;font-size:.8rem;font-family:inherit;background:var(--superficie);color:var(--txt)}
   .adm-filtros input{flex:1;min-width:150px}
   .adm-pes{display:flex;align-items:center;gap:9px;flex-wrap:wrap;border:1px solid var(--borda);border-radius:10px;padding:8px 11px;margin-bottom:6px;font-size:.82rem;cursor:pointer;background:var(--superficie);background-image:linear-gradient(var(--superficie),var(--superficie))}
-  .adm-pes:hover{border-color:#FF6401}
+  .adm-pes:hover{border-color:#FE7030}
   .adm-pes-nome{font-weight:600}
   .adm-pes-mail{color:var(--cinza);font-size:.72rem;word-break:break-all}
   .adm-pes-selos{display:flex;gap:5px;flex-wrap:wrap;margin-left:auto}
   .adm-tag{font-size:.66rem;border:1px solid var(--borda);background:var(--superficie-2);background-image:linear-gradient(var(--superficie-2),var(--superficie-2));border-radius:20px;padding:1px 9px;color:var(--cinza);white-space:nowrap}
-  .adm-tag-perfil{border-color:#FF6401;color:#FF6401;background:rgba(255,100,1,.08);background-image:linear-gradient(rgba(255,100,1,.08),rgba(255,100,1,.08))}
+  .adm-tag-perfil{border-color:#FE7030;color:#FE7030;background:rgba(254,112,48,.08);background-image:linear-gradient(rgba(254,112,48,.08),rgba(254,112,48,.08))}
   .adm-tag-alerta{border-color:#C62828;color:#C62828;background:#FBEAE6;background-image:linear-gradient(#FBEAE6,#FBEAE6)}
   .adm-tag-adm{border-color:#18a558;color:#18a558;background:#EAF7EF;background-image:linear-gradient(#EAF7EF,#EAF7EF)}
-  .adm-ficha{border:2px solid #FF6401;border-radius:11px;padding:12px 14px;margin:0 0 10px;background:var(--superficie);background-image:linear-gradient(var(--superficie),var(--superficie))}
+  .adm-ficha{border:2px solid #FE7030;border-radius:11px;padding:12px 14px;margin:0 0 10px;background:var(--superficie);background-image:linear-gradient(var(--superficie),var(--superficie))}
   .adm-ficha-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:8px}
   .adm-ficha-nome{border:1px solid var(--borda);border-radius:8px;padding:6px 9px;font-size:.85rem;font-weight:600;font-family:inherit;background:var(--superficie);color:var(--txt);min-width:170px}
   .adm-ficha-bts{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
@@ -1683,7 +1688,7 @@
   .adm-cols .adm-col{margin-top:0}
   .adm-col.apagada .adm-col-corpo{opacity:.45}
   .adm-col-tit{font-size:.76rem;font-weight:700;padding:6px 10px;color:#fff}
-  .adm-e1 .adm-col-tit{background:#FF6401;background-image:linear-gradient(#FF6401,#FF6401)}
+  .adm-e1 .adm-col-tit{background:#FE7030;background-image:linear-gradient(#FE7030,#FE7030)}
   .adm-e2 .adm-col-tit{background:#96780F;background-image:linear-gradient(#96780F,#96780F)}
   .adm-e3 .adm-col-tit{background:#E0561C;background-image:linear-gradient(#E0561C,#E0561C)}
   .adm-e4 .adm-col-tit{background:#6E6E6E;background-image:linear-gradient(#6E6E6E,#6E6E6E)}
@@ -1862,7 +1867,7 @@
   #btnAtivarPush.ativo{border-color:var(--verde);color:var(--verde)}
   .push-status{margin-top:8px;min-height:1em}
   .push-toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(120%);
-    background:var(--superficie-2);color:var(--txt);border:1px solid var(--borda);border-left:4px solid var(--laranja,#FF6401);
+    background:var(--superficie-2);color:var(--txt);border:1px solid var(--borda);border-left:4px solid var(--laranja,#FE7030);
     border-radius:10px;padding:12px 16px;max-width:90vw;box-shadow:0 6px 24px rgba(0,0,0,.3);
     z-index:9999;opacity:0;transition:transform .3s,opacity .3s;font-size:.9rem}
   .push-toast.show{transform:translateX(-50%) translateY(0);opacity:1}
@@ -1883,7 +1888,7 @@
     position:fixed;top:0;left:0;right:0;z-index:10001;
     display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;
     padding:11px 16px;
-    background:#FF6401;background-image:linear-gradient(#FF6401,#FF6401);
+    background:#FE7030;background-image:linear-gradient(#FE7030,#FE7030);
     color:#fff;font-size:.92rem;font-weight:500;line-height:1.3;
     box-shadow:0 2px 12px rgba(0,0,0,.30);
   }
@@ -5075,7 +5080,7 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
-  {v:"v250", data:"04/08/2026", tit:"O cabeçalho virou uma barra, e o sino deixou de trocar a sua tela", itens:[{t:"n",h:"\u201cOlá, seu nome\u201d no lugar do e-mail",d:"A barra de cima mostrava o e-mail inteiro. Agora ela cumprimenta pelo primeiro nome — o mesmo que está no cadastro de Pessoas. O e-mail completo continua na Minha conta e aparece ao passar o mouse no seu nome, no pé da barra lateral."},{t:"n",h:"Seu nome e sua função no pé da barra lateral",d:"No canto de baixo da barra lateral entrou um círculo com a sua inicial, o seu nome e, logo abaixo, a sua função — o perfil de acesso que você segue. Com a barra fechada aparece só o círculo; passando o mouse, o nome e a função."},{t:"m",h:"A busca virou um botão que diz \u201cBuscar\u201d",d:"Era só uma lupinha, e quem não sabia do atalho não usava. Agora é um botão escrito Buscar, com a tecla Ctrl K ao lado. No celular ele volta a ser só a lupa, para caber."},{t:"m",h:"O tema claro/escuro subiu para a barra de cima",d:"Ele estava escondido no pé da barra lateral. Virou a luinha ao lado do sino, onde se acha. Saiu de baixo — é um botão só, não dois."},{t:"m",h:"O cabeçalho virou uma barra fina no alto da tela",d:"Era um bloco alto, com o logo grande e um cartão arredondado. Virou uma faixa fina colada no topo, atravessando a tela inteira: você à esquerda, a marca no meio, e a busca, o tema e o sino à direita. Os ícones perderam a bolinha em volta — só o círculo com a sua inicial continua preenchido. Sobra mais tela para o que interessa."},{t:"m",h:"O app ganhou a cara da marca",d:"Os elementos do nosso manual de identidade entraram na tela: o padrão de pontos que cresce (os \u201ccírculos em expansão\u201d), as linhas sinuosas que representam óleo e estrada, e o laranja como fio condutor entre as seções. Os quadrinhos de número ganharam um fio da marca no topo, e os títulos, a tarja laranja embaixo."},{t:"c",h:"As três logomarcas voltaram a sair do mesmo tamanho",d:"A palavra FULL saía em três tamanhos diferentes ao trocar de empresa — a da Transportadora era a menor. A conta que ajusta cada logo usava proporções estimadas de olho; foram medidas nos arquivos, e agora as três saem iguais."},{t:"n",h:"O sino abre um cartão, em vez de trocar a sua tela",d:"Antes, clicar no sino fechava o que você estava vendo e abria a Caixa de entrada inteira. Agora ele abre um cartãozinho por cima, com os avisos mais urgentes resumidos. Clicou fora, ele some e você continua exatamente onde estava. Se quiser mesmo ir para a Caixa de entrada, tem um botão dentro dele."}]},
+  {v:"v250", data:"04/08/2026", tit:"O cabeçalho virou uma barra, e o sino deixou de trocar a sua tela", itens:[{t:"n",h:"\u201cOlá, seu nome\u201d no lugar do e-mail",d:"A barra de cima mostrava o e-mail inteiro. Agora ela cumprimenta pelo primeiro nome — o mesmo que está no cadastro de Pessoas. O e-mail completo continua na Minha conta e aparece ao passar o mouse no seu nome, no pé da barra lateral."},{t:"n",h:"Seu nome e sua função no pé da barra lateral",d:"No canto de baixo da barra lateral entrou um círculo com a sua inicial, o seu nome e, logo abaixo, a sua função — o perfil de acesso que você segue. Com a barra fechada aparece só o círculo; passando o mouse, o nome e a função."},{t:"m",h:"A busca virou um botão que diz \u201cBuscar\u201d",d:"Era só uma lupinha, e quem não sabia do atalho não usava. Agora é um botão escrito Buscar, com a tecla Ctrl K ao lado. No celular ele volta a ser só a lupa, para caber."},{t:"m",h:"O tema claro/escuro subiu para a barra de cima",d:"Ele estava escondido no pé da barra lateral. Virou a luinha ao lado do sino, onde se acha. Saiu de baixo — é um botão só, não dois."},{t:"m",h:"O cabeçalho virou uma barra fina no alto da tela",d:"Era um bloco alto, com o logo grande e um cartão arredondado. Virou uma faixa fina colada no topo, atravessando a tela inteira: você à esquerda, a marca no meio, e a busca, o tema e o sino à direita. Os ícones perderam a bolinha em volta — só o círculo com a sua inicial continua preenchido. Sobra mais tela para o que interessa."},{t:"m",h:"O app ganhou a cara da marca",d:"Os elementos do nosso manual de identidade entraram na tela: o padrão de pontos que cresce (os \u201ccírculos em expansão\u201d), as linhas sinuosas que representam óleo e estrada, e o laranja como fio condutor entre as seções. Os quadrinhos de número ganharam um fio da marca no topo, e os títulos, a tarja laranja embaixo."},{t:"c",h:"O laranja do app agora é o laranja da marca",d:"O app usava um laranja um pouco mais escuro do que o do nosso manual de identidade. Foi acertado: agora a cor da tela é a mesma da fachada, da bandeira e dos copos."},{t:"c",h:"As três logomarcas voltaram a sair do mesmo tamanho",d:"A palavra FULL saía em três tamanhos diferentes ao trocar de empresa — a da Transportadora era a menor. A conta que ajusta cada logo usava proporções estimadas de olho; foram medidas nos arquivos, e agora as três saem iguais."},{t:"n",h:"O sino abre um cartão, em vez de trocar a sua tela",d:"Antes, clicar no sino fechava o que você estava vendo e abria a Caixa de entrada inteira. Agora ele abre um cartãozinho por cima, com os avisos mais urgentes resumidos. Clicou fora, ele some e você continua exatamente onde estava. Se quiser mesmo ir para a Caixa de entrada, tem um botão dentro dele."}]},
   {v:"v249", data:"04/08/2026", tit:"Cada aba diz quantos itens tem", itens:[{t:"n",h:"O número aparece na própria aba",d:"As abas de Relatórios e Financeiro que são lista — Aferições, Vendas pendentes, Tanques, Colaboradores, A Prazo, A Prazo sem faturar, Recebimentos, Pagamentos, Descontos, Despesas do mês e A Pagar — passaram a mostrar quantos itens têm, ao lado do nome. O número é o do período e do posto que estão escolhidos na tela, então ele bate com a lista que você vai ver."},{t:"n",h:"A Caixa de entrada e os Documentos têm a conta feita",d:"Na Caixa de entrada, uma linha diz quantos avisos estão pendentes, quantos venceram, quantos são de hoje e quantos vencem em sete dias. Nos Documentos, as visões Por unidade e Por empresa dizem quantos grupos existem. E em Comparar lojas cada bloco mostra quantos produtos entraram nele."},{t:"c",h:"O Financeiro não diz mais que não há dados antes de olhar",d:"Quem abrisse o Financeiro nos primeiros instantes via \u201cAinda não há dados deste relatório\u201d e ficava com esse aviso na tela até clicar em alguma coisa. Agora aparece o esqueleto cinza enquanto os dados vêm, e a aba onde ainda não se sabe o número simplesmente não mostra número nenhum."}]},
   {v:"v248", data:"04/08/2026", tit:"Telas vazias com desenho, esqueleto ao carregar, avisos coloridos e páginas", itens:[{t:"n",h:"A tela avisa que está carregando, em vez de dizer que não há nada",d:"A tabela de Lançamentos dizia \u201cNenhum registro\u201d enquanto os dados ainda estavam vindo da nuvem. Agora ela mostra linhas cinzas piscando, e um fio fino anda no alto da tela enquanto o app espera. Só depois, se realmente não houver nada, aparece o aviso."},{t:"n",h:"Avisos coloridos, no canto da tela",d:"Recado importante \u2014 ficar sem conexão, por exemplo \u2014 passou a aparecer numa caixinha no canto, com a cor do tipo: verde deu certo, vermelho deu erro, amarelo é atenção e azul é informação. Antes ele piscava no cabeçalho e sumia sem ninguém ver."},{t:"n",h:"Lançamentos em páginas de 50",d:"Com muitos registros a tabela agora vem em páginas, com Anterior e Próxima. As médias do rodapé continuam somando TODOS os registros filtrados, não só a página que está na tela \u2014 e o rodapé diz isso."},{t:"m",h:"Tela sem nada ficou com cara de tela, não de erro",d:"Onde não há dado, aparece um desenho, uma frase explicando e \u2014 quando existe uma ação óbvia \u2014 o botão dela. Em Documentos, por exemplo, o \u2795 Novo documento aparece ali mesmo."}]},
   {v:"v247", data:"04/08/2026", tit:"Busca por atalho e a tela de Novidades em três colunas", itens:[{t:"n",h:"Buscar tela pelo nome, com Ctrl+K",d:"Aperte Ctrl+K (ou toque na lupa \ud83d\udd0e do cabeçalho) em qualquer tela e digite o nome do que você procura: os menus, as abas de Relatórios e Financeiro e algumas ações aparecem na hora. Enter abre. Some assim o preço de ter os menus em grupos: chegar a um menu de outro grupo custava dois cliques, e agora não custa nenhum."},{t:"m",h:"Esta tela ficou em três colunas",d:"Cada versão passou a ter um título além do número, e o que ela trouxe aparece em três colunas \u2014 o que é novo, o que melhorou e o que foi consertado \u2014 em vez de uma lista só. A versão que está no ar leva o selo Versão atual."}]},
@@ -14797,7 +14802,7 @@ function desenharImagemComparativo(){
     const cv = document.getElementById("compCanvas");
     const W = cv.width, H = cv.height;
     const ctx = cv.getContext("2d");
-    const laranja = "#FF6401", grafite = "#1E1E1E";
+    const laranja = "#FE7030", grafite = "#1E1E1E";
     const fmt = (v,c=2) => v.toLocaleString("pt-BR",{minimumFractionDigits:c,maximumFractionDigits:c});
     const centro = W/2;
     function roundRect(c,x,y,w,h,rr){ c.beginPath(); c.moveTo(x+rr,y); c.arcTo(x+w,y,x+w,y+h,rr); c.arcTo(x+w,y+h,x,y+h,rr); c.arcTo(x,y+h,x,y,rr); c.arcTo(x,y,x+w,y,rr); c.closePath(); }
@@ -14805,7 +14810,7 @@ function desenharImagemComparativo(){
     // fundo + identidade
     ctx.fillStyle = grafite; ctx.fillRect(0,0,W,H);
     ctx.fillStyle = laranja; ctx.beginPath(); ctx.moveTo(0,H); ctx.lineTo(W,H); ctx.lineTo(W,H-280); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = "rgba(255,100,1,0.13)";
+    ctx.fillStyle = "rgba(254,112,48,0.13)";
     for(let i=0;i<7;i++) for(let j=0;j<3;j++){ ctx.beginPath(); ctx.arc(90+i*90, 90+j*90, 7, 0, 7); ctx.fill(); }
 
     function rodape(){
@@ -14860,7 +14865,7 @@ function desenharImagemComparativo(){
       const rowH = Math.max(70, Math.min(120, disponivel / ordenadas.length));
       ordenadas.forEach((d,i) => {
         const ehMelhor = (d === melhor);
-        ctx.fillStyle = ehMelhor ? "rgba(255,100,1,0.22)" : "#2A2A2A";
+        ctx.fillStyle = ehMelhor ? "rgba(254,112,48,0.22)" : "#2A2A2A";
         roundRect(ctx, bx, y, bw, rowH-16, 18); ctx.fill();
         const meio = y + (rowH-16)/2 + 14;
         ctx.textAlign = "left"; ctx.fillStyle = "#fff"; ctx.font = "600 40px Poppins, Arial, sans-serif";
@@ -14978,7 +14983,7 @@ function desenharImagemSimulacao(){
     const cv = document.getElementById("simCanvas");
     const W = cv.width, H = cv.height;
     const ctx = cv.getContext("2d");
-    const laranja = "#FF6401", grafite = "#1E1E1E";
+    const laranja = "#FE7030", grafite = "#1E1E1E";
 
     // Fundo grafite
     ctx.fillStyle = grafite; ctx.fillRect(0, 0, W, H);
@@ -14986,7 +14991,7 @@ function desenharImagemSimulacao(){
     ctx.fillStyle = laranja;
     ctx.beginPath(); ctx.moveTo(0, H); ctx.lineTo(W, H); ctx.lineTo(W, H-360); ctx.closePath(); ctx.fill();
     // Padrão de pontos no topo
-    ctx.fillStyle = "rgba(255,100,1,0.13)";
+    ctx.fillStyle = "rgba(254,112,48,0.13)";
     for (let i=0;i<7;i++) for (let j=0;j<5;j++){ ctx.beginPath(); ctx.arc(90+i*90, 90+j*90, 7, 0, 7); ctx.fill(); }
 
     const fmt = (v, c=2) => v.toLocaleString("pt-BR",{minimumFractionDigits:c,maximumFractionDigits:c});
@@ -15282,10 +15287,10 @@ function graficoSVG(pontos, campo, inverterCor, tipo){
     s += `<text x="${mL-8}" y="${y+4}" text-anchor="end" font-size="11" fill="${cEixo}">${rotuloEixo(v)}</text>`;
   }
   const caminho = pontos.map((p,i)=>`${i?"L":"M"}${X(i)},${Y(p[campo])}`).join(" ");
-  s += `<path d="${caminho}" fill="none" stroke="#FF6401" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`;
+  s += `<path d="${caminho}" fill="none" stroke="#FE7030" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`;
   pontos.forEach((p,i)=>{
     const x = X(i), y = Y(p[campo]);
-    s += `<circle cx="${x}" cy="${y}" r="5" fill="#FF6401" stroke="${cAro}" stroke-width="2"/>`;
+    s += `<circle cx="${x}" cy="${y}" r="5" fill="#FE7030" stroke="${cAro}" stroke-width="2"/>`;
     s += `<text x="${x}" y="${y-12}" text-anchor="middle" font-size="11" font-weight="600" fill="${cPonto}">${rotuloPonto(p[campo])}</text>`;
     const [a,m,d] = p.data.split("-");
     s += `<text x="${x}" y="${H-mB+18}" text-anchor="middle" font-size="11" fill="${cEixo}">${d}/${m}</text>`;
@@ -16277,7 +16282,7 @@ function pedirNomeArquivo(padrao){
 // Cabeçalho de marca reutilizável no PDF de imagem
 function cabecalhoPDF(doc, subtitulo){
   doc.setFillColor(30,30,30); doc.rect(0,0,210,22,"F");
-  doc.setFillColor(255,100,1); doc.rect(0,22,210,1.4,"F");
+  doc.setFillColor(254,112,48); doc.rect(0,22,210,1.4,"F");
   doc.setTextColor(255,255,255); doc.setFont("helvetica","bold"); doc.setFontSize(14);
   const TITULO_PDF = { postos:"POSTOS FULL", transportadora:"FULL TRANSPORTADORA", conveniencia:"FULL CONVENIÊNCIA" };
   doc.text((typeof empresa !== "undefined" && TITULO_PDF[empresa]) ? TITULO_PDF[empresa] : TITULO_PDF.postos, 12, 10);
@@ -16408,7 +16413,7 @@ async function imprimirPainel(info, nomeArquivo){
   idoc.write(
     '<html><head><title>' + nomeArquivo + '</title>' +
     '<style>@page{margin:10mm} body{margin:0;font-family:Arial,sans-serif}' +
-    '.cab{background:#1E1E1E;color:#fff;padding:10px 14px;border-bottom:3px solid #FF6401;margin-bottom:6px}' +
+    '.cab{background:#1E1E1E;color:#fff;padding:10px 14px;border-bottom:3px solid #FE7030;margin-bottom:6px}' +
     '.cab b{font-size:15px} .cab span{font-size:11px;color:#ddd;margin-left:8px}' +
     '.pg{page-break-after:always} .pg:last-child{page-break-after:auto}' +
     'img{width:100%;display:block}</style></head><body>' +
@@ -16471,7 +16476,7 @@ async function exportarPDFDashboardVetorial(info, nomeArquivo){
     const primeiroSvg = cards[0] && cards[0].querySelector("svg");
     const alturaPrimeiro = primeiroSvg ? (6 + 11 + alturaGrafico(primeiroSvg) + 6) : 0;
     if (y + 11 + alturaPrimeiro > limiteY) novaPagina(false);
-    doc.setFont("helvetica","bold"); doc.setFontSize(13); doc.setTextColor(255,100,1);
+    doc.setFont("helvetica","bold"); doc.setFontSize(13); doc.setTextColor(254,112,48);
     doc.text(comb, margL, y + 5); y += 11;
 
     for (const card of cards){
@@ -16621,7 +16626,7 @@ async function exportarPDFTexto(info, nome){
       if (/^H[1-4]$/.test(tag)){
         const sz = tag === "H2" ? 13 : tag === "H3" ? 11.5 : 10.5;
         y += 2; garante(sz * 0.5 + 2);
-        escreve(limpar(node.textContent), { size: sz, bold: true, cor: tag === "H2" ? [255,100,1] : [30,30,30], gap: 2.4 });
+        escreve(limpar(node.textContent), { size: sz, bold: true, cor: tag === "H2" ? [254,112,48] : [30,30,30], gap: 2.4 });
         continue;
       }
       if (tag === "P"){ escreve(limpar(node.textContent), { size: 8.5, cor: [120,120,120], gap: 1.8 }); continue; }
@@ -16689,7 +16694,7 @@ function exportarPDFTabela(nomeArquivo){
   // Cabeçalho na identidade da marca
   doc.setFillColor(30, 30, 30);
   doc.rect(0, 0, 297, 24, "F");
-  doc.setFillColor(255, 100, 1);
+  doc.setFillColor(254, 112, 48);
   doc.rect(0, 24, 297, 1.6, "F");
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
