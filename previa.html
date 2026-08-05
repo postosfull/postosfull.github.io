@@ -1889,6 +1889,76 @@
     body.com-atz #telaLogin{padding-top:116px}
     body.com-atz .menu-lateral{top:96px}
   }
+  /* ===== v250b - O CABECALHO VIRA BARRA (desenho do Concept Hub) =====
+     Faixa fina colada no topo da JANELA, atravessando a tela inteira - a barra lateral
+     passa a comecar embaixo dela. Sem cartao arredondado, sem degrade e SEM CIRCULO
+     atras dos icones: no Hub so' o avatar e' preenchido, e e' isso que da' o ar de barra
+     de sistema. 🔴 background-IMAGE, nunca background-color (armadilha da v186). */
+  header{
+    position:fixed;top:0;left:0;right:0;z-index:90;
+    height:52px;padding:0 14px;border-radius:0;gap:0;justify-content:center;
+    background:#141414;background-image:linear-gradient(#141414,#141414);
+    border-bottom:1px solid rgba(255,255,255,.10);
+  }
+  header{ --fullh:16px; }                 /* logo pequeno: 16 x 1.732 = 27.7px de altura */
+  /* o conteudo desce; a TELA DE LOGIN nao, porque o header mora dentro do #appPrincipal */
+  #appPrincipal{padding-top:52px}
+  .menu-lateral{top:52px}
+  /* com a faixa laranja de "Atualizar agora" (v214) sao tres andares: barra, cabecalho, conteudo */
+  body.com-atz header{top:70px}
+  body.com-atz .menu-lateral{top:122px}
+  .header-topo{gap:14px;width:100%}
+  /* 🔴 `flex:0 1` e nao `0 0`: com `0 0` o h1 nao encolhe, e no celular ele empurrava o
+     tema, o sino e o ☰ para FORA da tela. Foi a foto de 390px que pegou. */
+  .header-topo > h1{flex:0 1 auto;min-width:0;overflow:hidden}
+  header h1{gap:10px;flex-wrap:nowrap}
+  #statusSalvo{margin-left:2px}
+  /* o nome da tela aberta, no meio da barra - e' o "ATENDE" do Hub */
+  .barra-tela{flex:1 1 auto;text-align:center;min-width:0;overflow:hidden;text-overflow:ellipsis;
+    white-space:nowrap;font-family:"Oswald","Poppins",sans-serif;font-size:.82rem;font-weight:500;
+    letter-spacing:1.5px;text-transform:uppercase;color:var(--verde)}
+  /* icones puros, sem a pastilha redonda */
+  .header-sino,.header-tema{background:none;background-image:none;border:0;
+    width:34px;height:34px;border-radius:8px;color:#DDD;font-size:1.02rem}
+  .header-sino:hover,.header-tema:hover{color:#fff;
+    background-image:linear-gradient(rgba(255,255,255,.10),rgba(255,255,255,.10))}
+  .header-sino.ativo{box-shadow:none;color:var(--verde);
+    background-image:linear-gradient(rgba(var(--verde-rgb),.16),rgba(var(--verde-rgb),.16))}
+  .header-sino-badge{top:-2px;right:-2px}
+  /* a busca fica so' com o contorno - o preenchimento era o que pesava */
+  .header-busca{height:30px;padding:0 10px;border-radius:8px;color:#CFCFCF;
+    background:none;background-image:none;border:1px solid rgba(255,255,255,.14)}
+  .header-busca:hover{color:#fff;border-color:rgba(255,255,255,.32);background-image:none}
+  .header-busca .hb-txt{font-size:.78rem;font-weight:500}
+  .header-busca .hb-kbd{border-color:rgba(255,255,255,.20);opacity:.65}
+  /* quem esta logado, no fim da barra: o avatar e' o UNICO preenchido */
+  .hdr-user{display:inline-flex;align-items:center;gap:8px;margin-left:6px;min-width:0}
+  .hdr-av{width:28px;height:28px;flex:0 0 28px;border-radius:999px;color:#fff;
+    font-size:.76rem;font-weight:700;display:flex;align-items:center;justify-content:center;
+    background:var(--verde);background-image:linear-gradient(var(--verde),var(--verde))}
+  header .usuario-logado{width:auto;font-size:.76rem;color:#E4E4E4;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+  /* tela media: o nome da tela sai antes do nome da pessoa; depois sai a pessoa; por fim a
+     busca vira so' a lupa (essa regra ja' e' da v250, no 820px). */
+  @media (max-width:1040px){ .barra-tela{display:none} }
+  @media (max-width:860px){ header .usuario-logado{display:none} }
+  @media (max-width:560px){
+    header{height:48px;padding:0 10px}
+    header{ --fullh:14px; }
+    #appPrincipal{padding-top:48px}
+    .menu-lateral{top:48px}
+    body.com-atz header{top:96px}
+    body.com-atz .menu-lateral{top:144px}
+    /* no celular a barra tem lugar para o logo e os quatro botoes, e mais nada:
+       o "Dados enviados para a nuvem" e' recado passageiro e ja' tem o aviso da v248. */
+    #statusSalvo{display:none}
+    .header-topo{gap:8px}
+    .header-acoes-topo{gap:2px}
+    .header-busca{width:34px;padding:0;justify-content:center}
+    .header-sino,.header-tema{width:32px;height:32px}
+    .hdr-user{margin-left:2px}
+    .hdr-av{width:26px;height:26px;flex:0 0 26px}
+  }
 .pux-grafia{display:inline-block;font-size:11px;padding:1px 7px;border-radius:10px;margin-left:6px;
   color:#8a5a00;background-color:#fff3d6;background-image:linear-gradient(#fff3d6,#fff3d6);border:1px solid #f0d9a0;cursor:help}
 </style>
@@ -2032,14 +2102,15 @@
         <img src="logo-transportadora.png?v=1" alt="Full Transportadora" class="logo-app logo-transp">
         <img src="logo-conveniencia.png?v=1" alt="Full Conveniência" class="logo-app logo-conv">
         <span class="titulo-app"><span id="statusSalvo" aria-live="polite"></span></span>
-        <span class="usuario-logado" id="usuarioLogado"></span>
       </h1>
+      <span class="barra-tela" id="barraTela"></span>
       <div class="header-acoes-topo">
         <button class="header-busca" id="btnBuscaHeader" onclick="abrirBusca()" title="Buscar tela (Ctrl+K)" aria-label="Buscar tela"><span class="hb-lupa">🔎</span><span class="hb-txt">Buscar</span><span class="hb-kbd">Ctrl K</span></button>   <!-- v247, pilula na v250 -->
         <button class="header-tema" id="btnTemaTopo" onclick="alternarTema()" title="Trocar entre tema claro e escuro" aria-label="Trocar tema"><span id="temaIcone">🌙</span></button>   <!-- v250 -->
         <button class="header-sino" id="btnSinoHeader" onclick="alternarAvisos()" title="Notificações" aria-label="Notificações">
           🔔<span class="header-sino-badge" id="badgeSinoHeader" style="display:none">0</span>
         </button>
+        <span class="hdr-user"><span class="hdr-av" id="hdrAv">•</span><span class="usuario-logado" id="usuarioLogado"></span></span>
         <button class="menu-hamb" id="btnMenuHamb" onclick="alternarMenuLateral()" title="Abrir menu" aria-label="Abrir menu">☰</button>
       </div>
     </div>
@@ -3375,8 +3446,11 @@ function atualizarUsuarioNaTela(){
     const prim = pfPrimeiroNome(), cheio = pfNomeCompleto();
     const sd = document.getElementById("usuarioLogado");
     if (sd) sd.innerHTML = prim ? ("Ol\u00e1, <b>" + escAttr(prim) + "</b>") : "";
+    const ini = (prim || "?").charAt(0).toUpperCase();
     const av = document.getElementById("usrAv");
-    if (av) av.textContent = (prim || "?").charAt(0).toUpperCase();
+    if (av) av.textContent = ini;
+    const av2 = document.getElementById("hdrAv");    // v250b - o avatar da barra de cima
+    if (av2) av2.textContent = ini;
     const nm = document.getElementById("usrNome");
     if (nm) nm.textContent = cheio;
     const fn = document.getElementById("usrFn");
@@ -4841,7 +4915,7 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
-  {v:"v250", data:"04/08/2026", tit:"A barra de cima cumprimenta você, e a lateral diz quem você é", itens:[{t:"n",h:"\u201cOlá, seu nome\u201d no lugar do e-mail",d:"A barra de cima mostrava o e-mail inteiro. Agora ela cumprimenta pelo primeiro nome — o mesmo que está no cadastro de Pessoas. O e-mail completo continua na Minha conta e aparece ao passar o mouse no seu nome, no pé da barra lateral."},{t:"n",h:"Seu nome e sua função no pé da barra lateral",d:"No canto de baixo da barra lateral entrou um círculo com a sua inicial, o seu nome e, logo abaixo, a sua função — o perfil de acesso que você segue. Com a barra fechada aparece só o círculo; passando o mouse, o nome e a função."},{t:"m",h:"A busca virou um botão que diz \u201cBuscar\u201d",d:"Era só uma lupinha, e quem não sabia do atalho não usava. Agora é um botão escrito Buscar, com a tecla Ctrl K ao lado. No celular ele volta a ser só a lupa, para caber."},{t:"m",h:"O tema claro/escuro subiu para a barra de cima",d:"Ele estava escondido no pé da barra lateral. Virou a luinha ao lado do sino, onde se acha. Saiu de baixo — é um botão só, não dois."}]},
+  {v:"v250", data:"04/08/2026", tit:"O cabeçalho virou uma barra, e agora ele diz com quem está falando", itens:[{t:"n",h:"\u201cOlá, seu nome\u201d no lugar do e-mail",d:"A barra de cima mostrava o e-mail inteiro. Agora ela cumprimenta pelo primeiro nome — o mesmo que está no cadastro de Pessoas. O e-mail completo continua na Minha conta e aparece ao passar o mouse no seu nome, no pé da barra lateral."},{t:"n",h:"Seu nome e sua função no pé da barra lateral",d:"No canto de baixo da barra lateral entrou um círculo com a sua inicial, o seu nome e, logo abaixo, a sua função — o perfil de acesso que você segue. Com a barra fechada aparece só o círculo; passando o mouse, o nome e a função."},{t:"m",h:"A busca virou um botão que diz \u201cBuscar\u201d",d:"Era só uma lupinha, e quem não sabia do atalho não usava. Agora é um botão escrito Buscar, com a tecla Ctrl K ao lado. No celular ele volta a ser só a lupa, para caber."},{t:"m",h:"O tema claro/escuro subiu para a barra de cima",d:"Ele estava escondido no pé da barra lateral. Virou a luinha ao lado do sino, onde se acha. Saiu de baixo — é um botão só, não dois."},{t:"m",h:"O cabeçalho virou uma barra fina no alto da tela",d:"Era um bloco alto, com o logo grande e um cartão arredondado. Virou uma faixa fina colada no topo, atravessando a tela inteira, com o logo menor à esquerda, o nome da tela em que você está no meio, e a busca, o tema, o sino e você à direita. Os ícones perderam a bolinha em volta — só o círculo com a sua inicial continua preenchido. Sobra mais tela para o que interessa."}]},
   {v:"v249", data:"04/08/2026", tit:"Cada aba diz quantos itens tem", itens:[{t:"n",h:"O número aparece na própria aba",d:"As abas de Relatórios e Financeiro que são lista — Aferições, Vendas pendentes, Tanques, Colaboradores, A Prazo, A Prazo sem faturar, Recebimentos, Pagamentos, Descontos, Despesas do mês e A Pagar — passaram a mostrar quantos itens têm, ao lado do nome. O número é o do período e do posto que estão escolhidos na tela, então ele bate com a lista que você vai ver."},{t:"n",h:"A Caixa de entrada e os Documentos têm a conta feita",d:"Na Caixa de entrada, uma linha diz quantos avisos estão pendentes, quantos venceram, quantos são de hoje e quantos vencem em sete dias. Nos Documentos, as visões Por unidade e Por empresa dizem quantos grupos existem. E em Comparar lojas cada bloco mostra quantos produtos entraram nele."},{t:"c",h:"O Financeiro não diz mais que não há dados antes de olhar",d:"Quem abrisse o Financeiro nos primeiros instantes via \u201cAinda não há dados deste relatório\u201d e ficava com esse aviso na tela até clicar em alguma coisa. Agora aparece o esqueleto cinza enquanto os dados vêm, e a aba onde ainda não se sabe o número simplesmente não mostra número nenhum."}]},
   {v:"v248", data:"04/08/2026", tit:"Telas vazias com desenho, esqueleto ao carregar, avisos coloridos e páginas", itens:[{t:"n",h:"A tela avisa que está carregando, em vez de dizer que não há nada",d:"A tabela de Lançamentos dizia \u201cNenhum registro\u201d enquanto os dados ainda estavam vindo da nuvem. Agora ela mostra linhas cinzas piscando, e um fio fino anda no alto da tela enquanto o app espera. Só depois, se realmente não houver nada, aparece o aviso."},{t:"n",h:"Avisos coloridos, no canto da tela",d:"Recado importante \u2014 ficar sem conexão, por exemplo \u2014 passou a aparecer numa caixinha no canto, com a cor do tipo: verde deu certo, vermelho deu erro, amarelo é atenção e azul é informação. Antes ele piscava no cabeçalho e sumia sem ninguém ver."},{t:"n",h:"Lançamentos em páginas de 50",d:"Com muitos registros a tabela agora vem em páginas, com Anterior e Próxima. As médias do rodapé continuam somando TODOS os registros filtrados, não só a página que está na tela \u2014 e o rodapé diz isso."},{t:"m",h:"Tela sem nada ficou com cara de tela, não de erro",d:"Onde não há dado, aparece um desenho, uma frase explicando e \u2014 quando existe uma ação óbvia \u2014 o botão dela. Em Documentos, por exemplo, o \u2795 Novo documento aparece ali mesmo."}]},
   {v:"v247", data:"04/08/2026", tit:"Busca por atalho e a tela de Novidades em três colunas", itens:[{t:"n",h:"Buscar tela pelo nome, com Ctrl+K",d:"Aperte Ctrl+K (ou toque na lupa \ud83d\udd0e do cabeçalho) em qualquer tela e digite o nome do que você procura: os menus, as abas de Relatórios e Financeiro e algumas ações aparecem na hora. Enter abre. Some assim o preço de ter os menus em grupos: chegar a um menu de outro grupo custava dois cliques, e agora não custa nenhum."},{t:"m",h:"Esta tela ficou em três colunas",d:"Cada versão passou a ter um título além do número, e o que ela trouxe aparece em três colunas \u2014 o que é novo, o que melhorou e o que foi consertado \u2014 em vez de uma lista só. A versão que está no ar leva o selo Versão atual."}]},
@@ -6350,10 +6424,30 @@ function luzCabecalho(){
 // o fecharTodosPaineis roda ANTES de o painel novo receber a classe "aberto" em um
 // dos dois caminhos de abertura. Por isso tudo aqui e' agendado com setTimeout 0,
 // quando os dois caminhos ja' terminaram.
+/* ===================== v250b - O NOME DA TELA NO MEIO DA BARRA =====================
+   \U0001f511 Nao existe variavel "tela aberta" no app — quem sabe disso e' o DOM: o botao
+   com a classe `ativo` dentro da barra lateral. Ler dali (e nao guardar um terceiro
+   estado) e' o que faz o titulo respeitar de graca o nome que o Tiago deu ao menu na
+   caixa Personalizar a barra, e mudar sozinho ao trocar de empresa.
+   \U0001f449 Mesma familia da regra da v247: quem decide o que aparece e' a BARRA. */
+function nomeTelaAberta(){
+  const b = document.querySelector(".menu-lateral .grp-int button.ativo");
+  if (!b) return "";
+  const m = MENUS_APP.find(x => x.btn === b.id);
+  if (m) return nomeMenu(m.key, siglaEmpresa(empresa));
+  /* o Painel Administrativo nao esta em MENUS_APP (v244) */
+  const k = Object.keys(MENU_EXTRA || {}).find(x => MENU_EXTRA[x].btn === b.id);
+  return k ? (MENU_EXTRA[k].nome || "") : "";
+}
+function atualizarTituloBarra(){
+  const el = document.getElementById("barraTela");
+  if (el) el.textContent = nomeTelaAberta();
+}
 function aoTrocarDeTela(){
   const b = document.querySelector(".menu-lateral .grp-int button.ativo");
   const id = b ? b.id : "";
   marcarGrupoAceso(b);
+  atualizarTituloBarra();          // v250b - antes do early return: o nome tem de acompanhar sempre
   if (id === menuAcesoAtual) return;
   menuAcesoAtual = id;
   if (!id) return;
@@ -6970,6 +7064,7 @@ function sincronizarAvisoSemPerfil(){
 function aplicarVisibilidadeMenus(){
   instalarFerramentasPaineis();
   if (typeof atualizarUsuarioNaTela === "function") atualizarUsuarioNaTela();   // v250 - a funcao muda com a permissao
+  if (typeof atualizarTituloBarra === "function") atualizarTituloBarra();       // v250b - e o nome da tela muda com a empresa e com o renomear
   // v221 - liga/desliga a tela de espera de quem ainda nao tem perfil.
   // Enquanto os dados de acesso nao chegaram, nao mostrar a tela: senao ela pisca na cara de quem
   // TEM perfil. (Os menus, no meio-tempo, ficam escondidos - que e' o lado seguro do erro.)
