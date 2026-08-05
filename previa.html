@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v251 — Postos Full (não é o app)</title>
+<title>PRÉVIA v252 — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -2165,6 +2165,53 @@
   .ico-op .ico-mostra svg{width:19px;height:19px}
   .ico-op b{font-size:.82rem;font-weight:600}
   .ico-op i{font-style:normal;font-size:.72rem;opacity:.7;line-height:1.25;text-align:center}
+  /* ===================== v252 - O SELO DE FRESCOR DO DADO =====================
+     Uma pastilha na barra de cima, antes da busca. A bolinha carrega o julgamento e
+     o texto carrega o QUANDO. No celular sobra so' a bolinha.
+     Verde de "bom" e' #18a558 - `var(--verde)` e' o LARANJA DA MARCA. */
+  .frc-selo{display:inline-flex;align-items:center;gap:7px;cursor:pointer;line-height:1;
+    height:30px;padding:0 10px;border-radius:8px;color:#CFCFCF;font-family:inherit;
+    background:none;background-image:none;border:1px solid rgba(255,255,255,.14)}
+  .frc-selo:hover{color:#fff;border-color:rgba(255,255,255,.32)}
+  .frc-selo.ativo{color:#fff;border-color:rgba(255,255,255,.42)}
+  .frc-bola{width:9px;height:9px;flex:0 0 9px;border-radius:999px;
+    background-image:linear-gradient(#9A9A9A,#9A9A9A)}
+  .frc-selo.frc-ok  .frc-bola{background-image:linear-gradient(#18a558,#18a558)}
+  .frc-selo.frc-atr .frc-bola{background-image:linear-gradient(#E0A800,#E0A800)}
+  .frc-selo.frc-mau .frc-bola{background-image:linear-gradient(#c0392b,#c0392b)}
+  .frc-txt{font-size:.78rem;font-weight:500;white-space:nowrap;display:inline-flex;gap:5px}
+  .frc-lab{color:#9FA3A8;font-weight:600}
+  .frc-lab:empty{display:none}
+  @media (max-width:1180px){ .frc-lab{display:none} }
+  /* o cartao, irmao do #sinoCard da v250b */
+  .frc-card{position:fixed;top:58px;right:12px;z-index:95;
+    width:min(400px, calc(100vw - 20px));max-height:min(70vh, 560px);
+    display:flex;flex-direction:column;overflow:hidden;
+    background:var(--superficie);background-image:linear-gradient(var(--superficie),var(--superficie));
+    border:1px solid var(--borda);border-radius:12px;box-shadow:0 16px 44px rgba(0,0,0,.45)}
+  .frc-cab{display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid var(--borda)}
+  .frc-cab b{font-size:.86rem;color:var(--txt)}
+  .frc-selo-est{margin-left:auto;font-size:.68rem;font-weight:700;border-radius:999px;padding:2px 9px;
+    color:var(--cinza);background-image:linear-gradient(rgba(0,0,0,.07),rgba(0,0,0,.07))}
+  .frc-selo-est.frc-ok{color:#18a558;background-image:linear-gradient(rgba(24,165,88,.14),rgba(24,165,88,.14))}
+  .frc-selo-est.frc-atr{color:#B07C00;background-image:linear-gradient(rgba(224,168,0,.16),rgba(224,168,0,.16))}
+  .frc-selo-est.frc-mau{color:#c0392b;background-image:linear-gradient(rgba(192,57,43,.14),rgba(192,57,43,.14))}
+  .frc-corpo{overflow-y:auto;padding:12px 14px}
+  .frc-frase{margin:0 0 6px;font-size:.9rem;color:var(--txt);line-height:1.45}
+  .frc-passos{margin:0;font-size:.78rem;color:var(--cinza)}
+  .frc-res{margin:10px 0 0;font-size:.75rem;color:var(--cinza)}
+  .frc-lista{margin-top:11px;border-top:1px solid var(--borda);padding-top:9px}
+  .frc-lista-tit{display:block;font-size:.68rem;font-weight:700;letter-spacing:.4px;
+    text-transform:uppercase;color:var(--cinza);margin-bottom:5px}
+  .frc-it{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;padding:3px 0;font-size:.78rem}
+  .frc-it-p{font-weight:700;color:var(--txt)}
+  .frc-it-e{font-size:.68rem;font-weight:700;color:#c0392b;border-radius:999px;padding:1px 7px;
+    background-image:linear-gradient(rgba(192,57,43,.12),rgba(192,57,43,.12))}
+  .frc-it-d{color:var(--cinza);flex:1 1 100%}
+  .frc-pe{border-top:1px solid var(--borda);padding:9px 14px;font-size:.72rem;color:var(--cinza);line-height:1.45}
+  @media (max-width:900px){ .frc-txt{display:none} .frc-selo{width:34px;padding:0;justify-content:center;gap:0} }
+  @media (max-width:560px){ .frc-selo{width:30px;height:32px} .frc-card{top:54px;right:8px;left:8px;width:auto} }
+
 </style>
 </head>
 <body>
@@ -2267,6 +2314,15 @@
     </div>
   </div>
 
+  <!-- v252 - o cartao do frescor. Espiar nao e' navegar: ele abre por cima, sem trocar a tela.
+       Sem botao no rodape de proposito: nao ha acao obvia aqui (regra da v248). -->
+  <div class="frc-card" id="frcCard" style="display:none" role="dialog" aria-label="Quando os dados chegaram">
+    <div class="frc-cab"><b id="frcCabTit"></b><span class="frc-selo-est" id="frcCabSelo"></span></div>
+    <div class="frc-corpo" id="frcCorpo"></div>
+    <div class="frc-pe">Isto diz <b>quando</b> os n&uacute;meros chegaram e <b>quantos</b> passos rodaram
+      &mdash; n&atilde;o que todo n&uacute;mero esteja certo.</div>
+  </div>
+
   <!-- v247 - a busca por atalho -->
   <div class="bsc-fundo" id="bscFundo" onclick="if(event.target===this)fecharBusca()">
     <div class="bsc-cx" role="dialog" aria-label="Buscar tela">
@@ -2320,6 +2376,9 @@
         <img src="logo-conveniencia.png?v=1" alt="Full Conveniência" class="logo-app logo-conv">
       </h1>
       <div class="header-acoes-topo">
+        <button type="button" class="frc-selo" id="frcSelo" onclick="alternarFrcCard()"
+                title="Quando os dados chegaram" aria-label="Quando os dados chegaram"
+                style="display:none"><span class="frc-bola" aria-hidden="true"></span><span class="frc-txt"><span class="frc-lab" id="frcLab"></span><span id="frcTxt"></span></span></button>   <!-- v252 -->
         <button class="header-busca" id="btnBuscaHeader" onclick="abrirBusca()" title="Buscar tela (Ctrl+K)" aria-label="Buscar tela"><span class="hb-lupa">🔎</span><span class="hb-txt">Buscar</span></button>   <!-- v247, pilula na v250 -->
         <button class="header-tema" id="btnTemaTopo" onclick="alternarTema()" title="Trocar entre tema claro e escuro" aria-label="Trocar tema"><span id="temaIcone">🌙</span></button>   <!-- v250 -->
         <button class="header-sino" id="btnSinoHeader" onclick="alternarSinoCard()" title="Notificações" aria-label="Notificações">
@@ -3202,6 +3261,16 @@ const docMetaCaixa      = db.collection("config").doc("metaCaixa");      // v213
 const docFdcConferidos = db.collection("config").doc("fdcConferidos"); // v211 - lancamentos fora do padrao ja conferidos
 const colCaixaInd = db.collection("caixaIndicadores");    // v185 - "2026-07" indicadores de caixa por posto
 const colDespesasAno = db.collection("despesasAno");      // v185 - "2026" despesas mes a mes por tipo
+const colRotinaStatus = db.collection("rotinaStatus");   // v252 - um doc por dia: o estado dos passos da sincronizacao
+let rotinaDias = {};        // "AAAA-MM-DD" -> {data, atualizadoEm, passos:{...}, reserva:{...}}
+let escutaRotina = null;
+let vistoRotina = false;    /* v249 - estado AUSENTE nao e' estado VAZIO: enquanto a nuvem nao
+                               responde, o selo nao afirma nada */
+let frcCardAberto = false;
+let frcTimer = null;
+const FRC_CORTE = 9;        /* a partir desta hora, dia util sem rodada vira problema (a rodada
+                               completa e' as 7h30 na maquina 1 e as 8h na reserva) */
+const FRC_DIAS_REGUA = 8;   // quantos dias olhar para aprender quais passos a rotina executa
 const colRelPetros   = db.collection("relatoriosPetros"); // v191 - relatorios do Adaptive (Mapa Anual, DRE, despesas, tanques, colaboradores, a prazo)
 const colAnalises = db.collection("analises");             // v172 - "postos_2026-07-28" / "conv_2026-07-28"
 const colRelLoja  = db.collection("relatoriosLoja");       // v168 - produtos/categorias das conveniências           // um doc por mês (AAAA-MM): litros por posto + faturamento por loja
@@ -3883,6 +3952,9 @@ function aoMudarLogin(usuario){
     if (escutaPuxadas){ escutaPuxadas(); escutaPuxadas = null; }
     if (escutaResumos){ escutaResumos(); escutaResumos = null; }
     if (escutaVendasMensais){ escutaVendasMensais(); escutaVendasMensais = null; }
+    if (escutaRotina){ escutaRotina(); escutaRotina = null; }
+    if (frcTimer){ clearInterval(frcTimer); frcTimer = null; }
+    rotinaDias = {}; vistoRotina = false;   // v252
     if (escutaInfFrota){ escutaInfFrota(); escutaInfFrota = null; }
     if (escutaInfAbast){ escutaInfAbast(); escutaInfAbast = null; }
     if (escutaIfood){ escutaIfood(); escutaIfood = null; }
@@ -5274,6 +5346,9 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v252", data:"05/08/2026", tit:"O app diz h\u00e1 quanto tempo os n\u00fameros chegaram", itens:[
+    {t:"n",h:"Uma bolinha na barra de cima mostra se os dados est\u00e3o do dia",d:"Ao lado do Buscar apareceu uma pastilha com uma bolinha colorida e a hora. Verde quer dizer que a sincroniza\u00e7\u00e3o de hoje rodou inteira; amarelo, que ela rodou pela metade ou ainda n\u00e3o rodou; vermelho, que o dia passou e ela n\u00e3o rodou. Clicando, abre um cart\u00e3o dizendo quando os n\u00fameros chegaram, quantos passos conclu\u00edram e, quando falta algum, qual foi e por qu\u00ea. Aos domingos a sincroniza\u00e7\u00e3o n\u00e3o roda, e a bolinha fica cinza explicando isso."}
+  ]},
   {v:"v251", data:"05/08/2026", tit:"Agora você escolhe a cara dos ícones do menu", itens:[
     {t:"n",h:"Três estilos de ícone, em Ajustes › Minha conta",d:"Clássico (os desenhos coloridos de sempre), Minimalista (só o traço, mais sóbrio) e Vivo (o traço dentro de uma pastilha com a cor do grupo). A escolha vale só no seu aparelho: cada pessoa deixa do jeito que gosta, sem mexer no de ninguém."},
     {t:"c",h:"O ícone da Organização agora é uma pasta",d:"O desenho anterior aparecia diferente em cada celular e ficava difícil de reconhecer. Virou uma pasta simples, que todo mundo entende."}
@@ -6064,6 +6139,19 @@ function iniciarSync(){
     const pd = document.getElementById("painelDash");
     if (pd && pd.classList.contains("aberto")){ aplicarOrdemCardsDash(); renderOrdemCardsDash(); }
   }, ()=>{});
+
+  /* v252 - o estado da sincronizacao (um doc por dia). Colecao pequena: um documento
+     por dia util, com 16 objetinhos dentro. */
+  escutaRotina = colRotinaStatus.onSnapshot(snap => {
+    const m = {};
+    snap.forEach(d => m[d.id] = d.data() || {});
+    rotinaDias = m;
+    vistoRotina = true;
+    atualizarSeloFrescor();
+  }, ()=>{ vistoRotina = true; atualizarSeloFrescor(); });
+  /* o selo tambem envelhece sozinho: quem deixa a pagina aberta a manha inteira
+     atravessa a hora de corte e a virada do dia */
+  if (!frcTimer) frcTimer = setInterval(atualizarSeloFrescor, 5*60*1000);
 
   // v191 - relatorios do Petros
   colRelPetros.onSnapshot(snap => {
@@ -12175,6 +12263,194 @@ function renderSinoCard(){
     h += '<div class="sino-mais">e mais ' + (pend.length - SINO_TOPO) + ' na Caixa de entrada</div>';
   corpo.innerHTML = h;
 }
+/* ===================== v252 - O SELO DE FRESCOR DO DADO =====================
+   Le o `rotinaStatus` que as duas maquinas gravam e responde a pergunta que o app
+   nunca respondeu: HA QUANTO TEMPO estes numeros chegaram.
+   Historico que explica a tela: a `vendasMensais` passou uma semana mostrando julho
+   17% abaixo do certo, o Resultado do mes ficou vazio em agosto e a Posicao de
+   Liquidez saiu -R$ 1 milhao no lugar de +R$ 2,8 milhoes. Em NENHUM dos tres o app
+   disse nada. Tela sem passo de rotina nao fica vazia: fica velha.
+   ---------------------------------------------------------------------------- */
+function frcDiasOrdenados(){ return Object.keys(rotinaDias).sort(); }
+
+/* A REGUA DOS PASSOS NAO E' ESCRITA A MAO (regra da v217).
+   Ela e' o dia MAIS COMPLETO dos ultimos dias: passo novo na rotina entra sozinho,
+   passo aposentado some sozinho depois de alguns dias. */
+function frcPassosRegua(){
+  const ids = frcDiasOrdenados().slice(-FRC_DIAS_REGUA);
+  let regua = [];
+  ids.forEach(id => {
+    const ps = Object.keys(((rotinaDias[id] || {}).passos) || {});
+    if (ps.length > regua.length) regua = ps;
+  });
+  return regua;
+}
+
+function frcQuandoDoDia(doc){
+  let q = String((doc && doc.atualizadoEm) || "");
+  const ps = (doc && doc.passos) || {};
+  Object.keys(ps).forEach(k => {
+    const v = String((ps[k] && ps[k].quando) || "");
+    if (v > q) q = v;
+  });
+  return q;
+}
+
+function frcHora(iso){
+  const d = new Date(String(iso || ""));
+  if (isNaN(d.getTime())) return "";
+  const p = n => String(n).padStart(2, "0");
+  return p(d.getHours()) + "h" + p(d.getMinutes());
+}
+
+function frcEstado(){
+  const agora = new Date();
+  const domingo = agora.getDay() === 0;
+  const hora = agora.getHours();
+  const hoje = hojeISO();
+  if (!vistoRotina)
+    return { cor:"", lab:"", rotulo:"", titulo:"Vendo quando os dados chegaram", frase:"", pend:[], regua:0, ok:0, sabido:false, doc:null, dia:"" };
+
+  const ids = frcDiasOrdenados();
+  const dia = ids.length ? ids[ids.length - 1] : "";
+  const doc = dia ? (rotinaDias[dia] || {}) : {};
+  const passos = doc.passos || {};
+  const regua = frcPassosRegua();
+  const pend = [];
+  let ok = 0;
+  regua.forEach(p => {
+    const e = passos[p] && passos[p].estado;
+    if (e === "ok" || e === "pulado") ok++;
+    else pend.push({ passo:p, estado: e || "", detalhe: (passos[p] && passos[p].detalhe) || "" });
+  });
+
+  const deHoje = !!dia && dia === hoje;
+  const quando = frcQuandoDoDia(doc);
+  const est = { cor:"", lab:"", rotulo:"", titulo:"", frase:"", pend:pend, regua:regua.length, ok:ok,
+                sabido:true, doc:doc, dia:dia, deHoje:deHoje, quando:quando, domingo:domingo };
+
+  if (!dia || !regua.length){
+    est.cor = "";
+    est.lab = ""; est.rotulo = "sem sincroniza\u00e7\u00e3o";
+    est.titulo = "Sem registro de sincroniza\u00e7\u00e3o";
+    est.frase = "O app ainda n\u00e3o encontrou nenhum registro de sincroniza\u00e7\u00e3o. " +
+                "Enquanto isso, os n\u00fameros das telas podem estar velhos.";
+    return est;
+  }
+
+  const quandoCurto = quando ? frcHora(quando) : "";
+  const diaCurto = fmtDataCurta(dia).slice(0, 5);
+  const chegou = deHoje
+    ? ("hoje" + (quandoCurto ? " \u00e0s " + quandoCurto : ""))
+    : (diaCurto + (quandoCurto ? " \u00e0s " + quandoCurto : ""));
+
+  /* o selo diz ATUALIZADO + quando. Sem a palavra, "07h34" na barra parece um relogio -
+     foi a FOTO que mostrou isso, nenhuma assercao olhava para o sentido do texto. */
+  est.lab = "Atualizado";
+  est.rotulo = deHoje ? (quandoCurto || "hoje") : (diaCurto + (quandoCurto ? " " + quandoCurto : ""));
+
+  if (deHoje && !pend.length){
+    est.cor = "ok";
+    est.titulo = "Dados de hoje";
+    est.frase = "Os n\u00fameros chegaram " + chegou + ".";
+  } else if (deHoje){
+    est.cor = "atr";
+    est.titulo = "Sincroniza\u00e7\u00e3o incompleta";
+    est.frase = "Os n\u00fameros chegaram " + chegou + ", mas " +
+                (pend.length === 1 ? "1 passo n\u00e3o fechou" : pend.length + " passos n\u00e3o fecharam") + ".";
+  } else if (domingo){
+    est.cor = "";
+    est.titulo = "Domingo";
+    est.frase = "Aos domingos a sincroniza\u00e7\u00e3o n\u00e3o roda. Os n\u00fameros s\u00e3o de " + chegou + ".";
+  } else if (hora < FRC_CORTE){
+    est.cor = "atr";
+    est.titulo = "A rodada de hoje ainda n\u00e3o aconteceu";
+    est.frase = "A sincroniza\u00e7\u00e3o de hoje ainda n\u00e3o rodou. Os n\u00fameros s\u00e3o de " + chegou + ".";
+  } else {
+    est.cor = "mau";
+    est.titulo = "N\u00e3o sincronizou hoje";
+    est.frase = "A sincroniza\u00e7\u00e3o n\u00e3o rodou hoje. Os n\u00fameros s\u00e3o de " + chegou + ".";
+  }
+  return est;
+}
+
+function atualizarSeloFrescor(){
+  const b = document.getElementById("frcSelo"), t = document.getElementById("frcTxt");
+  if (!b) return;
+  const e = frcEstado();
+  /* enquanto a nuvem nao respondeu o selo NAO aparece - ele nao pode afirmar nada */
+  b.style.display = e.sabido ? "inline-flex" : "none";
+  b.classList.remove("frc-ok", "frc-atr", "frc-mau");
+  if (e.cor) b.classList.add("frc-" + e.cor);
+  const lb = document.getElementById("frcLab");
+  if (lb) lb.textContent = e.lab || "";
+  if (t) t.textContent = e.rotulo || "";
+  b.setAttribute("title", e.titulo + (e.frase ? " \u2014 " + e.frase : ""));
+  if (frcCardAberto) renderFrcCard();
+}
+
+function frcLinhaPendente(p){
+  const motivo = p.estado === "falhou" ? "falhou" : (p.estado ? p.estado : "n\u00e3o rodou");
+  return '<div class="frc-it"><span class="frc-it-p">' + escAttr(p.passo) + '</span>' +
+         '<span class="frc-it-e">' + escAttr(motivo) + '</span>' +
+         (p.detalhe ? '<span class="frc-it-d">' + escAttr(p.detalhe) + '</span>' : '') + '</div>';
+}
+
+function renderFrcCard(){
+  const corpo = document.getElementById("frcCorpo");
+  const tit = document.getElementById("frcCabTit"), selo = document.getElementById("frcCabSelo");
+  if (!corpo) return;
+  const e = frcEstado();
+  if (tit) tit.textContent = "\ud83d\udd04 Sincroniza\u00e7\u00e3o dos dados";
+  if (selo){
+    selo.textContent = e.titulo || "";
+    selo.className = "frc-selo-est" + (e.cor ? " frc-" + e.cor : "");
+  }
+  let h = '<p class="frc-frase">' + escAttr(e.frase || "") + '</p>';
+  if (e.regua)
+    h += '<p class="frc-passos">' + e.ok + ' de ' + e.regua + ' passos conclu\u00eddos' +
+         (e.dia ? ' na rodada de ' + escAttr(fmtDataCurta(e.dia)) : '') + '.</p>';
+  if (e.pend && e.pend.length){
+    h += '<div class="frc-lista"><span class="frc-lista-tit">O que ficou faltando</span>' +
+         e.pend.map(frcLinhaPendente).join("") + '</div>';
+  }
+  const r = (e.doc && e.doc.reserva) || null;
+  if (r && r.ultimaRodada){
+    h += '<p class="frc-res">M\u00e1quina reserva: \u00faltima rodada \u00e0s ' + escAttr(frcHora(r.ultimaRodada)) +
+         (r.resultado ? ' \u2014 ' + escAttr(String(r.resultado)) : '') + '.</p>';
+  } else if (e.deHoje){
+    h += '<p class="frc-res">A m\u00e1quina reserva ainda n\u00e3o deu sinal hoje.</p>';
+  }
+  corpo.innerHTML = h;
+}
+
+function _frcCliqueFora(ev){
+  const c = document.getElementById("frcCard"), b = document.getElementById("frcSelo");
+  if (c && c.contains(ev.target)) return;
+  if (b && b.contains(ev.target)) return;
+  fecharFrcCard();
+}
+function abrirFrcCard(){
+  const c = document.getElementById("frcCard");
+  if (!c) return;
+  renderFrcCard();
+  c.style.display = "flex";
+  frcCardAberto = true;
+  const b = document.getElementById("frcSelo");
+  if (b) b.classList.add("ativo");
+  /* o setTimeout evita que o proprio clique que abriu o cartao ja o feche */
+  setTimeout(() => document.addEventListener("click", _frcCliqueFora), 0);
+}
+function fecharFrcCard(){
+  const c = document.getElementById("frcCard");
+  if (c) c.style.display = "none";
+  frcCardAberto = false;
+  document.removeEventListener("click", _frcCliqueFora);
+  const b = document.getElementById("frcSelo");
+  if (b) b.classList.remove("ativo");
+}
+function alternarFrcCard(){ frcCardAberto ? fecharFrcCard() : abrirFrcCard(); }
+
 function _sinoCliqueFora(ev){
   const c = document.getElementById("sinoCard"), b = document.getElementById("btnSinoHeader");
   if (c && c.contains(ev.target)) return;
@@ -12211,7 +12487,11 @@ function abrirCaixaDoSino(){
   alternarAvisos();
 }
 document.addEventListener("keydown", ev => {
-  if (ev.key === "Escape" && sinoCardAberto) fecharSinoCard();
+  if (ev.key !== "Escape") return;
+  /* v252 - o Esc tem TRES donos (a busca, a caixa Personalizar e estes dois cartoes):
+     cada um so' age quando a SUA caixa esta aberta. */
+  if (sinoCardAberto) fecharSinoCard();
+  if (frcCardAberto)  fecharFrcCard();
 });
 function alternarAvisos(){
   const aberto = abrirPainelExclusivo("painelAvisos");
