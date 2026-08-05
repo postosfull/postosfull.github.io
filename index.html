@@ -46,11 +46,16 @@
 <style>
   :root{
     /* Identidade visual Postos Full */
-    --verde:#FF6401;          /* laranja da marca (cor primária) */
-    --verde-rgb:255,100,1;    /* v243 - o mesmo laranja em RGB, para rgba() nas animações */
+    /* v250e - LARANJA OFICIAL DO MIV (#FE7030). Ate aqui o app usava #FF6401, que nunca
+       esteve no manual - era a cor que alguem digitou na v1 e ninguem mais conferiu.
+       🔑 O nome da variavel continua `--verde` por heranca: trocar o NOME custaria 57
+       substituicoes em troca de zero pixel na tela. O que importa e' que ela guarda o
+       laranja da marca - e agora guarda o certo. Fonte: claude/miv-identidade-visual.md */
+    --verde:#FE7030;          /* laranja da marca (cor primária) - MIV pagina 9 */
+    --verde-rgb:254,112,48;    /* v243 - o mesmo laranja em RGB, para rgba() nas animações */
     --verde-escuro:#1E1E1E;   /* grafite */
     --verde-claro:#FFF0E6;    /* laranja bem claro (fundos suaves) */
-    --dourado:#FF6401;        /* ações de destaque = laranja */
+    --dourado:#FE7030;        /* ações de destaque = laranja */
     --grafite:#1E1E1E;
     --grafite-2:#3A3A3A;
     --cinza:#6E6E6E;
@@ -116,7 +121,7 @@
   body.empresa-conveniencia header img.logo-conv{display:block}
 
   /* A tela de login mantém a identidade Postos Full (laranja) */
-  #telaLogin{ --verde:#FF6401; --verde-rgb:255,100,1; --dourado:#FF6401; --verde-claro:#FFF0E6; }
+  #telaLogin{ --verde:#FE7030; --verde-rgb:254,112,48; --dourado:#FE7030; --verde-claro:#FFF0E6; }
 
   *{box-sizing:border-box;margin:0;padding:0}
   body{
@@ -160,7 +165,11 @@
      por baixo do sino. O logo da conveniência é o mais comprido dos três e era o que
      mais precisava disso, mas vale para todos. */
   /* As tres logomarcas trazem a palavra FULL em proporcoes diferentes dentro do proprio
-     arquivo (58% / 100% / 88% da altura da imagem). Se todas tiverem a mesma altura de
+     arquivo - MEDIDO nos PNG em 04/08: 88,7% / 100% / 100% da altura da imagem.
+     🔴 Ate a v250c este comentario dizia 58% / 100% / 88%, e os fatores abaixo foram
+     calculados em cima disso: a palavra FULL saia em TRES tamanhos (1,54 nos Postos,
+     1,14 na Conveniencia, 1,00 na Transportadora) num sistema feito para iguala-la.
+     👉 Fracao nova se MEDE (bbox do alfa do PNG), nao se estima de olho. Se todas tiverem a mesma altura de
      imagem, a palavra FULL sai de tamanhos diferentes e o cabecalho fica desalinhado ao
      trocar de empresa. Entao a altura de cada uma e calculada a partir de um tamanho
      unico da palavra FULL (--fullh) vezes o fator daquela logo. Para aumentar ou
@@ -172,9 +181,18 @@
      a largura + object-fit:contain: a largura e o --fullh vezes o fator da logo
      (proporcao do arquivo dividida pela fracao que a palavra FULL ocupa nele). */
   header .logo-app{height:calc(var(--fullh) * 1.732);max-width:100%;object-fit:contain;object-position:left center;display:block}
+  /* v250c - a conta, para quem for trocar uma logo:
+       proporcao do arquivo   = largura / altura do PNG
+       fracao da palavra FULL = altura do FULL / altura do PNG   (medir, nao chutar)
+       fator = (1,5363 / fracao) x proporcao
+     O 1,5363 e' a altura da palavra FULL dos Postos hoje (1,732 x 0,887) - a referencia
+     escolhida por ser a unica que ninguem quis mudar.
+       Postos        4,762 x 0,887 -> 8,248   (nao mudou)
+       Transportadora 8,436 x 1,000 -> 12,960
+       Conveniencia  10,661 x 1,000 -> 16,378 */
   header .logo-postos{width:calc(var(--fullh) * 8.248)}
-  header .logo-transp{width:calc(var(--fullh) * 8.436)}
-  header .logo-conv{width:calc(var(--fullh) * 12.100)}
+  header .logo-transp{width:calc(var(--fullh) * 12.960)}
+  header .logo-conv{width:calc(var(--fullh) * 16.378)}
   #statusSalvo{font-size:.68rem;font-weight:400;font-family:"Poppins",sans-serif;text-transform:none;letter-spacing:0;color:#FFC9A3;margin-left:10px;opacity:0;transition:opacity .4s}
   header .acoes{display:flex;gap:8px;flex-wrap:wrap}
   .header-acoes-topo{display:flex;align-items:center;gap:8px;flex:0 0 auto}
@@ -252,8 +270,31 @@
   .bsc-sub{font-size:.74rem;opacity:.6;margin-left:auto;padding-left:10px;white-space:nowrap}
   .bsc-vazio{padding:18px 12px;text-align:center;opacity:.7;font-size:.88rem}
   .bsc-pe{display:flex;gap:14px;padding:8px 14px;border-top:1px solid var(--borda);font-size:.7rem;opacity:.6}
-  .header-busca{background:none;border:0;cursor:pointer;font-size:1.05rem;line-height:1;padding:4px 6px;opacity:.85}
-  .header-busca:hover{opacity:1}
+  /* ===== v250 - a pilula da busca: a lupa sozinha nao ensinava o atalho a ninguem =====
+     Desenho vindo do Concept Hub: lupa + a palavra Buscar + a tecla, numa pilula discreta.
+     background-IMAGE, nunca background-color (armadilha da v186). */
+  .header-busca{display:inline-flex;align-items:center;gap:7px;cursor:pointer;line-height:1;
+    padding:0 12px;height:42px;border-radius:999px;color:#fff;font-family:"Poppins",sans-serif;
+    background:rgba(255,255,255,.08);background-image:linear-gradient(rgba(255,255,255,.08),rgba(255,255,255,.08));
+    border:1px solid rgba(255,255,255,.20)}
+  .header-busca:hover{border-color:var(--verde);
+    background-image:linear-gradient(rgba(255,255,255,.16),rgba(255,255,255,.16))}
+  .header-busca .hb-lupa{font-size:1.02rem}
+  .header-busca .hb-txt{font-size:.82rem;font-weight:600;letter-spacing:.2px}
+  .header-busca .hb-kbd{font-size:.62rem;font-weight:700;letter-spacing:.4px;opacity:.75;
+    border:1px solid rgba(255,255,255,.28);border-radius:5px;padding:2px 5px;line-height:1}
+  /* v250 - o tema saiu do pe da barra lateral e veio para ca, onde se acha */
+  .header-tema{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.20);color:#fff;
+    background-image:linear-gradient(rgba(255,255,255,.08),rgba(255,255,255,.08));
+    border-radius:50%;width:42px;height:42px;display:flex;align-items:center;justify-content:center;
+    font-size:1.15rem;cursor:pointer;padding:0;line-height:1}
+  .header-tema:hover{border-color:var(--verde);
+    background-image:linear-gradient(rgba(255,255,255,.16),rgba(255,255,255,.16))}
+  /* no celular a pilula vira so a lupa - a palavra nao cabe ao lado do sino */
+  @media (max-width:820px){
+    .header-busca{padding:0;width:42px;justify-content:center}
+    .header-busca .hb-txt,.header-busca .hb-kbd{display:none}
+  }
   @media (max-width:560px){ .bsc-fundo{padding-top:6vh} .bsc-sub{display:none} .bsc-pe{display:none} }
   /* ===== v248 - tela vazia com desenho ============================================
      Reveste as classes de vazio que JA' existiam. Uma regra, ~30 telas.
@@ -265,7 +306,7 @@
   td.vazio::before, .vz-cx::before{
     content:"";display:block;width:104px;height:70px;margin:0 auto 12px;opacity:.75;
     background-repeat:no-repeat;background-position:center;background-size:contain;
-    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 80'><rect x='13' y='12' width='94' height='58' rx='9' fill='none' stroke='%23C9C9C9' stroke-width='3'/><path d='M13 32h94' stroke='%23C9C9C9' stroke-width='3'/><circle cx='24' cy='22' r='3.2' fill='%23FF6401'/><circle cx='35' cy='22' r='3.2' fill='%23DDDDDD'/><path d='M30 48h60M30 59h38' stroke='%23DEDEDE' stroke-width='6' stroke-linecap='round'/></svg>")}
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 80'><rect x='13' y='12' width='94' height='58' rx='9' fill='none' stroke='%23C9C9C9' stroke-width='3'/><path d='M13 32h94' stroke='%23C9C9C9' stroke-width='3'/><circle cx='24' cy='22' r='3.2' fill='%23FE7030'/><circle cx='35' cy='22' r='3.2' fill='%23DDDDDD'/><path d='M30 48h60M30 59h38' stroke='%23DEDEDE' stroke-width='6' stroke-linecap='round'/></svg>")}
   .vz-tit{display:block;font-weight:700;color:var(--txt);opacity:.85;margin-bottom:4px;font-size:.98rem}
   .vz-bt{margin-top:14px}
   /* ===== v248 - esqueleto enquanto carrega ===== */
@@ -312,11 +353,26 @@
   .menu-lateral .mi{flex:0 0 24px;text-align:center;font-size:1.05rem}
   .menu-lateral .mt{opacity:0;transition:opacity .12s}
   .menu-lateral:hover .mt{opacity:1}
-  .menu-lateral .menu-tema{margin-top:auto}
-  .menu-lateral .menu-sair{color:var(--vermelho)}
+  /* v250 - o botao de tema saiu daqui (foi para a barra de cima); quem empurra o rodape
+     para baixo agora e' o Sair. Porta nova SUBSTITUI a antiga (v238/v244/v248). */
+  .menu-lateral .menu-sair{margin-top:auto;color:var(--vermelho)}
+  /* ===== v250 - quem esta logado, no pe da barra (desenho do Concept Hub) =====
+     Colapsada (62px) aparece so' o circulo com a inicial; no hover entram nome e funcao,
+     pela mesma classe .mt que o resto da barra ja' usa. */
+  /* v250c - sem avatar aqui (o do topo basta) e, com a barra RECOLHIDA, o bloco nao ocupa
+     nada: some inteiro em vez de deixar um vazio fora do eixo dos icones. */
+  .menu-lateral .usr-box{flex:0 0 auto;white-space:nowrap;margin-top:8px;
+    max-height:0;opacity:0;overflow:hidden;padding:0 0 0 3px;border-top:1px solid transparent;
+    transition:max-height .18s ease,opacity .12s ease,padding .18s ease}
+  .menu-lateral:hover .usr-box{max-height:72px;opacity:1;padding:11px 0 2px 3px;
+    border-top-color:var(--borda)}
+  .menu-lateral .usr-txt{display:flex;flex-direction:column;min-width:0;line-height:1.3;overflow:hidden}
+  .menu-lateral .usr-nome{font-size:.78rem;font-weight:600;color:var(--txt);
+    overflow:hidden;text-overflow:ellipsis}
+  .menu-lateral .usr-fn{font-size:.68rem;color:var(--cinza);overflow:hidden;text-overflow:ellipsis}
   /* v196 - modo "ordenar menus" dentro da propria barra lateral */
   .menu-lateral .menu-ordenar{margin-top:auto}
-  .menu-lateral.tem-ordenar .menu-tema{margin-top:0}
+  .menu-lateral.tem-ordenar .menu-sair{margin-top:0}
   .menu-grupos{display:flex;flex-direction:column;gap:4px;flex:0 0 auto}
 
   /* ===== v244 - a caixa "Personalizar a barra" ===== */
@@ -386,7 +442,7 @@
      max-height. */
   .menu-grp{display:flex;flex-direction:column;gap:4px;flex:0 0 auto}
   .menu-lateral .menu-grp-tit{font-size:.68rem;font-weight:700;letter-spacing:.9px;text-transform:uppercase;
-    color:var(--cinza);padding:8px 8px 6px;margin-top:6px;border-radius:7px;
+    color:var(--cinza);padding:8px 8px 6px 14px;margin-top:6px;border-radius:7px;
     transition:background-image .35s ease,border-color .35s ease,color .25s ease}
   .menu-lateral .menu-grp-tit .grp-seta{margin-left:auto;font-size:.66rem;opacity:0;transition:transform .25s ease,opacity .15s ease}
   .menu-lateral:hover .menu-grp-tit .grp-seta,
@@ -626,7 +682,7 @@
     padding:11px 14px;border:1px solid var(--borda);border-radius:8px;
     font-size:1rem;font-weight:600;color:var(--txt);
   }
-  .campo-nome input:focus{outline:none;border-color:var(--verde);box-shadow:0 0 0 3px rgba(255,100,1,.15)}
+  .campo-nome input:focus{outline:none;border-color:var(--verde);box-shadow:0 0 0 3px rgba(254,112,48,.15)}
   .campo-nome .btn-verde{white-space:nowrap;padding:11px 22px}
   .nota-nome{display:block;font-size:.75rem;color:var(--cinza);font-style:italic;margin-top:8px;max-width:560px}
 
@@ -864,7 +920,7 @@
   #telaLogin{
     position:fixed;inset:0;z-index:1000;
     background:
-      radial-gradient(circle at 0% 0%, rgba(255,100,1,.14) 0 2.5px, transparent 3.5px),
+      radial-gradient(circle at 0% 0%, rgba(254,112,48,.14) 0 2.5px, transparent 3.5px),
       linear-gradient(120deg,#141414 0%,#3A3A3A 100%);
     background-size:26px 26px, cover;
     display:flex;align-items:center;justify-content:center;padding:20px;
@@ -884,7 +940,7 @@
     content:"";position:absolute;right:-120px;bottom:-140px;
     width:420px;height:420px;border-radius:50%;
     border:2px solid var(--verde);opacity:.85;
-    box-shadow:0 0 0 60px rgba(255,100,1,.06);
+    box-shadow:0 0 0 60px rgba(254,112,48,.06);
     pointer-events:none;
   }
   .cartao-login{
@@ -902,7 +958,7 @@
     padding:6px 11px;font-size:1rem;line-height:1;cursor:pointer;border-radius:0;
     transition:background .15s,color .15s;
   }
-  .tema-switch .tema-op:hover{filter:none;background:rgba(255,100,1,.12)}
+  .tema-switch .tema-op:hover{filter:none;background:rgba(254,112,48,.12)}
   .tema-switch .tema-op.ativo{background:var(--verde);color:#fff}
   .tema-bloco{display:inline-flex;flex-direction:column;align-items:center;gap:3px}
   .tema-rotulo{
@@ -1030,7 +1086,7 @@
   .pet-l span{color:var(--cinza)}
   .pet-l b{color:var(--txt);white-space:nowrap}
   /* v221 - tela de quem ainda nao tem perfil. background-image por causa do modo escuro forcado */
-  .aguarda-perfil{display:none;border:1px solid var(--borda);border-left:6px solid #FF6401;border-radius:12px;
+  .aguarda-perfil{display:none;border:1px solid var(--borda);border-left:6px solid #FE7030;border-radius:12px;
     padding:20px 22px;margin:0 0 16px;background:var(--superficie-2);background-image:linear-gradient(var(--superficie-2),var(--superficie-2))}
   .aguarda-perfil h2{font-family:"Oswald","Poppins",sans-serif;font-size:1.1rem;letter-spacing:.4px;margin:0 0 10px}
   .aguarda-perfil p{font-size:.92rem;line-height:1.55;color:var(--cinza);margin:0 0 8px}
@@ -1158,7 +1214,7 @@
   .mov-bts{display:flex;gap:4px;flex:0 0 auto;flex-wrap:wrap;justify-content:flex-end}
   .mov-bts button{padding:3px 10px;font-size:.76rem;line-height:1.35;white-space:nowrap}
   .mov-linha .ord-nome{overflow-wrap:anywhere}
-  .mov-bt.ativo{border-color:#FF6401;color:#FF6401;background:rgba(255,100,1,.10);background-image:linear-gradient(rgba(255,100,1,.10),rgba(255,100,1,.10));font-weight:700}
+  .mov-bt.ativo{border-color:#FE7030;color:#FE7030;background:rgba(254,112,48,.10);background-image:linear-gradient(rgba(254,112,48,.10),rgba(254,112,48,.10));font-weight:700}
   /* v187 - quem pode enviar avisos/tarefas */
   .pe-sub{font-weight:600;font-size:.9rem;margin:14px 0 6px}
   .pe-item{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--borda);flex-wrap:wrap}
@@ -1508,13 +1564,13 @@
   .rec-feito{font-size:.76rem;color:#18a558;margin-top:6px;font-weight:600}
   .rec-acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
   .rec-acoes .btn-verde,.rec-acoes .btn-claro{font-size:.8rem;padding:7px 12px}
-  .rec-tag.exige{background:rgba(255,100,1,.14);color:#FF6401}
+  .rec-tag.exige{background:rgba(254,112,48,.14);color:#FE7030}
   .rec-box{border:1px dashed var(--borda);border-radius:10px;padding:10px 12px;margin-top:10px;background:var(--superficie)}
   .rec-box-tit{font-size:.8rem;font-weight:700;color:var(--txt);margin-bottom:6px}
   .rec-obs{width:100%;box-sizing:border-box;border:1px solid var(--borda);border-radius:8px;padding:8px;font-size:.9rem;background:var(--superficie);color:var(--txt);font-family:inherit}
   .rec-comprov{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px}
   .rec-comprov-item{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;color:var(--txt);border:1px solid var(--borda);border-radius:20px;padding:3px 5px 3px 10px}
-  .rec-comprov-link{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:.78rem;color:#FF6401;font-weight:600;border:1px solid var(--borda);border-radius:20px;padding:3px 10px}
+  .rec-comprov-link{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:.78rem;color:#FE7030;font-weight:600;border:1px solid var(--borda);border-radius:20px;padding:3px 10px}
   .rec-exige{font-size:.76rem;color:#e11d48;margin-top:8px;font-weight:600}
   .rec-obs-feita{font-size:.86rem;color:var(--txt);margin-top:6px;white-space:pre-wrap;border-left:3px solid var(--borda);padding-left:8px}
   .recado-exigir{display:inline-flex;align-items:center;gap:8px;font-size:.88rem;cursor:pointer}
@@ -1548,15 +1604,15 @@
   .venc-tile b{display:block;font-size:1.5rem;line-height:1.1}
   .venc-tile span{font-size:.72rem;color:var(--cinza)}
   .venc-tile.vermelho b{color:#e11d48}
-  .venc-tile.laranja b{color:#FF6401}
+  .venc-tile.laranja b{color:#FE7030}
   .venc-tile.verde b{color:#18a558}
   .venc-grupo-tit{font-weight:700;font-size:.85rem;margin:14px 0 6px}
   .venc-grupo-tit.vermelho{color:#e11d48}
-  .venc-grupo-tit.laranja{color:#FF6401}
+  .venc-grupo-tit.laranja{color:#FE7030}
   .venc-grupo-tit.verde{color:#18a558}
   .venc-item{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--borda);border-radius:12px;padding:10px 12px;margin:6px 0;background:var(--superficie)}
   .venc-item.vencido{border-color:rgba(225,29,72,.35);background:rgba(225,29,72,.06)}
-  .venc-item.hoje,.venc-item.perto{border-color:rgba(255,100,1,.35)}
+  .venc-item.hoje,.venc-item.perto{border-color:rgba(254,112,48,.35)}
   .venc-ic{font-size:1.4rem;line-height:1.3}
   .venc-main{flex:1;min-width:0}
   .venc-tit{font-weight:700;font-size:.95rem;word-break:break-word}
@@ -1569,10 +1625,10 @@
   .venc-data{font-weight:700;font-size:.85rem}
   .venc-rot{font-size:.72rem;color:var(--cinza)}
   .venc-rot.vencido,.venc-data.vencido{color:#e11d48}
-  .venc-rot.hoje,.venc-rot.perto{color:#FF6401}
+  .venc-rot.hoje,.venc-rot.perto{color:#FE7030}
   .venc-acoes{margin-top:2px}
   .venc-anexo{margin-top:5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  .venc-anexo a,.venc-anexo-add,.venc-anexo-link{color:#FF6401;font-size:.78rem;font-weight:600;cursor:pointer;text-decoration:none}
+  .venc-anexo a,.venc-anexo-add,.venc-anexo-link{color:#FE7030;font-size:.78rem;font-weight:600;cursor:pointer;text-decoration:none}
   .venc-anexo-x{border:1px solid var(--borda);background:var(--superficie);border-radius:6px;padding:1px 7px;font-size:.72rem;cursor:pointer;color:var(--cinza)}
   .venc-anexo-x.confirmar{border-color:#e11d48;color:#e11d48;font-weight:700}
   .venc-anexo-prog{font-size:.72rem;color:var(--cinza)}
@@ -1586,11 +1642,11 @@
   .doc-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0 4px}
   .doc-busca{flex:1;min-width:190px;padding:9px 11px;border:1px solid var(--borda);border-radius:10px;background:var(--superficie-2);color:var(--txt);font-size:.88rem;box-sizing:border-box}
   .doc-chip{border:1px solid var(--borda);background:var(--superficie);border-radius:999px;padding:6px 12px;font-size:.78rem;font-weight:600;color:var(--cinza);cursor:pointer}
-  .doc-chip.ativo{border-color:#FF6401;color:#FF6401;background:rgba(255,100,1,.08)}
+  .doc-chip.ativo{border-color:#FE7030;color:#FE7030;background:rgba(254,112,48,.08)}
   /* v249 - a etiqueta do contador. background-IMAGE, nunca background-color: o modo
      escuro forcado do Chrome apaga a segunda (armadilha da v186). */
   .cnt-eti{display:inline-block;margin-left:6px;padding:0 7px;border-radius:999px;font-size:.70rem;font-weight:700;line-height:1.7;vertical-align:1px;color:var(--cinza);background-image:linear-gradient(rgba(0,0,0,.07),rgba(0,0,0,.07))}
-  .doc-chip.ativo .cnt-eti{color:#FF6401;background-image:linear-gradient(rgba(255,100,1,.16),rgba(255,100,1,.16))}
+  .doc-chip.ativo .cnt-eti{color:#FE7030;background-image:linear-gradient(rgba(254,112,48,.16),rgba(254,112,48,.16))}
   .cnt-linha{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 10px}
   .cnt-fil{display:inline-flex;align-items:center;border:1px solid var(--borda);border-radius:999px;padding:4px 10px;font-size:.78rem;font-weight:600;color:var(--cinza)}
   .cnt-fil.cnt-mau{border-color:#c0392b;color:#c0392b}
@@ -1602,15 +1658,15 @@
   .adm-filtros input,.adm-filtros select{border:1px solid var(--borda);border-radius:8px;padding:6px 9px;font-size:.8rem;font-family:inherit;background:var(--superficie);color:var(--txt)}
   .adm-filtros input{flex:1;min-width:150px}
   .adm-pes{display:flex;align-items:center;gap:9px;flex-wrap:wrap;border:1px solid var(--borda);border-radius:10px;padding:8px 11px;margin-bottom:6px;font-size:.82rem;cursor:pointer;background:var(--superficie);background-image:linear-gradient(var(--superficie),var(--superficie))}
-  .adm-pes:hover{border-color:#FF6401}
+  .adm-pes:hover{border-color:#FE7030}
   .adm-pes-nome{font-weight:600}
   .adm-pes-mail{color:var(--cinza);font-size:.72rem;word-break:break-all}
   .adm-pes-selos{display:flex;gap:5px;flex-wrap:wrap;margin-left:auto}
   .adm-tag{font-size:.66rem;border:1px solid var(--borda);background:var(--superficie-2);background-image:linear-gradient(var(--superficie-2),var(--superficie-2));border-radius:20px;padding:1px 9px;color:var(--cinza);white-space:nowrap}
-  .adm-tag-perfil{border-color:#FF6401;color:#FF6401;background:rgba(255,100,1,.08);background-image:linear-gradient(rgba(255,100,1,.08),rgba(255,100,1,.08))}
+  .adm-tag-perfil{border-color:#FE7030;color:#FE7030;background:rgba(254,112,48,.08);background-image:linear-gradient(rgba(254,112,48,.08),rgba(254,112,48,.08))}
   .adm-tag-alerta{border-color:#C62828;color:#C62828;background:#FBEAE6;background-image:linear-gradient(#FBEAE6,#FBEAE6)}
   .adm-tag-adm{border-color:#18a558;color:#18a558;background:#EAF7EF;background-image:linear-gradient(#EAF7EF,#EAF7EF)}
-  .adm-ficha{border:2px solid #FF6401;border-radius:11px;padding:12px 14px;margin:0 0 10px;background:var(--superficie);background-image:linear-gradient(var(--superficie),var(--superficie))}
+  .adm-ficha{border:2px solid #FE7030;border-radius:11px;padding:12px 14px;margin:0 0 10px;background:var(--superficie);background-image:linear-gradient(var(--superficie),var(--superficie))}
   .adm-ficha-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:8px}
   .adm-ficha-nome{border:1px solid var(--borda);border-radius:8px;padding:6px 9px;font-size:.85rem;font-weight:600;font-family:inherit;background:var(--superficie);color:var(--txt);min-width:170px}
   .adm-ficha-bts{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
@@ -1632,7 +1688,7 @@
   .adm-cols .adm-col{margin-top:0}
   .adm-col.apagada .adm-col-corpo{opacity:.45}
   .adm-col-tit{font-size:.76rem;font-weight:700;padding:6px 10px;color:#fff}
-  .adm-e1 .adm-col-tit{background:#FF6401;background-image:linear-gradient(#FF6401,#FF6401)}
+  .adm-e1 .adm-col-tit{background:#FE7030;background-image:linear-gradient(#FE7030,#FE7030)}
   .adm-e2 .adm-col-tit{background:#96780F;background-image:linear-gradient(#96780F,#96780F)}
   .adm-e3 .adm-col-tit{background:#E0561C;background-image:linear-gradient(#E0561C,#E0561C)}
   .adm-e4 .adm-col-tit{background:#6E6E6E;background-image:linear-gradient(#6E6E6E,#6E6E6E)}
@@ -1811,7 +1867,7 @@
   #btnAtivarPush.ativo{border-color:var(--verde);color:var(--verde)}
   .push-status{margin-top:8px;min-height:1em}
   .push-toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(120%);
-    background:var(--superficie-2);color:var(--txt);border:1px solid var(--borda);border-left:4px solid var(--laranja,#FF6401);
+    background:var(--superficie-2);color:var(--txt);border:1px solid var(--borda);border-left:4px solid var(--laranja,#FE7030);
     border-radius:10px;padding:12px 16px;max-width:90vw;box-shadow:0 6px 24px rgba(0,0,0,.3);
     z-index:9999;opacity:0;transition:transform .3s,opacity .3s;font-size:.9rem}
   .push-toast.show{transform:translateX(-50%) translateY(0);opacity:1}
@@ -1832,7 +1888,7 @@
     position:fixed;top:0;left:0;right:0;z-index:10001;
     display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;
     padding:11px 16px;
-    background:#FF6401;background-image:linear-gradient(#FF6401,#FF6401);
+    background:#FE7030;background-image:linear-gradient(#FE7030,#FE7030);
     color:#fff;font-size:.92rem;font-weight:500;line-height:1.3;
     box-shadow:0 2px 12px rgba(0,0,0,.30);
   }
@@ -1852,6 +1908,216 @@
     body.com-atz{padding-top:96px}
     body.com-atz #telaLogin{padding-top:116px}
     body.com-atz .menu-lateral{top:96px}
+  }
+  /* ===== v250b - O CABECALHO VIRA BARRA (desenho do Concept Hub) =====
+     Faixa fina colada no topo da JANELA, atravessando a tela inteira - a barra lateral
+     passa a comecar embaixo dela. Sem cartao arredondado, sem degrade e SEM CIRCULO
+     atras dos icones: no Hub so' o avatar e' preenchido, e e' isso que da' o ar de barra
+     de sistema. 🔴 background-IMAGE, nunca background-color (armadilha da v186).
+     Tres faixas: quem esta logado a ESQUERDA, a marca no MEIO, as acoes a DIREITA. */
+  header{
+    position:fixed;top:0;left:0;right:0;z-index:90;
+    height:52px;padding:0 14px;border-radius:0;gap:0;justify-content:center;
+    background:#141414;background-image:linear-gradient(#141414,#141414);
+    border-bottom:1px solid rgba(255,255,255,.10);
+  }
+  header{ --fullh:16px; }                 /* logo pequeno: 16 x 1.732 = 27.7px de altura */
+  /* o conteudo desce; a TELA DE LOGIN nao, porque o header mora dentro do #appPrincipal */
+  #appPrincipal{padding-top:52px}
+  .menu-lateral{top:52px}
+  /* com a faixa laranja de "Atualizar agora" (v214) sao tres andares: barra, cabecalho, conteudo */
+  body.com-atz header{top:70px}
+  body.com-atz .menu-lateral{top:122px}
+  .header-topo{gap:12px;width:100%;align-items:center}
+  /* 🔴 `flex:1 1 0` nos DOIS lados e' o que centraliza a marca de verdade: as duas pontas
+     recebem a mesma fatia do espaco livre, entao o meio cai no meio, nao importa o tamanho
+     do nome de quem esta logado. E `min-width:0` + overflow para o texto ceder antes de
+     empurrar os botoes para fora (foi o que a foto de 390px pegou). */
+  .header-topo > .hdr-esq{flex:1 1 0;min-width:0;display:inline-flex;align-items:center;gap:9px;overflow:hidden}
+  .header-topo > h1{flex:0 0 auto;min-width:0;overflow:hidden}
+  .header-topo > .header-acoes-topo{flex:1 1 0;justify-content:flex-end}
+  header h1{gap:10px;flex-wrap:nowrap}
+  /* quem esta logado, na ponta esquerda: o avatar e' o UNICO preenchido da barra */
+  .hdr-av{width:28px;height:28px;flex:0 0 28px;border-radius:999px;color:#fff;
+    font-size:.76rem;font-weight:700;display:flex;align-items:center;justify-content:center;
+    background:var(--verde);background-image:linear-gradient(var(--verde),var(--verde))}
+  header .usuario-logado{width:auto;font-size:.78rem;color:#E4E4E4;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+  header .titulo-app{min-width:0;overflow:hidden}
+  #statusSalvo{margin-left:0}
+  /* icones puros, sem a pastilha redonda */
+  .header-sino,.header-tema{background:none;background-image:none;border:0;
+    width:34px;height:34px;border-radius:8px;color:#DDD;font-size:1.02rem}
+  .header-sino:hover,.header-tema:hover{color:#fff;
+    background-image:linear-gradient(rgba(255,255,255,.10),rgba(255,255,255,.10))}
+  .header-sino.ativo{box-shadow:none;color:var(--verde);
+    background-image:linear-gradient(rgba(var(--verde-rgb),.16),rgba(var(--verde-rgb),.16))}
+  .header-sino-badge{top:-2px;right:-2px}
+  /* a busca fica so' com o contorno - o preenchimento era o que pesava */
+  .header-busca{height:30px;padding:0 10px;border-radius:8px;color:#CFCFCF;
+    background:none;background-image:none;border:1px solid rgba(255,255,255,.14)}
+  .header-busca:hover{color:#fff;border-color:rgba(255,255,255,.32);background-image:none}
+  .header-busca .hb-txt{font-size:.78rem;font-weight:500}
+
+  /* ===== v250b - O CARD DO SINO =====
+     Espiar nao e' navegar: o sino deixou de TROCAR a tela e virou um cartao flutuante por
+     cima do que ja estava aberto. Clicar fora fecha e a pessoa continua onde estava. */
+  .sino-card{position:fixed;top:58px;right:12px;z-index:95;
+    width:min(380px, calc(100vw - 20px));max-height:min(70vh, 560px);
+    display:flex;flex-direction:column;overflow:hidden;
+    background:var(--superficie);background-image:linear-gradient(var(--superficie),var(--superficie));
+    border:1px solid var(--borda);border-radius:12px;box-shadow:0 16px 44px rgba(0,0,0,.45)}
+  .sino-cab{display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid var(--borda)}
+  .sino-cab b{font-size:.86rem;color:var(--txt)}
+  .sino-cab .sino-cnt{margin-left:auto;font-size:.7rem;font-weight:700;color:var(--cinza);
+    border-radius:999px;padding:1px 8px;
+    background-image:linear-gradient(rgba(0,0,0,.07),rgba(0,0,0,.07))}
+  .sino-corpo{overflow-y:auto;padding:6px 0}
+  .sino-it{display:flex;align-items:center;gap:9px;padding:8px 14px;border-left:3px solid transparent}
+  .sino-it + .sino-it{border-top:1px solid var(--borda)}
+  .sino-it .sino-q{flex:0 0 auto;font-size:.64rem;font-weight:700;letter-spacing:.3px;
+    color:var(--cinza);white-space:nowrap}
+  .sino-it .sino-t{flex:1 1 auto;min-width:0;font-size:.79rem;color:var(--txt);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .sino-it .sino-o{flex:0 0 auto;font-size:.63rem;color:var(--cinza);opacity:.8}
+  .sino-it.vencido{border-left-color:var(--vermelho)}
+  .sino-it.vencido .sino-q{color:var(--vermelho)}
+  .sino-it.hoje{border-left-color:var(--verde)}
+  .sino-it.hoje .sino-q{color:var(--verde)}
+  .sino-vazio{padding:22px 14px;text-align:center;font-size:.8rem;color:var(--cinza)}
+  .sino-pe{border-top:1px solid var(--borda);padding:9px 12px;display:flex;gap:8px;align-items:center}
+  .sino-pe button{flex:1 1 auto;justify-content:center}
+  .sino-mais{font-size:.7rem;color:var(--cinza);padding:6px 14px 2px;text-align:center}
+
+  /* no celular a barra lateral e' gaveta e vive aberta: o bloco tem de aparecer */
+  @media (max-width:640px){
+    .menu-lateral .usr-box{max-height:72px;opacity:1;padding:11px 0 2px 3px;
+      border-top-color:var(--borda)}
+  }
+  /* tela media: some o nome de quem esta logado; depois a busca vira so' a lupa (v250, 820px) */
+  @media (max-width:900px){ header .usuario-logado{display:none} }
+  @media (max-width:560px){
+    header{height:48px;padding:0 10px}
+    /* 🔴 com a logo da Conveniencia agora em 16,378 x --fullh, 14px daria 229px de largura e
+       os botoes voltariam a sair da tela. 12px + o h1 podendo CEDER resolve as duas pontas:
+       a marca encolhe sozinha pelo object-fit em vez de empurrar alguem para fora. */
+    header{ --fullh:12px; }
+    .header-topo > h1{flex:0 1 auto}
+    #appPrincipal{padding-top:48px}
+    .menu-lateral{top:48px}
+    body.com-atz header{top:96px}
+    body.com-atz .menu-lateral{top:144px}
+    /* no celular a barra tem lugar para o avatar, a marca e os botoes, e mais nada:
+       o "Dados enviados para a nuvem" e' recado passageiro e ja' tem o aviso da v248. */
+    #statusSalvo{display:none}
+    .header-topo{gap:6px}
+    .header-acoes-topo{gap:2px}
+    .header-busca{width:34px;padding:0;justify-content:center}
+    .header-sino,.header-tema{width:32px;height:32px}
+    .hdr-av{width:26px;height:26px;flex:0 0 26px}
+    .sino-card{top:54px;right:8px;left:8px;width:auto}
+  }
+  /* ===== v250d - OS ITENS DA COMUNICACAO VISUAL DO MIV =====
+     MIV recebido em 05/08/2026. Ele nomeia TRES itens (paginas 16 a 18), e nao "enfeites":
+       1. Mr. Full            - o mascote, que o app ja tem (mr-full-joinha.png)
+       2. CIRCULOS EM EXPANSAO - pontos que crescem, tom sobre tom
+       3. FLUIDOS E LINHAS SINUOSAS (Oleos | Estradas) - a onda e o fio que a acompanha
+     Paleta oficial: #000000 . #6D6D6D . #FE7030 . #DBDAD9 (+ Petrobras #008457 / #F5C211).
+     Tom de voz: simpatico, leve, afetuoso.
+
+     🔴 Tudo aqui e' background-IMAGE, o que ja e' obrigatorio no projeto desde a v186 - e por
+     sorte gradiente e SVG em data: URL JA sao imagem, entao o modo escuro forcado do Chrome
+     nao apaga nenhum deles.
+     🔑 Os pontos e a onda ficam em variavel (--miv-ponto, --miv-onda) porque o app tem DOIS
+     temas: tom sobre tom no escuro e no claro sao cores diferentes, nao a mesma com opacidade. */
+  body{ --miv-ponto:rgba(0,0,0,.055); --miv-onda:.30; --miv-halo:.07; }
+  body.tema-escuro{ --miv-ponto:rgba(255,255,255,.042); --miv-onda:.42; --miv-halo:.10; }
+
+  /* --- CIRCULOS EM EXPANSAO no fundo do app, com um halo da marca no alto --- */
+  body{
+    background-image:
+      radial-gradient(circle at 16% -4%, rgba(var(--verde-rgb), var(--miv-halo)) 0, transparent 46%),
+      radial-gradient(var(--miv-ponto) 1.25px, transparent 1.35px);
+    background-size:auto, 21px 21px;
+    background-repeat:no-repeat, repeat;
+    background-attachment:fixed, fixed;
+  }
+  /* --- FLUIDOS E LINHAS SINUOSAS no rodape da pagina --- */
+  body::after{
+    content:"";position:fixed;left:0;right:0;bottom:0;height:170px;z-index:0;pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 160' preserveAspectRatio='none'%3E%3Cpath d='M0,96 C140,26 260,150 420,96 S700,18 860,80 S1080,150 1200,92' fill='none' stroke='%23FE7030' stroke-width='2.4'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:center bottom;background-size:140% 170px;
+    opacity:calc(var(--miv-onda) * .62);
+  }
+  #appPrincipal{position:relative;z-index:1}
+
+  /* --- v250f - BRILHO no lugar da onda, no cabecalho -------------------------------------
+     A onda atravessava a barra inteira e, no celular, o traco passava POR CIMA da lupa da
+     busca. 🔑 GRAFISMO DE FUNDO NAO PODE CRUZAR UM ALVO DE CLIQUE: quem olha fica sem saber
+     se aquilo e' enfeite ou parte do botao, e o desenho passa a atrapalhar em vez de dar vida.
+     👉 O brilho da a mesma presenca da marca sem traco nenhum - e por nao ter traco, funciona
+     em qualquer largura de tela. A onda continua no rodape da pagina, onde nao ha botao.
+     🔑 Sai de `--verde-rgb`, entao acompanha a empresa aberta (laranja / dourado). */
+  header::before{
+    content:"";position:absolute;right:0;top:0;bottom:0;width:38%;pointer-events:none;
+    background-image:radial-gradient(120% 180% at 100% 50%, rgba(var(--verde-rgb),.22), transparent 62%);
+    background-repeat:no-repeat;
+  }
+  /* o fio de baixo deixa de ser um risco cinza e vira o laranja da marca se apagando */
+  header{border-bottom:0}
+  header::after{
+    content:"";position:absolute;left:0;right:0;bottom:0;height:2px;pointer-events:none;
+    background-image:linear-gradient(90deg,
+      rgba(var(--verde-rgb),.95) 0%, rgba(var(--verde-rgb),.55) 34%, rgba(255,255,255,.10) 78%,
+      rgba(255,255,255,.10) 100%);
+  }
+  header .header-topo{position:relative;z-index:1}
+
+  /* --- a barra lateral ganha o mesmo tom sobre tom, e o grupo aberto ganha presenca --- */
+  .menu-lateral{
+    background-image:radial-gradient(var(--miv-ponto) 1.15px, transparent 1.25px);
+    background-size:19px 19px;
+  }
+  .menu-lateral .menu-grp.aberto > .menu-grp-tit{
+    color:var(--verde);
+    background-image:linear-gradient(90deg, rgba(var(--verde-rgb),.14), transparent 82%);
+    border-radius:7px;
+  }
+
+  /* --- CARTOES DE NUMERO: o halftone no canto e o fio da marca no topo --- */
+  .rel-kpi,.rpz-card,.resumo-dash .cartao-kpi{position:relative;overflow:hidden}
+  .rel-kpi::after,.rpz-card::after,.resumo-dash .cartao-kpi::after{
+    content:"";position:absolute;right:-14px;top:-14px;width:78px;height:78px;pointer-events:none;
+    background-image:radial-gradient(var(--miv-ponto) 1.5px, transparent 1.6px);
+    background-size:9px 9px;
+    -webkit-mask-image:radial-gradient(circle at 100% 0, #000 10%, transparent 72%);
+    mask-image:radial-gradient(circle at 100% 0, #000 10%, transparent 72%);
+  }
+  /* 🔑 box-shadow inset em vez de border-top: nao mexe em 1px de altura de nenhum cartao,
+     entao nenhuma tela existente muda de tamanho por causa disto. */
+  .rel-kpi,.rpz-card{box-shadow:inset 0 2px 0 -0.5px rgba(var(--verde-rgb),.42)}
+  .rel-kpi b,.rel-kpi strong{letter-spacing:-.2px}
+
+  /* --- TITULOS DE SECAO: a tarja do MIV embaixo da palavra --- */
+  .config h2{position:relative;padding-bottom:6px}
+  .config h2::after{
+    content:"";position:absolute;left:10px;bottom:0;width:38px;height:3px;border-radius:2px;
+    background-image:linear-gradient(90deg, var(--verde), rgba(var(--verde-rgb),.15));
+  }
+  .rel-h4,.cxi-sub{position:relative;padding-left:13px}
+  .rel-h4::before,.cxi-sub::before{
+    content:"";position:absolute;left:0;top:.38em;width:5px;height:5px;border-radius:60% 60% 60% 0;
+    transform:rotate(-45deg);
+    background-image:linear-gradient(var(--verde),var(--verde));
+  }
+
+  /* --- o cartao de conteudo ganha profundidade em vez de ser um retangulo chapado --- */
+  .config{box-shadow:0 10px 30px rgba(0,0,0,.16)}
+
+  @media (max-width:640px){
+    /* no celular a onda do rodape rouba leitura e o fundo fica pesado */
+    body::after{height:110px;background-size:200% 110px;opacity:calc(var(--miv-onda) * .45)}
+    header::before{width:52%}
   }
 .pux-grafia{display:inline-block;font-size:11px;padding:1px 7px;border-radius:10px;margin-left:6px;
   color:#8a5a00;background-color:#fff3d6;background-image:linear-gradient(#fff3d6,#fff3d6);border:1px solid #f0d9a0;cursor:help}
@@ -1941,9 +2207,21 @@
       <button class="btn-claro" id="btnNovidades" onclick="alternarNovidades()"><span class="mi">🎁</span><span class="mt">Novidades</span><span class="menu-badge" id="badgeNovidades" style="display:none">0</span></button>   <!-- v246 -->
     </div>
     <button class="btn-claro menu-ordenar" id="btnOrdenarMenus" style="display:none" onclick="alternarPersonalizarMenus()"><span class="mi" id="ordIcone">✏️</span><span class="mt" id="ordLabel">Personalizar menus</span></button>
-    <button class="btn-claro menu-tema" id="btnTema" onclick="alternarTema()"><span class="mi" id="temaIcone">🌙</span><span class="mt" id="temaLabel">Tema escuro</span></button>
     <button class="btn-dourado menu-sair" onclick="sair()"><span class="mi">🚪</span><span class="mt">Sair</span></button>
+    <!-- v250 - quem esta logado. O e-mail completo fica no title, para nao ocupar a barra. -->
+    <div class="usr-box" id="usrBox">
+      <span class="usr-txt"><b class="usr-nome" id="usrNome"></b><span class="usr-fn" id="usrFn"></span></span>
+    </div>
   </aside>
+
+  <!-- v250b - o card do sino: espiar sem sair da tela em que a pessoa esta -->
+  <div class="sino-card" id="sinoCard" style="display:none" role="dialog" aria-label="Notificações">
+    <div class="sino-cab"><b>🔔 Notificações</b><span class="sino-cnt" id="sinoCnt"></span></div>
+    <div class="sino-corpo" id="sinoCorpo"></div>
+    <div class="sino-pe">
+      <button class="btn-claro" onclick="abrirCaixaDoSino()">Abrir a Caixa de entrada</button>
+    </div>
+  </div>
 
   <!-- v247 - a busca por atalho -->
   <div class="bsc-fundo" id="bscFundo" onclick="if(event.target===this)fecharBusca()">
@@ -1987,16 +2265,20 @@
 
   <header>
     <div class="header-topo">
+      <span class="hdr-esq">
+        <span class="hdr-av" id="hdrAv">•</span>
+        <span class="usuario-logado" id="usuarioLogado"></span>
+        <span class="titulo-app"><span id="statusSalvo" aria-live="polite"></span></span>
+      </span>
       <h1>
         <img src="logo-full.png" alt="Postos Full" class="logo-app logo-postos">
         <img src="logo-transportadora.png?v=1" alt="Full Transportadora" class="logo-app logo-transp">
         <img src="logo-conveniencia.png?v=1" alt="Full Conveniência" class="logo-app logo-conv">
-        <span class="titulo-app"><span id="statusSalvo" aria-live="polite"></span></span>
-        <span class="usuario-logado" id="usuarioLogado"></span>
       </h1>
       <div class="header-acoes-topo">
-        <button class="header-busca" id="btnBuscaHeader" onclick="abrirBusca()" title="Buscar tela (Ctrl+K)" aria-label="Buscar tela">🔎</button>   <!-- v247 -->
-        <button class="header-sino" id="btnSinoHeader" onclick="alternarAvisos()" title="Notificações" aria-label="Notificações">
+        <button class="header-busca" id="btnBuscaHeader" onclick="abrirBusca()" title="Buscar tela (Ctrl+K)" aria-label="Buscar tela"><span class="hb-lupa">🔎</span><span class="hb-txt">Buscar</span></button>   <!-- v247, pilula na v250 -->
+        <button class="header-tema" id="btnTemaTopo" onclick="alternarTema()" title="Trocar entre tema claro e escuro" aria-label="Trocar tema"><span id="temaIcone">🌙</span></button>   <!-- v250 -->
+        <button class="header-sino" id="btnSinoHeader" onclick="alternarSinoCard()" title="Notificações" aria-label="Notificações">
           🔔<span class="header-sino-badge" id="badgeSinoHeader" style="display:none">0</span>
         </button>
         <button class="menu-hamb" id="btnMenuHamb" onclick="alternarMenuLateral()" title="Abrir menu" aria-label="Abrir menu">☰</button>
@@ -3299,6 +3581,52 @@ function aplicarTema(tema, salvar=true){
   if (typeof render === "function") { try { render(); } catch(e){} }
 }
 
+/* ===================== v250 - QUEM ESTA LOGADO, NA TELA =====================
+   Ate aqui a barra de cima mostrava o e-mail cru ("tiago.z5@gmail.com") e a barra lateral
+   nao dizia nada sobre a pessoa. Desenho vindo do Concept Hub: sauda\u00e7\u00e3o em cima, e no pe da
+   barra o avatar com a inicial + nome + fun\u00e7\u00e3o.
+
+   🔑 As tres pe\u00e7as ja' existiam no app, cada uma no seu canto:
+     - `nomeUsuario`            (o nome amigavel, que chega no snapshot de `perfis`)
+     - `perfilDoUsuario(email)` (v187: qual perfil de acesso a pessoa segue)
+     - `nomePerfilAdm(id)`      (o nome que o Tiago deu aquele perfil)
+   👉 Nada de coletar nada novo: e' costura, nao dado.
+
+   🔴 E o nome CHEGA DEPOIS do login (vem do snapshot de `perfis`), entao isto e' chamado
+   em tres momentos: ao entrar, quando a lista de pessoas chega, e quando a permissao muda. */
+function pfNomeCompleto(){
+  return String(nomeUsuario || "").trim() || String(usuarioAtual || "");
+}
+function pfPrimeiroNome(){
+  const n = String(nomeUsuario || "").trim();
+  if (n) return n.split(/\s+/)[0];
+  const e = String(usuarioAtual || "").trim();
+  return e ? e.split("@")[0] : "";
+}
+/* A funcao da pessoa: admin ganha o rotulo proprio; quem nao tem perfil ve "Sem perfil",
+   que e' informacao de verdade (v221: sem perfil, sem menu) e nao um espaco vazio. */
+function pfFuncaoUsuario(){
+  if (typeof ehAdminAtual === "function" && ehAdminAtual()) return "Administrador";
+  const pid = perfilDoUsuario(usuarioAtual || "");
+  const nm = pid ? nomePerfilAdm(pid) : "";
+  return nm || "Sem perfil";
+}
+function atualizarUsuarioNaTela(){
+  try {
+    const prim = pfPrimeiroNome(), cheio = pfNomeCompleto();
+    const sd = document.getElementById("usuarioLogado");
+    if (sd) sd.innerHTML = prim ? ("Ol\u00e1, <b>" + escAttr(prim) + "</b>") : "";
+    /* v250c - um avatar SO' no app inteiro: o da barra de cima. O do pe da lateral saiu. */
+    const av = document.getElementById("hdrAv");
+    if (av) av.textContent = (prim || "?").charAt(0).toUpperCase();
+    const nm = document.getElementById("usrNome");
+    if (nm) nm.textContent = cheio;
+    const fn = document.getElementById("usrFn");
+    if (fn) fn.textContent = pfFuncaoUsuario();
+    const bx = document.getElementById("usrBox");
+    if (bx) bx.title = String(usuarioAtual || "");
+  } catch(e){}
+}
 function alternarTema(){
   const atual = document.body.classList.contains("tema-escuro") ? "escuro" : "claro";
   aplicarTema(atual === "escuro" ? "claro" : "escuro");
@@ -3339,8 +3667,8 @@ function aoMudarLogin(usuario){
   document.getElementById("telaLogin").style.display = logado ? "none" : "flex";
   document.getElementById("appPrincipal").style.display = logado ? "block" : "none";
   if (logado){
-    document.getElementById("usuarioLogado").textContent = usuario.email;
     usuarioAtual = usuario.email || "";
+    atualizarUsuarioNaTela();          // v250 - "Ola, Nome" + o bloco do pe da barra
     const ehAdmin = ADMINS.includes((usuario.email||"").toLowerCase());
     document.getElementById("btnUsuarios").style.display = ehAdmin ? "" : "none";
     iniciarSync();
@@ -4755,6 +5083,7 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v250", data:"05/08/2026", tit:"O app ganhou a cara da marca, e o sino parou de trocar a sua tela", itens:[{t:"n",h:"\u201cOlá, seu nome\u201d no lugar do e-mail",d:"A barra de cima mostrava o e-mail inteiro. Agora ela cumprimenta pelo primeiro nome — o mesmo que está no cadastro de Pessoas. O e-mail completo continua na Minha conta e aparece ao passar o mouse no seu nome, no pé da barra lateral."},{t:"n",h:"Seu nome e sua função no pé da barra lateral",d:"No canto de baixo da barra lateral entrou um círculo com a sua inicial, o seu nome e, logo abaixo, a sua função — o perfil de acesso que você segue. Com a barra fechada aparece só o círculo; passando o mouse, o nome e a função."},{t:"m",h:"A busca virou um botão que diz \u201cBuscar\u201d",d:"Era só uma lupinha, e quem não sabia do atalho não usava. Agora é um botão escrito Buscar, com a tecla Ctrl K ao lado. No celular ele volta a ser só a lupa, para caber."},{t:"m",h:"O tema claro/escuro subiu para a barra de cima",d:"Ele estava escondido no pé da barra lateral. Virou a luinha ao lado do sino, onde se acha. Saiu de baixo — é um botão só, não dois."},{t:"m",h:"O cabeçalho virou uma barra fina no alto da tela",d:"Era um bloco alto, com o logo grande e um cartão arredondado. Virou uma faixa fina colada no topo, atravessando a tela inteira: você à esquerda, a marca no meio, e a busca, o tema e o sino à direita. Os ícones perderam a bolinha em volta — só o círculo com a sua inicial continua preenchido. Sobra mais tela para o que interessa."},{t:"m",h:"O app ganhou a cara da marca",d:"Os elementos do nosso manual de identidade entraram na tela: o padrão de pontos que cresce (os \u201ccírculos em expansão\u201d), as linhas sinuosas que representam óleo e estrada, e o laranja como fio condutor entre as seções. Os quadrinhos de número ganharam um fio da marca no topo, e os títulos, a tarja laranja embaixo."},{t:"c",h:"O laranja do app agora é o laranja da marca",d:"O app usava um laranja um pouco mais escuro do que o do nosso manual de identidade. Foi acertado: agora a cor da tela é a mesma da fachada, da bandeira e dos copos."},{t:"c",h:"As três logomarcas voltaram a sair do mesmo tamanho",d:"A palavra FULL saía em três tamanhos diferentes ao trocar de empresa — a da Transportadora era a menor. A conta que ajusta cada logo usava proporções estimadas de olho; foram medidas nos arquivos, e agora as três saem iguais."},{t:"n",h:"O sino abre um cartão, em vez de trocar a sua tela",d:"Antes, clicar no sino fechava o que você estava vendo e abria a Caixa de entrada inteira. Agora ele abre um cartãozinho por cima, com os avisos mais urgentes resumidos. Clicou fora, ele some e você continua exatamente onde estava. Se quiser mesmo ir para a Caixa de entrada, tem um botão dentro dele."}]},
   {v:"v249", data:"04/08/2026", tit:"Cada aba diz quantos itens tem", itens:[{t:"n",h:"O número aparece na própria aba",d:"As abas de Relatórios e Financeiro que são lista — Aferições, Vendas pendentes, Tanques, Colaboradores, A Prazo, A Prazo sem faturar, Recebimentos, Pagamentos, Descontos, Despesas do mês e A Pagar — passaram a mostrar quantos itens têm, ao lado do nome. O número é o do período e do posto que estão escolhidos na tela, então ele bate com a lista que você vai ver."},{t:"n",h:"A Caixa de entrada e os Documentos têm a conta feita",d:"Na Caixa de entrada, uma linha diz quantos avisos estão pendentes, quantos venceram, quantos são de hoje e quantos vencem em sete dias. Nos Documentos, as visões Por unidade e Por empresa dizem quantos grupos existem. E em Comparar lojas cada bloco mostra quantos produtos entraram nele."},{t:"c",h:"O Financeiro não diz mais que não há dados antes de olhar",d:"Quem abrisse o Financeiro nos primeiros instantes via \u201cAinda não há dados deste relatório\u201d e ficava com esse aviso na tela até clicar em alguma coisa. Agora aparece o esqueleto cinza enquanto os dados vêm, e a aba onde ainda não se sabe o número simplesmente não mostra número nenhum."}]},
   {v:"v248", data:"04/08/2026", tit:"Telas vazias com desenho, esqueleto ao carregar, avisos coloridos e páginas", itens:[{t:"n",h:"A tela avisa que está carregando, em vez de dizer que não há nada",d:"A tabela de Lançamentos dizia \u201cNenhum registro\u201d enquanto os dados ainda estavam vindo da nuvem. Agora ela mostra linhas cinzas piscando, e um fio fino anda no alto da tela enquanto o app espera. Só depois, se realmente não houver nada, aparece o aviso."},{t:"n",h:"Avisos coloridos, no canto da tela",d:"Recado importante \u2014 ficar sem conexão, por exemplo \u2014 passou a aparecer numa caixinha no canto, com a cor do tipo: verde deu certo, vermelho deu erro, amarelo é atenção e azul é informação. Antes ele piscava no cabeçalho e sumia sem ninguém ver."},{t:"n",h:"Lançamentos em páginas de 50",d:"Com muitos registros a tabela agora vem em páginas, com Anterior e Próxima. As médias do rodapé continuam somando TODOS os registros filtrados, não só a página que está na tela \u2014 e o rodapé diz isso."},{t:"m",h:"Tela sem nada ficou com cara de tela, não de erro",d:"Onde não há dado, aparece um desenho, uma frase explicando e \u2014 quando existe uma ação óbvia \u2014 o botão dela. Em Documentos, por exemplo, o \u2795 Novo documento aparece ali mesmo."}]},
   {v:"v247", data:"04/08/2026", tit:"Busca por atalho e a tela de Novidades em três colunas", itens:[{t:"n",h:"Buscar tela pelo nome, com Ctrl+K",d:"Aperte Ctrl+K (ou toque na lupa \ud83d\udd0e do cabeçalho) em qualquer tela e digite o nome do que você procura: os menus, as abas de Relatórios e Financeiro e algumas ações aparecem na hora. Enter abre. Some assim o preço de ter os menus em grupos: chegar a um menu de outro grupo custava dois cliques, e agora não custa nenhum."},{t:"m",h:"Esta tela ficou em três colunas",d:"Cada versão passou a ter um título além do número, e o que ela trouxe aparece em três colunas \u2014 o que é novo, o que melhorou e o que foi consertado \u2014 em vez de uma lista só. A versão que está no ar leva o selo Versão atual."}]},
@@ -5399,6 +5728,7 @@ function iniciarSync(){
     if (pAdm && pAdm.classList.contains("aberto")) renderAbaAdm();
     // atualizar o nome do próprio usuário logado
     nomeUsuario = perfis[(usuarioAtual||"").toLowerCase()] || "";
+    atualizarUsuarioNaTela();          // v250 - o nome so' chega aqui, no snapshot de perfis
     const cn = document.getElementById("meuNome");
     if (cn && document.activeElement !== cn) cn.value = nomeUsuario;
     const cn2 = document.getElementById("contaNome");
@@ -6881,6 +7211,7 @@ function sincronizarAvisoSemPerfil(){
 }
 function aplicarVisibilidadeMenus(){
   instalarFerramentasPaineis();
+  if (typeof atualizarUsuarioNaTela === "function") atualizarUsuarioNaTela();   // v250 - a funcao muda com a permissao
   // v221 - liga/desliga a tela de espera de quem ainda nao tem perfil.
   // Enquanto os dados de acesso nao chegaram, nao mostrar a tela: senao ela pisca na cara de quem
   // TEM perfil. (Os menus, no meio-tempo, ficam escondidos - que e' o lado seguro do erro.)
@@ -11595,6 +11926,96 @@ function cancelarPreco(dist, comb){
 }
 
 /* ================== Notificações (avisos das agendas) ================== */
+/* ===================== v250b - O CARD DO SINO =====================
+   Ate aqui o sino chamava `alternarAvisos()`, que **troca a tela**: quem estava no meio de
+   um lançamento perdia o que estava vendo para dar uma olhada num aviso, e depois tinha de
+   voltar na mao.
+   🔑 ESPIAR NAO E' NAVEGAR. O sino agora abre um cartao POR CIMA do que ja esta aberto,
+   com os avisos resumidos e um botao para quem quiser mesmo ir para a Caixa de entrada.
+   Clicar fora fecha, e a pessoa continua exatamente onde estava.
+
+   🔴 Duas armadilhas conhecidas, resolvidas aqui:
+   1. O `alternarAvisos()` ALTERNA — chamado com o painel ja' aberto, ele FECHA. O botao do
+      card confere antes, como o `abrirMenuPorChave` da v247.
+   2. O Esc ja' tinha dois donos (a caixa Personalizar, v244, e a busca, v247). Agora sao
+      tres, e cada um so' age quando a SUA caixa esta aberta. */
+const SINO_TOPO = 6;                  // quantos avisos cabem no cartao antes do "e mais N"
+let sinoCardAberto = false;
+function sinoPendentes(){
+  try { return avisosVisiveis().filter(e => !avisoConcluido(e)); } catch(e){ return []; }
+}
+function sinoRotuloData(e){
+  const dd = diasAte(e.data), ddmm = fmtDataCurta(e.data).slice(0,5);
+  if (dd < 0)  return { cls:"vencido", rot:"VENCIDO " + ddmm };
+  if (dd === 0) return { cls:"hoje",    rot:"HOJE" };
+  if (dd === 1) return { cls:"perto",   rot:"AMANH\u00c3" };
+  if (dd <= 7)  return { cls:"perto",   rot:ddmm + " \u00b7 " + dd + " dias" };
+  return { cls:"", rot: fmtDataCurta(e.data) };
+}
+function renderSinoCard(){
+  const corpo = document.getElementById("sinoCorpo"), cnt = document.getElementById("sinoCnt");
+  if (!corpo) return;
+  const pend = sinoPendentes();
+  if (cnt) cnt.textContent = pend.length ? (pend.length + (pend.length === 1 ? " pendente" : " pendentes")) : "em dia";
+  if (!pend.length){
+    /* 🔴 SEM emoji por escape aqui: `\U` MAIUSCULO nao e' escape valido em JavaScript e
+       vaza na tela como "U0001f389" — foi o que a foto pegou. Emoji em string ou vira
+       PAR SUBSTITUTO (\ud83c\udf89) ou nao entra. Aqui nao precisa. */
+    corpo.innerHTML = '<div class="sino-vazio">Nenhum aviso pendente.</div>';
+    return;
+  }
+  let h = "";
+  pend.slice(0, SINO_TOPO).forEach(e => {
+    const d = sinoRotuloData(e);
+    h += '<div class="sino-it ' + d.cls + '">' +
+         '<span class="sino-q">' + escAttr(d.rot) + '</span>' +
+         '<span class="sino-t" title="' + escAttr(e.titulo || "") + '">' + escAttr(e.titulo || "") + '</span>' +
+         (e.origem ? '<span class="sino-o">' + escAttr(e.origem) + '</span>' : '') +
+         '</div>';
+  });
+  /* v241 - resumo que conta N e lista que mostra menos TEM de dizer isso */
+  if (pend.length > SINO_TOPO)
+    h += '<div class="sino-mais">e mais ' + (pend.length - SINO_TOPO) + ' na Caixa de entrada</div>';
+  corpo.innerHTML = h;
+}
+function _sinoCliqueFora(ev){
+  const c = document.getElementById("sinoCard"), b = document.getElementById("btnSinoHeader");
+  if (c && c.contains(ev.target)) return;
+  if (b && b.contains(ev.target)) return;
+  fecharSinoCard();
+}
+function abrirSinoCard(){
+  const c = document.getElementById("sinoCard");
+  if (!c) return;
+  renderSinoCard();
+  c.style.display = "flex";
+  sinoCardAberto = true;
+  const b = document.getElementById("btnSinoHeader");
+  if (b) b.classList.add("ativo");
+  /* o setTimeout evita que o proprio clique que abriu o cartao ja o feche */
+  setTimeout(() => document.addEventListener("click", _sinoCliqueFora), 0);
+}
+function fecharSinoCard(){
+  const c = document.getElementById("sinoCard");
+  if (c) c.style.display = "none";
+  sinoCardAberto = false;
+  document.removeEventListener("click", _sinoCliqueFora);
+  /* o sino so' continua aceso se a TELA de avisos estiver aberta */
+  const b = document.getElementById("btnSinoHeader");
+  const p = document.getElementById("painelAvisos");
+  if (b) b.classList.toggle("ativo", !!(p && p.classList.contains("aberto")));
+}
+function alternarSinoCard(){ sinoCardAberto ? fecharSinoCard() : abrirSinoCard(); }
+/* 🔴 `alternarAvisos()` ALTERNA: com o painel ja' aberto ele fecharia. Regra da v247. */
+function abrirCaixaDoSino(){
+  fecharSinoCard();
+  const p = document.getElementById("painelAvisos");
+  if (p && p.classList.contains("aberto")){ renderAvisos(); return; }
+  alternarAvisos();
+}
+document.addEventListener("keydown", ev => {
+  if (ev.key === "Escape" && sinoCardAberto) fecharSinoCard();
+});
 function alternarAvisos(){
   const aberto = abrirPainelExclusivo("painelAvisos");
   const b = document.getElementById("btnAvisos");
@@ -11650,6 +12071,7 @@ function chaveAviso(e){
 }
 function avisoConcluido(e){ return !!(avisosStatus && avisosStatus.concluidos && avisosStatus.concluidos[chaveAviso(e)]); }
 function atualizarBadgeAvisos(){
+  if (typeof sinoCardAberto !== "undefined" && sinoCardAberto) renderSinoCard();   // v250b
   const n = avisosVisiveis().filter(e => !avisoConcluido(e)).length;  // pendentes: vencidos + os que já entraram na janela de antecedência de cada evento
   const b = document.getElementById("badgeAvisos");
   if (b){ b.textContent = n; b.style.display = n ? "" : "none"; }
@@ -14383,7 +14805,7 @@ function desenharImagemComparativo(){
     const cv = document.getElementById("compCanvas");
     const W = cv.width, H = cv.height;
     const ctx = cv.getContext("2d");
-    const laranja = "#FF6401", grafite = "#1E1E1E";
+    const laranja = "#FE7030", grafite = "#1E1E1E";
     const fmt = (v,c=2) => v.toLocaleString("pt-BR",{minimumFractionDigits:c,maximumFractionDigits:c});
     const centro = W/2;
     function roundRect(c,x,y,w,h,rr){ c.beginPath(); c.moveTo(x+rr,y); c.arcTo(x+w,y,x+w,y+h,rr); c.arcTo(x+w,y+h,x,y+h,rr); c.arcTo(x,y+h,x,y,rr); c.arcTo(x,y,x+w,y,rr); c.closePath(); }
@@ -14391,7 +14813,7 @@ function desenharImagemComparativo(){
     // fundo + identidade
     ctx.fillStyle = grafite; ctx.fillRect(0,0,W,H);
     ctx.fillStyle = laranja; ctx.beginPath(); ctx.moveTo(0,H); ctx.lineTo(W,H); ctx.lineTo(W,H-280); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = "rgba(255,100,1,0.13)";
+    ctx.fillStyle = "rgba(254,112,48,0.13)";
     for(let i=0;i<7;i++) for(let j=0;j<3;j++){ ctx.beginPath(); ctx.arc(90+i*90, 90+j*90, 7, 0, 7); ctx.fill(); }
 
     function rodape(){
@@ -14446,7 +14868,7 @@ function desenharImagemComparativo(){
       const rowH = Math.max(70, Math.min(120, disponivel / ordenadas.length));
       ordenadas.forEach((d,i) => {
         const ehMelhor = (d === melhor);
-        ctx.fillStyle = ehMelhor ? "rgba(255,100,1,0.22)" : "#2A2A2A";
+        ctx.fillStyle = ehMelhor ? "rgba(254,112,48,0.22)" : "#2A2A2A";
         roundRect(ctx, bx, y, bw, rowH-16, 18); ctx.fill();
         const meio = y + (rowH-16)/2 + 14;
         ctx.textAlign = "left"; ctx.fillStyle = "#fff"; ctx.font = "600 40px Poppins, Arial, sans-serif";
@@ -14564,7 +14986,7 @@ function desenharImagemSimulacao(){
     const cv = document.getElementById("simCanvas");
     const W = cv.width, H = cv.height;
     const ctx = cv.getContext("2d");
-    const laranja = "#FF6401", grafite = "#1E1E1E";
+    const laranja = "#FE7030", grafite = "#1E1E1E";
 
     // Fundo grafite
     ctx.fillStyle = grafite; ctx.fillRect(0, 0, W, H);
@@ -14572,7 +14994,7 @@ function desenharImagemSimulacao(){
     ctx.fillStyle = laranja;
     ctx.beginPath(); ctx.moveTo(0, H); ctx.lineTo(W, H); ctx.lineTo(W, H-360); ctx.closePath(); ctx.fill();
     // Padrão de pontos no topo
-    ctx.fillStyle = "rgba(255,100,1,0.13)";
+    ctx.fillStyle = "rgba(254,112,48,0.13)";
     for (let i=0;i<7;i++) for (let j=0;j<5;j++){ ctx.beginPath(); ctx.arc(90+i*90, 90+j*90, 7, 0, 7); ctx.fill(); }
 
     const fmt = (v, c=2) => v.toLocaleString("pt-BR",{minimumFractionDigits:c,maximumFractionDigits:c});
@@ -14868,10 +15290,10 @@ function graficoSVG(pontos, campo, inverterCor, tipo){
     s += `<text x="${mL-8}" y="${y+4}" text-anchor="end" font-size="11" fill="${cEixo}">${rotuloEixo(v)}</text>`;
   }
   const caminho = pontos.map((p,i)=>`${i?"L":"M"}${X(i)},${Y(p[campo])}`).join(" ");
-  s += `<path d="${caminho}" fill="none" stroke="#FF6401" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`;
+  s += `<path d="${caminho}" fill="none" stroke="#FE7030" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`;
   pontos.forEach((p,i)=>{
     const x = X(i), y = Y(p[campo]);
-    s += `<circle cx="${x}" cy="${y}" r="5" fill="#FF6401" stroke="${cAro}" stroke-width="2"/>`;
+    s += `<circle cx="${x}" cy="${y}" r="5" fill="#FE7030" stroke="${cAro}" stroke-width="2"/>`;
     s += `<text x="${x}" y="${y-12}" text-anchor="middle" font-size="11" font-weight="600" fill="${cPonto}">${rotuloPonto(p[campo])}</text>`;
     const [a,m,d] = p.data.split("-");
     s += `<text x="${x}" y="${H-mB+18}" text-anchor="middle" font-size="11" fill="${cEixo}">${d}/${m}</text>`;
@@ -15863,7 +16285,7 @@ function pedirNomeArquivo(padrao){
 // Cabeçalho de marca reutilizável no PDF de imagem
 function cabecalhoPDF(doc, subtitulo){
   doc.setFillColor(30,30,30); doc.rect(0,0,210,22,"F");
-  doc.setFillColor(255,100,1); doc.rect(0,22,210,1.4,"F");
+  doc.setFillColor(254,112,48); doc.rect(0,22,210,1.4,"F");
   doc.setTextColor(255,255,255); doc.setFont("helvetica","bold"); doc.setFontSize(14);
   const TITULO_PDF = { postos:"POSTOS FULL", transportadora:"FULL TRANSPORTADORA", conveniencia:"FULL CONVENIÊNCIA" };
   doc.text((typeof empresa !== "undefined" && TITULO_PDF[empresa]) ? TITULO_PDF[empresa] : TITULO_PDF.postos, 12, 10);
@@ -15994,7 +16416,7 @@ async function imprimirPainel(info, nomeArquivo){
   idoc.write(
     '<html><head><title>' + nomeArquivo + '</title>' +
     '<style>@page{margin:10mm} body{margin:0;font-family:Arial,sans-serif}' +
-    '.cab{background:#1E1E1E;color:#fff;padding:10px 14px;border-bottom:3px solid #FF6401;margin-bottom:6px}' +
+    '.cab{background:#1E1E1E;color:#fff;padding:10px 14px;border-bottom:3px solid #FE7030;margin-bottom:6px}' +
     '.cab b{font-size:15px} .cab span{font-size:11px;color:#ddd;margin-left:8px}' +
     '.pg{page-break-after:always} .pg:last-child{page-break-after:auto}' +
     'img{width:100%;display:block}</style></head><body>' +
@@ -16057,7 +16479,7 @@ async function exportarPDFDashboardVetorial(info, nomeArquivo){
     const primeiroSvg = cards[0] && cards[0].querySelector("svg");
     const alturaPrimeiro = primeiroSvg ? (6 + 11 + alturaGrafico(primeiroSvg) + 6) : 0;
     if (y + 11 + alturaPrimeiro > limiteY) novaPagina(false);
-    doc.setFont("helvetica","bold"); doc.setFontSize(13); doc.setTextColor(255,100,1);
+    doc.setFont("helvetica","bold"); doc.setFontSize(13); doc.setTextColor(254,112,48);
     doc.text(comb, margL, y + 5); y += 11;
 
     for (const card of cards){
@@ -16207,7 +16629,7 @@ async function exportarPDFTexto(info, nome){
       if (/^H[1-4]$/.test(tag)){
         const sz = tag === "H2" ? 13 : tag === "H3" ? 11.5 : 10.5;
         y += 2; garante(sz * 0.5 + 2);
-        escreve(limpar(node.textContent), { size: sz, bold: true, cor: tag === "H2" ? [255,100,1] : [30,30,30], gap: 2.4 });
+        escreve(limpar(node.textContent), { size: sz, bold: true, cor: tag === "H2" ? [254,112,48] : [30,30,30], gap: 2.4 });
         continue;
       }
       if (tag === "P"){ escreve(limpar(node.textContent), { size: 8.5, cor: [120,120,120], gap: 1.8 }); continue; }
@@ -16275,7 +16697,7 @@ function exportarPDFTabela(nomeArquivo){
   // Cabeçalho na identidade da marca
   doc.setFillColor(30, 30, 30);
   doc.rect(0, 0, 297, 24, "F");
-  doc.setFillColor(255, 100, 1);
+  doc.setFillColor(254, 112, 48);
   doc.rect(0, 24, 297, 1.6, "F");
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
