@@ -1587,6 +1587,14 @@
   .doc-busca{flex:1;min-width:190px;padding:9px 11px;border:1px solid var(--borda);border-radius:10px;background:var(--superficie-2);color:var(--txt);font-size:.88rem;box-sizing:border-box}
   .doc-chip{border:1px solid var(--borda);background:var(--superficie);border-radius:999px;padding:6px 12px;font-size:.78rem;font-weight:600;color:var(--cinza);cursor:pointer}
   .doc-chip.ativo{border-color:#FF6401;color:#FF6401;background:rgba(255,100,1,.08)}
+  /* v249 - a etiqueta do contador. background-IMAGE, nunca background-color: o modo
+     escuro forcado do Chrome apaga a segunda (armadilha da v186). */
+  .cnt-eti{display:inline-block;margin-left:6px;padding:0 7px;border-radius:999px;font-size:.70rem;font-weight:700;line-height:1.7;vertical-align:1px;color:var(--cinza);background-image:linear-gradient(rgba(0,0,0,.07),rgba(0,0,0,.07))}
+  .doc-chip.ativo .cnt-eti{color:#FF6401;background-image:linear-gradient(rgba(255,100,1,.16),rgba(255,100,1,.16))}
+  .cnt-linha{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 10px}
+  .cnt-fil{display:inline-flex;align-items:center;border:1px solid var(--borda);border-radius:999px;padding:4px 10px;font-size:.78rem;font-weight:600;color:var(--cinza)}
+  .cnt-fil.cnt-mau{border-color:#c0392b;color:#c0392b}
+  .cnt-fil.cnt-mau .cnt-eti{color:#c0392b;background-image:linear-gradient(rgba(192,57,43,.14),rgba(192,57,43,.14))}
   .doc-vazio{font-size:.82rem;color:var(--cinza);margin:10px 0}
   .adm-abas{margin:0 0 12px}
   .adm-pag{display:block}
@@ -2918,6 +2926,10 @@ let dpsMesSel = "";                              // v200 - mes do Resultado do m
 let ordemCardsDash = {}, ordCardsAberto = false; // v200 - ordem dos cards do Dashboard
 let metaCaixa = {}, mcMsg = "";                  // v213 - config/metaCaixa (mcMsg sobrevive ao redesenho)
 let despesasAno = {}, dspAnoSel = "", dspPostoSel = "todos", dspComRet = true;  // v185
+/* v249 - COLECAO VAZIA E COLECAO QUE AINDA NAO CHEGOU SAO A MESMA COISA no relPetros:
+   as duas sao {}. Enquanto isso for verdade, contar aba e chutar. Este sinal separa as
+   duas, e e a razao de contagemAba() poder devolver null com honestidade. */
+let vistoRelPetros = false;
 let relPetros = {}, rpzAba = "mapa", rpzUnidSel = "teresina", rpzPerSel = "";  // v191
 let ordemAbasRel = {}, abaRelAtual = "", ordAbasAberto = false;  // v192
 let nomesAbasRel = {}, renAbasAberto = false;                     // v207 - nomes escolhidos pelo Tiago
@@ -4743,6 +4755,7 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v249", data:"04/08/2026", tit:"Cada aba diz quantos itens tem", itens:[{t:"n",h:"O número aparece na própria aba",d:"As abas de Relatórios e Financeiro que são lista — Aferições, Vendas pendentes, Tanques, Colaboradores, A Prazo, A Prazo sem faturar, Recebimentos, Pagamentos, Descontos, Despesas do mês e A Pagar — passaram a mostrar quantos itens têm, ao lado do nome. O número é o do período e do posto que estão escolhidos na tela, então ele bate com a lista que você vai ver."},{t:"n",h:"A Caixa de entrada e os Documentos têm a conta feita",d:"Na Caixa de entrada, uma linha diz quantos avisos estão pendentes, quantos venceram, quantos são de hoje e quantos vencem em sete dias. Nos Documentos, as visões Por unidade e Por empresa dizem quantos grupos existem. E em Comparar lojas cada bloco mostra quantos produtos entraram nele."},{t:"c",h:"O Financeiro não diz mais que não há dados antes de olhar",d:"Quem abrisse o Financeiro nos primeiros instantes via \u201cAinda não há dados deste relatório\u201d e ficava com esse aviso na tela até clicar em alguma coisa. Agora aparece o esqueleto cinza enquanto os dados vêm, e a aba onde ainda não se sabe o número simplesmente não mostra número nenhum."}]},
   {v:"v248", data:"04/08/2026", tit:"Telas vazias com desenho, esqueleto ao carregar, avisos coloridos e páginas", itens:[{t:"n",h:"A tela avisa que está carregando, em vez de dizer que não há nada",d:"A tabela de Lançamentos dizia \u201cNenhum registro\u201d enquanto os dados ainda estavam vindo da nuvem. Agora ela mostra linhas cinzas piscando, e um fio fino anda no alto da tela enquanto o app espera. Só depois, se realmente não houver nada, aparece o aviso."},{t:"n",h:"Avisos coloridos, no canto da tela",d:"Recado importante \u2014 ficar sem conexão, por exemplo \u2014 passou a aparecer numa caixinha no canto, com a cor do tipo: verde deu certo, vermelho deu erro, amarelo é atenção e azul é informação. Antes ele piscava no cabeçalho e sumia sem ninguém ver."},{t:"n",h:"Lançamentos em páginas de 50",d:"Com muitos registros a tabela agora vem em páginas, com Anterior e Próxima. As médias do rodapé continuam somando TODOS os registros filtrados, não só a página que está na tela \u2014 e o rodapé diz isso."},{t:"m",h:"Tela sem nada ficou com cara de tela, não de erro",d:"Onde não há dado, aparece um desenho, uma frase explicando e \u2014 quando existe uma ação óbvia \u2014 o botão dela. Em Documentos, por exemplo, o \u2795 Novo documento aparece ali mesmo."}]},
   {v:"v247", data:"04/08/2026", tit:"Busca por atalho e a tela de Novidades em três colunas", itens:[{t:"n",h:"Buscar tela pelo nome, com Ctrl+K",d:"Aperte Ctrl+K (ou toque na lupa \ud83d\udd0e do cabeçalho) em qualquer tela e digite o nome do que você procura: os menus, as abas de Relatórios e Financeiro e algumas ações aparecem na hora. Enter abre. Some assim o preço de ter os menus em grupos: chegar a um menu de outro grupo custava dois cliques, e agora não custa nenhum."},{t:"m",h:"Esta tela ficou em três colunas",d:"Cada versão passou a ter um título além do número, e o que ela trouxe aparece em três colunas \u2014 o que é novo, o que melhorou e o que foi consertado \u2014 em vez de uma lista só. A versão que está no ar leva o selo Versão atual."}]},
   {v:"v246", data:"04/08/2026", tit:"O menu Novidades", itens:[{t:"n",h:"Este menu \ud83c\udf81 Novidades",d:"Toda versão nova passa a contar aqui o que mudou, da mais recente para a mais antiga. O número vermelho ao lado do menu diz quantas versões você ainda não leu, e some quando você abre esta tela."}]},
@@ -5529,10 +5542,15 @@ function iniciarSync(){
   // v191 - relatorios do Petros
   colRelPetros.onSnapshot(snap => {
     const m = {}; snap.forEach(d => m[d.id] = Object.assign({ id: d.id }, d.data())); relPetros = m;
+    vistoRelPetros = true;                                   // v249 - agora os numeros das abas sao sabidos
     const p = document.getElementById("painelRelPetros");
     if (p && p.classList.contains("aberto")) renderRelPetros();
     const pr = document.getElementById("painelRelPosto");   // v197 - o Resultado do mes tambem le o DRE
     if (pr && pr.classList.contains("aberto")) renderRelPosto();
+    const pf = document.getElementById("painelFinanceiro");  // v249 - faltava redesenhar estes dois
+    if (pf && pf.classList.contains("aberto")) renderFinanceiro();
+    const pdp = document.getElementById("painelDespesas");
+    if (pdp && pdp.classList.contains("aberto")) renderDespesas();
     atualizarDashConv();                                     // v198
     atualizarDashPostos();                                   // v200
   }, ()=>{});
@@ -7444,6 +7462,73 @@ function nomeAba(a, s){
   return (v && String(v).trim()) ? String(v) : nomeFabricaDaAba(a, s);
 }
 function grupoAba(k){ return String(k).split(":")[0]; }
+/* ===================== v249 - O NUMERO DE CADA ABA =====================
+   `contagemAba(k)` devolve NUMERO ou null. **null = "ainda nao sei", e a etiqueta
+   simplesmente nao aparece** — contador que chuta e' pior do que contador nenhum.
+
+   Tres coisas que ficaram claras ao escrever isto, e valem para quem mexer aqui depois:
+
+   1. O app NAO carrega estes documentos sob demanda: o colRelPetros.onSnapshot traz a
+      colecao INTEIRA para a memoria no login. Os numeros sempre estiveram ao alcance;
+      o que faltava era saber SE ja tinham chegado — dai o `vistoRelPetros`.
+   2. NEM TODA ABA E' LISTA. Resultado do mes, Caixa, Equipe, Mapa Anual, Ano mes a mes e
+      Despesas do ano sao quadros de indicador: "quantos itens" nao quer dizer nada nelas,
+      e um numero ali seria enfeite que confunde. Elas ficam de fora, de proposito.
+   3. O numero conta O QUE A ABA VAI MOSTRAR — na unidade que ja esta escolhida na tela e
+      no periodo que a aba abriria. Aba aberta, ele acompanha o filtro. E' a regra da v241
+      (resumo que conta N e lista que mostra menos tem de dizer isso) fechada na origem.
+
+   Zero sabido APARECE: "Afericoes 0" e' exatamente o que o Tiago precisa ver. O que nao
+   aparece e' o zero CHUTADO — quando nao existe documento nenhum, devolve null. */
+const ABA_CONTAVEL = {
+  "z:afer":"afer", "z:vpend":"vpend", "z:tanques":"tanques", "z:colab":"colab", "z:aprazo":"aprazo",
+  "f:aprazosf":"aprazosf", "f:recliq":"recliq", "f:pagliq":"pagliq", "f:descv":"descv",
+  "f:desp":"desp", "f:apagar":"apagar"
+};
+/* abas do painelRelPetros: uma linha do documento = um item da lista */
+function cntPetros(tipo){
+  const per = (rpzAba === tipo && rpzPerSel) ? rpzPerSel : (rpzPeriodos(tipo)[0] || "");
+  if (!per) return null;
+  const doc = rpzDoc(tipo, per);
+  if (!doc) return null;
+  return rpzLista(doc).length;
+}
+/* abas do painelFinanceiro: somam as unidades que o filtro de cima esta mostrando */
+function cntFin(tipo){
+  const per = (finAba === tipo && finPerSel) ? finPerSel : (finPeriodos(tipo)[0] || "");
+  if (!per) return null;
+  const ds = finDocs(tipo, per);
+  if (!ds.length) return null;
+  /* recliq e pagliq nao cabem crus no Firestore (1,1 MB e 1,75 MB): o documento guarda
+     AGREGADOS, e a contagem de titulos mora em dados.tot.q — nao em dados.length. */
+  if (tipo === "recliq" || tipo === "pagliq")
+    return finSoma(ds, x => x.dados && x.dados.tot && x.dados.tot.q);
+  return ds.reduce((a, x) => a + ((x.dados && x.dados.length) || 0), 0);
+}
+/* A Pagar / Fluxo e' FOTO DE AGORA: um documento por dia, para a rede inteira */
+function cntApagar(){
+  const dias = flxDias("apagarpend");
+  const dia = (finAba === "apagar" && finPerSel && dias.indexOf(finPerSel) >= 0) ? finPerSel : (dias[0] || "");
+  if (!dia) return null;
+  const ap = flxDados("apagarpend", dia);
+  if (!ap) return null;
+  return flxResumo(ap).total.q;
+}
+function contagemAba(k){
+  if (!vistoRelPetros) return null;          // a nuvem ainda nao respondeu: nao invente
+  const tipo = ABA_CONTAVEL[k];
+  if (!tipo) return null;                    // aba de indicador: nao ha lista para contar
+  try {
+    if (tipo === "apagar") return cntApagar();
+    return (k.charAt(0) === "f") ? cntFin(tipo) : cntPetros(tipo);
+  } catch(e){ return null; }                 // na duvida, sem etiqueta
+}
+/* A etiqueta so' existe quando o numero e' sabido. `null` nao desenha NADA — nem zero,
+   nem tracinho, nem bolinha: espaco vazio e' mais honesto do que numero inventado. */
+function cntEtiqueta(n){
+  if (typeof n !== "number" || !isFinite(n)) return "";
+  return '<span class="cnt-eti">' + fmtBR(n, 0) + '</span>';
+}
 function barraAbasRel(){
   abaRelValida();                       // v224 - pode trocar o menuRelAtivo, entao vem ANTES
   const abas = abasDoMenu(menuRelAtivo);
@@ -7453,7 +7538,7 @@ function barraAbasRel(){
     if (ant && g !== ant) h += '<span class="aba-sep"></span>';   // v207 - traco entre os grupos
     ant = g;
     h += '<button class="doc-chip' + (abaRelAtual === a.k ? ' ativo' : '') +
-      '" onclick="irParaAbaRel(\'' + a.k + '\')">' + nomeAba(a) + '</button>';
+      '" onclick="irParaAbaRel(\'' + a.k + '\')">' + nomeAba(a) + cntEtiqueta(contagemAba(a.k)) + '</button>';
   });
   return h;
 }
@@ -7751,6 +7836,13 @@ function renderRelPetros(){
   const unLinha = document.getElementById("rpzUnid");
   if (unLinha && unLinha.parentNode) unLinha.parentNode.style.display = (rpzAba === "tanques") ? "none" : "";
 
+  /* v249 - antes do primeiro retrato da nuvem a tela NAO afirma que nao ha dados (v248) */
+  if (!vistoRelPetros){
+    const pl0 = document.getElementById("rpzPerLinha");
+    if (pl0) pl0.style.display = "none";
+    box.innerHTML = esqueletoCaixa(5);
+    return;
+  }
   const pers = rpzPeriodos(rpzAba);
   const perLinha = document.getElementById("rpzPerLinha");
   if (!pers.length){
@@ -8615,6 +8707,13 @@ function renderFinanceiro(){
   const abasFin = abasRelDaEmpresa().filter(a => a.painel === "painelFinanceiro");
   if (abasFin.length && !abasFin.some(a => a.aba === finAba)){ finAba = abasFin[0].aba; finPerSel = ""; }
   if (finAba === "apagar"){ renderFinApagar(box); return; }   // v225
+  /* v249 - idem: "ainda nao ha dados" so' depois de a nuvem ter respondido */
+  if (!vistoRelPetros){
+    const pl1 = document.getElementById("finPerLinha");
+    if (pl1) pl1.style.display = "none";
+    box.innerHTML = esqueletoCaixa(5);
+    return;
+  }
   const pers = finPeriodos(finAba);
   const perLinha = document.getElementById("finPerLinha");
   if (!pers.length){
@@ -9383,7 +9482,7 @@ function blocoRelLojaComp(){
   if (relLojaCat && nomes.indexOf(relLojaCat) < 0) relLojaCat = "";
   let h = '<p class="nota-dash">Mesma categoria, lado a lado nas '+lojas.length+' lojas — '+rotuloMesRel(mes)+'.</p>';
   h += '<div class="evo-filtros"><div class="desc-campo"><label>Categoria</label><select id="relLojaCatSel" onchange="escolherCatComp(this.value)">' +
-       '<option value=""'+(relLojaCat?"":" selected")+'>Todas as categorias</option>' +
+       '<option value=""'+(relLojaCat?"":" selected")+'>Todas as categorias (' + nomes.length + ')</option>' +
        nomes.map(n => '<option value="'+escAttr(n)+'"'+(relLojaCat===n?" selected":"")+'>'+escAttr(n)+'</option>').join("") +
        '</select></div></div>';
   h += relLojaCat ? compUmaCategoria(linhas.find(l => l.nome === relLojaCat), lojas)
@@ -9581,7 +9680,7 @@ function blocoPrecoTop(mes){
   const dados = dadosPrecoLojas(mes);
   if (!dados.temAlgum) return prcAvisoSemDado(dados, mes);
   const fila = prcFilaDeAjuste(dados, "");
-  let h = '<h4 class="rel-h4">\u{1F4B2} Preço de tabela entre as lojas</h4>';
+  let h = '<h4 class="rel-h4">\u{1F4B2} Preço de tabela entre as lojas</h4>' + cntEtiqueta(fila.length);
   if (!fila.length){
     h += '<p class="nota-dash">Nenhum produto com preço abaixo da loja de melhor margem em '+rotuloMesRel(mes)+'. '
        + dados.itens.length + ' produtos comparáveis.</p>';
@@ -9759,7 +9858,7 @@ function blocoCustoSubiu(mes, cat){
   if (!lista.length) return "";
   const firmes = lista.filter(x => !x.suspeito), susp = lista.filter(x => x.suspeito);
   const mostrar = prcCstTudo ? lista : lista.slice(0, PRC_EXC_TOPO);
-  let h = '<h5 class="cmp-h5">\u{2B06}\u{FE0F} O custo de compra subiu — a margem caiu junto</h5>';
+  let h = '<h5 class="cmp-h5">\u{2B06}\u{FE0F} O custo de compra subiu — a margem caiu junto</h5>' + cntEtiqueta(lista.length);
   h += '<div class="prc-alerta">Estes produtos foram comprados mais caro na última nota, e o preço de venda '
      + 'continua o mesmo. <b>' + lista.length + (lista.length===1?' produto':' produtos') + '</b> nesta situação'
      + (cat ? ' nesta categoria' : ' nas três lojas') + '. Comparação entre as <b>duas últimas compras de verdade</b> '
@@ -9801,7 +9900,7 @@ function blocoExclusivos(dados, mes, cat){
   if (!lista.length) return "";
   const abaixo = lista.filter(x => x.gap > 0);
   const mostrar = prcExcTudo ? lista : lista.slice(0, PRC_EXC_TOPO);
-  let h = '<h5 class="cmp-h5">\u{1F3F7}\u{FE0F} Só existe em uma loja</h5>';
+  let h = '<h5 class="cmp-h5">\u{1F3F7}\u{FE0F} Só existe em uma loja</h5>' + cntEtiqueta(lista.length);
   h += '<div class="prc-alerta neutro">Produtos vendidos em <b>uma loja só</b> — não têm par para comparar. '
      + 'A régua aqui é a <b>margem média da própria categoria naquela loja</b>. '
      + '<b>' + lista.length + '</b> ' + (lista.length===1?'produto':'produtos') + (cat ? ' nesta categoria' : '')
@@ -11611,6 +11710,16 @@ function renderAvisos(){
   if (!pend.length){
     html += '<p class="nota-dash">🎉 Tudo em dia! Nenhum aviso pendente.</p>';
   } else {
+    /* v249 - a conta ja estava feita aqui em cima; so' faltava a tela dizer.
+       Os quatro aparecem SEMPRE, inclusive em zero: "Vencidos 0" e' a boa noticia. */
+    let cVenc = 0, cHoje = 0, cSete = 0;
+    pend.forEach(e => { const d = diasAte(e.data); if (d < 0) cVenc++; else if (d === 0) cHoje++; else if (d <= 7) cSete++; });
+    html += '<div class="cnt-linha">' +
+      '<span class="cnt-fil">Pendentes' + cntEtiqueta(pend.length) + '</span>' +
+      '<span class="cnt-fil' + (cVenc ? ' cnt-mau' : '') + '">Vencidos' + cntEtiqueta(cVenc) + '</span>' +
+      '<span class="cnt-fil">Hoje' + cntEtiqueta(cHoje) + '</span>' +
+      '<span class="cnt-fil">Próximos 7 dias' + cntEtiqueta(cSete) + '</span>' +
+      '</div>';
     html += '<div class="avi-lista">';
     pend.forEach((e,i) => {
       const dd = diasAte(e.data);
@@ -12190,14 +12299,19 @@ function renderVencimentos(){
     '<div class="venc-tile verde"><b>'+emdia.length+'</b><span>Em dia</span></div>' +
     '<div class="venc-tile cinza"><b>'+semData.length+'</b><span>Sem vencimento</span></div>' +
     '</div>';
+  /* v249 - os dois filtros de VISAO mostram quantos GRUPOS a pessoa vai encontrar la dentro
+     (repetir o total dos outros dois chips seria numero certo que nao informa nada). */
+  const gUni = {}, gEmp = {};
+  itens.forEach(i => { gUni[i.origem || "Outros"] = 1; gEmp[i.empresa || "Sem empresa"] = 1; });
+  const nDocUni = Object.keys(gUni).length, nDocEmp = Object.keys(gEmp).length;
   // --- busca + visoes ---
   const chip = (v, rot) => '<button class="doc-chip'+(docVista===v?' ativo':'')+'" onclick="mudarVistaDocs(\''+v+'\')">'+rot+'</button>';
   html += '<div class="doc-tools">' +
     '<input class="doc-busca" type="search" id="docBuscaInput" placeholder="🔎 Buscar por nome, empresa, CNPJ, tipo ou número..." value="'+escAttr(docBusca)+'" oninput="buscarDocs(this.value)">' +
-    chip('tudo', '📄 Tudo ('+itens.length+')') +
-    chip('venc', '⏰ Com vencimento ('+comData.length+')') +
-    chip('uni', '📂 Por unidade') +
-    chip('emp', '🏢 Por empresa') +
+    chip('tudo', '📄 Tudo' + cntEtiqueta(itens.length)) +
+    chip('venc', '⏰ Com vencimento' + cntEtiqueta(comData.length)) +
+    chip('uni', '📂 Por unidade' + cntEtiqueta(nDocUni)) +
+    chip('emp', '🏢 Por empresa' + cntEtiqueta(nDocEmp)) +
     '</div>';
   const ordenaData = arr => arr.slice().sort((a,b)=> a.vencimento<b.vencimento?-1:a.vencimento>b.vencimento?1:0);
   const ordenaNome = arr => arr.slice().sort((a,b)=> String(a.nome||'').localeCompare(String(b.nome||''), 'pt-BR'));
