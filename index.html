@@ -2212,6 +2212,28 @@
   @media (max-width:900px){ .frc-txt{display:none} .frc-selo{width:34px;padding:0;justify-content:center;gap:0} }
   @media (max-width:560px){ .frc-selo{width:30px;height:32px} .frc-card{top:54px;right:8px;left:8px;width:auto} }
 
+  /* ===================== v253 - A BULA DE CADA NUMERO =====================
+     Um "i" discreto colado no rotulo. Ele NAO pode competir com o numero: fica
+     em cinza, pequeno, e so' acende quando a bula dele esta aberta. */
+  .bul-i{display:inline-flex;align-items:center;justify-content:center;
+    width:14px;height:14px;margin-left:5px;padding:0;vertical-align:middle;
+    border:1px solid var(--borda);border-radius:999px;cursor:pointer;
+    font-family:inherit;font-size:.58rem;font-weight:700;font-style:italic;line-height:1;
+    color:var(--cinza);background:none;background-image:none;
+    text-transform:none;letter-spacing:0;opacity:.72;flex:0 0 auto}
+  .bul-i:hover{opacity:1;color:var(--txt);border-color:var(--cinza)}
+  .bul-i.ativo{opacity:1;color:#fff;border-color:var(--verde);
+    background-image:linear-gradient(var(--verde),var(--verde))}
+  /* o cartao: fica onde o dedo clicou, nao no meio da tela */
+  .bul-card{position:fixed;z-index:120;width:min(330px, calc(100vw - 16px));
+    padding:11px 13px 12px;
+    background:var(--superficie);background-image:linear-gradient(var(--superficie),var(--superficie));
+    border:1px solid var(--borda);border-radius:10px;box-shadow:0 14px 38px rgba(0,0,0,.45)}
+  .bul-tit{display:block;font-size:.8rem;color:var(--txt);margin-bottom:4px}
+  .bul-txt{margin:0;font-size:.78rem;line-height:1.5;color:var(--cinza);
+    text-transform:none;letter-spacing:0;font-weight:400}
+  @media print{ .bul-i,.bul-card{display:none !important} }
+
 </style>
 </head>
 <body>
@@ -2312,6 +2334,12 @@
     <div class="sino-pe">
       <button class="btn-claro" onclick="abrirCaixaDoSino()">Abrir a Caixa de entrada</button>
     </div>
+  </div>
+
+  <!-- v253 - o cartao da bula: o que este numero e', e o que fica de FORA dele. -->
+  <div class="bul-card" id="bulCard" style="display:none" role="dialog" aria-label="Como este n&uacute;mero &eacute; calculado">
+    <b class="bul-tit" id="bulTit"></b>
+    <p class="bul-txt" id="bulTxt"></p>
   </div>
 
   <!-- v252 - o cartao do frescor. Espiar nao e' navegar: ele abre por cima, sem trocar a tela.
@@ -5346,6 +5374,9 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v253", data:"05/08/2026", tit:"Cada n\u00famero explica o que ele \u00e9", itens:[
+    {t:"n",h:"Um \u201ci\u201d ao lado dos n\u00fameros de dinheiro",d:"No Resultado do m\u00eas (no Painel e na aba), nas Vendas do dia, em Comparar lojas e nos Recebimentos, cada n\u00famero ganhou um \u201ci\u201d pequeno ao lado do nome. Clicando, aparece em duas ou tr\u00eas frases o que aquele n\u00famero \u00e9 e, principalmente, o que fica de FORA dele \u2014 por exemplo, que o lucro bruto n\u00e3o inclui as outras receitas, que o \u201c% sobre vendas\u201d n\u00e3o as conta no divisor, que Despesas \u00e9 pela compet\u00eancia e n\u00e3o pela data do pagamento, e que a margem de Comparar lojas \u00e9 outra conta, diferente da margem do Resultado do m\u00eas."}
+  ]},
   {v:"v252", data:"05/08/2026", tit:"O app diz h\u00e1 quanto tempo os n\u00fameros chegaram", itens:[
     {t:"n",h:"Uma bolinha na barra de cima mostra se os dados est\u00e3o do dia",d:"Ao lado do Buscar apareceu uma pastilha com uma bolinha colorida e a hora. Verde quer dizer que a sincroniza\u00e7\u00e3o de hoje rodou inteira; amarelo, que ela rodou pela metade ou ainda n\u00e3o rodou; vermelho, que o dia passou e ela n\u00e3o rodou. Clicando, abre um cart\u00e3o dizendo quando os n\u00fameros chegaram, quantos passos conclu\u00edram e, quando falta algum, qual foi e por qu\u00ea. Aos domingos a sincroniza\u00e7\u00e3o n\u00e3o roda, e a bolinha fica cinza explicando isso."}
   ]},
@@ -8965,10 +8996,10 @@ function finBlocoRec(ds){
   const acha = re => nat.filter(r => re.test(r[0])).reduce((s, r) => s + r[1], 0);
   const prazo = acha(/prazo/i), cartao = acha(/crédito|credito|débito|debito/i);
   let h = '<div class="rpz-cards">';
-  h += finCard("Recebido no período", "R$ " + rpzDin0(totV), "rpz-pos");
+  h += finCard("Recebido no período" + bul('recebido'), "R$ " + rpzDin0(totV), "rpz-pos");
   h += finCard("Títulos liquidados", rpzDin0(totQ));
-  h += finCard("Venda a prazo", "R$ " + rpzDin0(prazo), "", totV ? (prazo / totV * 100).toFixed(1).replace(".", ",") + "% do total" : "");
-  h += finCard("Cartões", "R$ " + rpzDin0(cartao), "", "crédito + débito");
+  h += finCard("Venda a prazo" + bul('vendaPrazo'), "R$ " + rpzDin0(prazo), "", totV ? (prazo / totV * 100).toFixed(1).replace(".", ",") + "% do total" : "");
+  h += finCard("Cartões" + bul('cartoes'), "R$ " + rpzDin0(cartao), "", "crédito + débito");
   h += '</div>';
   const porPosto = ds.map(x => [x.nome, (x.dados.tot ? Number(x.dados.tot.v) || 0 : 0), (x.dados.tot ? Number(x.dados.tot.q) || 0 : 0)]).sort((a,b) => b[1]-a[1]);
   if (porPosto.length > 1) h += finBarras(porPosto, "Por " + finPalUnid(), null, i => i[2] + " títulos");
@@ -9888,17 +9919,17 @@ function blocoResultadoPosto(d, uni){
   const despMostra = aj.mexeu ? aj.desp : (+r.desp||0);
   const llMostra   = aj.mexeu ? aj.ll   : (+r.ll||0);
   let h = '<div class="rel-kpis">' +
-    (semBico ? '' : '<div class="rel-kpi"><span>Volume vendido</span><b>'+(r.vol == null ? "\u2014" : fmtL(r.vol))+'</b></div>') +
-    '<div class="rel-kpi"><span>Vendas</span><b>'+fmtR$0(vendas)+'</b></div>' +
-    '<div class="rel-kpi"><span>Custo</span><b>'+fmtR$0(custo)+'</b></div>' +
-    '<div class="rel-kpi"><span>Lucro bruto</span><b>'+fmtR$0(lb)+'</b></div>' +
+    (semBico ? '' : '<div class="rel-kpi"><span>Volume vendido'+bul('volume')+'</span><b>'+(r.vol == null ? "\u2014" : fmtL(r.vol))+'</b></div>') +
+    '<div class="rel-kpi"><span>Vendas'+bul('vendas')+'</span><b>'+fmtR$0(vendas)+'</b></div>' +
+    '<div class="rel-kpi"><span>Custo'+bul('custo')+'</span><b>'+fmtR$0(custo)+'</b></div>' +
+    '<div class="rel-kpi"><span>Lucro bruto'+bul('lucroBruto')+'</span><b>'+fmtR$0(lb)+'</b></div>' +
     /* v233 - a loja nao tem "outras receitas": um quadrinho fixo em R$ 0 e' so' ruido.
        Some quando o valor e' zero, nas duas empresas. A linha continua na tabela abaixo,
        para o demonstrativo ficar completo. */
-    ((+r.outrasRec||0) ? '<div class="rel-kpi"><span>Outras receitas</span><b>'+fmtR$0(r.outrasRec)+'</b></div>' : '') +
-    '<div class="rel-kpi"><span>Despesas'+(aj.mexeu?' (ajustada)':'')+'</span><b>'+fmtR$0(despMostra)+'</b></div>' +
-    '<div class="rel-kpi '+(perdeu?'ruim':'')+'"><span>Variação de estoque</span><b>'+fmtR$0(r.varEst)+'</b></div>' +
-    '<div class="rel-kpi '+(llMostra>=0?'bom':'ruim')+'"><span>Lucro líquido'+(aj.mexeu?' (ajustado)':'')+'</span><b>'+fmtR$0(llMostra)+'</b></div>' +
+    ((+r.outrasRec||0) ? '<div class="rel-kpi"><span>Outras receitas'+bul('outrasReceitas')+'</span><b>'+fmtR$0(r.outrasRec)+'</b></div>' : '') +
+    '<div class="rel-kpi"><span>Despesas'+(aj.mexeu?' (ajustada)':'')+bul('despesas')+'</span><b>'+fmtR$0(despMostra)+'</b></div>' +
+    '<div class="rel-kpi '+(perdeu?'ruim':'')+'"><span>Variação de estoque'+bul('varEstoque')+'</span><b>'+fmtR$0(r.varEst)+'</b></div>' +
+    '<div class="rel-kpi '+(llMostra>=0?'bom':'ruim')+'"><span>Lucro líquido'+(aj.mexeu?' (ajustado)':'')+bul('lucroLiquido')+'</span><b>'+fmtR$0(llMostra)+'</b></div>' +
     '</div>';
   if (aj.mexeu) h += '<p class="nota-dash">A tabela abaixo mostra os valores <b>como estão lançados no Petros</b>. O ajuste aparece nos quadros acima e no quadro do fim.</p>';
   // v229 - sem os litros do mes (o DRE nao os traz), a coluna "por litro" vira travessao
@@ -10311,7 +10342,7 @@ function blocoPrecoTop(mes){
      + '</div>';
   h += '<div class="rel-scroll"><table class="rel-tab prc-tab prc-fila"><thead><tr>' +
        '<th>Produto</th><th>Loja</th><th class="n">Preço hoje</th><th class="n">Sugerido</th>' +
-       '<th class="n">Margem de reposição</th><th class="n">Ganho no mês</th>' +
+       '<th class="n">Margem de reposição'+bul('margemReposicao')+'</th><th class="n">Ganho no mês</th>' +
        '</tr></thead><tbody>';
   const mostrar = prcTudo ? fila : fila.slice(0, PRC_TOPO);
   mostrar.forEach(f => {
@@ -10366,7 +10397,7 @@ function blocoPrecoCategoria(mes, cat){
   if (!dados.temAlgum) return prcAvisoSemDado(dados, mes);
   const lojas = dados.lojas;
   const doCat = dados.itens.filter(it => it.cat === cat).sort((a,b) => b.ganho - a.ganho);
-  let h = '<h5 class="cmp-h5">\u{1F4B2} Preço de tabela e margem de reposição</h5>';
+  let h = '<h5 class="cmp-h5">\u{1F4B2} Preço de tabela e margem de reposição'+bul('margemReposicao')+'</h5>';
   if (!doCat.length)
     return h + '<p class="nota-dash">Nenhum produto desta categoria vendido em duas ou mais lojas com custo de compra lançado.</p>';
   h += '<div class="rel-scroll"><table class="rel-tab prc-tab prc-cat-tab"><thead><tr><th>Produto</th>' +
@@ -12451,6 +12482,96 @@ function fecharFrcCard(){
 }
 function alternarFrcCard(){ frcCardAberto ? fecharFrcCard() : abrirFrcCard(); }
 
+/* ===================== v253 - A BULA DE CADA NUMERO =====================
+   O que este numero e', e o que fica de FORA dele - em duas ou tres frases.
+   \u1f534 O TEXTO E' A FONTE, nao a copia de outra lista: por isso ele pode morar aqui.
+   O que NAO pode e' casar a bula pelo TEXTO do rotulo - "Lucro bruto" no posto e
+   "Lucro bruto" na loja sao o mesmo rotulo e podem virar contas diferentes (v232).
+   Por isso a chave vai escrita no lugar da chamada, uma a uma.
+   ------------------------------------------------------------------------ */
+const BULAS = {
+  volume: { t:"Volume vendido",
+    d:"Quantos litros os postos venderam no per\u00edodo. Vem dos pain\u00e9is do Petros. Quando os litros do m\u00eas ainda n\u00e3o foram coletados, aparece um travess\u00e3o em vez de zero \u2014 zero seria mentira." },
+  vendas: { t:"Vendas",
+    d:"Tudo o que entrou de venda no per\u00edodo: combust\u00edvel mais os produtos da loja, antes de tirar qualquer custo. As outras receitas (bonifica\u00e7\u00e3o, aluguel, juros) n\u00e3o entram aqui." },
+  custo: { t:"Custo",
+    d:"Quanto custou o que foi vendido, pelo custo M\u00c9DIO do estoque \u2014 n\u00e3o pelo pre\u00e7o da \u00faltima compra. Para decidir pre\u00e7o de venda, quem serve \u00e9 a margem de reposi\u00e7\u00e3o, na tela Comparar lojas." },
+  lucroBruto: { t:"Lucro bruto",
+    d:"A venda menos o custo do que foi vendido. As outras receitas (bonifica\u00e7\u00e3o, aluguel, juros) N\u00c3O entram aqui: elas s\u00f3 aparecem no lucro l\u00edquido. Isso mudou na vers\u00e3o 233 do app \u2014 antes elas entravam, ent\u00e3o um papel mais antigo mostra um lucro bruto maior, e nenhum dos dois est\u00e1 errado." },
+  outrasReceitas: { t:"Outras receitas",
+    d:"O que entrou fora da venda: bonifica\u00e7\u00e3o da distribuidora, aluguel, juros. Entra no lucro l\u00edquido, nunca no lucro bruto. Quando \u00e9 zero, o quadro nem aparece." },
+  despesas: { t:"Despesas",
+    d:"O que o posto gastou no per\u00edodo, pelo Demonstrativo de Resultado, na COMPET\u00caNCIA \u2014 o m\u00eas a que a despesa se refere. A tela Pagamentos usa a data em que o t\u00edtulo foi liquidado, ent\u00e3o os dois n\u00fameros n\u00e3o batem, e nenhum dos dois est\u00e1 errado." },
+  varEstoque: { t:"Varia\u00e7\u00e3o de estoque",
+    d:"A diferen\u00e7a entre o estoque contado e o que a conta esperava. Negativo \u00e9 perda; positivo \u00e9 sobra. Entra no lucro l\u00edquido." },
+  lucroLiquido: { t:"Lucro l\u00edquido",
+    d:"O que sobrou no fim: o lucro bruto, mais as outras receitas, menos as despesas, mais a varia\u00e7\u00e3o de estoque." },
+  pctVendas: { t:"% sobre vendas",
+    d:"De cada R$ 100 vendidos, quanto sobrou no fim. \u00c9 o lucro l\u00edquido dividido pelas vendas de combust\u00edvel e de loja. As outras receitas ficam FORA da conta de baixo \u2014 por isso este n\u00famero \u00e9 menor do que o de quem soma tudo no divisor." },
+  lucroLitro: { t:"Lucro l\u00edquido por litro",
+    d:"Quanto sobrou, em reais, em cada litro vendido. S\u00f3 aparece quando os litros do m\u00eas j\u00e1 foram coletados; sem eles vira travess\u00e3o, em vez de dividir por um n\u00famero que n\u00e3o existe." },
+  lucroDia: { t:"O lucro do dia",
+    d:"O lucro do dia, do jeito que o Petros entrega at\u00e9 agora. Enquanto as despesas do dia n\u00e3o est\u00e3o lan\u00e7adas, ele \u00e9 BRUTO \u2014 e o pr\u00f3prio r\u00f3tulo troca para Lucro L\u00edquido sozinho, no dia em que elas entram." },
+  lucroDiaL: { t:"Lucro por litro do dia",
+    d:"O lucro do dia dividido pelos litros vendidos no dia. Serve para comparar postos de tamanhos diferentes: quem vendeu menos litros pode estar ganhando mais em cada um deles." },
+  margemReposicao: { t:"Margem de reposi\u00e7\u00e3o",
+    d:"Pre\u00e7o de tabela menos o \u00daLTIMO custo de compra, dividido pelo pre\u00e7o de tabela. \u00c9 a margem de quem vai repor o produto hoje, e serve para decidir PRE\u00c7O. \u00c9 diferente da margem do Resultado do m\u00eas, que usa o custo m\u00e9dio do que j\u00e1 foi vendido e serve para medir RESULTADO. A loja que aparece como a melhor muda de uma conta para a outra." },
+  recebido: { t:"Recebido no per\u00edodo",
+    d:"T\u00edtulos que foram liquidados no per\u00edodo. Nas lojas, quase tudo aqui \u00e9 CART\u00c3O \u2014 n\u00e3o \u00e9 venda a prazo. A data \u00e9 a da liquida\u00e7\u00e3o, n\u00e3o a da venda." },
+  vendaPrazo: { t:"Venda a prazo",
+    d:"A parte do recebido que veio de t\u00edtulo a prazo: cliente que comprou e pagou depois." },
+  cartoes: { t:"Cart\u00f5es",
+    d:"Cr\u00e9dito mais d\u00e9bito. Nas lojas \u00e9 a maior parte do que aparece como recebido." }
+};
+
+/* o botaozinho. A chave vai escrita aqui, no lugar da chamada. */
+function bul(chave){
+  if (!BULAS[chave]) return "";
+  return '<button type="button" class="bul-i" data-bul="' + escAttr(chave) +
+         '" onclick="abrirBula(event, \'' + escAttr(chave) + '\')" aria-label="Como este n\u00famero \u00e9 calculado" title="Como este n\u00famero \u00e9 calculado">i</button>';
+}
+
+let bulAberta = "";
+function _bulCliqueFora(ev){
+  const c = document.getElementById("bulCard");
+  if (c && c.contains(ev.target)) return;
+  if (ev.target && ev.target.closest && ev.target.closest(".bul-i")) return;
+  fecharBula();
+}
+function abrirBula(ev, chave){
+  if (ev){ ev.preventDefault(); ev.stopPropagation(); }
+  const b = BULAS[chave];
+  const c = document.getElementById("bulCard");
+  if (!b || !c) return;
+  if (bulAberta === chave){ fecharBula(); return; }   /* clicar de novo no mesmo fecha */
+  document.getElementById("bulTit").textContent = b.t;
+  document.getElementById("bulTxt").textContent = b.d;
+  c.style.display = "block";
+  bulAberta = chave;
+  /* posiciona embaixo do proprio botao, sem sair da tela */
+  const alvo = ev && ev.currentTarget && ev.currentTarget.getBoundingClientRect
+    ? ev.currentTarget.getBoundingClientRect() : null;
+  const larg = c.offsetWidth || 320, alt = c.offsetHeight || 120;
+  if (alvo){
+    let x = alvo.left + alvo.width / 2 - larg / 2;
+    let y = alvo.bottom + 8;
+    x = Math.max(8, Math.min(x, window.innerWidth - larg - 8));
+    if (y + alt > window.innerHeight - 8) y = Math.max(8, alvo.top - alt - 8);
+    c.style.left = Math.round(x) + "px";
+    c.style.top  = Math.round(y) + "px";
+  }
+  document.querySelectorAll(".bul-i.ativo").forEach(e => e.classList.remove("ativo"));
+  if (ev && ev.currentTarget && ev.currentTarget.classList) ev.currentTarget.classList.add("ativo");
+  setTimeout(() => document.addEventListener("click", _bulCliqueFora), 0);
+}
+function fecharBula(){
+  const c = document.getElementById("bulCard");
+  if (c) c.style.display = "none";
+  bulAberta = "";
+  document.removeEventListener("click", _bulCliqueFora);
+  document.querySelectorAll(".bul-i.ativo").forEach(e => e.classList.remove("ativo"));
+}
+
 function _sinoCliqueFora(ev){
   const c = document.getElementById("sinoCard"), b = document.getElementById("btnSinoHeader");
   if (c && c.contains(ev.target)) return;
@@ -12492,6 +12613,7 @@ document.addEventListener("keydown", ev => {
      cada um so' age quando a SUA caixa esta aberta. */
   if (sinoCardAberto) fecharSinoCard();
   if (frcCardAberto)  fecharFrcCard();
+  if (bulAberta)      fecharBula();   // v253
 });
 function alternarAvisos(){
   const aberto = abrirPainelExclusivo("painelAvisos");
@@ -15831,8 +15953,8 @@ function renderPetrosResumo(){
       const d = (p.conveniencias||{})[n]; if (!d) return;
       const cd = temDespesa(d);                                  // v220
       html += '<div class="pet-card"><h4>'+rotulo(n)+'</h4><div class="pet-linhas">' +
-        '<div class="pet-l"><span>Vendas</span><b>R$ '+fmtBR(d.outros||0,2)+'</b></div>' +
-        '<div class="pet-l"><span>'+(cd ? 'Lucro Líquido' : 'Lucro Bruto')+'</span><b>R$ '+fmtBR(d.lucroLiquido||0,2)+'</b></div>' +
+        '<div class="pet-l"><span>Vendas'+bul('vendas')+'</span><b>R$ '+fmtBR(d.outros||0,2)+'</b></div>' +
+        '<div class="pet-l"><span>'+(cd ? 'Lucro Líquido' : 'Lucro Bruto')+bul('lucroDia')+'</span><b>R$ '+fmtBR(d.lucroLiquido||0,2)+'</b></div>' +
         '</div></div>';
     });
     html += '</div></div>';
@@ -15842,13 +15964,13 @@ function renderPetrosResumo(){
       const d = (p.postos||{})[n]; if (!d) return;
       const cd = temDespesa(d);                                  // v220
       html += '<div class="pet-card"><h4>'+rotulo(n)+'</h4><div class="pet-linhas">' +
-        '<div class="pet-l"><span>Volume</span><b>'+fmtBR(d.volume||0,0)+' L</b></div>' +
+        '<div class="pet-l"><span>Volume'+bul('volume')+'</span><b>'+fmtBR(d.volume||0,0)+' L</b></div>' +
         (cd
-          ? '<div class="pet-l"><span>Lucro Líquido</span><b>R$ '+fmtBR(d.lucroLiquido||0,2)+'</b></div>' +
-            '<div class="pet-l"><span>Lucro Bruto/L</span><b>R$ '+fmtBR(d.lucroBrutoL||0,4)+'</b></div>' +
-            '<div class="pet-l"><span>Lucro Líquido/L</span><b>R$ '+fmtBR(d.lucroLiquidoL||0,4)+'</b></div>'
-          : '<div class="pet-l"><span>Lucro Bruto</span><b>R$ '+fmtBR(d.lucroLiquido||0,2)+'</b></div>' +
-            '<div class="pet-l"><span>Lucro Bruto/L</span><b>R$ '+fmtBR(d.lucroBrutoL||0,4)+'</b></div>') +
+          ? '<div class="pet-l"><span>Lucro Líquido'+bul('lucroDia')+'</span><b>R$ '+fmtBR(d.lucroLiquido||0,2)+'</b></div>' +
+            '<div class="pet-l"><span>Lucro Bruto/L'+bul('lucroDiaL')+'</span><b>R$ '+fmtBR(d.lucroBrutoL||0,4)+'</b></div>' +
+            '<div class="pet-l"><span>Lucro Líquido/L'+bul('lucroDiaL')+'</span><b>R$ '+fmtBR(d.lucroLiquidoL||0,4)+'</b></div>'
+          : '<div class="pet-l"><span>Lucro Bruto'+bul('lucroDia')+'</span><b>R$ '+fmtBR(d.lucroLiquido||0,2)+'</b></div>' +
+            '<div class="pet-l"><span>Lucro Bruto/L'+bul('lucroDiaL')+'</span><b>R$ '+fmtBR(d.lucroBrutoL||0,4)+'</b></div>') +
         '</div></div>';
     });
     html += '</div></div>';
@@ -16031,13 +16153,13 @@ function renderDashPostosResultado(){
     tLb += (+x.lb || 0); tDesp += (+x.desp || 0); tLl += (+x.ll || 0); tVend += vend;
     if (r.ate && r.ate > ate) ate = r.ate;
     h += '<div class="pet-card"><h4>' + escAttr(u.nome) + '</h4><div class="pet-linhas">' +
-      '<div class="pet-l"><span>Volume vendido</span><b>' + (x.vol == null ? "\u2014" : (fmtBR(+x.vol || 0, 0) + ' L')) + '</b></div>' +
-      '<div class="pet-l"><span>Lucro bruto</span><b>' + fmtR$0(x.lb) + '</b></div>' +
-      '<div class="pet-l"><span>Despesas</span><b>' + fmtR$0(x.desp) + '</b></div>' +
-      '<div class="pet-l"><span>Lucro l\u00edquido</span><b class="' + ((+x.ll || 0) < 0 ? "rpz-neg" : "rpz-pos") + '">' + fmtR$0(x.ll) + '</b></div>' +
-      (vend ? ('<div class="pet-l"><span>% sobre vendas</span><b class="' + ((+x.ll || 0) < 0 ? "rpz-neg" : "rpz-pos") + '">' + fmtPctRel((+x.ll || 0) / vend * 100, 2) + '</b></div>') : '') +
-      (x.llL == null ? '<div class="pet-l"><span>Lucro l\u00edquido/L</span><b>\u2014</b></div>'
-                     : '<div class="pet-l"><span>Lucro l\u00edquido/L</span><b class="' + ((+x.llL || 0) < 0 ? "rpz-neg" : "rpz-pos") + '">R$ ' + fmtBR(+x.llL || 0, 4) + '</b></div>') +
+      '<div class="pet-l"><span>Volume vendido' + bul('volume') + '</span><b>' + (x.vol == null ? "\u2014" : (fmtBR(+x.vol || 0, 0) + ' L')) + '</b></div>' +
+      '<div class="pet-l"><span>Lucro bruto' + bul('lucroBruto') + '</span><b>' + fmtR$0(x.lb) + '</b></div>' +
+      '<div class="pet-l"><span>Despesas' + bul('despesas') + '</span><b>' + fmtR$0(x.desp) + '</b></div>' +
+      '<div class="pet-l"><span>Lucro l\u00edquido' + bul('lucroLiquido') + '</span><b class="' + ((+x.ll || 0) < 0 ? "rpz-neg" : "rpz-pos") + '">' + fmtR$0(x.ll) + '</b></div>' +
+      (vend ? ('<div class="pet-l"><span>% sobre vendas' + bul('pctVendas') + '</span><b class="' + ((+x.ll || 0) < 0 ? "rpz-neg" : "rpz-pos") + '">' + fmtPctRel((+x.ll || 0) / vend * 100, 2) + '</b></div>') : '') +
+      (x.llL == null ? '<div class="pet-l"><span>Lucro l\u00edquido/L' + bul('lucroLitro') + '</span><b>\u2014</b></div>'
+                     : '<div class="pet-l"><span>Lucro l\u00edquido/L' + bul('lucroLitro') + '</span><b class="' + ((+x.llL || 0) < 0 ? "rpz-neg" : "rpz-pos") + '">R$ ' + fmtBR(+x.llL || 0, 4) + '</b></div>') +
       '</div></div>';
   });
   h += '</div>';
@@ -16046,12 +16168,12 @@ function renderDashPostosResultado(){
     return;
   }
   h += '<div class="resumo-dash" style="margin-top:12px">' +
-       '<div class="cartao-kpi"><span>Os tr\u00eas postos juntos</span><b>' + (semVol ? "\u2014" : (fmtBR(tVol, 0) + ' L')) + '</b></div>' +
-       '<div class="cartao-kpi"><span>Lucro bruto somado</span><b>' + fmtR$0(tLb) + '</b></div>' +
-       '<div class="cartao-kpi"><span>Despesas somadas</span><b>' + fmtR$0(tDesp) + '</b></div>' +
-       '<div class="cartao-kpi"><span>Lucro l\u00edquido da rede</span><b>' + fmtR$0(tLl) + '</b></div>' +
-       '<div class="cartao-kpi"><span>Lucro l\u00edquido/L da rede</span><b>' + (semVol || !tVol ? "\u2014" : ("R$ " + fmtBR(tLl / tVol, 4))) + '</b></div>' +
-       (tVend ? ('<div class="cartao-kpi"><span>% sobre vendas da rede</span><b>' + fmtPctRel(tLl / tVend * 100, 2) + '</b></div>') : '') +
+       '<div class="cartao-kpi"><span>Os tr\u00eas postos juntos' + bul('volume') + '</span><b>' + (semVol ? "\u2014" : (fmtBR(tVol, 0) + ' L')) + '</b></div>' +
+       '<div class="cartao-kpi"><span>Lucro bruto somado' + bul('lucroBruto') + '</span><b>' + fmtR$0(tLb) + '</b></div>' +
+       '<div class="cartao-kpi"><span>Despesas somadas' + bul('despesas') + '</span><b>' + fmtR$0(tDesp) + '</b></div>' +
+       '<div class="cartao-kpi"><span>Lucro l\u00edquido da rede' + bul('lucroLiquido') + '</span><b>' + fmtR$0(tLl) + '</b></div>' +
+       '<div class="cartao-kpi"><span>Lucro l\u00edquido/L da rede' + bul('lucroLitro') + '</span><b>' + (semVol || !tVol ? "\u2014" : ("R$ " + fmtBR(tLl / tVol, 4))) + '</b></div>' +
+       (tVend ? ('<div class="cartao-kpi"><span>% sobre vendas da rede' + bul('pctVendas') + '</span><b>' + fmtPctRel(tLl / tVend * 100, 2) + '</b></div>') : '') +
        '</div>';
   h += '<p class="ana-rodape">' + (ate ? ('Per\u00edodo: 1 a ' + String(ate).slice(8,10) + ' de ' + rotuloMesRel(dpsMesSel) + '. ') : '') +
        'O <b>% sobre vendas</b> \u00e9 o lucro l\u00edquido dividido pelas vendas de combust\u00edvel e produtos (as outras receitas ficam de fora). ' +
