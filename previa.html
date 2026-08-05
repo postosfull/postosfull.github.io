@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v253 — Postos Full (não é o app)</title>
+<title>PRÉVIA v254 — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -5374,6 +5374,10 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v254", data:"05/08/2026", tit:"O \u201ci\u201d chegou nas outras telas", itens:[
+    {t:"n",h:"Mais 32 n\u00fameros passaram a explicar o que s\u00e3o",d:"O \u201ci\u201d que nasceu ontem no Resultado do m\u00eas agora est\u00e1 tamb\u00e9m no Caixa, na Equipe, no Mapa Anual, nas Aferi\u00e7\u00f5es, nas Vendas pendentes, no A Prazo sem faturar, nos Descontos, nos Pagamentos, no A Pagar / Fluxo, em Produtos e categorias e no Painel da Transportadora. Alguns exemplos do que ele conta: que \u201ccaixas fechados\u201d e \u201ccaixas confirmados\u201d s\u00e3o coisas diferentes, que a Posi\u00e7\u00e3o \u00e9 uma foto de hoje e n\u00e3o serve para olhar o passado, que \u201cPago no per\u00edodo\u201d n\u00e3o \u00e9 a despesa do m\u00eas, e que aferi\u00e7\u00e3o registrada n\u00e3o \u00e9 aferi\u00e7\u00e3o validada."},
+    {t:"m",h:"Quadro que \u00e9 s\u00f3 contagem ficou sem \u201ci\u201d",d:"Frentistas, Abastecimentos, T\u00edtulos liquidados, CT-e emitidos, Viagens e Clientes n\u00e3o ganharam explica\u00e7\u00e3o: o nome j\u00e1 diz a coisa inteira, e um bot\u00e3ozinho ali seria s\u00f3 ru\u00eddo."}
+  ]},
   {v:"v253", data:"05/08/2026", tit:"Cada n\u00famero explica o que ele \u00e9", itens:[
     {t:"n",h:"Um \u201ci\u201d ao lado dos n\u00fameros de dinheiro",d:"No Resultado do m\u00eas (no Painel e na aba), nas Vendas do dia, em Comparar lojas e nos Recebimentos, cada n\u00famero ganhou um \u201ci\u201d pequeno ao lado do nome. Clicando, aparece em duas ou tr\u00eas frases o que aquele n\u00famero \u00e9 e, principalmente, o que fica de FORA dele \u2014 por exemplo, que o lucro bruto n\u00e3o inclui as outras receitas, que o \u201c% sobre vendas\u201d n\u00e3o as conta no divisor, que Despesas \u00e9 pela compet\u00eancia e n\u00e3o pela data do pagamento, e que a margem de Comparar lojas \u00e9 outra conta, diferente da margem do Resultado do m\u00eas."}
   ]},
@@ -8969,7 +8973,7 @@ function finBlocoAprazoSf(ds){
   });
   const cli = Object.keys(porCli).map(k => porCli[k]).sort((a,b) => b[1]-a[1]);
   let h = '<div class="rpz-cards">';
-  h += finCard("Em aberto", "R$ " + rpzDin0(tot));
+  h += finCard("Em aberto" + bul('emAbertoPrazo'), "R$ " + rpzDin0(tot));
   h += finCard("Títulos", String(todas.length));
   h += finCard("Clientes", String(cli.length));
   h += finCard("Vencidos", "R$ " + rpzDin0(venc), venc > 0 ? "rpz-neg" : "rpz-pos", qVenc + (qVenc === 1 ? " título" : " títulos"));
@@ -9025,10 +9029,10 @@ function finBlocoPag(ds){
   const semTipo = finSoma(ds, x => x.dados && x.dados.semTipo);
   const comTipo = totV - semTipo;
   let h = '<div class="rpz-cards">';
-  h += finCard("Pago no período", "R$ " + rpzDin0(totV), "rpz-neg");
+  h += finCard("Pago no período" + bul('pagoPeriodo'), "R$ " + rpzDin0(totV), "rpz-neg");
   h += finCard("Títulos liquidados", rpzDin0(totQ));
-  h += finCard("Compra de " + finPalCompra(), "R$ " + rpzDin0(semTipo), "", totV ? (semTipo / totV * 100).toFixed(1).replace(".", ",") + "% do total" : "");
-  h += finCard("Despesas", "R$ " + rpzDin0(comTipo));
+  h += finCard("Compra de " + finPalCompra() + bul('compraMercadoria'), "R$ " + rpzDin0(semTipo), "", totV ? (semTipo / totV * 100).toFixed(1).replace(".", ",") + "% do total" : "");
+  h += finCard("Despesas" + bul('despesasPagas'), "R$ " + rpzDin0(comTipo));
   h += '</div>';
   h += '<p class="nota-dash">O que vem sem tipo de despesa é nota de compra de ' + finPalCompra() + ' — por isso aparece separado.</p>';
   const porPosto = ds.map(x => [x.nome, (x.dados.tot ? Number(x.dados.tot.v) || 0 : 0), (x.dados.tot ? Number(x.dados.tot.q) || 0 : 0)]).sort((a,b) => b[1]-a[1]);
@@ -9070,8 +9074,8 @@ function finBlocoDesc(ds){
   const itens = Object.keys(porItem).map(k => porItem[k]).sort((a,b) => b[1]-a[1]);
   const pct = bruto ? (desc / bruto * 100) : 0;
   let h = '<div class="rpz-cards">';
-  h += finCard("Desconto no período", "R$ " + rpzDin(desc), "rpz-neg");
-  h += finCard("Sobre o bruto", pct.toFixed(2).replace(".", ",") + "%", "", "de R$ " + rpzDin0(bruto));
+  h += finCard("Desconto no período" + bul('descontoPeriodo'), "R$ " + rpzDin(desc), "rpz-neg");
+  h += finCard("Sobre o bruto" + bul('sobreOBruto'), pct.toFixed(2).replace(".", ",") + "%", "", "de R$ " + rpzDin0(bruto));
   h += finCard("Clientes", String(cli.length));
   h += finCard("Maior desconto", "R$ " + rpzDin(cli[0][1]), "", escAttr(String(cli[0][0]).slice(0, 22)));
   h += '</div>';
@@ -9274,10 +9278,10 @@ function renderFinApagar(box){
     const pos = disp + rec - R.total.v;
     h += '<div class="flx-sec">1 &middot; Quanto o grupo tem em ' + rpzDia(dia) + '</div>';
     h += '<div class="rpz-cards">';
-    h += finCard("Dinheiro disponível", "R$ " + rpzDin0(disp));
-    h += finCard("+ A receber em aberto", "R$ " + rpzDin0(rec));
-    h += finCard("− A pagar em aberto", "R$ " + rpzDin0(R.total.v), "rpz-neg", rpzDin0(R.total.q) + " títulos");
-    h += finCard("= Posição", "R$ " + rpzDin0(pos), pos < 0 ? "rpz-neg" : "rpz-pos");
+    h += finCard("Dinheiro disponível" + bul('dinheiroDisponivel'), "R$ " + rpzDin0(disp));
+    h += finCard("+ A receber em aberto" + bul('aReceber'), "R$ " + rpzDin0(rec));
+    h += finCard("− A pagar em aberto" + bul('aPagar'), "R$ " + rpzDin0(R.total.v), "rpz-neg", rpzDin0(R.total.q) + " títulos");
+    h += finCard("= Posição" + bul('posicao'), "R$ " + rpzDin0(pos), pos < 0 ? "rpz-neg" : "rpz-pos");
     h += '</div>';
     h += '<p class="nota-dash">Disponível = caixa + bancos + cartões a receber (crédito e débito) + cheques à vista.' +
          (liq.data && liq.data !== dia ? ' A posição é de ' + rpzDia(liq.data) + ' (o dia escolhido ainda não tem leitura).' : '') + '</p>';
@@ -9292,7 +9296,7 @@ function renderFinApagar(box){
   /* ---- 2. o que vence ---- */
   h += '<div class="flx-sec">2 &middot; O que vence</div>';
   h += '<div class="rpz-cards">';
-  h += finCard("🔴 Vencido", "R$ " + rpzDin0(R.vencido.v), "rpz-neg", rpzDin0(R.vencido.q) + " títulos");
+  h += finCard("🔴 Vencido" + bul('vencido'), "R$ " + rpzDin0(R.vencido.v), "rpz-neg", rpzDin0(R.vencido.q) + " títulos");
   h += finCard("Vence hoje", "R$ " + rpzDin0(R.hoje.v), "", rpzDin0(R.hoje.q) + " títulos");
   h += finCard("Próximos 7 dias", "R$ " + rpzDin0(R.d7.v), "", rpzDin0(R.d7.q) + " títulos");
   h += finCard("Resto do mês", "R$ " + rpzDin0(R.mes.v), "", rpzDin0(R.mes.q) + " títulos");
@@ -9419,10 +9423,10 @@ function rpzBlocoAfer(ls){
   const ate = Object.keys(porAte).map(k => porAte[k]).sort((a,b) => b[1]-a[1]);
   const bic = Object.keys(porBico).map(k => porBico[k]).sort((a,b) => b[1]-a[1]);
   let h = '<div class="rpz-cards">';
-  h += finCard("Aferições", rpzDin0(ls.length));
+  h += finCard("Aferições" + bul('afericoes'), rpzDin0(ls.length));
   h += finCard("Litros aferidos", rpzDin(litros) + " L");
   h += finCard("Dias com aferição", String(Object.keys(dias).length));
-  h += finCard("Sem validação", rpzDin0(semVal), semVal ? "rpz-neg" : "rpz-pos");
+  h += finCard("Sem validação" + bul('semValidacao'), rpzDin0(semVal), semVal ? "rpz-neg" : "rpz-pos");
   h += '</div>';
   if (semVal === ls.length) h += '<div class="ana-resumo"><b>Atenção:</b> nenhuma das ' + ls.length + ' aferições do período foi validada no sistema.</div>';
   const tres = rpzTresPostos("afer");
@@ -9454,8 +9458,8 @@ function rpzBlocoVpend(ls){
   });
   const ate = Object.keys(porAte).map(k => porAte[k]).sort((a,b) => b[1]-a[1]);
   let h = '<div class="rpz-cards">';
-  h += finCard("Abastecimentos pendentes", rpzDin0(pend.length), pend.length ? "rpz-neg" : "rpz-pos");
-  h += finCard("Valor parado", "R$ " + rpzDin(vPend), pend.length ? "rpz-neg" : "");
+  h += finCard("Abastecimentos pendentes" + bul('abastPendentes'), rpzDin0(pend.length), pend.length ? "rpz-neg" : "rpz-pos");
+  h += finCard("Valor parado" + bul('valorParado'), "R$ " + rpzDin(vPend), pend.length ? "rpz-neg" : "");
   h += finCard("Baixados fora da data", rpzDin0(fora.length), "", "R$ " + rpzDin(vFora));
   h += finCard("Mais antigo", datas.length ? rpzDia(datas[0]) : "—");
   h += '</div>';
@@ -9975,12 +9979,12 @@ function blocoCaixaPosto(d){
   if (!c) return '<p class="nota-dash">Sem os dados de caixa deste mês.</p>';
   const dif = (+c.sobra||0) - (+c.falta||0);
   let h = '<div class="rel-kpis">' +
-    '<div class="rel-kpi bom"><span>Sobra no caixa</span><b>'+fmtR$(c.sobra)+'</b></div>' +
-    '<div class="rel-kpi ruim"><span>Falta no caixa</span><b>'+fmtR$(c.falta)+'</b></div>' +
-    '<div class="rel-kpi '+(dif>=0?'bom':'ruim')+'"><span>Saldo</span><b>'+fmtR$(dif)+'</b></div>' +
-    '<div class="rel-kpi"><span>Caixas fechados</span><b>'+fmtPctRel(c.pctFech)+'</b></div>' +
-    '<div class="rel-kpi '+((+c.pctConf||0)>=95?'bom':'ruim')+'"><span>Caixas confirmados</span><b>'+fmtPctRel(c.pctConf)+'</b></div>' +
-    '<div class="rel-kpi"><span>Tempo médio p/ confirmar</span><b style="font-size:.95rem">'+escAttr(c.tempo||"—")+'</b></div>' +
+    '<div class="rel-kpi bom"><span>Sobra no caixa'+bul('sobraCaixa')+'</span><b>'+fmtR$(c.sobra)+'</b></div>' +
+    '<div class="rel-kpi ruim"><span>Falta no caixa'+bul('faltaCaixa')+'</span><b>'+fmtR$(c.falta)+'</b></div>' +
+    '<div class="rel-kpi '+(dif>=0?'bom':'ruim')+'"><span>Saldo'+bul('saldoCaixa')+'</span><b>'+fmtR$(dif)+'</b></div>' +
+    '<div class="rel-kpi"><span>Caixas fechados'+bul('caixasFechados')+'</span><b>'+fmtPctRel(c.pctFech)+'</b></div>' +
+    '<div class="rel-kpi '+((+c.pctConf||0)>=95?'bom':'ruim')+'"><span>Caixas confirmados'+bul('caixasConfirmados')+'</span><b>'+fmtPctRel(c.pctConf)+'</b></div>' +
+    '<div class="rel-kpi"><span>Tempo médio p/ confirmar'+bul('tempoConfirmar')+'</span><b style="font-size:.95rem">'+escAttr(c.tempo||"—")+'</b></div>' +
     (c.semBico ? '' :
       '<div class="rel-kpi"><span>Aferições</span><b>'+fmtBR(c.afer,0)+'</b></div>' +
       '<div class="rel-kpi '+((+c.pend||0)>0?'ruim':'')+'"><span>Abastecimentos pendentes</span><b>'+fmtBR(c.pend,0)+'</b></div>') +
@@ -10008,7 +10012,7 @@ function blocoEquipePosto(d){
     h += '<div class="rel-kpis">' +
       '<div class="rel-kpi"><span>Frentistas</span><b>'+at.length+'</b></div>' +
       '<div class="rel-kpi"><span>Abastecimentos</span><b>'+fmtBR(total,0)+'</b></div>' +
-      '<div class="rel-kpi"><span>Média por frentista</span><b>'+fmtBR(media,0)+'</b></div>' +
+      '<div class="rel-kpi"><span>Média por frentista'+bul('mediaFrentista')+'</span><b>'+fmtBR(media,0)+'</b></div>' +
       '</div>';
     h += '<h4 style="margin:14px 0 4px">Abastecimentos por frentista</h4>' + barrasRel(at);
   }
@@ -10606,11 +10610,11 @@ function blocoRelLojaUma(d){
   let h = "";
   if (d.ate) h += '<p class="nota-dash">Período: 1 a '+String(d.ate).slice(8,10)+' de '+rotuloMesRel(relLojaMes)+'.</p>';
   h += '<div class="rel-kpis">' +
-    '<div class="rel-kpi"><span>Faturamento</span><b>'+fmtR$0(k.receita)+'</b></div>' +
-    '<div class="rel-kpi"><span>Custo</span><b>'+fmtR$0(k.custo)+'</b></div>' +
-    '<div class="rel-kpi bom"><span>Lucro bruto</span><b>'+fmtR$0(k.lb)+'</b></div>' +
-    '<div class="rel-kpi"><span>Margem</span><b>'+fmtPctRel(k.margem)+'</b></div>' +
-    '<div class="rel-kpi"><span>Ticket médio</span><b>'+fmtR$(k.ticket)+'</b></div>' +
+    '<div class="rel-kpi"><span>Faturamento'+bul('faturamentoLoja')+'</span><b>'+fmtR$0(k.receita)+'</b></div>' +
+    '<div class="rel-kpi"><span>Custo'+bul('custo')+'</span><b>'+fmtR$0(k.custo)+'</b></div>' +
+    '<div class="rel-kpi bom"><span>Lucro bruto'+bul('lucroBruto')+'</span><b>'+fmtR$0(k.lb)+'</b></div>' +
+    '<div class="rel-kpi"><span>Margem'+bul('margemLoja')+'</span><b>'+fmtPctRel(k.margem)+'</b></div>' +
+    '<div class="rel-kpi"><span>Ticket médio'+bul('ticketMedio')+'</span><b>'+fmtR$(k.ticket)+'</b></div>' +
     '<div class="rel-kpi"><span>Itens diferentes vendidos</span><b>'+fmtBR(+k.mix||0,0)+'</b></div>' +
     '</div>';
   const cat = d.cat || [], itens = d.itens || [];
@@ -10883,9 +10887,9 @@ function renderEvolucao(){
   }
   h += '<div class="resumo-dash" style="margin-top:12px">' +
        '<div class="cartao-kpi"><span>Total do período</span><b>'+fmtV(total)+'</b></div>' +
-       '<div class="cartao-kpi"><span>Média por mês fechado</span><b>'+fmtV(media)+'</b></div>' +
+       '<div class="cartao-kpi"><span>Média por mês fechado'+bul('mediaMesFechado')+'</span><b>'+fmtV(media)+'</b></div>' +
        '<div class="cartao-kpi"><span>Último mês</span><b>'+variacao+'</b></div>' +
-       '<div class="cartao-kpi"><span>Contra o ano passado</span><b>'+anoAno+'</b></div>' +
+       '<div class="cartao-kpi"><span>Contra o ano passado'+bul('contraAnoPassado')+'</span><b>'+anoAno+'</b></div>' +
        '</div>';
   box.innerHTML = h;
   ligarTipEvo();
@@ -12520,6 +12524,70 @@ const BULAS = {
     d:"T\u00edtulos que foram liquidados no per\u00edodo. Nas lojas, quase tudo aqui \u00e9 CART\u00c3O \u2014 n\u00e3o \u00e9 venda a prazo. A data \u00e9 a da liquida\u00e7\u00e3o, n\u00e3o a da venda." },
   vendaPrazo: { t:"Venda a prazo",
     d:"A parte do recebido que veio de t\u00edtulo a prazo: cliente que comprou e pagou depois." },
+  sobraCaixa: { t:"Sobra no caixa",
+    d:"Quanto os caixas fecharam a MAIS do que o sistema esperava, somando todos os fechamentos do per\u00edodo. Sobra n\u00e3o \u00e9 lucro: \u00e9 diferen\u00e7a de confer\u00eancia, e sobra grande merece a mesma pergunta que falta grande." },
+  faltaCaixa: { t:"Falta no caixa",
+    d:"Quanto os caixas fecharam a MENOS do que o sistema esperava, somando o per\u00edodo." },
+  saldoCaixa: { t:"Saldo",
+    d:"A sobra menos a falta. Perto de zero \u00e9 o esperado; um n\u00famero grande, para qualquer lado, quer dizer que a confer\u00eancia est\u00e1 solta." },
+  caixasFechados: { t:"Caixas fechados",
+    d:"De todos os turnos do per\u00edodo, quantos tiveram o caixa FECHADO no sistema, em porcentagem. Fechar n\u00e3o \u00e9 conferir \u2014 quem confere \u00e9 o pr\u00f3ximo n\u00famero." },
+  caixasConfirmados: { t:"Caixas confirmados",
+    d:"Dos caixas fechados, quantos algu\u00e9m abriu, conferiu e confirmou. \u00c9 este que a meta acompanha, n\u00e3o o de fechados." },
+  tempoConfirmar: { t:"Tempo m\u00e9dio para confirmar",
+    d:"Quanto tempo passa, em m\u00e9dia, entre o caixa ser fechado e algu\u00e9m confirmar. Quanto maior, mais tarde um erro \u00e9 descoberto." },
+  mediaFrentista: { t:"M\u00e9dia por frentista",
+    d:"Os abastecimentos do per\u00edodo divididos pelo n\u00famero de frentistas que atenderam. Serve para comparar turnos, n\u00e3o para medir pessoa: quem trabalhou meio per\u00edodo conta igual a quem trabalhou o m\u00eas todo." },
+  faturamentoLoja: { t:"Faturamento",
+    d:"Tudo o que a loja vendeu no per\u00edodo, antes de tirar o custo. \u00c9 a receita da loja: o combust\u00edvel n\u00e3o entra aqui." },
+  margemLoja: { t:"Margem",
+    d:"O lucro bruto dividido pelo faturamento. \u00c9 a margem CONT\u00c1BIL, feita com o custo m\u00e9dio do que j\u00e1 foi vendido \u2014 serve para medir resultado. Para decidir pre\u00e7o, quem serve \u00e9 a margem de reposi\u00e7\u00e3o, em Comparar lojas." },
+  ticketMedio: { t:"Ticket m\u00e9dio",
+    d:"O faturamento dividido pelo n\u00famero de vendas do per\u00edodo. \u00c9 quanto o cliente m\u00e9dio leva por passagem no caixa." },
+  dinheiroDisponivel: { t:"Dinheiro dispon\u00edvel",
+    d:"O saldo de caixa e bancos no Petros. \u00c9 uma FOTO DE AGORA: ela \u00e9 tirada na sincroniza\u00e7\u00e3o do dia e n\u00e3o guarda hist\u00f3rico, ent\u00e3o n\u00e3o serve para olhar o passado." },
+  aReceber: { t:"A receber em aberto",
+    d:"T\u00edtulos de venda a prazo ainda n\u00e3o recebidos, na data de hoje. Tamb\u00e9m \u00e9 foto de agora: inclui o que j\u00e1 venceu e ainda n\u00e3o entrou." },
+  aPagar: { t:"A pagar em aberto",
+    d:"T\u00edtulos a pagar ainda em aberto, na data de hoje, somando vencidos e a vencer. Foto de agora, como as outras duas linhas." },
+  posicao: { t:"Posi\u00e7\u00e3o",
+    d:"O dinheiro dispon\u00edvel, mais o que h\u00e1 a receber, menos o que h\u00e1 a pagar. \u00c9 o retrato de hoje, n\u00e3o uma previs\u00e3o: nada aqui projeta venda futura." },
+  vencido: { t:"Vencido, e os prazos ao lado",
+    d:"T\u00edtulos cuja data de vencimento j\u00e1 passou e que continuam em aberto. Os quadros ao lado repartem o resto pelo vencimento: hoje, os pr\u00f3ximos 7 dias e o resto do m\u00eas \u2014 cada t\u00edtulo aparece em um balde s\u00f3." },
+  afericoes: { t:"Aferi\u00e7\u00f5es",
+    d:"Testes de calibra\u00e7\u00e3o dos bicos registrados no per\u00edodo. Registrar n\u00e3o \u00e9 validar: quantos ficaram sem valida\u00e7\u00e3o est\u00e1 no quadro ao lado." },
+  semValidacao: { t:"Sem valida\u00e7\u00e3o",
+    d:"Aferi\u00e7\u00f5es que foram registradas e que ningu\u00e9m validou. Enquanto ficam assim, elas n\u00e3o valem como controle metrol\u00f3gico." },
+  abastPendentes: { t:"Abastecimentos pendentes",
+    d:"Abastecimento que saiu na bomba e ficou sem a venda fechada no sistema. Cada um deles \u00e9 dinheiro que saiu do tanque e ainda n\u00e3o virou venda." },
+  valorParado: { t:"Valor parado",
+    d:"Quanto valem, em reais, os abastecimentos que est\u00e3o pendentes." },
+  descontoPeriodo: { t:"Desconto no per\u00edodo",
+    d:"Quanto foi dado de desconto nas vendas do per\u00edodo. \u00c9 desconto no caixa, n\u00e3o diferen\u00e7a de pre\u00e7o de tabela." },
+  sobreOBruto: { t:"Sobre o bruto",
+    d:"Quanto o desconto representa da venda bruta do per\u00edodo. \u00c9 a r\u00e9gua que diz se o desconto est\u00e1 grande, porque o valor sozinho cresce junto com a venda." },
+  emAbertoPrazo: { t:"Em aberto",
+    d:"Vendas a prazo que ainda n\u00e3o foram faturadas nem recebidas. \u00c9 foto de agora: n\u00e3o d\u00e1 para olhar como estava m\u00eas passado." },
+  pagoPeriodo: { t:"Pago no per\u00edodo",
+    d:"T\u00edtulos que foram liquidados no per\u00edodo, pela data do PAGAMENTO. N\u00e3o \u00e9 a despesa do m\u00eas: a despesa do Resultado do m\u00eas \u00e9 pela compet\u00eancia, e os dois n\u00fameros n\u00e3o batem de prop\u00f3sito." },
+  compraMercadoria: { t:"Compra de mercadoria",
+    d:"O que foi pago sem tipo de despesa \u00e9 nota de compra de mercadoria, e por isso aparece separado das despesas \u2014 sen\u00e3o pareceria que o posto gastou isso de despesa." },
+  despesasPagas: { t:"Despesas",
+    d:"A parte do que foi pago no per\u00edodo que tem tipo de despesa. Pela data do pagamento, n\u00e3o pela compet\u00eancia." },
+  freteRecebido: { t:"Frete recebido",
+    d:"O valor dos CT-e emitidos no m\u00eas. \u00c9 o que a Transportadora faturou de frete, antes de qualquer custo." },
+  fretePorLitro: { t:"Frete por litro",
+    d:"O frete do m\u00eas dividido pelos litros entregues. Serve para comparar meses com volumes diferentes." },
+  combustivelGasto: { t:"Combust\u00edvel gasto",
+    d:"O que a frota consumiu de diesel e Arla no m\u00eas, em reais, pelos abastecimentos importados do Infleet." },
+  sobraFrete: { t:"Sobra antes das outras despesas",
+    d:"O frete recebido menos o combust\u00edvel gasto. Ainda n\u00e3o desconta motorista, manuten\u00e7\u00e3o, pneu nem ped\u00e1gio \u2014 por isso o nome diz antes das outras despesas." },
+  combustivelSobreFrete: { t:"Combust\u00edvel sobre o frete",
+    d:"Quanto do frete recebido foi embora em combust\u00edvel. \u00c9 o n\u00famero que diz se a viagem paga o pr\u00f3prio diesel." },
+  mediaMesFechado: { t:"M\u00e9dia por m\u00eas fechado",
+    d:"A m\u00e9dia s\u00f3 dos meses que j\u00e1 terminaram. O m\u00eas em andamento fica de fora de prop\u00f3sito: incluir um m\u00eas pela metade puxaria a m\u00e9dia para baixo sem motivo." },
+  contraAnoPassado: { t:"Contra o ano passado",
+    d:"Compara com o mesmo per\u00edodo do ano anterior, contando s\u00f3 os meses j\u00e1 fechados dos dois lados." },
   cartoes: { t:"Cart\u00f5es",
     d:"Cr\u00e9dito mais d\u00e9bito. Nas lojas \u00e9 a maior parte do que aparece como recebido." }
 };
@@ -16339,7 +16407,7 @@ function renderDtrPuxadas(){
     '<div class="cartao-kpi"><span>CT-e emitidos</span><b>' + fmtBR(p.qtd, 0) + '</b></div>' +
     '<div class="cartao-kpi"><span>Litros entregues</span><b>' + fmtLitros(p.litros) + ' L</b></div>' +
     '<div class="cartao-kpi"><span>Frete no m\u00eas</span><b>' + fmtR$0(p.frete) + '</b></div>' +
-    '<div class="cartao-kpi"><span>Frete por litro</span><b>R$ ' + fmtBR(p.fretePorL, 3) + '</b></div>' +
+    '<div class="cartao-kpi"><span>Frete por litro' + bul('fretePorLitro') + '</span><b>R$ ' + fmtBR(p.fretePorL, 3) + '</b></div>' +
   '</div>' +
   '<p class="nota-dash">' + fmtBR(p.motoristas, 0) + (p.motoristas === 1 ? " motorista" : " motoristas") +
   ' com puxada neste m\u00eas. Uma viagem pode ter mais de um CT-e quando o caminh\u00e3o carrega em duas distribuidoras ou descarrega no mesmo endere\u00e7o para duas empresas.</p>';
@@ -16359,10 +16427,10 @@ function renderDtrFreteCusto(){
   const pct = p.frete > 0 ? (custo / p.frete * 100) : 0;
   const porMilL = p.litros > 0 ? (custo / p.litros * 1000) : 0;
   let h = '<div class="resumo-dash">' +
-    '<div class="cartao-kpi"><span>Frete recebido</span><b>' + fmtR$0(p.frete) + '</b></div>' +
-    '<div class="cartao-kpi"><span>Combust\u00edvel gasto</span><b>' + fmtR$0(custo) + '</b></div>' +
-    '<div class="cartao-kpi"><span>Sobra antes das outras despesas</span><b class="' + (sobra < 0 ? "rpz-neg" : "rpz-pos") + '">' + fmtR$0(sobra) + '</b></div>' +
-    '<div class="cartao-kpi"><span>Combust\u00edvel sobre o frete</span><b class="' + (pct > 50 ? "rpz-neg" : "") + '">' + (p.frete > 0 ? fmtPctRel(pct) : "\u2014") + '</b></div>' +
+    '<div class="cartao-kpi"><span>Frete recebido' + bul('freteRecebido') + '</span><b>' + fmtR$0(p.frete) + '</b></div>' +
+    '<div class="cartao-kpi"><span>Combust\u00edvel gasto' + bul('combustivelGasto') + '</span><b>' + fmtR$0(custo) + '</b></div>' +
+    '<div class="cartao-kpi"><span>Sobra antes das outras despesas' + bul('sobraFrete') + '</span><b class="' + (sobra < 0 ? "rpz-neg" : "rpz-pos") + '">' + fmtR$0(sobra) + '</b></div>' +
+    '<div class="cartao-kpi"><span>Combust\u00edvel sobre o frete' + bul('combustivelSobreFrete') + '</span><b class="' + (pct > 50 ? "rpz-neg" : "") + '">' + (p.frete > 0 ? fmtPctRel(pct) : "\u2014") + '</b></div>' +
     '<div class="cartao-kpi"><span>Combust\u00edvel por 1.000 L entregues</span><b>' + (p.litros > 0 ? ("R$ " + fmtBR(porMilL, 2)) : "\u2014") + '</b></div>' +
   '</div>';
   if (!p.qtd || !c.qtd){
