@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v254 — Postos Full (não é o app)</title>
+<title>PRÉVIA v255 — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -5374,6 +5374,10 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v255", data:"05/08/2026", tit:"A aba A Prazo diz de que dia é a foto", itens:[
+    {t:"c",h:"Em vez de “Período”, agora diz “Posição em”",d:"A aba 📄 A Prazo mostra tudo o que os clientes ainda devem, sem limite de data de emissão — ela não é um período, é uma foto do dia em que os números foram buscados no Petros. O cabeçalho dizia “Período: 05/08/2026 a 05/08/2026”, que não quer dizer nada. Agora diz “Posição em 05/08/2026”."},
+    {t:"c",h:"Os dias de atraso contam até o dia da foto",d:"Quantos dias cada título está vencido, e os baldes de até 30, de 31 a 90 e de mais de 90 dias, eram contados até HOJE. Ao abrir um mês passado, o atraso crescia sozinho e a tela mostrava título mais velho do que ele estava no dia da foto. Agora a conta para no dia em que a foto foi tirada."}
+  ]},
   {v:"v254", data:"05/08/2026", tit:"O \u201ci\u201d chegou nas outras telas", itens:[
     {t:"n",h:"Mais 32 n\u00fameros passaram a explicar o que s\u00e3o",d:"O \u201ci\u201d que nasceu ontem no Resultado do m\u00eas agora est\u00e1 tamb\u00e9m no Caixa, na Equipe, no Mapa Anual, nas Aferi\u00e7\u00f5es, nas Vendas pendentes, no A Prazo sem faturar, nos Descontos, nos Pagamentos, no A Pagar / Fluxo, em Produtos e categorias e no Painel da Transportadora. Alguns exemplos do que ele conta: que \u201ccaixas fechados\u201d e \u201ccaixas confirmados\u201d s\u00e3o coisas diferentes, que a Posi\u00e7\u00e3o \u00e9 uma foto de hoje e n\u00e3o serve para olhar o passado, que \u201cPago no per\u00edodo\u201d n\u00e3o \u00e9 a despesa do m\u00eas, e que aferi\u00e7\u00e3o registrada n\u00e3o \u00e9 aferi\u00e7\u00e3o validada."},
     {t:"m",h:"Quadro que \u00e9 s\u00f3 contagem ficou sem \u201ci\u201d",d:"Frentistas, Abastecimentos, T\u00edtulos liquidados, CT-e emitidos, Viagens e Clientes n\u00e3o ganharam explica\u00e7\u00e3o: o nome j\u00e1 diz a coisa inteira, e um bot\u00e3ozinho ali seria s\u00f3 ru\u00eddo."}
@@ -8455,6 +8459,12 @@ function rpzPeriodos(tipo){
   return Object.keys(relPetros).filter(k => k.indexOf(pre) === 0)
     .map(k => k.slice(pre.length)).sort().reverse();
 }
+/* v255 - AS ABAS DO PAINEL QUE SAO FOTO DO MOMENTO.
+   Nelas o documento nao guarda um periodo: a coleta grava de = ate = a DATA DA COLETA.
+   O "aprazo" vai ao Adaptive com a janela de emissao MAXIMA (2000-01-01 a 2100-12-31)
+   de proposito, para nada que ainda nao foi pago ficar escondido - entao falar em
+   "periodo" ali e' uma frase que nao quer dizer nada. */
+const RPZ_FOTO = { aprazo: 1 };
 function rpzRotuloPeriodo(p){
   const MES = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
   if (/^\d{4}$/.test(p)) return p;
@@ -8508,14 +8518,18 @@ function renderRelPetros(){
   const doc = rpzDoc(rpzAba, rpzPerSel);
   const linhas = rpzLista(doc);
   let h = "";
-  if (doc && doc.de && doc.ate) h += '<p class="nota-dash">Período: ' + rpzDia(doc.de) + ' a ' + rpzDia(doc.ate) + '.</p>';
+  if (doc && doc.de && doc.ate){
+    h += RPZ_FOTO[rpzAba]                                             /* v255 */
+       ? '<p class="nota-dash">Posição em ' + rpzDia(doc.ate) + '.</p>'
+       : '<p class="nota-dash">Período: ' + rpzDia(doc.de) + ' a ' + rpzDia(doc.ate) + '.</p>';
+  }
   if (rpzAba === "mapa")         h += rpzBlocoMapa(linhas);
   else if (rpzAba === "anomes")  h += rpzBlocoAnoMes(linhas);   // v212
   else if (rpzAba === "afer")    h += rpzBlocoAfer(linhas);
   else if (rpzAba === "vpend")   h += rpzBlocoVpend(linhas);
   else if (rpzAba === "tanques") h += rpzBlocoTanques(linhas);
   else if (rpzAba === "colab")   h += rpzBlocoColab(linhas);
-  else if (rpzAba === "aprazo")  h += rpzBlocoAprazo(linhas);
+  else if (rpzAba === "aprazo")  h += rpzBlocoAprazo(linhas, doc && doc.ate);   /* v255 */
   const quando = doc && doc.atualizadoEm ? String(doc.atualizadoEm).slice(0,10).split("-").reverse().join("/") : "—";
   const FONTE = { mapa:"Mapa Anual de Resultados e Indicadores", dre:"Demonstrativo de Resultado no Período-Consolidado",
     anomes:"Demonstrativo de Resultado Detalhado Mês a Mês-GR",
@@ -8811,9 +8825,16 @@ function rpzBlocoColab(ls){
 }
 
 /* --- A Prazo: [cliente, titulo, parcela, emissao, vencimento, valor, tipo, cobranca] --- */
-function rpzBlocoAprazo(ls){
+function rpzBlocoAprazo(ls, dataFoto){
   if (!ls.length) return '<div class="ana-vazio">Nenhum título a prazo em aberto.</div>';
-  const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+  /* v255 - O ATRASO CONTA-SE ATE' A DATA DA FOTO, NAO ATE' HOJE.
+     Este relatorio e' foto do momento, mas o documento e' do MES: em setembro, abrir
+     "agosto/2026" e contar os dias ate' hoje engordaria sozinho o balde dos 90+ dias e
+     mostraria atraso que nao existia no dia da foto. Documento sem data cai em hoje,
+     que e' o comportamento de antes. */
+  const ref = (typeof dataFoto === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dataFoto))
+            ? new Date(dataFoto + "T00:00:00") : new Date();
+  ref.setHours(0, 0, 0, 0);
   const dia = 24 * 60 * 60 * 1000;
   let tot = 0, vencido = 0, aVencer = 0;
   const porCliente = {};
@@ -8821,7 +8842,7 @@ function rpzBlocoAprazo(ls){
   const linhas = ls.map(r => {
     const v = Number(r[5]) || 0, vc = String(r[4] || "");
     const d = vc ? new Date(vc + "T00:00:00") : null;
-    const atraso = d ? Math.floor((hoje - d) / dia) : 0;
+    const atraso = d ? Math.floor((ref - d) / dia) : 0;   /* v255 */
     tot += v;
     if (atraso > 0){ vencido += v; faixas[atraso <= 30 ? 0 : (atraso <= 90 ? 1 : 2)] += v; }
     else { aVencer += v; faixas[3] += v; }
