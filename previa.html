@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v262 — Postos Full (não é o app)</title>
+<title>PRÉVIA v263 — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -2257,6 +2257,25 @@
   .sim-dif .val{font-size:1rem;font-weight:700;font-variant-numeric:tabular-nums;color:#18a558}
   .sim-dif .val.neg{color:#c0392b}
   /* v261 - o selo que diz que o numero veio do ERP, nao da mao de ninguem */
+  /* ===================== v263 - a tela de conferencia ===================== */
+  .conf-posto{margin:14px 0 6px;font-size:.82rem;font-weight:700;letter-spacing:.04em;
+    text-transform:uppercase;color:var(--laranja)}
+  .conf-tab{width:100%;border-collapse:collapse;font-size:.86rem}
+  .conf-tab th{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.03em;
+    color:var(--cinza);text-align:right;padding:6px 8px;border-bottom:1px solid var(--borda)}
+  .conf-tab th:first-child{text-align:left}
+  .conf-tab td{padding:7px 8px;border-bottom:1px solid var(--borda);text-align:right;
+    font-variant-numeric:tabular-nums}
+  .conf-tab td:first-child{text-align:left;color:var(--txt)}
+  .conf-tab tr:last-child td{border-bottom:none}
+  .conf-m{font-weight:700;color:#18a558}
+  .conf-m.neg{color:#c0392b}
+  .conf-fonte{font-size:.72rem;color:var(--cinza);white-space:nowrap}
+  .conf-topo{font-size:.8rem;color:var(--cinza);margin:2px 0 8px}
+  .conf-topo b{color:var(--txt)}
+  .conf-vazio{padding:16px;text-align:center;color:var(--cinza);font-style:italic}
+  .lanc-sum{cursor:pointer;font-weight:700;font-size:.95rem;padding:2px 0;color:var(--txt)}
+  .lanc-sum:hover{color:var(--laranja)}
   /* v262 - a linha que diz de onde vieram os graficos do Dashboard */
   .dash-fonte{margin:6px 0 2px;font-size:.8rem;color:var(--cinza)}
   .dash-fonte b{color:var(--txt);font-weight:600}
@@ -2327,7 +2346,7 @@
     <div class="menu-grupos" id="menuGrupos">
       <button class="btn-claro" id="btnDash" onclick="alternarDash()"><span class="mi">📈</span><span class="mt">Dashboard</span></button>
       <button class="btn-claro" id="btnResumoDia" onclick="alternarResumoDia()"><span class="mi">📊</span><span class="mt">Resumo do dia</span></button>
-      <button class="btn-claro" id="btnRegistros" onclick="alternarRegistros()"><span class="mi">📋</span><span class="mt">Lançamentos</span></button>
+      <button class="btn-claro" id="btnRegistros" onclick="alternarRegistros()"><span class="mi">📋</span><span class="mt">Custos e preços</span></button>
       <button class="btn-claro" id="btnHistorico" onclick="alternarHistorico()"><span class="mi">🕐</span><span class="mt">Histórico</span></button>
       <button class="btn-claro" id="btnDescontos" onclick="alternarDescontos()"><span class="mi">🏷️</span><span class="mt">Descontos</span></button>
       <button class="btn-claro" id="btnSimular" onclick="alternarSimular()"><span class="mi">💰</span><span class="mt">Simular Margens</span></button>
@@ -3253,6 +3272,17 @@
   </div>
 
   <div id="painelRegistros">
+
+  <!-- v263 - a tela de CONFERENCIA, montada do que o coletor trouxe do Petros -->
+  <div class="grupo">
+    <h2>Custos e preços de hoje</h2>
+    <p class="nota-dash">O que o Petros diz de cada produto, por posto: o <b>preço de compra</b> da última nota de entrada, o <b>custo do frete</b> da carga e os <b>preços de venda</b> do cadastro — com a margem já calculada. <b>Ninguém precisa digitar nada aqui.</b> A coleta roda sozinha todo dia de manhã; para atualizar na hora, peça ao Claude: "atualiza os custos".</p>
+    <div id="confBox"></div>
+  </div>
+
+  <details class="grupo" id="grupoLancAntigos">
+    <summary class="lanc-sum">📋 Lançamentos antigos (digitados à mão)</summary>
+    <p class="nota-dash">Ficam aqui os lançamentos que a equipe fazia à mão antes de <b>06/08/2026</b>, quando o app passou a buscar custo e preço direto do Petros. Continuam editáveis para corrigir alguma exceção — mas <b>não é mais preciso lançar quando chega carga nova</b>.</p>
   <div class="tabela-wrap">
     <table>
       <thead>
@@ -3274,6 +3304,7 @@
     <span class="dica">Edite qualquer célula diretamente — tudo é salvo na nuvem e sincronizado automaticamente entre os aparelhos conectados. <span id="infoUltimaSync"></span> Em ⚙ Configurações você gerencia postos, distribuidoras e o frete padrão.</span>
     <button class="btn-verde" onclick="novaLinha()">+ Adicionar registro</button>
   </div>
+  </details>
   </div>
 
 </div>
@@ -5432,6 +5463,11 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v263", data:"06/08/2026", tit:"O menu Lançamentos virou Custos e preços", itens:[
+    {t:"n",h:"Acabaram os lançamentos manuais de combustível",d:"O app busca o preço de compra e o frete da última nota de entrada do Petros e os preços de venda do cadastro do posto, sozinho, todo dia de manhã. Ninguém precisa mais lançar quando chega carga nova — basta dar entrada na nota no Petros, como sempre."},
+    {t:"n",h:"A tela agora é de conferência",d:"O menu mostra, por posto e produto, o preço de compra, o frete, os preços de venda à vista e a prazo e as duas margens já calculadas — e diz de que nota e de que dia veio cada linha."},
+    {t:"m",h:"Os lançamentos antigos continuam guardados",d:"Ficam em “Lançamentos antigos (digitados à mão)”, fechado no fim da tela. Nada foi apagado, e ainda dá para corrigir uma exceção por lá."}
+  ]},
   {v:"v262", data:"06/08/2026", tit:"Os gráficos do Dashboard não dependem mais de lançamento manual", itens:[
     {t:"n",h:"Evolução do preço de compra e das margens vem do Petros",d:"Os três gráficos passam a ser montados com o custo da nota de compra, o frete da carga e o preço de venda cadastrado — dia a dia, direto do banco do Petros, sem ninguém digitar. O histórico foi carregado desde 1º de janeiro de 2026."},
     {t:"m",h:"A linha ficou contínua",d:"Antes só existia ponto no dia em que alguém fazia um lançamento, e o gráfico ficava picotado. Agora existe ponto em todo dia, porque custo e preço existem todo dia, mesmo quando não chega carga nova."},
@@ -6425,6 +6461,8 @@ function iniciarSync(){
     };
     const pcv = document.getElementById("painelConfig");
     if (pcv && pcv.classList.contains("aberto")) renderPrecosVenda();
+    const prg = document.getElementById("painelRegistros");                           /* v263 */
+    if (prg && prg.classList.contains("aberto") && typeof renderConferencia === "function") renderConferencia();
     const pdv = document.getElementById("painelDescontos");
     if (pdv && pdv.classList.contains("aberto")) autofillValorL();
   }, ()=>{});
@@ -6449,6 +6487,8 @@ function iniciarSync(){
     };
     const ps = document.getElementById("painelSimular");
     if (ps && ps.classList.contains("aberto") && typeof preencherSimulacao === "function") preencherSimulacao();
+    const pr = document.getElementById("painelRegistros");                            /* v263 */
+    if (pr && pr.classList.contains("aberto") && typeof renderConferencia === "function") renderConferencia();
   }, ()=>{});
 
   // Clientes cadastrados por posto (autocompletar do Descontos)
@@ -6896,7 +6936,7 @@ const CHAVE_EMPRESA = "margens_empresa";
 const MENUS_APP = [
   {key:"dash",        btn:"btnDash",        pan:"painelDash",        emp:"postos|conv|transp", nome:"Dashboard"},   // v198 Conveniencia, v203 Transportadora
   {key:"resumoDia",   btn:"btnResumoDia",   pan:"painelResumoDia",   emp:"postos|conv", nome:"Resumo do dia"},
-  {key:"registros",   btn:"btnRegistros",   pan:"painelRegistros",   emp:"postos", nome:"Lançamentos"},
+  {key:"registros",   btn:"btnRegistros",   pan:"painelRegistros",   emp:"postos", nome:"Custos e preços"},   /* v263 */
   {key:"historico",   btn:"btnHistorico",   pan:"painelHistorico",   emp:"postos", nome:"Histórico"},
   {key:"simular",     btn:"btnSimular",     pan:"painelSimular",     emp:"postos", nome:"Simular Margens"},
   {key:"descontos",   btn:"btnDescontos",   pan:"painelDescontos",   emp:"postos", nome:"Descontos"},
@@ -7810,9 +7850,70 @@ function atualizarFiltrosVisiveis(){
   if (fd) fd.style.display = noDash ? "none" : "";
 }
 
+/* ===================== v263 - A TELA DE CONFERENCIA =====================
+   Monta, por posto e produto, o que o coletor trouxe: custo da nota + frete da carga
+   (config/custosCompra) e os precos de venda do cadastro (config/precosVenda), com as duas
+   margens ja' calculadas pela MESMA funcao margens() do resto do app.
+
+   🔑 Ninguem digita aqui. A tela existe para CONFERIR - e para dizer de que nota veio cada
+   numero, que e' a pergunta que aparece quando alguem estranha uma margem. */
+function linhaConf(posto, comb){
+  const c = ((custosCompra || {}).postos || {})[posto];
+  const x = c ? c[comb] : null;
+  if (!x || !isFinite(x.custo) || +x.custo <= 0) return null;
+  const vista = ((precosVenda.porPosto || {})[posto] || {})[comb];
+  const prazo = ((precosVenda.porPostoPrazo || {})[posto] || {})[comb];
+  const frete = isFinite(x.frete) ? +x.frete : 0;
+  return {
+    comb, custo: +x.custo, frete, dia: x.dia || "", nota: x.nota || "",
+    vista: isFinite(vista) && vista > 0 ? +vista : null,
+    prazo: isFinite(prazo) && prazo > 0 ? +prazo : null,
+    mVista: (isFinite(vista) && vista > 0) ? margens({ custo:+x.custo, frete, venda:+vista }) : null,
+    mPrazo: (isFinite(prazo) && prazo > 0) ? margens({ custo:+x.custo, frete, venda:+prazo }) : null
+  };
+}
+
+function renderConferencia(){
+  const box = document.getElementById("confBox");
+  if (!box) return;
+  const rs = (v, c) => (v === null || v === undefined || !isFinite(v)) ? "—" : "R$ " + fmtBR(v, c === undefined ? 3 : c);
+  const pc = v => (v === null || !isFinite(v)) ? "—" : fmtBR(v, 2) + "%";
+  const cel = m => m ? '<span class="conf-m' + (m.cfR < 0 ? " neg" : "") + '">' + rs(m.cfR) +
+                       ' · ' + pc(m.cfP) + '</span>' : "—";
+
+  let h = "";
+  const postos = opcoesDe("posto") || [];
+  postos.forEach(posto => {
+    const linhas = combustiveisDoPosto(posto).map(c => linhaConf(posto, c)).filter(Boolean);
+    if (!linhas.length) return;
+    h += '<div class="conf-posto">' + escAttr(posto) + '</div>' +
+      '<table class="conf-tab"><thead><tr>' +
+        '<th>Combustível</th><th>Compra</th><th>Frete</th>' +
+        '<th>Venda à vista</th><th>Margem à vista</th>' +
+        '<th>Venda a prazo</th><th>Margem a prazo</th><th>Origem</th>' +
+      '</tr></thead><tbody>' +
+      linhas.map(l =>
+        '<tr><td>' + escAttr(l.comb) + '</td>' +
+        '<td>' + rs(l.custo, 4) + '</td>' +
+        '<td>' + rs(l.frete, 4) + '</td>' +
+        '<td>' + rs(l.vista, 2) + '</td><td>' + cel(l.mVista) + '</td>' +
+        '<td>' + rs(l.prazo, 2) + '</td><td>' + cel(l.mPrazo) + '</td>' +
+        '<td class="conf-fonte">' + (l.nota ? "nota " + escAttr(l.nota) + " · " : "") +
+          (l.dia ? simDiaBR(l.dia) : "—") + '</td></tr>').join("") +
+      '</tbody></table>';
+  });
+
+  const quando = (custosCompra || {}).atualizadoEm;
+  box.innerHTML = h
+    ? '<p class="conf-topo">📡 Direto do Petros' + (quando ? ' — atualizado em <b>' + fmtQuandoLocal(quando) + '</b>' : '') +
+      '. A margem já desconta o frete.</p>' + h
+    : '<div class="conf-vazio">A coleta automática ainda não gravou nada. Enquanto isso, os números vêm dos lançamentos antigos, aqui embaixo.</div>';
+}
+
 function alternarRegistros(){
   abrirPainelExclusivo("painelRegistros");
   atualizarBotaoRegistros();
+  renderConferencia();                       /* v263 */
 }
 function atualizarBotaoRegistros(){
   const aberto = document.getElementById("painelRegistros").classList.contains("aberto");
