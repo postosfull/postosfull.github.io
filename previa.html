@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v263 — Postos Full (não é o app)</title>
+<title>PRÉVIA v264 — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -2347,7 +2347,6 @@
       <button class="btn-claro" id="btnDash" onclick="alternarDash()"><span class="mi">📈</span><span class="mt">Dashboard</span></button>
       <button class="btn-claro" id="btnResumoDia" onclick="alternarResumoDia()"><span class="mi">📊</span><span class="mt">Resumo do dia</span></button>
       <button class="btn-claro" id="btnRegistros" onclick="alternarRegistros()"><span class="mi">📋</span><span class="mt">Custos e preços</span></button>
-      <button class="btn-claro" id="btnHistorico" onclick="alternarHistorico()"><span class="mi">🕐</span><span class="mt">Histórico</span></button>
       <button class="btn-claro" id="btnDescontos" onclick="alternarDescontos()"><span class="mi">🏷️</span><span class="mt">Descontos</span></button>
       <button class="btn-claro" id="btnSimular" onclick="alternarSimular()"><span class="mi">💰</span><span class="mt">Simular Margens</span></button>
       <button class="btn-claro" id="btnRelPosto" onclick="alternarRelatorios()"><span class="mi">📑</span><span class="mt">Relatórios</span></button>
@@ -2817,26 +2816,6 @@
     </div>
   </div>
 
-  <div class="config" id="painelHistorico">
-    <div class="grupo">
-      <h2>Histórico de modificações</h2>
-      <div class="barra-sync">
-        <span id="infoUltimaSync2" class="info-sync"></span>
-        <button class="btn-verde" onclick="enviarParaNuvem()">☁️ Enviar lançamentos para a nuvem</button>
-      </div>
-      <div class="filtro-hist">
-        <label for="fHistUsuario">Filtrar por usuário:</label>
-        <select id="fHistUsuario" onchange="renderHistorico()"></select>
-        <span id="contadorHist" class="contador-hist"></span>
-      </div>
-      <div id="listaHistorico" class="lista-hist"></div>
-      <div class="hist-rodape">
-        <button id="btnMaisHist" class="btn-claro" style="display:none" onclick="verMaisHistorico()">⬇️ Carregar alterações mais antigas</button>
-      </div>
-      <p class="nota-dash">As alterações feitas por qualquer usuário aparecem aqui, com data e autor. Use o filtro acima para ver só as de um usuário. Clique em "Desfazer" para reverter uma alteração (restaura ou remove o lançamento conforme o caso).</p>
-    </div>
-  </div>
-
   <div class="config" id="painelResumoDia">
     <div class="grupo">
       <h2>📊 Resumo do dia</h2>
@@ -3085,10 +3064,25 @@
 
     <div class="adm-pag" id="admPagAtividades" style="display:none">
       <div class="grupo">
-        <h2>📜 Atividades por funcionário</h2>
-        <p class="nota-dash">Veja o que cada funcionário fez no app. <b>Desfazer</b> reverte a alteração (quando possível); <b>Excluir</b> remove só o registro do histórico. As mais antigas podem ser trazidas em ⬇️ no menu Histórico.</p>
-        <label class="cot-data-lbl">Funcionário: <select id="admSelAtiv" onchange="renderAtividadesFunc()"></select></label>
+        <h2>📜 Atividades e histórico</h2>
+        <p class="nota-dash">Tudo o que cada pessoa fez no app, com data e autor. Deixe em <b>Todas as pessoas</b> para ver o histórico inteiro, ou escolha alguém para ver só o que ela fez. <b>Desfazer</b> reverte a alteração (quando dá); <b>Excluir</b> apaga só o registro.</p>
+        <div class="filtro-hist">
+          <label for="admSelAtiv">Filtrar por pessoa:</label>
+          <select id="admSelAtiv" onchange="renderAtividadesFunc()"></select>
+          <span id="contadorHist" class="contador-hist"></span>
+        </div>
         <div id="admListaAtiv" class="lista-hist"></div>
+        <div class="hist-rodape">
+          <button id="btnMaisHist" class="btn-claro" style="display:none" onclick="verMaisHistorico()">⬇️ Carregar alterações mais antigas</button>
+        </div>
+      </div>
+      <div class="grupo">
+        <h2>☁️ Lançamentos guardados no aparelho</h2>
+        <p class="nota-dash">Quando alguém edita um lançamento <b>sem internet</b>, ele fica guardado só naquele aparelho e não sobe sozinho quando a conexão volta. Este botão reenvia para a nuvem todos os lançamentos <b>deste</b> aparelho.</p>
+        <div class="barra-sync">
+          <span id="infoUltimaSync2" class="info-sync"></span>
+          <button class="btn-verde" onclick="enviarParaNuvem()">☁️ Enviar lançamentos para a nuvem</button>
+        </div>
       </div>
     </div>
   </div>
@@ -3817,7 +3811,6 @@ const ICO_SVG = {
   dash:"<path d='M3 17.5 9 11l4 3.5L21 6'/><path d='M15.5 6H21v5.5'/>",
   resumoDia:"<path d='M4 20V10M9.5 20V4M15 20v-7M20.5 20v-4'/>",
   registros:"<rect x='4.5' y='3.5' width='15' height='17' rx='2.5'/><path d='M8.5 8.5h7M8.5 12.5h7M8.5 16.5h4'/>",
-  historico:"<circle cx='12' cy='12' r='8.5'/><path d='M12 7v5.2l3.4 2'/>",
   descontos:"<path d='M3.6 12.9V4.6a1 1 0 0 1 1-1h8.3a1 1 0 0 1 .7.3l7 7a1 1 0 0 1 0 1.4l-7.7 7.7a1 1 0 0 1-1.4 0l-7-7a1 1 0 0 1-.3-.7z'/><circle cx='8' cy='8' r='1.4'/>",
   simular:"<rect x='5' y='2.8' width='14' height='18.4' rx='2.3'/><path d='M8.5 7.5h7M8.5 12h2M14 12h1.5M8.5 16.5h2M14 16.5h1.5'/>",
   relPosto:"<path d='M6.5 2.8h7.6L19 7.7v13.5H6.5z'/><path d='M13.8 2.9v5h5'/><path d='M9.8 17.4v-3.4M12.7 17.4v-5.6M15.6 17.4v-2.2'/>",
@@ -3845,7 +3838,7 @@ const ICO_SVG = {
   empresa:"<path d='M3.6 20.4h16.8'/><path d='M5.4 20.4V6.2L12 3.6l6.6 2.6v14.2'/><path d='M9.6 20.4v-4.4h4.8v4.4'/><path d='M9.4 9.2h1.2M13.4 9.2h1.2M9.4 12.6h1.2M13.4 12.6h1.2'/>",
   g_ajustes:"<circle cx='12' cy='12' r='3.1'/><path d='M19.1 14.6a1.5 1.5 0 0 0 .3 1.7l.1.1a1.9 1.9 0 1 1-2.6 2.6l-.1-.1a1.5 1.5 0 0 0-2.6 1v.2a1.9 1.9 0 0 1-3.7 0v-.1a1.5 1.5 0 0 0-2.6-1l-.1.1a1.9 1.9 0 1 1-2.6-2.6l.1-.1a1.5 1.5 0 0 0-1-2.6h-.2a1.9 1.9 0 1 1 0-3.7h.1a1.5 1.5 0 0 0 1-2.6l-.1-.1a1.9 1.9 0 1 1 2.6-2.6l.1.1a1.5 1.5 0 0 0 1.7.3h.1a1.5 1.5 0 0 0 .9-1.4v-.2a1.9 1.9 0 0 1 3.7 0v.1a1.5 1.5 0 0 0 2.6 1l.1-.1a1.9 1.9 0 1 1 2.6 2.6l-.1.1a1.5 1.5 0 0 0 1 2.6h.2a1.9 1.9 0 0 1 0 3.7h-.1a1.5 1.5 0 0 0-1.4.9z'/>"
 };
-const ICO_BTN = {btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnRegistros:"registros",btnHistorico:"historico",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnFinanceiro:"financeiro",btnAnalise:"analise",btnRelLoja:"relLoja",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
+const ICO_BTN = {btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnFinanceiro:"financeiro",btnAnalise:"analise",btnRelLoja:"relLoja",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
 const ICO_GRP = {dia:"g_dia",analise:"g_analise",transp:"g_transp",org:"g_org",ajustes:"g_ajustes"};
 /* 🔑 cor por GRUPO, tirada da paleta do MIV (laranja da marca + verde e dourado Petrobras).
    Assim a cor diz de que familia e' o menu, em vez de ser arco-iris. */
@@ -5181,7 +5174,7 @@ function nomeAdm(e){ return (perfis[e] && perfis[e] !== e) ? (perfis[e] + " (" +
 function popularSelectsAdmin(emails){
   const st = document.getElementById("admSelAtiv");
   if (st){
-    st.innerHTML = '<option value="">\u2014 escolha um funcion\u00e1rio \u2014</option>' +
+    st.innerHTML = '<option value="">Todas as pessoas</option>' +
       emails.map(e => '<option value="' + escAttr(e) + '">' + escAttr(nomeAdm(e)) + '</option>').join("");
     if (admAtivSel && emails.indexOf(admAtivSel) >= 0) st.value = admAtivSel; else admAtivSel = "";
   }
@@ -5219,19 +5212,46 @@ function renderAtividadesFunc(){
   const sel = document.getElementById("admSelAtiv");
   admAtivSel = sel ? sel.value : "";
   const e = (admAtivSel || "").toLowerCase();
-  if (!e){ cont.innerHTML = '<p class="nota-dash">Selecione um funcionário para ver as atividades dele.</p>'; return; }
-  const lista = (historico || []).filter(h => String(h.usuario || "").toLowerCase() === e);
-  if (!lista.length){ cont.innerHTML = '<p class="nota-dash">Nenhuma atividade registrada deste funcionário na parte carregada. Traga registros mais antigos em ⬇️ no menu Histórico.</p>'; return; }
+  const todos = historico || [];
+  const lista = e ? todos.filter(h => String(h.usuario || "").toLowerCase() === e) : todos;
+
+  // ultima sincronizacao deste aparelho (v264 - veio do menu Historico)
+  const elS = document.getElementById("infoUltimaSync2");
+  if (elS) elS.textContent = ultimaSync ? "Última sincronização: " + fmtDataHora(ultimaSync) : "Ainda não sincronizado";
+
+  // enquanto a nuvem nao respondeu a tela nao afirma nada (v248)
+  const contador = document.getElementById("contadorHist");
+  const btnMais = document.getElementById("btnMaisHist");
+  if (!nuvemPronta && !todos.length){
+    if (contador) contador.textContent = "";
+    if (btnMais) btnMais.style.display = "none";
+    cont.innerHTML = esqueletoLinhas(5, 1);
+    return;
+  }
+
+  if (contador) contador.textContent = e
+    ? (lista.length + " de " + todos.length + " alterações")
+    : (todos.length + " alterações carregadas");
+  if (btnMais) btnMais.style.display = todoHistoricoCarregado ? "none" : "";
+
+  if (!lista.length){
+    cont.innerHTML = todos.length
+      ? '<div class="hist-vazio">Nenhuma alteração desta pessoa na parte carregada. Tente “Carregar alterações mais antigas”.</div>'
+      : '<div class="hist-vazio">Nenhuma modificação registrada ainda. As próximas aparecerão aqui.</div>';
+    return;
+  }
+
   const rotulo = { criou:"criou", editou:"editou", excluiu:"excluiu", desfez:"desfez", adicionou:"adicionou", removeu:"removeu", alterou:"alterou", enviou:"enviou", concluiu:"concluiu" };
   cont.innerHTML = lista.map(h => {
     const quando = h.quando && h.quando.toDate ? fmtDataHora(h.quando.toDate()) : "agora";
     const acao = rotulo[h.acao] || h.acao || "";
     const area = h.area ? '<span class="ativ-area">' + escAttr(h.area) + '</span> ' : '';
+    const quem = e ? '' : '<span class="quem">' + escAttr(nomeExibHist(h)) + '</span>';   // so' quando sao varias pessoas
     const conf = confirmarExclAtiv === h.id;
     let botoes = '';
     if (podeDesfazer(h)) botoes += '<button class="btn-claro" onclick="desfazerHistorico(\'' + h.id + '\')">Desfazer</button>';
     botoes += '<button class="btn-claro' + (conf ? ' confirmar' : '') + '" onclick="excluirAtividade(\'' + h.id + '\')">' + (conf ? '✓ excluir?' : '🗑 Excluir') + '</button>';
-    return '<div class="hist-item"><span class="resumo">' + area + '<span class="acao-' + (h.acao || "") + '"> ' + escAttr(acao) + ' </span>' + (h.resumo || "") + '</span><span class="quando">' + quando + '</span>' + botoes + '</div>';
+    return '<div class="hist-item"><span class="resumo">' + area + quem + '<span class="acao-' + (h.acao || "") + '"> ' + escAttr(acao) + ' </span>' + (h.resumo || "") + '</span><span class="quando">' + quando + '</span>' + botoes + '</div>';
   }).join("");
 }
 
@@ -5463,6 +5483,11 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v264", data:"06/08/2026", tit:"O Histórico virou a aba Atividades do Painel Administrativo", itens:[
+    {t:"n", h:"Histórico e Atividades viraram uma tela só", d:"Dentro do Painel Administrativo, na aba 📜 Atividades, agora dá para ver <b>todas as pessoas</b> de uma vez ou filtrar por uma; o contador de alterações e o botão de carregar as mais antigas vieram junto."},
+    {t:"m", h:"O menu Histórico saiu da barra", d:"Ele mostrava o mesmo que a aba Atividades. A barra do Dia a dia ficou mais curta e o registro de quem fez o quê passou a ser só do administrador."},
+    {t:"m", h:"O botão de reenviar lançamentos mudou de casa", d:"O ☁️ Enviar lançamentos para a nuvem, que existia dentro do Histórico, agora fica nessa mesma aba — é a garantia de quem editou algo sem internet."}
+  ]},
   {v:"v263", data:"06/08/2026", tit:"O menu Lançamentos virou Custos e preços", itens:[
     {t:"n",h:"Acabaram os lançamentos manuais de combustível",d:"O app busca o preço de compra e o frete da última nota de entrada do Petros e os preços de venda do cadastro do posto, sozinho, todo dia de manhã. Ninguém precisa mais lançar quando chega carga nova — basta dar entrada na nota no Petros, como sempre."},
     {t:"n",h:"A tela agora é de conferência",d:"O menu mostra, por posto e produto, o preço de compra, o frete, os preços de venda à vista e a prazo e as duas margens já calculadas — e diz de que nota e de que dia veio cada linha."},
@@ -6093,8 +6118,8 @@ function salvarMeuNome(){
         btn.disabled = true;
         setTimeout(()=>{ btn.textContent = txtOrig; btn.disabled = false; }, 1600);
       }
-      const p = document.getElementById("painelHistorico");
-      if (p && p.classList.contains("aberto")) renderHistorico();
+      const pa = document.getElementById("painelAdmin");
+      if (pa && pa.classList.contains("aberto")) renderAtividadesFunc();
     })
     .catch(()=>{
       if (btn){ btn.textContent = "Erro ao salvar"; setTimeout(()=>{ btn.textContent = "Salvar"; }, 2000); }
@@ -6167,8 +6192,6 @@ function iniciarSync(){
     if (cn && document.activeElement !== cn) cn.value = nomeUsuario;
     const cn2 = document.getElementById("contaNome");
     if (cn2 && document.activeElement !== cn2) cn2.value = nomeUsuario;
-    const ph = document.getElementById("painelHistorico");
-    if (ph && ph.classList.contains("aberto")) renderHistorico();
   }, ()=>{});
 
   // Presença — quem está online (sinal de vida a cada ~1 min; online = visto há < 2,5 min)
@@ -6835,7 +6858,7 @@ function excluir(i){
 
 /* ================== Salvar / Carregar / Exportar ================== */
 // Painéis que ocupam a página; só um fica aberto por vez
-const PAINEIS = ["painelRegistros","painelDash","painelResumoDia","painelHistorico","painelSimular","painelDescontos","painelPuxadas","painelCotacoes","painelInfleet","painelIfood","painelPedido","painelRelPosto","painelRelLoja","painelDespesas","painelFinanceiro","painelRelPetros","painelAnalise","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin","painelNovidades"];
+const PAINEIS = ["painelRegistros","painelDash","painelResumoDia","painelSimular","painelDescontos","painelPuxadas","painelCotacoes","painelInfleet","painelIfood","painelPedido","painelRelPosto","painelRelLoja","painelDespesas","painelFinanceiro","painelRelPetros","painelAnalise","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin","painelNovidades"];
 function fecharTodosPaineis(exceto){
   PAINEIS.forEach(id => {
     const el = document.getElementById(id);
@@ -6844,8 +6867,6 @@ function fecharTodosPaineis(exceto){
   // Atualiza o destaque dos botões correspondentes
   document.getElementById("btnRegistros").classList.toggle("ativo",
     document.getElementById("painelRegistros").classList.contains("aberto"));
-  const bh = document.getElementById("btnHistorico");
-  if (bh) bh.classList.toggle("ativo", document.getElementById("painelHistorico").classList.contains("aberto"));
   const bcta = document.getElementById("btnConta");
   if (bcta) bcta.classList.toggle("ativo", document.getElementById("painelConta").classList.contains("aberto"));
   const bc = document.getElementById("btnConfig");
@@ -6937,7 +6958,6 @@ const MENUS_APP = [
   {key:"dash",        btn:"btnDash",        pan:"painelDash",        emp:"postos|conv|transp", nome:"Dashboard"},   // v198 Conveniencia, v203 Transportadora
   {key:"resumoDia",   btn:"btnResumoDia",   pan:"painelResumoDia",   emp:"postos|conv", nome:"Resumo do dia"},
   {key:"registros",   btn:"btnRegistros",   pan:"painelRegistros",   emp:"postos", nome:"Custos e preços"},   /* v263 */
-  {key:"historico",   btn:"btnHistorico",   pan:"painelHistorico",   emp:"postos", nome:"Histórico"},
   {key:"simular",     btn:"btnSimular",     pan:"painelSimular",     emp:"postos", nome:"Simular Margens"},
   {key:"descontos",   btn:"btnDescontos",   pan:"painelDescontos",   emp:"postos", nome:"Descontos"},
   {key:"relPosto",    btn:"btnRelPosto",    pan:"painelRelPosto",    emp:"postos|conv", nome:"Relatórios"},
@@ -6969,7 +6989,7 @@ const MENUS_APP = [
    enquanto o Tiago nao mexer. O que ele mudar mora em config/ordemMenus. */
 const GRUPOS_MENU = [
   {key:"soltos",  nome:"",               icone:"",       itens:["dash"]},
-  {key:"dia",     nome:"Dia a dia",      icone:"\ud83d\udd01", itens:["resumoDia","registros","historico","descontos","simular"]},
+  {key:"dia",     nome:"Dia a dia",      icone:"\ud83d\udd01", itens:["resumoDia","registros","descontos","simular"]},
   {key:"analise", nome:"Análise",        icone:"\ud83d\udcca", itens:["relPosto","financeiro","analise","relLoja","ifood"]},
   {key:"transp",  nome:"Transportadora", icone:"\ud83d\ude9a", itens:["infleet","pedido","cotacoes","puxadas"]},
   {key:"org",     nome:"Organização",    icone:"\ud83d\udcc1", itens:["calendario","vencimentos","caixa"]},   /* v251 - o 🗂 ninguem reconhecia */
@@ -7920,20 +7940,12 @@ function atualizarBotaoRegistros(){
   document.getElementById("btnRegistros").classList.toggle("ativo", aberto);
 }
 
-/* ================== Histórico de modificações ================== */
-function alternarHistorico(){
-  const aberto = abrirPainelExclusivo("painelHistorico");
-  document.getElementById("btnHistorico").classList.toggle("ativo", aberto);
-  if (aberto) renderHistorico();
-}
-
+/* ================== Histórico de modificações (v264: mora na aba Atividades do Painel Administrativo) ================== */
 function assinarHistorico(){
   if (escutaHistorico){ escutaHistorico(); escutaHistorico = null; }
   escutaHistorico = colHistorico.orderBy("quando", "desc").limit(limiteHistorico).onSnapshot(snap => {
     historico = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     todoHistoricoCarregado = snap.size < limiteHistorico;   // veio menos que o limite = acabou
-    const p = document.getElementById("painelHistorico");
-    if (p && p.classList.contains("aberto")) renderHistorico();
     const pa = document.getElementById("painelAdmin");
     if (pa && pa.classList.contains("aberto")) renderAtividadesFunc();
   }, ()=>{});
@@ -7945,63 +7957,9 @@ function verMaisHistorico(){
   assinarHistorico();
 }
 
-function renderHistorico(){
-  const el = document.getElementById("infoUltimaSync2");
-  if (el) el.textContent = ultimaSync ? "Última sincronização: " + fmtDataHora(ultimaSync) : "Ainda não sincronizado";
-
-  const alvo = document.getElementById("listaHistorico");
-  const btnMais = document.getElementById("btnMaisHist");
-  const contador = document.getElementById("contadorHist");
-
-  // Nome de exibição de cada alteração (nome amigável ou e-mail)
-  const nomeExib = h => (nomeDe(h.usuario) !== h.usuario ? nomeDe(h.usuario) : (h.usuarioNome || h.usuario || "—"));
-
-  // ---- Popular o filtro de usuário (preservando a seleção atual) ----
-  const selUser = document.getElementById("fHistUsuario");
-  if (selUser){
-    const atual = selUser.value || "Todos";
-    const mapa = {};                       // e-mail -> nome de exibição
-    historico.forEach(h => { const em = h.usuario || "—"; mapa[em] = nomeExib(h); });
-    const emails = Object.keys(mapa).sort((a,b) => mapa[a].localeCompare(mapa[b]));
-    selUser.innerHTML = ['<option value="Todos">Todos os usuários</option>']
-      .concat(emails.map(em => `<option value="${em}">${mapa[em]}</option>`)).join("");
-    selUser.value = [...selUser.options].some(o => o.value === atual) ? atual : "Todos";
-  }
-  const filtroUser = selUser ? selUser.value : "Todos";
-  const lista = (filtroUser && filtroUser !== "Todos")
-    ? historico.filter(h => (h.usuario || "—") === filtroUser)
-    : historico;
-
-  // ---- Contador ----
-  if (contador){
-    contador.textContent = (filtroUser && filtroUser !== "Todos")
-      ? `${lista.length} de ${historico.length} alterações`
-      : `${historico.length} alterações carregadas`;
-  }
-
-  // ---- Botão "carregar mais" (só quando ainda há registros antigos na nuvem) ----
-  if (btnMais) btnMais.style.display = todoHistoricoCarregado ? "none" : "";
-
-  if (!lista.length){
-    alvo.innerHTML = historico.length
-      ? '<div class="hist-vazio">Nenhuma alteração deste usuário na parte carregada. Tente “Carregar alterações mais antigas”.</div>'
-      : '<div class="hist-vazio">Nenhuma modificação registrada ainda. As próximas alterações aparecerão aqui.</div>';
-    return;
-  }
-  const rotulo = { criou:"criou", editou:"editou", excluiu:"excluiu", desfez:"desfez" };
-  alvo.innerHTML = lista.map(h => {
-    const quando = h.quando && h.quando.toDate ? fmtDataHora(h.quando.toDate()) : "agora";
-    const acao = rotulo[h.acao] || h.acao;
-    return `<div class="hist-item">
-      <span class="resumo">
-        <span class="quem">${nomeExib(h)}</span>
-        <span class="acao-${h.acao}"> ${acao} </span>
-        ${h.resumo || ""}
-      </span>
-      <span class="quando">${quando}</span>
-      <button onclick="desfazerHistorico('${h.id}')">Desfazer</button>
-    </div>`;
-  }).join("");
+/* Nome amigavel de quem fez a alteracao (v264 - era interno do renderHistorico) */
+function nomeExibHist(h){
+  return (nomeDe(h.usuario) !== h.usuario) ? nomeDe(h.usuario) : (h.usuarioNome || h.usuario || "—");
 }
 
 function desfazerHistorico(idHist){
@@ -17545,7 +17503,7 @@ function renderDashboard(){
 // Identifica qual painel está aberto na tela
 // Barrinha "Exportar PDF / Imprimir" no topo de cada menu de conteúdo (v113 — saiu da barra lateral)
 function instalarFerramentasPaineis(){
-  const alvos = ["painelDash","painelRegistros","painelHistorico","painelSimular","painelDescontos",
+  const alvos = ["painelDash","painelRegistros","painelSimular","painelDescontos",
                  "painelCotacoes","painelPuxadas","painelAvisos","painelCalendario","painelVencimentos",
                  "painelConvVendas","painelConvCompras"];
   alvos.forEach(id => {
@@ -17563,7 +17521,6 @@ function painelVisivelInfo(){
   const mapa = [
     ["painelRegistros", "Lançamentos", "lancamentos"],
     ["painelDash",      "Dashboard",   "dashboard"],
-    ["painelHistorico", "Histórico",   "historico"],
     ["painelSimular",   "Simular Margens", "simulacao"],
     ["painelDescontos", "Descontos",   "descontos"],
     ["painelPuxadas",   "Puxadas",     "puxadas"],
