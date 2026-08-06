@@ -5498,6 +5498,10 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v268", data:"06/08/2026", tit:"Os avisos do Petros dizem de qual unidade s\u00e3o e de quando", itens:[
+    {t:"m", h:"Cada aviso agora tem dono e hora", d:"Antes aparecia s\u00f3 a frase do Petros, e n\u00e3o dava para saber de qual loja era nem se ainda valia. Agora cada linha come\u00e7a com a unidade (\u201cLoja - Pres Dutra\u201d) e diz h\u00e1 quanto tempo o Petros est\u00e1 reclamando \u2014 <b>agora</b>, <b>h\u00e1 20 min</b>, <b>h\u00e1 3 horas</b>."},
+    {t:"c", h:"Por que o Petros mostra \u201cErros: 0\u201d e o app mostra o aviso", d:"S\u00e3o coisas diferentes: a tela de Monitoramento da Replica\u00e7\u00e3o conta s\u00f3 os <b>erros</b>, e esses avisos s\u00e3o do tipo <b>mensagem</b> \u2014 eles n\u00e3o impedem a venda de chegar. Os dois est\u00e3o certos ao mesmo tempo."}
+  ]},
   {v:"v267", data:"06/08/2026", tit:"A troca de \u00f3leo aparece com o nome dela", itens:[
     {t:"m", h:"\u201cTroca de \u00f3leo - Caxias\u201d", d:"O computador da troca de \u00f3leo aparecia como um segundo \u201cPosto - Caxias\u201d, com o nome da m\u00e1quina numa linha cinza embaixo para diferenciar. Agora ele tem nome pr\u00f3prio e a lista deixou de ter duas linhas parecidas."}
   ]},
@@ -12577,6 +12581,25 @@ const FRC_ORDEM_UN = { "Teresina":1, "Caxias":2, "Pres Dutra":3, "Dutra":3 };
 /* v267 - a troca de oleo tem nome proprio. Ela fica DENTRO do posto de Caxias e o ERP a
    cadastra como terminal da mesma empresa, entao ela chegava aqui como um segundo
    "Posto - Caxias". Nao e' o posto: e' outro negocio no mesmo endereco. */
+/* v268 - ha quanto tempo o Petros esta dizendo isso.
+   ⚠️ O ERP devolve "AAAA-MM-DD HH:MM:SS" SEM fuso, na hora de Fortaleza. Trocar o espaco por
+   "T" faz o JS ler como hora local - que e' a hora de quem esta olhando a tela. Se um dia
+   alguem abrir o app de outro fuso, ESTA linha e' a que passa a mentir. */
+function frcIdadeMin(t){
+  const txt = String(t || "").trim().replace(" ", "T");
+  if (!txt) return null;
+  const d = new Date(txt);
+  if (isNaN(d.getTime())) return null;
+  return Math.max(0, Math.round((Date.now() - d.getTime()) / 60000));
+}
+function frcQuantoFaz(min){
+  if (min === null) return "";
+  if (min <= 1) return "agora";
+  if (min < 60) return "h\u00e1 " + min + " min";
+  const h = Math.round(min / 60);
+  return "h\u00e1 " + h + (h === 1 ? " hora" : " horas");
+}
+
 function frcEhTrocaOleo(x){
   return /TROCA DE [\u00d3O]LEO/i.test(String(x.nome || x.terminal || ""));
 }
@@ -12814,9 +12837,16 @@ function renderFrcCard(){
   }
   const leves = s.mensagens.filter(m => m && !m.grave);
   if (leves.length){
+    /* 🔴 DE QUEM e' e DE QUANDO e'. Sem isso, o aviso obriga a pessoa a ir conferir em outro
+       sistema para saber se ainda vale - e a resposta la' e' confusa, porque a lista do Petros
+       so' conta "Erros" e estes sao "Mensagem". */
     h += '<div class="frc-lista"><span class="frc-lista-tit">Avisos do Petros (n\u00e3o impedem a venda)</span>' +
-      leves.map(m => '<div class="frc-it"><span class="frc-it-d">' + escAttr(m.detalhe || "") + '</span></div>').join("") +
-      '</div>';
+      leves.map(m => {
+        const q = frcQuantoFaz(frcIdadeMin(m.quando));
+        return '<div class="frc-it"><span class="frc-it-p">' + escAttr(frcRotuloUnidade(m)) + '</span>' +
+               (q ? '<span class="frc-un-ok">' + q + '</span>' : '') +
+               '<span class="frc-it-d">' + escAttr(m.detalhe || "") + '</span></div>';
+      }).join("") + '</div>';
   }
   corpo.innerHTML = h;
 }
