@@ -2257,6 +2257,9 @@
   .sim-dif .val{font-size:1rem;font-weight:700;font-variant-numeric:tabular-nums;color:#18a558}
   .sim-dif .val.neg{color:#c0392b}
   /* v261 - o selo que diz que o numero veio do ERP, nao da mao de ninguem */
+  /* v262 - a linha que diz de onde vieram os graficos do Dashboard */
+  .dash-fonte{margin:6px 0 2px;font-size:.8rem;color:var(--cinza)}
+  .dash-fonte b{color:var(--txt);font-weight:600}
   .sim-selo-fonte{
     display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;
     font-size:.68rem;font-weight:600;background:rgba(24,165,88,.16);color:#18a558}
@@ -2929,12 +2932,13 @@
       <div id="filtrosSlotDash"></div>
       <div class="dash-toggles">
         <span class="dash-toggles-rot">Mostrar:</span>
-        <label class="dash-check"><input type="checkbox" id="chkVerCusto" onchange="renderDashboard()"> Evolução do preço de compra</label>
-        <label class="dash-check"><input type="checkbox" id="chkVerMargem" onchange="renderDashboard()"> Evolução da margem - valor</label>
-        <label class="dash-check"><input type="checkbox" id="chkVerMargemPct" onchange="renderDashboard()"> Evolução da margem - percentual</label>
+        <label class="dash-check"><input type="checkbox" id="chkVerCusto" onchange="dashSalvarChecks(); renderDashboard()"> Evolução do preço de compra</label>
+        <label class="dash-check"><input type="checkbox" id="chkVerMargem" onchange="dashSalvarChecks(); renderDashboard()"> Evolução da margem - valor</label>
+        <label class="dash-check"><input type="checkbox" id="chkVerMargemPct" onchange="dashSalvarChecks(); renderDashboard()"> Evolução da margem - percentual</label>
       </div>
+      <div class="dash-fonte" id="dashFonte"></div>
       <div id="conteudoDash"></div>
-      <p class="nota-dash">Para cada combustível, gráficos lado a lado: <b>Evolução do preço de compra</b>, <b>Evolução da margem - valor</b> (em R$) e <b>Evolução da margem - percentual</b> (em %). A margem usa preço de compra, custo do frete e preço de venda dos lançamentos. Cada ponto é a média na data, respeitando os filtros de Data, Posto e Forma. No preço de compra, vermelho = subiu (ruim); nas margens, verde = subiu (bom). Use as caixas "Mostrar" para exibir só os gráficos que quiser.</p>
+      <p class="nota-dash">Para cada combustível, gráficos lado a lado: <b>Evolução do preço de compra</b>, <b>Evolução da margem - valor</b> (em R$) e <b>Evolução da margem - percentual</b> (em %). A margem usa preço de compra, custo do frete e preço de venda — que vêm das notas de compra do Petros, coletadas todo dia (e dos lançamentos manuais, se a coleta não tiver rodado). Cada ponto é a média na data, respeitando os filtros de Data, Posto e Forma. No preço de compra, vermelho = subiu (ruim); nas margens, verde = subiu (bom). Use as caixas "Mostrar" para exibir só os gráficos que quiser.</p>
     </div>
 
     <div class="grupo" id="dashGrpFrota">
@@ -3310,6 +3314,10 @@ const docPrecosVenda = db.collection("config").doc("precosVenda"); // preço de 
    Formato: { postos: { "Teresina": { "Gasolina Comum": {custo, frete, dia, nota, litros} } },
               atualizadoEm, por }. Documento AUSENTE = o app segue no lançamento manual. */
 const docCustosCompra = db.collection("config").doc("custosCompra");
+/* v262 - a SERIE DIARIA que o coletor monta: um documento por mes,
+   custosDiarios/{AAAA-MM} = { mes, dias: { "AAAA-MM-DD": { posto: { comb: {c,f,v,vp} } } } }.
+   c = custo · f = frete/L · v = venda a' vista · vp = venda a prazo. */
+const colCustosDiarios = db.collection("custosDiarios");
 const docTransportadora = db.collection("config").doc("transportadora"); // cadastro de motoristas/caminhões da Full Transportadora
 const colPuxadas = db.collection("puxadas");                      // registro de puxadas da Full Transportadora
 const colDescontos = db.collection("descontos");                  // descontos dados aos clientes (Postos Full)
@@ -3515,6 +3523,9 @@ let precosVenda = { porPosto: {}, porPostoPrazo: {}, atualizadoEm: "", por: "", 
 let escutaPrecosVenda = null;
 let escutaCustosCompra = null;                                              /* v261 */
 let custosCompra = { postos: {}, atualizadoEm: "", por: "" };               /* v261 */
+let escutaCustosDiarios = null;                                             /* v262 */
+let custosDiarios = {};              /* {"AAAA-MM": {dias:{…}}} */          /* v262 */
+let linhasBancoCache = null;         /* memoria da conversao para linhas */ /* v262 */
 let clientes = { porPosto: {} };       // clientes por posto (cadastro do Descontos)
 let escutaClientes = null;
 let puxadas = [];                  // [{id, data, motoristaId, motorista, caminhao, distribuidora, valorNotas, valorFrete, fretePorLitro, litros}]
@@ -4035,6 +4046,7 @@ function aoMudarLogin(usuario){
     if (escutaDescontosMes){ escutaDescontosMes(); escutaDescontosMes = null; }
     if (escutaPrecosVenda){ escutaPrecosVenda(); escutaPrecosVenda = null; }
     if (escutaCustosCompra){ escutaCustosCompra(); escutaCustosCompra = null; }   /* v261 */
+    if (escutaCustosDiarios){ escutaCustosDiarios(); escutaCustosDiarios = null; }   /* v262 */
     if (escutaClientes){ escutaClientes(); escutaClientes = null; }
     if (escutaConvVendas){ escutaConvVendas(); escutaConvVendas = null; }
     if (escutaConvVendasMes){ escutaConvVendasMes(); escutaConvVendasMes = null; }
@@ -5420,6 +5432,12 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v262", data:"06/08/2026", tit:"Os gráficos do Dashboard não dependem mais de lançamento manual", itens:[
+    {t:"n",h:"Evolução do preço de compra e das margens vem do Petros",d:"Os três gráficos passam a ser montados com o custo da nota de compra, o frete da carga e o preço de venda cadastrado — dia a dia, direto do banco do Petros, sem ninguém digitar. O histórico foi carregado desde 1º de janeiro de 2026."},
+    {t:"m",h:"A linha ficou contínua",d:"Antes só existia ponto no dia em que alguém fazia um lançamento, e o gráfico ficava picotado. Agora existe ponto em todo dia, porque custo e preço existem todo dia, mesmo quando não chega carga nova."},
+    {t:"m",h:"A tela diz de onde veio",d:"Uma linha acima dos gráficos mostra se os números vieram das notas do Petros (e de quando) ou dos lançamentos digitados."},
+    {t:"c",h:"Os gráficos param de nascer desligados",d:"As três caixas “Mostrar” vinham desmarcadas toda vez que o Dashboard abria, e o bloco só dizia “Marque ao menos um gráfico”. Agora eles já abrem ligados, e o app lembra o que você escolheu ver."}
+  ]},
   {v:"v261", data:"05/08/2026", tit:"O preço de compra passa a vir do Petros, sozinho", itens:[
     {t:"n",h:"O custo e o frete vêm da nota de compra",d:"O Simular Margens agora usa o preço de compra da última nota de entrada lançada no Petros, e o frete da carga. A tela mostra o número da nota e o dia, com o selo “direto do Petros”. Enquanto a coleta automática não estiver ligada, tudo continua vindo do lançamento manual, como antes."},
     {t:"m",h:"O lançamento manual vira reserva",d:"Se um produto ainda não tiver nota de compra no banco, a tela cai no último lançamento do menu Lançamentos e diz isso. Nenhuma tela fica sem número por causa da troca."}
@@ -6409,6 +6427,16 @@ function iniciarSync(){
     if (pcv && pcv.classList.contains("aberto")) renderPrecosVenda();
     const pdv = document.getElementById("painelDescontos");
     if (pdv && pdv.classList.contains("aberto")) autofillValorL();
+  }, ()=>{});
+
+  /* v262 - a serie diaria de custo, frete e preco (a que alimenta os graficos) */
+  escutaCustosDiarios = colCustosDiarios.onSnapshot(snap => {
+    const novo = {};
+    snap.forEach(doc => { novo[doc.id] = doc.data() || {}; });
+    custosDiarios = novo;
+    linhasBancoCache = null;                       // o cache morre quando o dado muda
+    const pd = document.getElementById("painelDash");
+    if (pd && pd.classList.contains("aberto")) renderDashboard();
   }, ()=>{});
 
   /* v261 - o custo que veio do Petros pelo coletor do VPS */
@@ -16237,13 +16265,63 @@ function inicializarDatasFiltro(){
   fim.value = `${ano}-${mes}-${String(hoje.getDate()).padStart(2,"0")}`;
 }
 
+/* ===================== v262 - DE ONDE VEM A SERIE DOS GRAFICOS =====================
+   Ate' a v261 os tres graficos liam `registros` (os lancamentos digitados a mao). Agora leem
+   a serie que o coletor monta do Petros, e so' caem nos lancamentos se a serie nao existir.
+
+   🔑 A conversao devolve linhas com a MESMA FORMA de um lancamento
+   ({data, posto, combustivel, forma, custo, frete, venda}), entao `dadosDashboard` e
+   `dadosDashboardMargem` continuam do jeito que estavam - inclusive os filtros de Data,
+   Posto, Forma e Combustivel. Trocar a fonte nao pode significar reescrever a tela.
+
+   🔑 DUAS linhas por dia/produto (A' Vista e Prazo), como a equipe lancava a mao: e' o que
+   faz o filtro "Forma" continuar querendo dizer a mesma coisa.
+
+   ⚠️ O nome do produto volta para o do filtro: em Teresina a serie traz "Diesel S10 Grid"
+   (o nome do cadastro de precos), mas o filtro do Dashboard usa OPCOES.combustivel, onde
+   ele se chama "Diesel S10". Sem esta volta, Teresina sumiria do grafico do S10. */
+const DASH_COMB_VOLTA = { "Diesel S10 Grid": "Diesel S10" };
+
+function linhasDoBanco(){
+  if (linhasBancoCache) return linhasBancoCache;
+  const saida = [];
+  Object.keys(custosDiarios).sort().forEach(mes => {
+    const dias = (custosDiarios[mes] || {}).dias || {};
+    Object.keys(dias).forEach(data => {
+      const postos = dias[data] || {};
+      Object.keys(postos).forEach(posto => {
+        const prods = postos[posto] || {};
+        Object.keys(prods).forEach(nome => {
+          const x = prods[nome] || {};
+          const comb = DASH_COMB_VOLTA[nome] || nome;
+          const custo = +x.c, frete = isFinite(+x.f) ? +x.f : 0;
+          if (!isFinite(custo) || custo <= 0) return;
+          if (isFinite(+x.v) && +x.v > 0)
+            saida.push({ data, posto, combustivel: comb, forma: "Á Vista", custo, frete, venda: +x.v });
+          if (isFinite(+x.vp) && +x.vp > 0)
+            saida.push({ data, posto, combustivel: comb, forma: "Prazo", custo, frete, venda: +x.vp });
+        });
+      });
+    });
+  });
+  linhasBancoCache = saida;
+  return saida;
+}
+
+/* A serie do banco quando ela existe; os lancamentos quando nao existe. */
+function fonteDoDash(){
+  const doBanco = linhasDoBanco();
+  if (doBanco.length) return { linhas: doBanco, fonte: "banco" };
+  return { linhas: Array.isArray(registros) ? registros : [], fonte: "lancamento" };
+}
+
 function dadosDashboard(comb){
   const dIni = document.getElementById("fDataIni").value;
   const dFim = document.getElementById("fDataFim").value;
   const posto = document.getElementById("fPosto").value;
   const forma = document.getElementById("fForma").value;
   const porData = {};
-  registros.forEach(r => {
+  fonteDoDash().linhas.forEach(r => {                                    /* v262 */
     if (r.combustivel !== comb) return;
     if (dIni && r.data < dIni) return;
     if (dFim && r.data > dFim) return;
@@ -16265,7 +16343,7 @@ function dadosDashboardMargem(comb){
   const posto = document.getElementById("fPosto").value;
   const forma = document.getElementById("fForma").value;
   const porData = {};
-  registros.forEach(r => {
+  fonteDoDash().linhas.forEach(r => {                                    /* v262 */
     if (r.combustivel !== comb) return;
     if (dIni && r.data < dIni) return;
     if (dFim && r.data > dFim) return;
@@ -17243,7 +17321,38 @@ function renderDashConvIfood(){
   box.innerHTML = h;
 }
 
+/* v262 - OS TRES GRAFICOS LEMBRAM A ESCOLHA (e nascem ligados).
+   Ate' aqui as tres caixas "Mostrar" nasciam DESMARCADAS e a escolha nao era guardada:
+   toda vez que alguem abria o Dashboard, o bloco dizia "Marque ao menos um grafico" e a
+   pessoa tinha de marcar de novo. Agora a escolha vive em localStorage, por aparelho, e
+   quem nunca escolheu comeca com os tres ligados - que e' o unico estado em que o bloco
+   mostra alguma coisa sozinho.
+   🔑 Grafico que nasce desligado e' grafico que ninguem ve'. */
+const DASH_CHK = "pf_dash_graficos";
+let dashChecksProntos = false;
+
+function dashSalvarChecks(){
+  try {
+    localStorage.setItem(DASH_CHK, JSON.stringify({
+      custo:  !!(document.getElementById("chkVerCusto")||{}).checked,
+      margem: !!(document.getElementById("chkVerMargem")||{}).checked,
+      pct:    !!(document.getElementById("chkVerMargemPct")||{}).checked
+    }));
+  } catch(e){}
+}
+
+function dashRestaurarChecks(){
+  if (dashChecksProntos) return;
+  dashChecksProntos = true;
+  let s = null;
+  try { s = JSON.parse(localStorage.getItem(DASH_CHK) || "null"); } catch(e){}
+  if (!s) s = { custo: true, margem: true, pct: true };      // nunca escolheu: liga tudo
+  const por = (id, v) => { const e = document.getElementById(id); if (e) e.checked = !!v; };
+  por("chkVerCusto", s.custo); por("chkVerMargem", s.margem); por("chkVerMargemPct", s.pct);
+}
+
 function renderDashboard(){
+  dashRestaurarChecks();                     // v262
   ajustarBlocosDash();                       // v198
   if (dashEhTransp()){ renderDashTransp(); return; }   // v203 - nao tem Petros nem Caixas
   // Vendas do dia (Petros) - primeira coisa do Dashboard, nas duas empresas
@@ -17263,6 +17372,21 @@ function renderDashboard(){
   if (!verCusto && !verMargem && !verMargemPct){
     alvo.innerHTML = '<div class="dash-vazio">Marque ao menos um gráfico em “Mostrar” acima.</div>';
     return;
+  }
+
+  /* v262 - de onde vieram estes graficos, escrito na tela */
+  const boxFonte = document.getElementById("dashFonte");
+  if (boxFonte){
+    const f = fonteDoDash();
+    if (f.fonte === "banco"){
+      const meses = Object.keys(custosDiarios).sort();
+      const quando = meses.length ? (custosDiarios[meses[meses.length-1]] || {}).atualizadoEm : "";
+      boxFonte.innerHTML = '📡 Custo, frete e preço de venda vêm das <b>notas de compra do Petros</b>' +
+        (quando ? ' — atualizado em ' + fmtQuandoLocal(quando) : '') + '.';
+    } else {
+      boxFonte.innerHTML = '📋 Custo, frete e preço de venda vêm dos <b>lançamentos digitados</b> ' +
+        'no menu Lançamentos (a coleta automática ainda não gravou nada).';
+    }
   }
 
   let saida = "";
