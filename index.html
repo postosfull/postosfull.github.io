@@ -3702,8 +3702,15 @@ function registrarTokenSePermitido(){
   }).catch(()=>{});
 }
 
-/* E-mails com acesso ao painel de usuários */
-const ADMINS = ["tiago.z5@gmail.com"];
+/* Quem e administrador  (v269 - 06/08/2026)
+   ANTES esta lista trazia o e-mail do dono escrito aqui dentro. Como o app e um
+   HTML publico no GitHub Pages, esse e-mail aparecia no codigo-fonte para
+   qualquer visitante -- rendia spam e entregava de graca quem e o alvo a atacar.
+   AGORA a lista nasce vazia de proposito. Quem e admin vem do Firestore, em
+   config/permissoes.porUsuario[email].admin -- que `ehAdminEmail()` ja consulta
+   desde a v216, e que so um admin consegue escrever (regra publicada em 06/08).
+   NAO volte a por e-mail aqui: o painel da admin sem precisar publicar versao. */
+const ADMINS = [];
 
 const ERROS_AUTH = {
   "auth/invalid-credential": "E-mail ou senha incorretos.",
@@ -3962,7 +3969,7 @@ function aplicarTema(tema, salvar=true){
 }
 
 /* ===================== v250 - QUEM ESTA LOGADO, NA TELA =====================
-   Ate aqui a barra de cima mostrava o e-mail cru ("tiago.z5@gmail.com") e a barra lateral
+   Ate aqui a barra de cima mostrava o e-mail cru ("fulano@exemplo.com") e a barra lateral
    nao dizia nada sobre a pessoa. Desenho vindo do Concept Hub: sauda\u00e7\u00e3o em cima, e no pe da
    barra o avatar com a inicial + nome + fun\u00e7\u00e3o.
 
