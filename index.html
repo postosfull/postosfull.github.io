@@ -2213,6 +2213,8 @@
     background-image:linear-gradient(rgba(24,165,88,.12),rgba(24,165,88,.12))}
   .frc-sug{flex:1 1 100%;color:var(--cinza);font-size:.72rem;line-height:1.4}
   .frc-sug b{color:var(--txt)}
+  /* v266 - o nome do computador, quando duas linhas teriam o mesmo rotulo */
+  .frc-un-ext{flex:1 1 100%;color:var(--cinza);font-size:.68rem}
   .frc-pe{border-top:1px solid var(--borda);padding:9px 14px;font-size:.72rem;color:var(--cinza);line-height:1.45}
   @media (max-width:900px){ .frc-txt{display:none} .frc-selo{width:34px;padding:0;justify-content:center;gap:0} }
   @media (max-width:560px){ .frc-selo{width:30px;height:32px} .frc-card{top:54px;right:8px;left:8px;width:auto} }
@@ -5496,6 +5498,10 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v266", data:"06/08/2026", tit:"A lista de unidades diz se \u00e9 o posto ou a loja", itens:[
+    {t:"m", h:"\u201cPosto - Teresina\u201d e \u201cLoja - Teresina\u201d", d:"No cart\u00e3o de sincroniza\u00e7\u00e3o, cada linha agora diz se \u00e9 o posto ou a loja, em vez de mostrar s\u00f3 a cidade. E a ordem passou a ser os tr\u00eas postos primeiro, depois as tr\u00eas lojas."},
+    {t:"c", h:"Caxias aparecia duas vezes", d:"Caxias tem <b>dois computadores</b> enviando dados \u2014 o do posto e o servidor da troca de \u00f3leo. Os dois apareciam como \u201cCaxias\u201d, com hor\u00e1rios diferentes, e a lista parecia se contradizer. Agora o segundo mostra o nome do computador ao lado."}
+  ]},
   {v:"v265", data:"06/08/2026", tit:"O selo do topo passa a avisar quando uma unidade para de enviar dados", itens:[
     {t:"c", h:"O selo ficava verde com uma unidade parada", d:"Ele olhava s\u00f3 se a sincroniza\u00e7\u00e3o do computador tinha rodado \u2014 n\u00e3o se o dado tinha chegado. Em 06/08 o posto de Teresina ficou nove horas sem enviar venda e o selo dizia <b>Dados de hoje</b> o tempo todo. Agora ele fica <b>vermelho</b> quando alguma unidade para, mesmo com o resto tudo certo."},
     {t:"n", h:"O card diz qual unidade parou e como resolver", d:"Clicando no selo, aparece a unidade, h\u00e1 quanto tempo ela n\u00e3o envia, e a <b>frase de corre\u00e7\u00e3o escrita pelo pr\u00f3prio Petros</b> \u2014 por exemplo: \u201cExiste um movimento aberto do usu\u00e1rio X que impede a sincroniza\u00e7\u00e3o. Fechar os devidos caixas em aberto.\u201d"},
@@ -12560,6 +12566,43 @@ function frcHora(iso){
    👉 A pergunta certa nao e' "o passo rodou" - e' "o numero na minha frente e' de agora?".
    Por isso o `frcEstado` virou duas funcoes: a de sempre (a rotina) e a de fora, que junta a
    sincronizacao das unidades por cima e MANDA na cor. */
+/* v266 - O ROTULO DE CADA UNIDADE.
+   Pedido do Tiago: "Posto - Teresina" e "Loja - Teresina" em vez de so' a cidade. A cidade
+   sozinha obrigava a pessoa a lembrar de cor qual linha era o posto e qual era a loja. */
+const FRC_ORDEM_UN = { "Teresina":1, "Caxias":2, "Pres Dutra":3, "Dutra":3 };
+
+function frcRotuloUnidade(x){
+  const pref = x.emp === "postos" ? "Posto - " : x.emp === "conv" ? "Loja - " : "";
+  return pref + (x.un || x.terminal || "");
+}
+
+/* 🔴 CAXIAS TEM DOIS TERMINAIS VIVOS: o posto e o servidor da troca de oleo. Os dois viram
+   "Posto - Caxias", com horarios diferentes, e a lista parece se contradizer. Quando o rotulo
+   repete, o repetido ganha o nome do computador ao lado.
+   👉 O RECADO da Caixa de entrada ja fazia isso desde o comeco; o card nao. Conserto aplicado
+   num lugar nao se aplica sozinho no outro. */
+function frcRotulosUnidades(lista){
+  const conta = {};
+  lista.forEach(t => { const r = frcRotuloUnidade(t); conta[r] = (conta[r] || 0) + 1; });
+  return lista.map(t => {
+    const r = frcRotuloUnidade(t);
+    if (conta[r] < 2) return { t: t, rot: r, extra: "" };
+    /* o que sobra do nome do terminal depois da primeira parte e' justamente o que os separa.
+       🔴 Quando nao sobra nada, o extra fica VAZIO - o terminal principal e' o sem etiqueta.
+       Nao se poe o id do banco aqui: a FOTO mostrou um "2" solto embaixo de "Posto - Caxias",
+       e numero de banco nao e' nome de computador para quem le. */
+    const partes = String(t.nome || "").split(" - ");
+    return { t: t, rot: r, extra: partes.length > 1 ? partes.slice(1).join(" - ") : "" };
+  });
+}
+
+/* postos primeiro, depois lojas, e dentro de cada um Teresina, Caxias, Pres Dutra.
+   Antes vinha na ordem do ERP (id da empresa), que mistura os dois. */
+function frcOrdenaUnidades(lista){
+  const peso = e => (e.emp === "postos" ? 0 : e.emp === "conv" ? 10 : 20) + (FRC_ORDEM_UN[e.un] || 9);
+  return lista.slice().sort((a, b) => peso(a) - peso(b));
+}
+
 function frcSinc(){
   const out = { problemas: [], terminais: [], mensagens: [], atualizadoEm: "" };
   if (sincDoc){
@@ -12595,7 +12638,7 @@ function frcEstado(){
     est.rotulo = s.problemas.length === 1 ? "1 unidade parada"
                                           : s.problemas.length + " unidades paradas";
     est.titulo = s.problemas.length === 1 ? "1 unidade parada" : s.problemas.length + " unidades paradas";
-    const quem = s.problemas.map(p => p.un || p.terminal || "").filter(Boolean);
+    const quem = s.problemas.map(p => frcRotuloUnidade(p)).filter(Boolean);
     est.frase = (quem.length ? quem.join(", ") + ": " : "") +
                 "os n\u00fameros dessa unidade est\u00e3o parados na \u00faltima atualiza\u00e7\u00e3o. " +
                 "As outras seguem normais.";
@@ -12734,7 +12777,7 @@ function renderFrcCard(){
                   : p.tipo === "desligada" ? "sincronização desligada"
                   :                          "não enviou hoje";
         const det = p.tipo === "erro" ? (p.texto || "") : "";
-        return '<div class="frc-it"><span class="frc-it-p">' + escAttr(p.un || p.terminal || "") + '</span>' +
+        return '<div class="frc-it"><span class="frc-it-p">' + escAttr(frcRotuloUnidade(p)) + '</span>' +
         '<span class="frc-it-e">' + rot + '</span>' +
         (det ? '<span class="frc-it-d">' + escAttr(det) + '</span>' : '') +
         /* 🔑 a frase de correcao e' do PROPRIO Petros - nao e' palpite do app */
@@ -12743,16 +12786,18 @@ function renderFrcCard(){
         (p.sugestao ? '<span class="frc-sug"><b>O que resolve:<\/b> ' + escAttr(p.sugestao) + '</span>' : '') +
         '</div>'; }).join("") + '</div>';
   }
-  const uns = s.terminais.filter(t => t && t.un);
+  const uns = frcOrdenaUnidades(s.terminais.filter(t => t && t.un));
   if (uns.length){
     h += '<div class="frc-lista"><span class="frc-lista-tit">Quando cada unidade enviou dado</span>' +
-      uns.map(t => {
+      frcRotulosUnidades(uns).map(x => {
+        const t = x.t;
         const m = (t.atrasoMin === null || t.atrasoMin === undefined) ? null : Number(t.atrasoMin);
         const txt = m === null ? "?" : (m <= 1 ? "agora" : "h\u00e1 " + m + " min");
         const mau = m !== null && m > 20;
-        return '<div class="frc-it"><span class="frc-it-p">' +
-               escAttr(t.un + (t.emp === "conv" ? " \u00b7 loja" : "")) + '</span>' +
-               '<span class="' + (mau ? "frc-it-e" : "frc-un-ok") + '">' + txt + '</span></div>';
+        return '<div class="frc-it"><span class="frc-it-p">' + escAttr(x.rot) + '</span>' +
+               '<span class="' + (mau ? "frc-it-e" : "frc-un-ok") + '">' + txt + '</span>' +
+               (x.extra ? '<span class="frc-un-ext">' + escAttr(x.extra) + '</span>' : '') +
+               '</div>';
       }).join("") + '</div>';
   }
   const leves = s.mensagens.filter(m => m && !m.grave);
