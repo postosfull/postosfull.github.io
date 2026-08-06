@@ -1,3 +1,8 @@
+/* 06/08/2026 - o commit da v268 (3af0d20) entrou no repositorio e o GitHub NAO criou build
+   nenhum para ele: as execucoes #169 e #170 foram as duas do commit da v267. Este comentario
+   existe para forcar uma execucao nova. Sintoma para reconhecer: o site serve a versao anterior,
+   o `git diff origin/main` esta vazio, e em /actions nao existe run com o sha do commit novo.
+   Conserto: um commit qualquer. Ver claude/publicacao-github-e-conflitos.md. */
 // Service worker — cache para funcionamento offline
 const CACHE = "postos-full-v268";
 const ARQUIVOS = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png", "./logo-full.png", "./logo-transportadora.png", "./logo-conveniencia.png", "./mr-full-joinha.png", "./favicon.ico", "./favicon-32.png", "./apple-touch-icon.png", "./svg2pdf.umd.min.js"];
