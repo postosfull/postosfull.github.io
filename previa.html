@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v266 — Postos Full (não é o app)</title>
+<title>PRÉVIA v267 — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -5498,6 +5498,9 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v267", data:"06/08/2026", tit:"A troca de \u00f3leo aparece com o nome dela", itens:[
+    {t:"m", h:"\u201cTroca de \u00f3leo - Caxias\u201d", d:"O computador da troca de \u00f3leo aparecia como um segundo \u201cPosto - Caxias\u201d, com o nome da m\u00e1quina numa linha cinza embaixo para diferenciar. Agora ele tem nome pr\u00f3prio e a lista deixou de ter duas linhas parecidas."}
+  ]},
   {v:"v266", data:"06/08/2026", tit:"A lista de unidades diz se \u00e9 o posto ou a loja", itens:[
     {t:"m", h:"\u201cPosto - Teresina\u201d e \u201cLoja - Teresina\u201d", d:"No cart\u00e3o de sincroniza\u00e7\u00e3o, cada linha agora diz se \u00e9 o posto ou a loja, em vez de mostrar s\u00f3 a cidade. E a ordem passou a ser os tr\u00eas postos primeiro, depois as tr\u00eas lojas."},
     {t:"c", h:"Caxias aparecia duas vezes", d:"Caxias tem <b>dois computadores</b> enviando dados \u2014 o do posto e o servidor da troca de \u00f3leo. Os dois apareciam como \u201cCaxias\u201d, com hor\u00e1rios diferentes, e a lista parecia se contradizer. Agora o segundo mostra o nome do computador ao lado."}
@@ -12571,7 +12574,14 @@ function frcHora(iso){
    sozinha obrigava a pessoa a lembrar de cor qual linha era o posto e qual era a loja. */
 const FRC_ORDEM_UN = { "Teresina":1, "Caxias":2, "Pres Dutra":3, "Dutra":3 };
 
+/* v267 - a troca de oleo tem nome proprio. Ela fica DENTRO do posto de Caxias e o ERP a
+   cadastra como terminal da mesma empresa, entao ela chegava aqui como um segundo
+   "Posto - Caxias". Nao e' o posto: e' outro negocio no mesmo endereco. */
+function frcEhTrocaOleo(x){
+  return /TROCA DE [\u00d3O]LEO/i.test(String(x.nome || x.terminal || ""));
+}
 function frcRotuloUnidade(x){
+  if (frcEhTrocaOleo(x)) return "Troca de \u00f3leo - " + (x.un || "");
   const pref = x.emp === "postos" ? "Posto - " : x.emp === "conv" ? "Loja - " : "";
   return pref + (x.un || x.terminal || "");
 }
@@ -12599,7 +12609,9 @@ function frcRotulosUnidades(lista){
 /* postos primeiro, depois lojas, e dentro de cada um Teresina, Caxias, Pres Dutra.
    Antes vinha na ordem do ERP (id da empresa), que mistura os dois. */
 function frcOrdenaUnidades(lista){
-  const peso = e => (e.emp === "postos" ? 0 : e.emp === "conv" ? 10 : 20) + (FRC_ORDEM_UN[e.un] || 9);
+  /* postos, depois lojas, e a troca de oleo por ultimo - ela e' a menor operacao das tres */
+  const peso = e => (frcEhTrocaOleo(e) ? 20 : e.emp === "postos" ? 0 : e.emp === "conv" ? 10 : 30) +
+                    (FRC_ORDEM_UN[e.un] || 9);
   return lista.slice().sort((a, b) => peso(a) - peso(b));
 }
 
