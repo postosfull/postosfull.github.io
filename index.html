@@ -2208,6 +2208,11 @@
   .frc-it-e{font-size:.68rem;font-weight:700;color:#c0392b;border-radius:999px;padding:1px 7px;
     background-image:linear-gradient(rgba(192,57,43,.12),rgba(192,57,43,.12))}
   .frc-it-d{color:var(--cinza);flex:1 1 100%}
+  /* v265 - a sincronizacao das unidades dentro do mesmo cartao */
+  .frc-un-ok{font-size:.68rem;font-weight:700;color:#18a558;border-radius:999px;padding:1px 7px;
+    background-image:linear-gradient(rgba(24,165,88,.12),rgba(24,165,88,.12))}
+  .frc-sug{flex:1 1 100%;color:var(--cinza);font-size:.72rem;line-height:1.4}
+  .frc-sug b{color:var(--txt)}
   .frc-pe{border-top:1px solid var(--borda);padding:9px 14px;font-size:.72rem;color:var(--cinza);line-height:1.45}
   @media (max-width:900px){ .frc-txt{display:none} .frc-selo{width:34px;padding:0;justify-content:center;gap:0} }
   @media (max-width:560px){ .frc-selo{width:30px;height:32px} .frc-card{top:54px;right:8px;left:8px;width:auto} }
@@ -3331,6 +3336,7 @@ const docPermissoes = db.collection("config").doc("permissoes"); // {porUsuario:
 const docPerfisAcesso = db.collection("config").doc("perfisAcesso"); // {perfis:{id:{nome,menus:{key:true}}}} — perfis de acesso a menus
 const docCotacoes = db.collection("config").doc("cotacoesDia");   // cotações do dia por distribuidora
 const docPetros = db.collection("config").doc("petrosResumo");    // resumo do Resultado no período (sistema Petros)
+const docSinc = db.collection("config").doc("sincronizacao");     // v265 — quem está enviando dado, e o que o Petros reclama
 const docAvisos = db.collection("config").doc("avisos");          // notificações vindas das agendas Google dos postos
 const docAvisosStatus = db.collection("config").doc("avisosStatus"); // marca de "concluído" das notificações (não é tocado pela sincronização)
 const docAlertas = db.collection("config").doc("alertas");        // limites dos alertas de cotação (usados pelo servidor)
@@ -3371,6 +3377,10 @@ let escutaRotina = null;
 let vistoRotina = false;    /* v249 - estado AUSENTE nao e' estado VAZIO: enquanto a nuvem nao
                                responde, o selo nao afirma nada */
 let frcCardAberto = false;
+/* v265 - o estado da sincronizacao das unidades, gravado pelo coletor do VPS de 5 em 5 min.
+   AUSENTE nao e' VAZIO: enquanto a nuvem nao responder, o selo nao afirma nada sobre isso. */
+let sincDoc = null;
+let vistoSinc = false;
 let frcTimer = null;
 const FRC_CORTE = 9;        /* a partir desta hora, dia util sem rodada vira problema (a rodada
                                completa e' as 7h30 na maquina 1 e as 8h na reserva) */
@@ -3507,6 +3517,7 @@ let cotDirty = false;              // (não usado — auto-save de volta)
 let cotEditando = {};              // {dist:{comb:true}} — campos em modo de edição (travados até Confirmar)
 let cotHistorico = {};             // último registro ANTERIOR de cada dist/comb {dist:{comb:{valor,data}}} p/ mostrar a variação
 let escutaPetros = null;
+let escutaSinc = null;   // v265
 let petrosResumo = null;           // resumo do Petros sincronizado da nuvem
 let escutaAvisos = null;
 let escutaAlertas = null;
@@ -4053,6 +4064,7 @@ function aoMudarLogin(usuario){
     if (escutaPerfisAcesso){ escutaPerfisAcesso(); escutaPerfisAcesso = null; }
     if (escutaCotacoes){ escutaCotacoes(); escutaCotacoes = null; }
     if (escutaPetros){ escutaPetros(); escutaPetros = null; }
+    if (escutaSinc){ escutaSinc(); escutaSinc = null; }   // v265
     if (escutaAvisos){ escutaAvisos(); escutaAvisos = null; }
     if (escutaAvisosStatus){ escutaAvisosStatus(); escutaAvisosStatus = null; }
     if (escutaAlertas){ escutaAlertas(); escutaAlertas = null; }
@@ -4063,6 +4075,7 @@ function aoMudarLogin(usuario){
     if (escutaRotina){ escutaRotina(); escutaRotina = null; }
     if (frcTimer){ clearInterval(frcTimer); frcTimer = null; }
     rotinaDias = {}; vistoRotina = false;   // v252
+    sincDoc = null; vistoSinc = false;      // v265
     if (escutaInfFrota){ escutaInfFrota(); escutaInfFrota = null; }
     if (escutaInfAbast){ escutaInfAbast(); escutaInfAbast = null; }
     if (escutaIfood){ escutaIfood(); escutaIfood = null; }
@@ -5483,6 +5496,11 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v265", data:"06/08/2026", tit:"O selo do topo passa a avisar quando uma unidade para de enviar dados", itens:[
+    {t:"c", h:"O selo ficava verde com uma unidade parada", d:"Ele olhava s\u00f3 se a sincroniza\u00e7\u00e3o do computador tinha rodado \u2014 n\u00e3o se o dado tinha chegado. Em 06/08 o posto de Teresina ficou nove horas sem enviar venda e o selo dizia <b>Dados de hoje</b> o tempo todo. Agora ele fica <b>vermelho</b> quando alguma unidade para, mesmo com o resto tudo certo."},
+    {t:"n", h:"O card diz qual unidade parou e como resolver", d:"Clicando no selo, aparece a unidade, h\u00e1 quanto tempo ela n\u00e3o envia, e a <b>frase de corre\u00e7\u00e3o escrita pelo pr\u00f3prio Petros</b> \u2014 por exemplo: \u201cExiste um movimento aberto do usu\u00e1rio X que impede a sincroniza\u00e7\u00e3o. Fechar os devidos caixas em aberto.\u201d"},
+    {t:"n", h:"D\u00e1 para ver quando cada posto e cada loja enviou dado pela \u00faltima vez", d:"As seis unidades aparecem no card com o tempo desde o \u00faltimo envio. Em dia normal todas dizem <b>agora</b>."}
+  ]},
   {v:"v264", data:"06/08/2026", tit:"O Histórico virou a aba Atividades do Painel Administrativo", itens:[
     {t:"n", h:"Histórico e Atividades viraram uma tela só", d:"Dentro do Painel Administrativo, na aba 📜 Atividades, agora dá para ver <b>todas as pessoas</b> de uma vez ou filtrar por uma; o contador de alterações e o botão de carregar as mais antigas vieram junto."},
     {t:"m", h:"O menu Histórico saiu da barra", d:"Ele mostrava o mesmo que a aba Atividades. A barra do Dia a dia ficou mais curta e o registro de quem fez o quê passou a ser só do administrador."},
@@ -6335,6 +6353,14 @@ function iniciarSync(){
     vistoRotina = true;
     atualizarSeloFrescor();
   }, ()=>{ vistoRotina = true; atualizarSeloFrescor(); });
+
+  /* v265 - quem esta enviando dado. Documento pequeno (7 terminais + as mensagens do ciclo),
+     reescrito de 5 em 5 minutos pelo coletor do VPS. */
+  escutaSinc = docSinc.onSnapshot(snap => {
+    sincDoc = snap.exists ? (snap.data() || null) : null;
+    vistoSinc = true;
+    atualizarSeloFrescor();
+  }, ()=>{ vistoSinc = true; atualizarSeloFrescor(); });
   /* o selo tambem envelhece sozinho: quem deixa a pagina aberta a manha inteira
      atravessa a hora de corte e a virada do dia */
   if (!frcTimer) frcTimer = setInterval(atualizarSeloFrescor, 5*60*1000);
@@ -12528,7 +12554,56 @@ function frcHora(iso){
   return p(d.getHours()) + "h" + p(d.getMinutes());
 }
 
+/* v265 - O QUE O SELO SABE, HOJE, EM TRES CAMADAS.
+   Ate a v264 ele respondia "a rotina rodou?". Em 06/08 isso o deixou VERDE por nove horas com
+   Teresina congelada: a rotina tinha rodado, o dado e' que nao tinha chegado.
+   👉 A pergunta certa nao e' "o passo rodou" - e' "o numero na minha frente e' de agora?".
+   Por isso o `frcEstado` virou duas funcoes: a de sempre (a rotina) e a de fora, que junta a
+   sincronizacao das unidades por cima e MANDA na cor. */
+function frcSinc(){
+  const out = { problemas: [], terminais: [], mensagens: [], atualizadoEm: "" };
+  if (sincDoc){
+    if (Array.isArray(sincDoc.problemas))  out.problemas = sincDoc.problemas.slice();
+    if (Array.isArray(sincDoc.terminais))  out.terminais = sincDoc.terminais;
+    if (Array.isArray(sincDoc.mensagens))  out.mensagens = sincDoc.mensagens;
+    out.atualizadoEm = sincDoc.atualizadoEm || "";
+  }
+  /* 🔑 SEGUNDA FONTE DA MESMA NOTICIA: o proprio painel Vendas do dia marca, desde 06/08, a
+     unidade que nao trouxe numero. Vale ate quando o coletor da sincronizacao esta fora do ar -
+     e vigia que depende de uma fonte so' e' vigia que dorme junto com ela. */
+  const sd = (petrosResumo && Array.isArray(petrosResumo.semDado)) ? petrosResumo.semDado : [];
+  sd.forEach(x => {
+    const un = String(x || "").split("/").pop();
+    if (!un) return;
+    if (out.problemas.some(p => p && p.un === un)) return;
+    out.problemas.push({ tipo:"semdado", un:un, texto:"n\u00e3o enviou os n\u00fameros de hoje" });
+  });
+  return out;
+}
+
 function frcEstado(){
+  const est = frcEstadoRotina();
+  const s = frcSinc();
+  est.sinc = s;
+  if (s.problemas.length && est.sabido){
+    /* 🔴 A unidade parada MANDA na cor. Rotina verde com unidade travada foi exatamente o que
+       escondeu o problema de 06/08 - e o selo verde e' pior que selo nenhum. */
+    est.cor = "mau";
+    /* 🔴 A FOTO mostrou a contradicao: bola vermelha ao lado da palavra "Atualizado 10h30".
+       Quando ha unidade parada, a pilula para de dar a hora e diz o que esta errado. */
+    est.lab = "";
+    est.rotulo = s.problemas.length === 1 ? "1 unidade parada"
+                                          : s.problemas.length + " unidades paradas";
+    est.titulo = s.problemas.length === 1 ? "1 unidade parada" : s.problemas.length + " unidades paradas";
+    const quem = s.problemas.map(p => p.un || p.terminal || "").filter(Boolean);
+    est.frase = (quem.length ? quem.join(", ") + ": " : "") +
+                "os n\u00fameros dessa unidade est\u00e3o parados na \u00faltima atualiza\u00e7\u00e3o. " +
+                "As outras seguem normais.";
+  }
+  return est;
+}
+
+function frcEstadoRotina(){
   const agora = new Date();
   const domingo = agora.getDay() === 0;
   const hora = agora.getHours();
@@ -12645,6 +12720,46 @@ function renderFrcCard(){
          (r.resultado ? ' \u2014 ' + escAttr(String(r.resultado)) : '') + '.</p>';
   } else if (e.deHoje){
     h += '<p class="frc-res">A m\u00e1quina reserva ainda n\u00e3o deu sinal hoje.</p>';
+  }
+
+  /* v265 - o que o PETROS esta dizendo sobre cada unidade */
+  const s = e.sinc || { problemas: [], terminais: [], mensagens: [] };
+  if (s.problemas.length){
+    h += '<div class="frc-lista"><span class="frc-lista-tit">Unidades que pararam de enviar</span>' +
+      s.problemas.map(p => {
+        /* 🔴 A FOTO de novo: a frase inteira do Petros dentro da pilula vermelha virava um muro
+           de vermelho. A etiqueta fica CURTA e o texto do ERP desce para a linha cinza. */
+        const rot = p.tipo === "erro"      ? "o Petros bloqueou"
+                  : p.tipo === "atraso"    ? ("há " + (p.minutos || "?") + " min sem enviar")
+                  : p.tipo === "desligada" ? "sincronização desligada"
+                  :                          "não enviou hoje";
+        const det = p.tipo === "erro" ? (p.texto || "") : "";
+        return '<div class="frc-it"><span class="frc-it-p">' + escAttr(p.un || p.terminal || "") + '</span>' +
+        '<span class="frc-it-e">' + rot + '</span>' +
+        (det ? '<span class="frc-it-d">' + escAttr(det) + '</span>' : '') +
+        /* 🔑 a frase de correcao e' do PROPRIO Petros - nao e' palpite do app */
+        /* 🔴 o "O que resolve" vai no HTML, NAO em ::before do CSS: texto gerado por CSS nao e'
+           copiavel, nao aparece no innerText e some de qualquer busca. Pego pela suite. */
+        (p.sugestao ? '<span class="frc-sug"><b>O que resolve:<\/b> ' + escAttr(p.sugestao) + '</span>' : '') +
+        '</div>'; }).join("") + '</div>';
+  }
+  const uns = s.terminais.filter(t => t && t.un);
+  if (uns.length){
+    h += '<div class="frc-lista"><span class="frc-lista-tit">Quando cada unidade enviou dado</span>' +
+      uns.map(t => {
+        const m = (t.atrasoMin === null || t.atrasoMin === undefined) ? null : Number(t.atrasoMin);
+        const txt = m === null ? "?" : (m <= 1 ? "agora" : "h\u00e1 " + m + " min");
+        const mau = m !== null && m > 20;
+        return '<div class="frc-it"><span class="frc-it-p">' +
+               escAttr(t.un + (t.emp === "conv" ? " \u00b7 loja" : "")) + '</span>' +
+               '<span class="' + (mau ? "frc-it-e" : "frc-un-ok") + '">' + txt + '</span></div>';
+      }).join("") + '</div>';
+  }
+  const leves = s.mensagens.filter(m => m && !m.grave);
+  if (leves.length){
+    h += '<div class="frc-lista"><span class="frc-lista-tit">Avisos do Petros (n\u00e3o impedem a venda)</span>' +
+      leves.map(m => '<div class="frc-it"><span class="frc-it-d">' + escAttr(m.detalhe || "") + '</span></div>').join("") +
+      '</div>';
   }
   corpo.innerHTML = h;
 }
