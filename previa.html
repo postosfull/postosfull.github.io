@@ -92,22 +92,9 @@
     --sombra-2:0 2px 6px rgba(44,36,28,.08), 0 14px 32px rgba(44,36,28,.13);
     --sombra-3:0 10px 26px rgba(44,36,28,.13), 0 28px 60px rgba(44,36,28,.18);
     --brilho-marca:0 0 0 3px rgba(var(--verde-rgb),.16);
-    /* v281b - A BARRA LATERAL SAI DO MIV, nao de um cinza inventado.
-       O manual (claude/miv-identidade-visual.md) tem quatro cores e tres grafismos com
-       nome. A barra usa: PRETO #000000 ("fundo das pecas escuras"), OFF-WHITE #DBDAD9
-       no texto, o LARANJA #FE7030 da marca nos grafismos, e os dois grafismos que o
-       manual mais repete - CIRCULOS EM EXPANSAO e FLUIDOS E LINHAS SINUOSAS.
-       ⚠️ O cinza #6D6D6D do manual e' de TEXTO SECUNDARIO no papel; em 11px sobre preto
-       ele da' 3,4:1 de contraste e nao se le'. Os titulos de grupo usam #9A9791, que e'
-       o mesmo cinza clareado ate' passar de 4,5:1. 🔑 Cor de manual impresso nao se
-       copia para tela sem medir contraste. */
-    --barra-1:#0E0E0E;   /* preto do manual, com um respiro no topo */
-    --barra-2:#000000;
-    --barra-3:#000000;
-    --barra-txt:#DBDAD9;
-    --barra-tit:#9A9791;
-    --barra-borda:#2A2A2A;
-    --barra-hover:rgba(255,255,255,.055);
+    /* v281e - A BARRA LATERAL FICOU COMO SEMPRE FOI (ver a camada de acabamento).
+       Os tokens --barra-* que existiram nas rodadas anteriores foram removidos: token
+       que nao e' lido por ninguem vira armadilha para quem ler o arquivo depois. */
     color-scheme:light;
   }
 
@@ -139,13 +126,6 @@
     --sombra-1:inset 0 1px 0 rgba(255,255,255,.035), 0 6px 18px rgba(0,0,0,.40);
     --sombra-2:inset 0 1px 0 rgba(255,255,255,.05), 0 12px 30px rgba(0,0,0,.50);
     --sombra-3:inset 0 1px 0 rgba(255,255,255,.06), 0 22px 54px rgba(0,0,0,.60);
-    /* a barra e' a MESMA nos dois temas */
-    --barra-1:#0E0E0E;
-    --barra-2:#000000;
-    --barra-3:#000000;
-    --barra-txt:#DBDAD9;
-    --barra-tit:#9A9791;
-    --barra-borda:#2A2A2A;
     color-scheme:dark;
   }
 
@@ -2511,73 +2491,46 @@
   body{ --miv-ponto:rgba(60,48,36,.075); --miv-halo:.055; }
   body.tema-escuro{ --miv-ponto:rgba(255,255,255,.040); --miv-halo:.115; }
 
-  /* ---------- 2. A BARRA LATERAL: escura nos dois temas ----------
-     🔑 O truque que faz isso caber em poucas linhas: em vez de reescrever as ~40
-     regras de dentro da barra, REDEFINIMOS AS VARIAVEIS no proprio .menu-lateral.
-     Variavel de CSS cascateia para os filhos, entao tudo que la' dentro usa
-     var(--txt), var(--cinza), var(--borda) ou var(--superficie-2) ja' acorda
-     escuro - inclusive o que for escrito no futuro. */
-  .menu-lateral{
-    --superficie:var(--barra-1);
-    --superficie-2:var(--barra-hover, rgba(255,255,255,.055));
-    --txt:var(--barra-txt);
-    --cinza:var(--barra-tit);
-    --borda:var(--barra-borda);
-    color:var(--barra-txt);
-    background-color:var(--barra-2);
-    /* 🔴 v281d - FUNDO LISO. NENHUMA TEXTURA, NENHUMA LINHA.
-       Duas tentativas caíram aqui antes desta:
-         1. as LINHAS SINUOSAS do MIV correndo pela barra - passavam por tras do texto
-            dos menus. Ele: "ficou ruim de ler os textos por conta das linhas onduladas".
-         2. os CIRCULOS EM EXPANSAO (a reticula de pontos), em preto, em grafite e em
-            off-white. Ele: "acho que patterns vao ficar meio infantis".
-       🔑 A conclusao que fica, e vale para qualquer tela deste app: em peca IMPRESSA o
-       grafismo preenche o vazio; em INTERFACE o vazio ja' tem dono - e' o que separa uma
-       linha da outra. Textura atras de lista de texto nao decora: compete.
-       👉 A vida da barra passou a vir do ITEM DE MENU (o "card"), nao do fundo. */
-    background-image:linear-gradient(180deg, var(--barra-1) 0%, var(--barra-2) 46%, var(--barra-3) 100%);
-    border-right:1px solid var(--barra-borda);
-    box-shadow:inset -14px 0 22px -18px rgba(0,0,0,.9);
+  /* ---------- 2. A BARRA LATERAL: COMO SEMPRE FOI, so' um tom mais escura no claro ----------
+     🔴 REGISTRO DE SETE TENTATIVAS QUE ELE RECUSOU, para ninguem repetir:
+       1. grafite inventado (sem abrir o manual);
+       2. preto do MIV + as LINHAS SINUOSAS na vertical -> "ficou ruim de ler os textos
+          dos menus por conta das linhas onduladas";
+       3-5. tres fundos com a reticula de CIRCULOS EM EXPANSAO (preto, grafite e
+          off-white) -> "acho que patterns vao ficar meio infantis";
+       6-7. quatro marcacoes de item sobre preto liso; ele chegou a escolher a pastilha
+          laranja cheia e, vendo no uso, voltou atras.
+     ✅ O QUE ELE ESCOLHEU NO FIM: "vamos manter a barra lateral do jeito que esta na
+     versao publicada mesmo" - ou seja, o desenho da v280, intocado. A UNICA mudanca:
+     "apenas no tema claro voce pode botar um tom um pouco mais escuro na barra lateral".
+
+     🔑 A licao, que vale mais que o CSS: a queixa era "claro demais", e a resposta certa
+     era UM TOM, nao um redesenho. Sete rodadas para descobrir que o problema tinha o
+     tamanho exato que ele tinha dito. 👉 Quando a queixa e' de GRAU, responda com grau.
+     🔑 E a outra: em peca impressa o grafismo preenche o vazio; em interface o vazio ja'
+     tem dono - e' o que separa uma linha da outra. Textura atras de lista de texto nao
+     decora: compete. */
+  /* 🔴 A reticula "tom sobre tom" da v250d CONTINUA - ela ja' estava no ar e faz parte do
+     "do jeito que esta". Aqui so' o TOM da base muda. Repetir a camada de pontos e'
+     obrigatorio: quem escreve `background-image` apaga a lista inteira da regra anterior. */
+  body:not(.tema-escuro) .menu-lateral{
+    background-color:#CFCDCA;
+    background-image:
+      radial-gradient(var(--miv-ponto) 1.15px, transparent 1.25px),
+      linear-gradient(180deg,#D6D4D1 0%,#CFCDCA 44%,#C7C5C2 100%);
+    background-size:19px 19px, auto;
+    border-right-color:#B8B6B2;
   }
-  /* o fio de luz laranja na beirada direita - e' o que tira a barra do "solido sem vida" */
-  .menu-lateral::after{
-    content:"";position:absolute;top:0;right:0;bottom:0;width:1px;pointer-events:none;
-    background-image:linear-gradient(180deg,
-      transparent 0%, rgba(var(--verde-rgb),.55) 14%, rgba(var(--verde-rgb),.18) 48%, transparent 92%);
-    opacity:.85;
+  body:not(.tema-escuro) .menu-lateral{ --superficie-2:#C2C0BC;--borda:#BAB8B4 }
+  body:not(.tema-escuro) .menu-lateral button:hover{
+    background-image:linear-gradient(rgba(0,0,0,.055), rgba(0,0,0,.055));
   }
-  .menu-lateral:hover{ box-shadow:6px 0 30px rgba(0,0,0,.42), inset -14px 0 22px -18px rgba(0,0,0,.9) }
-  /* ---- v281d - O ITEM DE MENU E' UM CARTAO (escolha do Tiago: opcao E) ----
-     🔑 A vida da barra vem DAQUI, nao do fundo. O fundo e' preto liso.
-     🔴 O `border-left:none` tira o trilho de 3px que existia desde a v243 - e ele fazia
-     parte do ALINHAMENTO: com a barra recolhida (62px) o icone ficava em 8+3+12. Agora
-     e' 10+12+12, e por isso o padding da barra e o do botao mudaram JUNTOS. Mexer em um
-     sem o outro entorta a fila de icones. */
-  .menu-lateral{ padding-left:10px;padding-right:10px }
-  .menu-lateral button{ color:var(--barra-txt);border-left:none;border-radius:10px;padding:10px 12px }
-  .menu-lateral button:hover{ background-image:linear-gradient(rgba(255,255,255,.06), rgba(255,255,255,.06)) }
-  .menu-lateral button.ativo{
-    color:#fff;
-    background-image:linear-gradient(135deg, var(--verde) 0%, #E4571A 100%);
-    box-shadow:0 5px 16px rgba(var(--verde-rgb),.34);
+  /* o menu aceso continua sendo o da v243 (trilho + luz) - so' o laranja precisa de mais
+     corpo para vencer o fundo cinza em vez do branco */
+  body:not(.tema-escuro) .menu-lateral button.ativo{
+    color:#B33F03;
+    background-image:linear-gradient(90deg, rgba(var(--verde-rgb),.30) 0%, rgba(var(--verde-rgb),.10) 55%, transparent 100%);
   }
-  .menu-lateral button.ativo .mi{ filter:none }
-  /* no tema de icones "vivo" a pastilha do icone tem de virar clara sobre o laranja cheio,
-     senao fica laranja sobre laranja e o desenho some */
-  body.ico-vivo .menu-lateral button.ativo .mi.mi-svg{
-    color:#fff;background-image:linear-gradient(rgba(255,255,255,.22), rgba(255,255,255,.22));
-  }
-  .menu-lateral .menu-grp-tit{ border-radius:10px;padding-left:12px }
-  .menu-lateral .menu-grp-tit{ color:var(--barra-tit) }
-  .menu-grp.tem-aceso > .menu-grp-tit{ border-left-color:transparent }
-  .menu-lateral .usr-nome{ color:var(--barra-txt) }
-  .menu-lateral .usr-fn{ color:var(--barra-tit) }
-  .menu-lateral .menu-sair{ color:#FF8A80 }
-  .menu-lateral::-webkit-scrollbar{width:8px}
-  .menu-lateral::-webkit-scrollbar-thumb{background-image:linear-gradient(rgba(255,255,255,.16),rgba(255,255,255,.16));border-radius:8px}
-  .menu-lateral::-webkit-scrollbar-track{background-image:linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.25))}
-  /* o mesmo vale para a gaveta do celular */
-  .menu-hamb{ color:var(--barra-txt) }
 
   /* ---------- 3. o cabecalho ---------- */
   header{
