@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v278 — Postos Full (não é o app)</title>
+<title>PRÉVIA v279 — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -2332,7 +2332,9 @@
   .tqv-posto{font-size:1rem;margin:16px 0 8px;display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
   .tqv-cnt{font-size:.8rem;font-weight:400;opacity:.75}
   .tqv-cnt-c{color:#e5484d}
-  .tqv-grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+  /* 🔑 card mais ESTREITO (pedido dele): com a porcentagem fora do desenho, o tanque nao
+     precisa mais de largura para caber um numero grande dentro. */
+  .tqv-grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:12px}
   .tqv-card{border:1px solid var(--borda);border-left-width:5px;border-radius:14px;padding:13px 15px 12px;
             background-image:linear-gradient(var(--superficie),var(--superficie))}
   .tqv-card.tqv-c{border-left-color:#e5484d}
@@ -2340,31 +2342,37 @@
   .tqv-card.tqv-t{border-left-color:#2fa46c}
   .tqv-card.tqv-nd{border-left-color:var(--borda)}
   /* --- o cabecalho: bolinha da cor do combustivel + nome do tanque + etiqueta do produto --- */
-  .tqv-top{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+  .tqv-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
   .tqv-pt{width:11px;height:11px;border-radius:50%;background:var(--tqcor);flex:0 0 auto}
-  .tqv-n{font-weight:700;font-size:1rem;flex:1 1 auto;min-width:0}
+  .tqv-n{font-weight:700;font-size:1rem;flex:1 0 auto;white-space:nowrap}
   .tqv-prod{font-size:.66rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
             border-radius:999px;padding:3px 9px;white-space:nowrap;
             color:var(--tqcor);border:1px solid var(--tqcor);
             background:color-mix(in srgb, var(--tqcor) 14%, transparent)}
   /* --- o desenho --- */
-  .tqv-des{width:100%;height:auto;display:block;margin:2px 0 2px}
-  .tqv-casco{fill:none;stroke:var(--borda);stroke-width:2.4}
-  .tqv-pe{fill:var(--borda);opacity:.75}
+  .tqv-des{width:100%;height:auto;display:block;margin:0 0 2px}
+  .tqv-casco{fill:none;stroke:var(--borda);stroke-width:2.6}
+  .tqv-vazio{fill:rgba(127,127,127,.14)}
+  /* ⚠️ a boca de visita tinha classe e NENHUMA regra ate' agora: sem regra, o `fill` do SVG e'
+     preto, e ela era invisivel no tema escuro. Classe sem regra some calada. */
+  .tqv-boca{fill:rgba(127,127,127,.22);stroke:var(--borda);stroke-width:2}
+  .tqv-pe{fill:rgba(127,127,127,.30);stroke:var(--borda);stroke-width:1.6;stroke-linejoin:round}
+  /* a regua e os compartimentos do desenho do Adaptive */
+  .tqv-det{fill:none;stroke:var(--borda);stroke-width:1.5;opacity:.8}
   /* 🔴 sem `fill` aqui: quem pinta e' o atributo do SVG, que aponta para o gradiente.
      Regra de CSS com `fill` venceria o atributo e o degrade sumiria sem erro nenhum. */
   .tqv-liq{opacity:.95}
   .tqv-g0{stop-color:var(--tqcor);stop-opacity:1}
   .tqv-g1{stop-color:var(--tqcor);stop-opacity:.86}
   .tqv-g2{stop-color:var(--tqcor);stop-opacity:.58}
-  .tqv-pctxt{font-size:34px;font-weight:800;fill:var(--txt);
-             stroke:var(--superficie);stroke-width:3.5;paint-order:stroke fill;
-             font-family:inherit;letter-spacing:-.5px}
   /* --- os litros --- */
-  .tqv-lit{display:flex;align-items:baseline;gap:5px;margin:4px 0 9px}
-  .tqv-lit b{font-size:1.32rem;font-weight:800;letter-spacing:-.5px}
-  .tqv-lit span{font-size:.8rem;opacity:.7}
-  .tqv-cap{margin-left:auto}
+  .tqv-lit{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin:6px 0 2px}
+  /* 🔑 percentual e volume no MESMO corpo (pedido dele). A cor do combustivel e' o que amarra a
+     porcentagem ao desenho, agora que ela saiu de dentro dele. */
+  .tqv-pctf{font-size:1.02rem;font-weight:800;letter-spacing:-.3px;color:var(--tqcor)}
+  .tqv-litros{font-size:1.02rem;font-weight:400;opacity:.9}
+  .tqv-litros b{font-weight:700;opacity:1}
+  .tqv-cap{font-size:.82rem;opacity:.7;margin-bottom:9px}
   /* --- a caixa "ESTOQUE DURA" --- */
   .tqv-cx{border:1px solid var(--borda);border-radius:11px;padding:9px 11px 10px}
   .tqv-cx.tqv-c{border-color:rgba(229,72,77,.45);background:rgba(229,72,77,.09)}
@@ -5694,9 +5702,14 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v279", data:"07/08/2026", tit:"O desenho do tanque ficou igual ao do sistema", itens:[
+    {t:"m", h:"O tanque agora \u00e9 desenhado como no Petros", d:"Cilindro deitado com boca de visita, a r\u00e9gua de medi\u00e7\u00e3o e os p\u00e9s \u2014 o mesmo desenho que voc\u00ea v\u00ea no sistema. O l\u00edquido sobe por dentro com um degrad\u00ea, na cor do combust\u00edvel: gasolina comum vermelha, aditivada e Podium \u00e2mbar, etanol verde, diesel S-10 azul, S-500 cinza."},
+    {t:"m", h:"A porcentagem saiu de dentro do tanque", d:"Ela foi para a linha de baixo, do lado do volume e no mesmo tamanho dele \u2014 s\u00e3o duas leituras do mesmo n\u00famero. Com o n\u00famero fora, o desenho fica limpo e os quadros ficaram <b>mais estreitos</b>, ent\u00e3o cabe mais tanque na mesma tela."},
+    {t:"m", h:"Est\u00e1 escrito o que cada n\u00famero \u00e9", d:"Agora aparece <b>Volume atual</b> e <b>Capacidade do tanque</b> por extenso, e a caixa passou a se chamar <b>Previs\u00e3o do estoque</b>. Os postos aparecem com o nome inteiro: Posto Full - Teresina, Posto Full - Caxias e Posto Full - Dutra."}
+  ]},
   {v:"v278", data:"07/08/2026", tit:"Nível dos tanques: quanto tem agora e quando acaba", itens:[
     {t:"n", h:"Menu novo: \ud83d\udee2\ufe0f Nível dos tanques", d:"No grupo <b>Dia a dia</b>. Mostra os 16 tanques dos três postos com o quanto tem <b>agora</b>, a porcentagem do tanque, a venda média por dia e, principalmente, <b>quando o estoque acaba</b> — com dia da semana e hora. A régua é crítico abaixo de 2 dias, atenção de 2 a 5 e tranquilo acima de 5. O número vem do Petros e chega sozinho, de hora em hora."},
-    {t:"n", h:"Cada tanque diz se foi MEDIDO ou CALCULADO", d:"Onde a sonda está enviando leitura, o tanque aparece como <b>medido</b>. Onde não está, o número é conta a partir da última contagem física, e o tanque aparece como <b>estimado</b> — ou <b>impreciso</b>, se essa contagem já tem mais de sete dias. Um aviso no topo da tela diz quantos estão assim e desde quando. Number aproximado que não se identifica é pior que número ausente."},
+    {t:"n", h:"Cada tanque diz se foi MEDIDO ou CALCULADO", d:"Onde a sonda está enviando leitura, o tanque aparece como <b>medido</b>. Onde não está, o número é conta a partir da última contagem física, e o tanque aparece como <b>estimado</b> — ou <b>impreciso</b>, se essa contagem já tem mais de sete dias. Um aviso no topo da tela diz quantos estão assim e desde quando. Número aproximado que não se identifica é pior que número ausente."},
     {t:"m", h:"A tela é diferente da aba \ud83d\udee2\ufe0f Tanques dos Relatórios", d:"A aba dos Relatórios continua respondendo <b>quanto se perdeu no mês</b>, que é fechamento. Esta responde <b>quanto tem agora</b>, que é decisão de compra. São duas perguntas diferentes, e por isso continuam em dois lugares."}
   ]},
   {v:"v277", data:"07/08/2026", tit:"Correção do aviso da versão anterior", itens:[
@@ -11473,6 +11486,12 @@ const TQV_COR = [
    Personalizar mostra o efeito NA HORA, sem gravar - e Cancelar volta tudo sem tocar no banco. */
 function tqvAj(){ return tqvEdit || tanquesAjustes || {}; }
 function tqvChaveProd(nome){ return String(nome || "").trim().toUpperCase(); }
+/* 🔴 O NOME NA TELA, e nao no dado. A chave continua "Teresina"/"Caxias"/"Dutra" — e' ela que o
+   coletor grava, que a ordem salva do admin guarda e que as outras telas usam. Trocar a CHAVE
+   obrigaria a mexer no coletor e na ordem ja salva.
+   🔑 Nome de tela e chave de dado sao coisas diferentes; quando viram a mesma, uma renomeacao
+      simples passa a mexer no banco. */
+function tqvNomePosto(nm){ return "Posto Full - " + String(nm || ""); }
 function tqvCorPadrao(nome){
   const n = String(nome || "");
   for (let i = 0; i < TQV_COR.length; i++) if (TQV_COR[i][0].test(n)) return TQV_COR[i][1];
@@ -11578,7 +11597,7 @@ function tqvCaixaPers(postos, nomes){
 
   h += '<div class="tqv-pers-bl"><b>Ordem dos postos</b><div class="tqv-pers-ord">';
   nomes.forEach((nm, i) => {
-    h += '<span class="tqv-pers-it">' + escAttr(nm) +
+    h += '<span class="tqv-pers-it">' + escAttr(tqvNomePosto(nm)) +
          '<button onclick="tqvMoverPosto(' + i + ',-1)"' + (i === 0 ? ' disabled' : '') + '>\u25b2</button>' +
          '<button onclick="tqvMoverPosto(' + i + ',1)"' + (i === nomes.length - 1 ? ' disabled' : '') + '>\u25bc</button></span>';
   });
@@ -11587,7 +11606,7 @@ function tqvCaixaPers(postos, nomes){
   h += '<div class="tqv-pers-bl"><b>Ordem dos tanques</b>';
   nomes.forEach(nm => {
     const ts = tqvOrdenar((postos[nm].tanques || []).map(t => String(t.n)), ed.ordemTanques[nm]);
-    h += '<div class="tqv-pers-ord"><i>' + escAttr(nm) + '</i>';
+    h += '<div class="tqv-pers-ord"><i>' + escAttr(tqvNomePosto(nm)) + '</i>';
     ts.forEach((n, i) => {
       h += '<span class="tqv-pers-it">TQ ' + escAttr(n) +
            '<button onclick="tqvMoverTanque(' + JSON.stringify(nm).replace(/"/g, "&quot;") + ',' + i + ',-1)"' + (i === 0 ? ' disabled' : '') + '>\u25b2</button>' +
@@ -11647,13 +11666,22 @@ function tqvDiasTexto(d){
    desenhado e' o de verdade, e nao o degrau mais proximo.
    ⚠️ O id do recorte tem de ser UNICO por card: dois `clipPath` com o mesmo id fazem o segundo
       tanque herdar o nivel do primeiro - e o erro e' silencioso, so' aparece na foto. */
+/* 🔴 O DESENHO, no molde do icone do proprio Adaptive (foto que ele mandou em 07/08):
+   capsula deitada, boca de visita em cima, a REGUA de medicao a esquerda, os COMPARTIMENTOS a
+   direita e dois pes com degrau. O liquido sobe por dentro, recortado pelo formato do tanque.
+   🔑 A porcentagem NAO fica mais dentro do desenho: la' ela disputava espaco com a regua e os
+      compartimentos, e obrigava o card a ser largo. Ela foi para a linha dos litros. */
 function tqvDesenho(pct, chave){
   const p = Math.max(0, Math.min(100, isFinite(pct) ? Number(pct) : 0)) / 100;
   const base = String(chave).replace(/[^A-Za-z0-9_]/g, "");
   const id = "tqvclip_" + base, gid = "tqvgrad_" + base;
-  const X = 4, Y = 4, L = 292, A = 96, R = 48;
+  const X = 8, Y = 14, L = 224, A = 82, R = 41;
   const y = Y + A * (1 - p);
-  return '<svg class="tqv-des" viewBox="0 0 300 120" role="img" aria-label="' +
+  let regua = '<path class="tqv-det" d="M104 26v60"/>';
+  for (let t = 30; t <= 84; t += 6) regua += '<path class="tqv-det" d="M104 ' + t + 'h9"/>';
+  const pes = '<path class="tqv-pe" d="M52 96h44v8H84v8H64v-8H52z"/>' +
+              '<path class="tqv-pe" d="M144 96h44v8h-12v8h-20v-8h-12z"/>';
+  return '<svg class="tqv-des" viewBox="0 0 240 124" role="img" aria-label="' +
       escAttr("tanque " + fmtBR(pct, 1) + "% cheio") + '">' +
       '<defs><clipPath id="' + id + '">' +
         '<rect x="' + X + '" y="' + Y + '" width="' + L + '" height="' + A + '" rx="' + R + '"/>' +
@@ -11663,17 +11691,16 @@ function tqvDesenho(pct, chave){
       '<linearGradient id="' + gid + '" x1="0" y1="0" x2="0" y2="1">' +
         '<stop class="tqv-g0" offset="0"/><stop class="tqv-g1" offset="0.5"/>' +
         '<stop class="tqv-g2" offset="1"/></linearGradient></defs>' +
+      pes +
+      '<rect class="tqv-boca" x="96" y="4" width="40" height="12" rx="3"/>' +
+      '<rect class="tqv-vazio" x="' + X + '" y="' + Y + '" width="' + L + '" height="' + A + '" rx="' + R + '"/>' +
       '<g clip-path="url(#' + id + ')">' +
         '<rect class="tqv-liq" fill="url(#' + gid + ')" x="' + X + '" y="' + y.toFixed(2) + '" width="' + L + '" height="' + (A * p + 0.6).toFixed(2) + '"/>' +
       '</g>' +
+      /* 🔑 regua e compartimentos vao DEPOIS do liquido: precisam continuar visiveis por cima
+         dele, senao o tanque cheio vira uma mancha lisa e perde a cara de tanque. */
+      regua +
       '<rect class="tqv-casco" x="' + X + '" y="' + Y + '" width="' + L + '" height="' + A + '" rx="' + R + '"/>' +
-      '<rect class="tqv-pe" x="40" y="100" width="16" height="13" rx="3"/>' +
-      '<rect class="tqv-pe" x="244" y="100" width="16" height="13" rx="3"/>' +
-      /* 🔑 o halo (`paint-order:stroke`) e' o que faz o numero continuar legivel por cima de
-         qualquer cor de liquido e nos DOIS temas - sem ele, branco some no claro e escuro
-         some no liquido. */
-      '<text class="tqv-pctxt" x="150" y="52" text-anchor="middle" dominant-baseline="central">' +
-        escAttr(fmtBR(pct, 1)) + '%</text>' +
     '</svg>';
 }
 
@@ -11711,7 +11738,7 @@ function renderTanquesNivel(){
   }));
   if (semSonda.length){
     const desde = semSonda.map(x => x.t.medidoEm).filter(Boolean).sort()[0] || "";
-    const quais = Array.from(new Set(semSonda.map(x => x.posto))).join(", ");
+    const quais = Array.from(new Set(semSonda.map(x => tqvNomePosto(x.posto)))).join(", ");
     h += '<div class="tqv-aviso"><b>\u26a0\ufe0f ' + semSonda.length + ' tanque(s) sem leitura de sonda chegando \u2014 ' + escAttr(quais) + '.</b> ' +
          'O n\u00famero deles n\u00e3o \u00e9 medi\u00e7\u00e3o: \u00e9 conta a partir da \u00faltima contagem f\u00edsica' +
          (desde ? ', de <b>' + escAttr(fmtQuandoLocal(desde) || desde) + '</b>' : '') +
@@ -11732,7 +11759,7 @@ function renderTanquesNivel(){
     const ordT = tqvOrdenar(brutos.map(t => String(t.n)), (tqvAj().ordemTanques || {})[nm]);
     const lista = ordT.map(n => brutos.find(t => String(t.n) === n)).filter(Boolean);
     const criticos = lista.filter(t => { const d = tqvDias(t.acabaEm); return d !== null && d < TQV_CRIT; }).length;
-    h += '<h3 class="tqv-posto">' + escAttr(nm) +
+    h += '<h3 class="tqv-posto">' + escAttr(tqvNomePosto(nm)) +
          ' <span class="tqv-cnt">' + lista.length + ' tanque' + (lista.length === 1 ? '' : 's') +
          (criticos ? ' \u00b7 <b class="tqv-cnt-c">' + criticos + ' cr\u00edtico' + (criticos === 1 ? '' : 's') + '</b>' : '') +
          '</span></h3><div class="tqv-grade">';
@@ -11753,10 +11780,16 @@ function renderTanquesNivel(){
                '<span class="tqv-prod">' + escAttr(t.produto || t.tanque || "") + '</span>' +
              '</div>' +
              tqvDesenho(pct, nm + "_" + t.n) +
-             '<div class="tqv-lit"><b>' + til + fmtLitros(t.litros) + '</b> <span>L</span>' +
-               '<span class="tqv-cap">de ' + fmtLitros(t.cap) + ' L</span></div>' +
+             /* 🔴 a porcentagem saiu de DENTRO do desenho (pedido dele em 07/08): la' dentro ela
+                disputava espaco com a regua e os compartimentos, e obrigava o card a ser largo. */
+             /* 🔴 a porcentagem fica FORA do desenho (escolha dele, depois de ver as duas opcoes
+                lado a lado) e no MESMO corpo do volume: sao duas leituras do mesmo numero, e uma
+                delas maior faria o olho achar que ela manda mais. */
+             '<div class="tqv-lit"><b class="tqv-pctf">' + fmtBR(pct, 1) + '%</b>' +
+               '<span class="tqv-litros">Volume atual: <b>' + til + fmtLitros(t.litros) + ' L</b></span></div>' +
+             '<div class="tqv-cap">Capacidade do tanque: ' + fmtLitros(t.cap) + ' L</div>' +
              '<div class="tqv-cx ' + fx + '">' +
-               '<div class="tqv-cx-tit">' + TQV_ICO[fx] + ' ESTOQUE DURA' + bul("tqDura") + '</div>' +
+               '<div class="tqv-cx-tit">' + TQV_ICO[fx] + ' PREVIS\u00c3O DO ESTOQUE' + bul("tqDura") + '</div>' +
                '<div class="tqv-dura"><b>' + tqvDiasTexto(d) + '</b>' +
                  (d !== null ? '<span>\ud83d\udcc5 dura at\u00e9 ' + escAttr(tqvQuando(t.acabaEm)) + '</span>'
                              : '<span>' + escAttr(selo[2]) + '</span>') + '</div>' +
