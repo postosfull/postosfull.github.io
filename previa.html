@@ -2547,14 +2547,29 @@
     opacity:.85;
   }
   .menu-lateral:hover{ box-shadow:6px 0 30px rgba(0,0,0,.42), inset -14px 0 22px -18px rgba(0,0,0,.9) }
-  .menu-lateral button{ color:var(--barra-txt);border-radius:0 9px 9px 0;padding-top:9px;padding-bottom:9px }
-  .menu-lateral button:hover{ background-image:linear-gradient(90deg, rgba(255,255,255,.075), rgba(255,255,255,.02) 70%, transparent) }
+  /* ---- v281d - O ITEM DE MENU E' UM CARTAO (escolha do Tiago: opcao E) ----
+     🔑 A vida da barra vem DAQUI, nao do fundo. O fundo e' preto liso.
+     🔴 O `border-left:none` tira o trilho de 3px que existia desde a v243 - e ele fazia
+     parte do ALINHAMENTO: com a barra recolhida (62px) o icone ficava em 8+3+12. Agora
+     e' 10+12+12, e por isso o padding da barra e o do botao mudaram JUNTOS. Mexer em um
+     sem o outro entorta a fila de icones. */
+  .menu-lateral{ padding-left:10px;padding-right:10px }
+  .menu-lateral button{ color:var(--barra-txt);border-left:none;border-radius:10px;padding:10px 12px }
+  .menu-lateral button:hover{ background-image:linear-gradient(rgba(255,255,255,.06), rgba(255,255,255,.06)) }
   .menu-lateral button.ativo{
-    color:#FFC9A6;border-left-color:var(--verde);
-    background-image:linear-gradient(90deg, rgba(var(--verde-rgb),.30) 0%, rgba(var(--verde-rgb),.10) 52%, transparent 100%);
-    box-shadow:inset 0 0 22px -6px rgba(var(--verde-rgb),.45);
+    color:#fff;
+    background-image:linear-gradient(135deg, var(--verde) 0%, #E4571A 100%);
+    box-shadow:0 5px 16px rgba(var(--verde-rgb),.34);
   }
+  .menu-lateral button.ativo .mi{ filter:none }
+  /* no tema de icones "vivo" a pastilha do icone tem de virar clara sobre o laranja cheio,
+     senao fica laranja sobre laranja e o desenho some */
+  body.ico-vivo .menu-lateral button.ativo .mi.mi-svg{
+    color:#fff;background-image:linear-gradient(rgba(255,255,255,.22), rgba(255,255,255,.22));
+  }
+  .menu-lateral .menu-grp-tit{ border-radius:10px;padding-left:12px }
   .menu-lateral .menu-grp-tit{ color:var(--barra-tit) }
+  .menu-grp.tem-aceso > .menu-grp-tit{ border-left-color:transparent }
   .menu-lateral .usr-nome{ color:var(--barra-txt) }
   .menu-lateral .usr-fn{ color:var(--barra-tit) }
   .menu-lateral .menu-sair{ color:#FF8A80 }
