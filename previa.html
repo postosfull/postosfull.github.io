@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v275 — Postos Full (não é o app)</title>
+<title>PRÉVIA v278 — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -2317,6 +2317,77 @@
   .sim-selo-fonte{
     display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;
     font-size:.68rem;font-weight:600;background:rgba(24,165,88,.16);color:#18a558}
+  /* ===== v278 - Nivel dos tanques =====
+     🔴 Este bloco fica no FIM da folha de proposito: `@media` nao ganha especificidade, entao
+        media query antiga venceria regra nova escrita antes dela. */
+  .tqv-pos{font-size:.86rem;opacity:.85;margin:2px 0 10px}
+  .tqv-velho{color:#c0392b;font-weight:600}
+  .tqv-aviso{border:1px solid #e0a106;border-left-width:4px;border-radius:10px;padding:10px 13px;
+             background:rgba(224,161,6,.10);font-size:.87rem;line-height:1.45;margin:0 0 12px}
+  .tqv-regua{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 14px;font-size:.8rem}
+  .tqv-rg{border-radius:999px;padding:3px 11px;border:1px solid var(--borda)}
+  .tqv-rg.tqv-c{background:rgba(229,72,77,.12);border-color:rgba(229,72,77,.45)}
+  .tqv-rg.tqv-a{background:rgba(224,161,6,.14);border-color:rgba(224,161,6,.5)}
+  .tqv-rg.tqv-t{background:rgba(47,164,108,.12);border-color:rgba(47,164,108,.45)}
+  .tqv-posto{font-size:1rem;margin:16px 0 8px;display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+  .tqv-cnt{font-size:.8rem;font-weight:400;opacity:.75}
+  .tqv-cnt-c{color:#e5484d}
+  .tqv-grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+  .tqv-card{border:1px solid var(--borda);border-left-width:5px;border-radius:14px;padding:13px 15px 12px;
+            background-image:linear-gradient(var(--superficie),var(--superficie))}
+  .tqv-card.tqv-c{border-left-color:#e5484d}
+  .tqv-card.tqv-a{border-left-color:#e0a106}
+  .tqv-card.tqv-t{border-left-color:#2fa46c}
+  .tqv-card.tqv-nd{border-left-color:var(--borda)}
+  /* --- o cabecalho: bolinha da cor do combustivel + nome do tanque + etiqueta do produto --- */
+  .tqv-top{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+  .tqv-pt{width:11px;height:11px;border-radius:50%;background:var(--tqcor);flex:0 0 auto}
+  .tqv-n{font-weight:700;font-size:1rem;flex:1 1 auto;min-width:0}
+  .tqv-prod{font-size:.66rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+            border-radius:999px;padding:3px 9px;white-space:nowrap;
+            color:var(--tqcor);border:1px solid var(--tqcor);
+            background:color-mix(in srgb, var(--tqcor) 14%, transparent)}
+  /* --- o desenho --- */
+  .tqv-des{width:100%;height:auto;display:block;margin:2px 0 2px}
+  .tqv-casco{fill:none;stroke:var(--borda);stroke-width:2.4}
+  .tqv-costura{fill:none;stroke:var(--borda);stroke-width:1.6;opacity:.5}
+  .tqv-pe{fill:var(--borda);opacity:.75}
+  .tqv-liq{fill:var(--tqcor);opacity:.9}
+  .tqv-pctxt{font-size:34px;font-weight:800;fill:var(--txt);
+             stroke:var(--superficie);stroke-width:3.5;paint-order:stroke fill;
+             font-family:inherit;letter-spacing:-.5px}
+  /* --- os litros --- */
+  .tqv-lit{display:flex;align-items:baseline;gap:5px;margin:4px 0 9px}
+  .tqv-lit b{font-size:1.32rem;font-weight:800;letter-spacing:-.5px}
+  .tqv-lit span{font-size:.8rem;opacity:.7}
+  .tqv-cap{margin-left:auto}
+  /* --- a caixa "ESTOQUE DURA" --- */
+  .tqv-cx{border:1px solid var(--borda);border-radius:11px;padding:9px 11px 10px}
+  .tqv-cx.tqv-c{border-color:rgba(229,72,77,.45);background:rgba(229,72,77,.09)}
+  .tqv-cx.tqv-a{border-color:rgba(224,161,6,.45);background:rgba(224,161,6,.09)}
+  .tqv-cx.tqv-t{border-color:rgba(47,164,108,.42);background:rgba(47,164,108,.08)}
+  .tqv-cx-tit{font-size:.68rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+              opacity:.85;margin-bottom:3px}
+  .tqv-cx.tqv-c .tqv-cx-tit{color:#e5484d}
+  .tqv-cx.tqv-a .tqv-cx-tit{color:#e0a106}
+  .tqv-cx.tqv-t .tqv-cx-tit{color:#2fa46c}
+  .tqv-dura{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .tqv-dura b{font-size:1.42rem;font-weight:800;line-height:1.15;letter-spacing:-.5px}
+  .tqv-dura span{font-size:.8rem;opacity:.8}
+  .tqv-card.tqv-c .tqv-dura b{color:#e5484d}
+  .tqv-card.tqv-a .tqv-dura b{color:#e0a106}
+  .tqv-card.tqv-t .tqv-dura b{color:#2fa46c}
+  /* --- o rodape do card --- */
+  .tqv-pe2{margin-top:9px;font-size:.78rem;opacity:.85;display:flex;flex-direction:column;gap:4px}
+  .tqv-pe2 b{font-weight:700;opacity:1}
+  .tqv-selo{font-size:.72rem;border-radius:999px;padding:2px 9px;border:1px solid var(--borda);
+            white-space:nowrap;cursor:help}
+  .tqv-selo.tqv-med{background:rgba(47,164,108,.14);border-color:rgba(47,164,108,.45)}
+  .tqv-selo.tqv-est{background:rgba(224,161,6,.14);border-color:rgba(224,161,6,.5)}
+  .tqv-selo.tqv-imp{background:rgba(224,161,6,.24);border-color:rgba(224,161,6,.8);font-weight:700}
+  .tqv-selo.tqv-sem{background:rgba(229,72,77,.16);border-color:rgba(229,72,77,.55);font-weight:700}
+  .tqv-rod{margin-top:14px}
+  @media (max-width:560px){ .tqv-grade{grid-template-columns:1fr} }
 </style>
 </head>
 <body>
@@ -2381,6 +2452,7 @@
     <div class="menu-grupos" id="menuGrupos">
       <button class="btn-claro" id="btnDash" onclick="alternarDash()"><span class="mi">📈</span><span class="mt">Dashboard</span></button>
       <button class="btn-claro" id="btnResumoDia" onclick="alternarResumoDia()"><span class="mi">📊</span><span class="mt">Resumo do dia</span></button>
+      <button class="btn-claro" id="btnTanquesNivel" onclick="alternarTanquesNivel()"><span class="mi">🛢️</span><span class="mt">Nível dos tanques</span></button>
       <button class="btn-claro" id="btnRegistros" onclick="alternarRegistros()"><span class="mi">📋</span><span class="mt">Custos e preços</span></button>
       <button class="btn-claro" id="btnDescontos" onclick="alternarDescontos()"><span class="mi">🏷️</span><span class="mt">Descontos</span></button>
       <button class="btn-claro" id="btnSimular" onclick="alternarSimular()"><span class="mi">💰</span><span class="mt">Simular Margens</span></button>
@@ -2848,6 +2920,20 @@
       <h2>📁 Documentos</h2>
       <p class="nota-dash">Tudo num lugar só: licenças, contratos, alvarás, CNH, certificados e qualquer outro arquivo da rede. O que tem data de vencimento aparece no sino e no calendário; o que não tem fica guardado aqui do mesmo jeito. Use a busca para achar por nome, tipo, unidade ou número.</p>
       <div id="conteudoVencimentos"></div>
+    </div>
+  </div>
+
+  <!-- ===== v278 - Nivel dos tanques =====
+       Le config/tanquesNivel, que o coletor `tanques.mjs` do VPS grava de hora em hora a partir
+       do endpoint obterTanque do Adaptive. 16 tanques nos tres postos.
+       🔴 A tela NAO calcula quantos dias faltam a partir de um numero gravado: ela subtrai a HORA
+          em que o tanque zera do relogio de AGORA. Numero relativo gravado no banco envelhece
+          sozinho - "1,3 dias" gravado as 6h esta' errado as 18h, e nada denuncia. -->
+  <div class="config" id="painelTanquesNivel">
+    <div class="grupo">
+      <h2>🛢️ Nível dos tanques</h2>
+      <p class="nota-dash">Quanto tem em cada tanque <b>agora</b>, e quando o estoque acaba se a venda continuar no ritmo das últimas semanas. Os números vêm do Petros e chegam sozinhos, de hora em hora.</p>
+      <div id="tqvBox"></div>
     </div>
   </div>
 
@@ -3399,6 +3485,11 @@ const docPrecosVenda = db.collection("config").doc("precosVenda"); // preço de 
    Formato: { postos: { "Teresina": { "Gasolina Comum": {custo, frete, dia, nota, litros} } },
               atualizadoEm, por }. Documento AUSENTE = o app segue no lançamento manual. */
 const docCustosCompra = db.collection("config").doc("custosCompra");
+/* v278 - o NIVEL DE AGORA dos tanques, gravado pelo coletor do VPS de hora em hora.
+   Formato: { postos: { "Teresina": { unidade, idEmpresa, tanques:[{n,produto,cap,litros,pct,
+   mediaDia,acabaEm,qualidade,medido,medidoEm,...}] } }, atualizadoEm, por }.
+   ⚠️ E' FOTO DE AGORA, sem historico - por isso mora em `config`, nao num documento de mes. */
+const docTanquesNivel = db.collection("config").doc("tanquesNivel");
 /* v262 - a SERIE DIARIA que o coletor monta: um documento por mes,
    custosDiarios/{AAAA-MM} = { mes, dias: { "AAAA-MM-DD": { posto: { comb: {c,f,v,vp} } } } }.
    c = custo · f = frete/L · v = venda a' vista · vp = venda a prazo. */
@@ -3612,6 +3703,9 @@ let escutaConvFornec = null, escutaConvProdutos = null;
 let precosVenda = { porPosto: {}, porPostoPrazo: {}, atualizadoEm: "", por: "", atualizadoPrazoEm: "", porPrazo: "" };  // à vista (Petros) + a prazo (manual)
 let escutaPrecosVenda = null;
 let escutaCustosCompra = null;                                              /* v261 */
+let escutaTanquesNivel = null;                                              /* v278 */
+/* null = ainda nao chegou (esqueleto). Objeto sem `postos` = documento ausente (vazio). */
+let tanquesNivel = null;                                                    /* v278 */
 let custosCompra = { postos: {}, atualizadoEm: "", por: "" };               /* v261 */
 let escutaCustosDiarios = null;                                             /* v262 */
 let custosDiarios = {};              /* {"AAAA-MM": {dias:{…}}} */          /* v262 */
@@ -3902,6 +3996,7 @@ const ICO_SVG = {
   usuarios:"<circle cx='9.2' cy='8.4' r='3.4'/><path d='M2.8 20a6.4 6.4 0 0 1 12.8 0'/><path d='M16.4 5.4a3.4 3.4 0 0 1 0 6.6M17.6 14.4a6.4 6.4 0 0 1 3.6 5.6'/>",
   novidades:"<path d='M12 3.4 14.4 8.6l5.7.7-4.2 4 1.1 5.6L12 16.2l-5 2.7 1.1-5.6-4.2-4 5.7-.7z'/>",
   ordenarMenus:"<path d='M4 20.2h4.2L20 8.4a2 2 0 0 0-2.8-2.8L5.4 17.4z'/><path d='M15.6 7 17 8.4'/>",
+  tanquesNivel:"<rect x='2.8' y='7.4' width='18.4' height='9.2' rx='2.6'/><path d='M2.8 13.4h18.4'/><path d='M6.6 7.4v9.2M11 7.4v9.2M15.4 7.4v9.2'/><path d='M5.2 19.2v1.4M18.8 19.2v1.4'/>",
   sair:"<path d='M9.6 20.4H5.4a1.8 1.8 0 0 1-1.8-1.8V5.4a1.8 1.8 0 0 1 1.8-1.8h4.2'/><path d='M15.4 16.6 20 12l-4.6-4.6M20 12H9.2'/>",
   g_dia:"<path d='M20.4 11.2a8.4 8.4 0 1 0-.6 4.4'/><path d='M20.6 5.6v5.6h-5.6'/>",
   g_analise:"<path d='M3.4 20.6h17.2'/><rect x='5' y='11' width='3.6' height='7'/><rect x='10.2' y='6.6' width='3.6' height='11.4'/><rect x='15.4' y='13.6' width='3.6' height='4.4'/>",
@@ -3910,7 +4005,7 @@ const ICO_SVG = {
   empresa:"<path d='M3.6 20.4h16.8'/><path d='M5.4 20.4V6.2L12 3.6l6.6 2.6v14.2'/><path d='M9.6 20.4v-4.4h4.8v4.4'/><path d='M9.4 9.2h1.2M13.4 9.2h1.2M9.4 12.6h1.2M13.4 12.6h1.2'/>",
   g_ajustes:"<circle cx='12' cy='12' r='3.1'/><path d='M19.1 14.6a1.5 1.5 0 0 0 .3 1.7l.1.1a1.9 1.9 0 1 1-2.6 2.6l-.1-.1a1.5 1.5 0 0 0-2.6 1v.2a1.9 1.9 0 0 1-3.7 0v-.1a1.5 1.5 0 0 0-2.6-1l-.1.1a1.9 1.9 0 1 1-2.6-2.6l.1-.1a1.5 1.5 0 0 0-1-2.6h-.2a1.9 1.9 0 1 1 0-3.7h.1a1.5 1.5 0 0 0 1-2.6l-.1-.1a1.9 1.9 0 1 1 2.6-2.6l.1.1a1.5 1.5 0 0 0 1.7.3h.1a1.5 1.5 0 0 0 .9-1.4v-.2a1.9 1.9 0 0 1 3.7 0v.1a1.5 1.5 0 0 0 2.6 1l.1-.1a1.9 1.9 0 1 1 2.6 2.6l-.1.1a1.5 1.5 0 0 0 1 2.6h.2a1.9 1.9 0 0 1 0 3.7h-.1a1.5 1.5 0 0 0-1.4.9z'/>"
 };
-const ICO_BTN = {btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnFinanceiro:"financeiro",btnAnalise:"analise",btnRelLoja:"relLoja",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
+const ICO_BTN = {btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnTanquesNivel:"tanquesNivel",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnFinanceiro:"financeiro",btnAnalise:"analise",btnRelLoja:"relLoja",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
 const ICO_GRP = {dia:"g_dia",analise:"g_analise",transp:"g_transp",org:"g_org",ajustes:"g_ajustes"};
 /* 🔑 cor por GRUPO, tirada da paleta do MIV (laranja da marca + verde e dourado Petrobras).
    Assim a cor diz de que familia e' o menu, em vez de ser arco-iris. */
@@ -4151,6 +4246,7 @@ function aoMudarLogin(usuario){
     if (escutaDescontosMes){ escutaDescontosMes(); escutaDescontosMes = null; }
     if (escutaPrecosVenda){ escutaPrecosVenda(); escutaPrecosVenda = null; }
     if (escutaCustosCompra){ escutaCustosCompra(); escutaCustosCompra = null; }   /* v261 */
+    if (escutaTanquesNivel){ escutaTanquesNivel(); escutaTanquesNivel = null; tanquesNivel = null; }   /* v278 */
     if (escutaCustosDiarios){ escutaCustosDiarios(); escutaCustosDiarios = null; }   /* v262 */
     if (escutaClientes){ escutaClientes(); escutaClientes = null; }
     if (escutaConvVendas){ escutaConvVendas(); escutaConvVendas = null; }
@@ -5564,6 +5660,11 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v278", data:"07/08/2026", tit:"Nível dos tanques: quanto tem agora e quando acaba", itens:[
+    {t:"n", h:"Menu novo: \ud83d\udee2\ufe0f Nível dos tanques", d:"No grupo <b>Dia a dia</b>. Mostra os 16 tanques dos três postos com o quanto tem <b>agora</b>, a porcentagem do tanque, a venda média por dia e, principalmente, <b>quando o estoque acaba</b> — com dia da semana e hora. A régua é crítico abaixo de 2 dias, atenção de 2 a 5 e tranquilo acima de 5. O número vem do Petros e chega sozinho, de hora em hora."},
+    {t:"n", h:"Cada tanque diz se foi MEDIDO ou CALCULADO", d:"Onde a sonda está enviando leitura, o tanque aparece como <b>medido</b>. Onde não está, o número é conta a partir da última contagem física, e o tanque aparece como <b>estimado</b> — ou <b>impreciso</b>, se essa contagem já tem mais de sete dias. Um aviso no topo da tela diz quantos estão assim e desde quando. Number aproximado que não se identifica é pior que número ausente."},
+    {t:"m", h:"A tela é diferente da aba \ud83d\udee2\ufe0f Tanques dos Relatórios", d:"A aba dos Relatórios continua respondendo <b>quanto se perdeu no mês</b>, que é fechamento. Esta responde <b>quanto tem agora</b>, que é decisão de compra. São duas perguntas diferentes, e por isso continuam em dois lugares."}
+  ]},
   {v:"v277", data:"07/08/2026", tit:"Correção do aviso da versão anterior", itens:[
     {t:"c", h:"Não existe selo nenhum no canto da tela", d:"O aviso da v276 dizia que apareceria um pequeno selo do reCAPTCHA no canto inferior direito. <b>Não aparece</b> — o próprio Google esconde esse selo quando a proteção é usada deste jeito. Se você chegou a procurar, não estava deixando de ver nada: não há o que ver. A proteção continua funcionando, e é totalmente invisível."}
   ]},
@@ -6661,6 +6762,13 @@ function iniciarSync(){
     if (pd && pd.classList.contains("aberto")) renderDashboard();
   }, ()=>{});
 
+  /* v278 - o nivel de agora dos tanques (coletor do VPS, de hora em hora) */
+  escutaTanquesNivel = docTanquesNivel.onSnapshot(snap => {
+    tanquesNivel = snap.exists ? (snap.data() || {}) : {};
+    const pt = document.getElementById("painelTanquesNivel");
+    if (pt && pt.classList.contains("aberto")) renderTanquesNivel();
+  }, ()=>{ tanquesNivel = {}; });
+
   /* v261 - o custo que veio do Petros pelo coletor do VPS */
   escutaCustosCompra = docCustosCompra.onSnapshot(snap => {
     const d = snap.exists ? (snap.data() || {}) : {};
@@ -7120,6 +7228,7 @@ const MENUS_APP = [
   {key:"resumoDia",   btn:"btnResumoDia",   pan:"painelResumoDia",   emp:"postos|conv", nome:"Resumo do dia"},
   {key:"registros",   btn:"btnRegistros",   pan:"painelRegistros",   emp:"postos", nome:"Custos e preços"},   /* v263 */
   {key:"simular",     btn:"btnSimular",     pan:"painelSimular",     emp:"postos", nome:"Simular Margens"},
+  {key:"tanquesNivel", btn:"btnTanquesNivel", pan:"painelTanquesNivel", emp:"postos", nome:"Nível dos tanques"},   /* v278 */
   {key:"descontos",   btn:"btnDescontos",   pan:"painelDescontos",   emp:"postos", nome:"Descontos"},
   {key:"relPosto",    btn:"btnRelPosto",    pan:"painelRelPosto",    emp:"postos|conv", nome:"Relatórios"},
   {key:"financeiro",  btn:"btnFinanceiro",  pan:"painelFinanceiro",  emp:"postos|conv", nome:"Financeiro"},   // v224 - voltou (tinha saido na v207)
@@ -7150,7 +7259,7 @@ const MENUS_APP = [
    enquanto o Tiago nao mexer. O que ele mudar mora em config/ordemMenus. */
 const GRUPOS_MENU = [
   {key:"soltos",  nome:"",               icone:"",       itens:["dash"]},
-  {key:"dia",     nome:"Dia a dia",      icone:"\ud83d\udd01", itens:["resumoDia","registros","descontos","simular"]},
+  {key:"dia",     nome:"Dia a dia",      icone:"\ud83d\udd01", itens:["resumoDia","tanquesNivel","registros","descontos","simular"]},
   {key:"analise", nome:"Análise",        icone:"\ud83d\udcca", itens:["relPosto","financeiro","analise","relLoja","ifood"]},
   {key:"transp",  nome:"Transportadora", icone:"\ud83d\ude9a", itens:["infleet","pedido","cotacoes","puxadas"]},
   {key:"org",     nome:"Organização",    icone:"\ud83d\udcc1", itens:["calendario","vencimentos","caixa"]},   /* v251 - o 🗂 ninguem reconhecia */
@@ -11267,6 +11376,209 @@ function nomeDiaSemana(iso){
   if (p.length !== 3) return "";
   return DIAS_SEMANA[new Date(+p[0], +p[1]-1, +p[2]).getDay()] || "";
 }
+/* ===== v278 - Nivel dos tanques ==================================================
+   Le config/tanquesNivel (coletor `tanques.mjs` do VPS, de hora em hora).
+   A descoberta da fonte: claude/petros-tela-visualizacao-de-tanques.md
+
+   🔴 REGUA (escolha dele, 07/08): critico < 2 dias · atencao 2 a 5 · tranquilo > 5.
+   🔴 AVISO EM CIMA, METODO EMBAIXO (regra da v241): ninguem le' rodape antes de estranhar. */
+const TQV_CRIT = 2, TQV_ATEN = 5;
+const TQV_SELO = {
+  "medido":    ["tqv-med",  "Medido (sonda)",  "leitura de sonda"],
+  "estimado":  ["tqv-est",  "Estimado (LMC)",  "conta a partir da \u00faltima medi\u00e7\u00e3o"],
+  "impreciso": ["tqv-imp",  "Impreciso (LMC)", "a base da conta j\u00e1 est\u00e1 velha"],
+  "sem base":  ["tqv-sem",  "Sem base",        "n\u00e3o h\u00e1 medi\u00e7\u00e3o para calcular"]
+};
+const TQV_ICO = { "tqv-c":"\u26a0", "tqv-a":"\u25d4", "tqv-t":"\u2713", "tqv-nd":"?" };
+
+/* 🔑 A COR DO LIQUIDO E' A DO COMBUSTIVEL, e nao a da urgencia. E' a cor que a equipe ja' usa na
+   pista (gasolina vermelha, etanol verde, diesel azul, S-500 cinza). A urgencia mora na borda do
+   card e no numero de dias. 👉 Um tanque pode estar 70% cheio e ser o mais critico da rede,
+   porque vende muito - pintar o liquido de vermelho ali diria "esta' vazio" sobre um tanque cheio.
+   ⚠️ A ORDEM DAS LINHAS IMPORTA: "OLEO DIESEL S10 ADITIVADO" tem de cair em DIESEL, nao em
+      ADITIVADA - por isso a familia do diesel e' testada primeiro. */
+const TQV_COR = [
+  [/S\s*-?\s*500/i,            "#8b93a7"],
+  [/DIESEL|S\s*-?\s*10/i,      "#3b82f6"],
+  [/ETANOL|\u00c1LCOOL|ALCOOL/i, "#2fa46c"],
+  [/PODIUM|GRID|ADITIVAD/i,     "#e8a317"],
+  [/GASOLINA/i,                 "#e5484d"],
+  [/GNV|GAS NATURAL/i,          "#00a0b0"]
+];
+function tqvCorProduto(nome){
+  const n = String(nome || "");
+  for (let i = 0; i < TQV_COR.length; i++) if (TQV_COR[i][0].test(n)) return TQV_COR[i][1];
+  return "#FE7030";                       /* o laranja da marca, para o que nao se reconhece */
+}
+
+function alternarTanquesNivel(){
+  const aberto = abrirPainelExclusivo("painelTanquesNivel");
+  const b = document.getElementById("btnTanquesNivel");
+  if (b) b.classList.toggle("ativo", aberto);
+  if (aberto) renderTanquesNivel();
+}
+
+/* dias fracionarios daqui ate' a hora em que o tanque zera. A hora vem SEM fuso
+   ("2026-08-09T22:04:00"), que o navegador le' como hora local - e o servidor grava na hora local
+   dele. Os dois estao em UTC-3. */
+function tqvDias(iso){
+  if (!iso) return null;
+  const ms = Date.parse(String(iso).replace(" ", "T"));
+  if (!isFinite(ms)) return null;
+  return (ms - Date.now()) / 86400000;
+}
+function tqvFaixa(d){
+  if (d === null) return "tqv-nd";
+  if (d < TQV_CRIT) return "tqv-c";
+  if (d <= TQV_ATEN) return "tqv-a";
+  return "tqv-t";
+}
+function tqvQuando(iso){
+  const ms = Date.parse(String(iso).replace(" ", "T"));
+  if (!isFinite(ms)) return "";
+  const d = new Date(ms);
+  let sem = "";
+  try { sem = d.toLocaleDateString("pt-BR", { weekday:"long" }); } catch(e){ sem = ""; }
+  const p = n => String(n).padStart(2, "0");
+  return (sem ? sem + ", " : "") + p(d.getHours()) + ":" + p(d.getMinutes());
+}
+function tqvDiasTexto(d){
+  if (d === null) return "sem previs\u00e3o";
+  if (d < 0) return "j\u00e1 acabou";
+  if (d < 1) return Math.max(1, Math.round(d * 24)) + " horas";
+  return fmtBR(d, 1) + " dias";
+}
+
+/* 🔴 O DESENHO DO TANQUE - cilindro deitado, com o liquido subindo de baixo para cima ate' a
+   altura do percentual e a superficie cortada pelo proprio formato do tanque.
+   O Petros faz isto com TRES imagens fixas (tanque_25/50/75.png); aqui e' SVG, entao o nivel
+   desenhado e' o de verdade, e nao o degrau mais proximo.
+   ⚠️ O id do recorte tem de ser UNICO por card: dois `clipPath` com o mesmo id fazem o segundo
+      tanque herdar o nivel do primeiro - e o erro e' silencioso, so' aparece na foto. */
+function tqvDesenho(pct, chave){
+  const p = Math.max(0, Math.min(100, isFinite(pct) ? Number(pct) : 0)) / 100;
+  const id = "tqvclip_" + String(chave).replace(/[^A-Za-z0-9_]/g, "");
+  const X = 4, Y = 4, L = 292, A = 96, R = 48;
+  const y = Y + A * (1 - p);
+  return '<svg class="tqv-des" viewBox="0 0 300 120" role="img" aria-label="' +
+      escAttr("tanque " + fmtBR(pct, 1) + "% cheio") + '">' +
+      '<defs><clipPath id="' + id + '">' +
+        '<rect x="' + X + '" y="' + Y + '" width="' + L + '" height="' + A + '" rx="' + R + '"/>' +
+      '</clipPath></defs>' +
+      '<g clip-path="url(#' + id + ')">' +
+        '<rect class="tqv-liq" x="' + X + '" y="' + y.toFixed(2) + '" width="' + L + '" height="' + (A * p + 0.6).toFixed(2) + '"/>' +
+      '</g>' +
+      '<rect class="tqv-casco" x="' + X + '" y="' + Y + '" width="' + L + '" height="' + A + '" rx="' + R + '"/>' +
+      '<ellipse class="tqv-costura" cx="52" cy="52" rx="24" ry="46"/>' +
+      '<rect class="tqv-pe" x="40" y="100" width="16" height="13" rx="3"/>' +
+      '<rect class="tqv-pe" x="244" y="100" width="16" height="13" rx="3"/>' +
+      /* 🔑 o halo (`paint-order:stroke`) e' o que faz o numero continuar legivel por cima de
+         qualquer cor de liquido e nos DOIS temas - sem ele, branco some no claro e escuro
+         some no liquido. */
+      '<text class="tqv-pctxt" x="150" y="52" text-anchor="middle" dominant-baseline="central">' +
+        escAttr(fmtBR(pct, 1)) + '%</text>' +
+    '</svg>';
+}
+
+function renderTanquesNivel(){
+  const box = document.getElementById("tqvBox");
+  if (!box) return;
+  /* null = a escuta ainda nao respondeu. Esqueleto, nao "sem dados" - dizer que nao ha' dado
+     antes de olhar foi o defeito que a v248 consertou no Financeiro. */
+  if (tanquesNivel === null){ box.innerHTML = esqueletoCaixa(4); return; }
+
+  const postos = (tanquesNivel && tanquesNivel.postos) ? tanquesNivel.postos : null;
+  const nomes = postos ? Object.keys(postos) : [];
+  if (!nomes.length){
+    box.innerHTML = vazioHtml("Ainda n\u00e3o chegou a leitura dos tanques",
+      "A coleta roda de hora em hora, das 6h \u00e0s 20h. Se isto continuar vazio depois da pr\u00f3xima hora cheia, a coleta do servidor parou.", "", "");
+    return;
+  }
+
+  let h = "";
+
+  /* --- 1. de quando e' o numero, e se ele esta' velho -------------------------------- */
+  const q = tanquesNivel.atualizadoEm || "";
+  const idade = q ? (Date.now() - Date.parse(q)) / 3600000 : null;
+  h += '<p class="tqv-pos">Posi\u00e7\u00e3o em <b>' + escAttr(fmtQuandoLocal(q) || "?") + '</b>' + bul("tqNivel") +
+       (idade !== null && idade > 3
+         ? ' <span class="tqv-velho">\u26a0\ufe0f a \u00faltima leitura tem ' + fmtBR(idade, 0) +
+           ' horas \u2014 a coleta deveria rodar de hora em hora</span>'
+         : '') + '</p>';
+
+  /* --- 2. O AVISO, EM CIMA (v241) --------------------------------------------------- */
+  const semSonda = [];
+  nomes.forEach(nm => (postos[nm].tanques || []).forEach(t => {
+    if (t.qualidade !== "medido") semSonda.push({ posto:nm, t:t });
+  }));
+  if (semSonda.length){
+    const desde = semSonda.map(x => x.t.medidoEm).filter(Boolean).sort()[0] || "";
+    const quais = Array.from(new Set(semSonda.map(x => x.posto))).join(", ");
+    h += '<div class="tqv-aviso"><b>\u26a0\ufe0f ' + semSonda.length + ' tanque(s) sem leitura de sonda chegando \u2014 ' + escAttr(quais) + '.</b> ' +
+         'O n\u00famero deles n\u00e3o \u00e9 medi\u00e7\u00e3o: \u00e9 conta a partir da \u00faltima contagem f\u00edsica' +
+         (desde ? ', de <b>' + escAttr(fmtQuandoLocal(desde) || desde) + '</b>' : '') +
+         '. Serve para ter uma ideia, <b>n\u00e3o para decidir carga sem conferir</b>.</div>';
+  }
+
+  /* --- 3. a regua ------------------------------------------------------------------- */
+  h += '<div class="tqv-regua"><span class="tqv-rg tqv-c">Cr\u00edtico: menos de 2 dias</span>' +
+       '<span class="tqv-rg tqv-a">Aten\u00e7\u00e3o: 2 a 5 dias</span>' +
+       '<span class="tqv-rg tqv-t">Tranquilo: mais de 5 dias</span>' + bul("tqDura") + '</div>';
+
+  /* --- 4. um bloco por posto -------------------------------------------------------- */
+  nomes.forEach(nm => {
+    const lista = (postos[nm].tanques || []).slice();
+    const criticos = lista.filter(t => { const d = tqvDias(t.acabaEm); return d !== null && d < TQV_CRIT; }).length;
+    h += '<h3 class="tqv-posto">' + escAttr(nm) +
+         ' <span class="tqv-cnt">' + lista.length + ' tanque' + (lista.length === 1 ? '' : 's') +
+         (criticos ? ' \u00b7 <b class="tqv-cnt-c">' + criticos + ' cr\u00edtico' + (criticos === 1 ? '' : 's') + '</b>' : '') +
+         '</span></h3><div class="tqv-grade">';
+    lista.forEach(t => {
+      const d = tqvDias(t.acabaEm);
+      const fx = tqvFaixa(d);
+      const selo = TQV_SELO[t.qualidade] || TQV_SELO["sem base"];
+      const pct = isFinite(t.pct) ? Number(t.pct)
+                : (isFinite(t.cap) && t.cap > 0 ? (Number(t.litros) / Number(t.cap)) * 100 : 0);
+      /* 🔑 O TIL DIZ QUE O NUMERO E' CONTA, NAO LEITURA - e some sozinho quando a sonda volta.
+         E' a marca de honestidade no lugar onde o numero e' lido, nao so' no rodape. */
+      const til = (t.qualidade === "medido") ? "" : "~";
+      const quando = t.medidoEm ? (fmtQuandoLocal(t.medidoEm) || "") : "";
+      h += '<div class="tqv-card ' + fx + '" style="--tqcor:' + tqvCorProduto(t.produto || t.tanque) + '">' +
+             '<div class="tqv-top">' +
+               '<span class="tqv-pt"></span>' +
+               '<span class="tqv-n">Tanque ' + escAttr(String(t.n).replace(/^0+/, "") || t.n) + '</span>' +
+               '<span class="tqv-prod">' + escAttr(t.produto || t.tanque || "") + '</span>' +
+             '</div>' +
+             tqvDesenho(pct, nm + "_" + t.n) +
+             '<div class="tqv-lit"><b>' + til + fmtLitros(t.litros) + '</b> <span>L</span>' +
+               '<span class="tqv-cap">de ' + fmtLitros(t.cap) + ' L</span></div>' +
+             '<div class="tqv-cx ' + fx + '">' +
+               '<div class="tqv-cx-tit">' + TQV_ICO[fx] + ' ESTOQUE DURA' + bul("tqDura") + '</div>' +
+               '<div class="tqv-dura"><b>' + tqvDiasTexto(d) + '</b>' +
+                 (d !== null ? '<span>\ud83d\udcc5 dura at\u00e9 ' + escAttr(tqvQuando(t.acabaEm)) + '</span>'
+                             : '<span>' + escAttr(selo[2]) + '</span>') + '</div>' +
+             '</div>' +
+             '<div class="tqv-pe2">' +
+               '<div>\u2198 Venda m\u00e9dia: <b>' + fmtLitros(t.mediaDia) + ' L/dia</b> \u00b7 7 dias</div>' +
+               '<div><span class="tqv-selo ' + selo[0] + '" title="' + escAttr(selo[2]) + '">' + selo[1] +
+                 (quando ? ": " + escAttr(quando) : "") + '</span>' + bul("tqEtiqueta") + '</div>' +
+             '</div>' +
+           '</div>';
+    });
+    h += '</div>';
+  });
+
+  /* --- 5. o METODO, embaixo (v241) -------------------------------------------------- */
+  h += '<p class="nota-dash tqv-rod">Como ler estas palavras: <b>medido</b> \u00e9 leitura de sonda. ' +
+       '<b>estimado</b> \u00e9 conta a partir da \u00faltima medi\u00e7\u00e3o f\u00edsica, somando compras e tirando vendas \u2014 ' +
+       '\u00e9 aproxima\u00e7\u00e3o, n\u00e3o medi\u00e7\u00e3o, e por isso o n\u00famero de litros vem com <b>~</b> na frente. ' +
+       '<b>impreciso</b> \u00e9 a mesma conta com a base j\u00e1 velha demais. ' +
+       'A previs\u00e3o de quando acaba \u00e9 a do pr\u00f3prio Petros, pela m\u00e9dia de venda dos \u00faltimos 7 dias. ' +
+       'A cor do l\u00edquido \u00e9 a do combust\u00edvel; a urg\u00eancia est\u00e1 na borda do quadro e no n\u00famero de dias.</p>';
+
+  box.innerHTML = h;
+}
+
 function alternarResumoDia(){
   const aberto = abrirPainelExclusivo("painelResumoDia");
   const b = document.getElementById("btnResumoDia");
@@ -13018,6 +13330,12 @@ function alternarFrcCard(){ frcCardAberto ? fecharFrcCard() : abrirFrcCard(); }
    Por isso a chave vai escrita no lugar da chamada, uma a uma.
    ------------------------------------------------------------------------ */
 const BULAS = {
+  tqNivel: { t:"Quanto tem no tanque",
+    d:"O saldo em litros que o Petros tem para aquele tanque neste momento, e o mesmo número em porcentagem da capacidade. Nos postos com sonda ligada ele é leitura de equipamento; onde a sonda não está chegando, é conta a partir da última medição física — e aí a etiqueta ao lado do tanque diz isso." },
+  tqDura: { t:"Quantos dias o estoque dura",
+    d:"É a hora em que o tanque zera, calculada pelo próprio Petros a partir da média de venda dos últimos 7 dias, menos o relógio de agora. NÃO é promessa: se a venda mudar de ritmo, ou se chegar carga, a conta muda junto. Tanque sem base de medição não recebe previsão nenhuma." },
+  tqEtiqueta: { t:"Medido, estimado ou impreciso",
+    d:"<b>Medido</b> é leitura de sonda. <b>Estimado</b> é conta a partir da última medição física, somando compras e tirando vendas — é aproximação, não medição. <b>Impreciso</b> é a mesma conta, mas com a base já velha demais (mais de 7 dias). <b>Sem base</b> é quando não há medição nenhuma — e essa linha não recebe previsão." },
   volume: { t:"Volume vendido",
     d:"Quantos litros os postos venderam no per\u00edodo. Vem dos pain\u00e9is do Petros. Quando os litros do m\u00eas ainda n\u00e3o foram coletados, aparece um travess\u00e3o em vez de zero \u2014 zero seria mentira." },
   vendas: { t:"Vendas",
