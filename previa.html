@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v269 — Postos Full (não é o app)</title>
+<title>PRÉVIA v270 — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -4057,7 +4057,13 @@ function aoMudarLogin(usuario){
   if (logado){
     usuarioAtual = usuario.email || "";
     atualizarUsuarioNaTela();          // v250 - "Ola, Nome" + o bloco do pe da barra
-    const ehAdmin = ADMINS.includes((usuario.email||"").toLowerCase());
+    /* v270 - 07/08/2026 - ERA: ADMINS.includes(...) direto.
+       A v269 esvaziou a lista ADMINS (o e-mail do dono saiu do codigo publico) e
+       ESTA linha, que decide se o botao do Painel Administrativo aparece, nao
+       passava por ehAdminEmail() - entao o painel sumiu para todo mundo.
+       ehAdminEmail() consulta config/permissoes.porUsuario[email].admin no
+       Firestore, que e' de onde o poder de admin vem desde a v269. */
+    const ehAdmin = ehAdminEmail(usuario.email);
     document.getElementById("btnUsuarios").style.display = ehAdmin ? "" : "none";
     iniciarSync();
     iniciarPresenca();
@@ -15048,7 +15054,7 @@ function renderPuxadas(){
     lista.innerHTML = '<p class="nota-dash">Nenhuma puxada registrada ainda.</p>';
     return;
   }
-  const admin = (typeof ADMINS!=='undefined') && ADMINS.includes((usuarioAtual||"").toLowerCase());
+  const admin = ehAdminEmail(usuarioAtual);   /* v270 - era ADMINS.includes direto; ver nota na v270 acima */
   let h = '<div class="tabela-wrap"><table class="pux-tab pux-lista"><thead><tr><th>Data</th><th>Motorista</th><th>Placa (cam. / tanque)</th><th>Distribuidora</th><th>Destinatário</th><th>Frete (R$)</th><th>Litros</th>'+(admin?'<th></th>':'')+'</tr></thead><tbody>';
   puxadas.forEach(p=>{
     const conf = confirmarPuxada===p.id;
