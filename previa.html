@@ -72,7 +72,7 @@
     --borda:#DCD6CE;
     --borda-forte:#C4BCB1;
     --vermelho:#C62828;
-    --fundo:#E3DFD8;
+    --fundo:#DBDAD9;   /* v281c - a cor de "fundo das pecas claras" do MIV, no lugar do tom que eu tinha inventado */
     /* superfícies e texto (temáveis) */
     --txt:#1C1A17;
     --superficie:#FFFFFF;
@@ -101,12 +101,13 @@
        ele da' 3,4:1 de contraste e nao se le'. Os titulos de grupo usam #9A9791, que e'
        o mesmo cinza clareado ate' passar de 4,5:1. 🔑 Cor de manual impresso nao se
        copia para tela sem medir contraste. */
-    --barra-1:#131111;
-    --barra-2:#000000;
-    --barra-3:#000000;
+    --barra-1:#6D6D6D;   /* o cinza do manual, no topo do degrade */
+    --barra-2:#1C1C1C;
+    --barra-3:#0D0D0D;
+    --barra-veu:#1E1E1E;
     --barra-txt:#DBDAD9;
     --barra-tit:#9A9791;
-    --barra-borda:#232120;
+    --barra-borda:#2A2A2A;
     --barra-hover:rgba(255,255,255,.055);
     color-scheme:light;
   }
@@ -139,13 +140,14 @@
     --sombra-1:inset 0 1px 0 rgba(255,255,255,.035), 0 6px 18px rgba(0,0,0,.40);
     --sombra-2:inset 0 1px 0 rgba(255,255,255,.05), 0 12px 30px rgba(0,0,0,.50);
     --sombra-3:inset 0 1px 0 rgba(255,255,255,.06), 0 22px 54px rgba(0,0,0,.60);
-    /* no tema escuro a barra e' a MESMA do MIV (preto), so' a borda acompanha */
-    --barra-1:#131111;
-    --barra-2:#000000;
-    --barra-3:#000000;
+    /* a barra e' a MESMA nos dois temas (escolha do Tiago em 07/08, opcao B) */
+    --barra-1:#6D6D6D;
+    --barra-2:#1C1C1C;
+    --barra-3:#0D0D0D;
+    --barra-veu:#1E1E1E;
     --barra-txt:#DBDAD9;
     --barra-tit:#9A9791;
-    --barra-borda:#232120;
+    --barra-borda:#2A2A2A;
     color-scheme:dark;
   }
 
@@ -2525,25 +2527,28 @@
     --borda:var(--barra-borda);
     color:var(--barra-txt);
     background-color:var(--barra-2);
-    /* 🔑 CINCO CAMADAS, DE CIMA PARA BAIXO (a primeira da lista pinta por cima):
-       1. FLUIDOS E LINHAS SINUOSAS ("Oleos | Estradas") - a onda e o fio fino que a
-          acompanha, do manual, aqui na vertical porque a barra e' vertical;
-       2. o halo laranja do topo, que e' onde o logo da marca fica;
-       3. o VEU preto - e' ele que faz os pontos "crescerem do centro para as bordas",
-          apagando-os no meio da barra e deixando-os aparecer nas pontas;
-       4. CIRCULOS EM EXPANSAO - a reticula de pontos, tom sobre tom;
-       5. o preto do manual.
+    /* 🔴 v281c - AS LINHAS SINUOSAS SAIRAM DA BARRA.
+       Elas passavam POR TRAS DO TEXTO dos menus e atrapalhavam a leitura - o Tiago viu
+       na previa e reclamou, com razao. Voltando ao manual com a queixa na mao, o motivo
+       ficou obvio: nas pecas dele o grafismo mora SEMPRE NA BORDA e o meio fica limpo
+       para o conteudo (o cartao de visita, a capa e a pagina "Tom de voz" sao os tres
+       exemplos). 🔑 GRAFISMO DE FUNDO NAO ATRAVESSA A AREA DE LEITURA.
+
+       O que ficou, tudo do MIV, em tres camadas (a primeira pinta por cima):
+       1. o VEU - e' ele que transforma a reticula em ANEL: apaga os pontos no meio da
+          barra e deixa os das pontas. E' o "circulos em expansao" de verdade (no manual
+          os pontos crescem do centro para as bordas, e o centro fica vazio);
+       2. CIRCULOS EM EXPANSAO - a reticula, tom sobre tom;
+       3. o degrade do CARTAO DE VISITA: o cinza #6D6D6D do manual descendo ate' o preto.
        🔴 Tudo em background-IMAGE: o modo escuro forcado do Chrome apaga
           background-color (armadilha da v186). */
     background-image:
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 900' preserveAspectRatio='none'%3E%3Cpath d='M62,0 C18,96 106,190 62,286 S18,478 62,574 S106,766 62,900' fill='none' stroke='%23FE7030' stroke-opacity='.20' stroke-width='2.2'/%3E%3Cpath d='M84,0 C40,96 128,190 84,286 S40,478 84,574 S128,766 84,900' fill='none' stroke='%23FE7030' stroke-opacity='.11' stroke-width='1.1'/%3E%3C/svg%3E"),
-      radial-gradient(ellipse 150px 170px at 32% -6%, rgba(var(--verde-rgb),.17) 0%, transparent 74%),
-      radial-gradient(ellipse 150px 62% at 50% 46%, #000 0%, rgba(0,0,0,.86) 34%, transparent 78%),
-      radial-gradient(rgba(219,218,217,.115) 1.15px, transparent 1.25px),
-      linear-gradient(177deg, var(--barra-1) 0%, var(--barra-2) 34%, var(--barra-3) 100%);
-    background-size:100% 900px, auto, auto, 13px 13px, auto;
-    background-repeat:no-repeat, no-repeat, no-repeat, repeat, no-repeat;
-    background-position:center top, left top, center center, left top, left top;
+      radial-gradient(ellipse 210px 34% at 50% 50%, var(--barra-veu) 0%, var(--barra-veu) 38%, transparent 84%),
+      radial-gradient(rgba(219,218,217,.14) 1.4px, transparent 1.5px),
+      linear-gradient(163deg, var(--barra-1) 0%, #3A3A3A 26%, var(--barra-2) 62%, var(--barra-3) 100%);
+    background-size:auto, 15px 15px, auto;
+    background-repeat:no-repeat, repeat, no-repeat;
+    background-position:center center, left top, left top;
     border-right:1px solid var(--barra-borda);
     box-shadow:inset -14px 0 22px -18px rgba(0,0,0,.9);
   }
