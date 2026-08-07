@@ -2510,27 +2510,44 @@
      🔑 E a outra: em peca impressa o grafismo preenche o vazio; em interface o vazio ja'
      tem dono - e' o que separa uma linha da outra. Textura atras de lista de texto nao
      decora: compete. */
-  /* 🔴 A reticula "tom sobre tom" da v250d CONTINUA - ela ja' estava no ar e faz parte do
-     "do jeito que esta". Aqui so' o TOM da base muda. Repetir a camada de pontos e'
-     obrigatorio: quem escreve `background-image` apaga a lista inteira da regra anterior. */
+  /* ✅ A ESCOLHA FINAL (07/08, ultima palavra dele): "deixe a barra do menu claro igual a
+     do preto, so' vai ter alteracao no resto do app".
+     Ou seja: o DESENHO da barra e' o da v280, intocado (trilho de 3px, icones, reticula
+     tom sobre tom da v250d, menu aceso com a luz da v243). O que muda e' que, no tema
+     CLARO, ela veste as cores do tema ESCURO.
+
+     🔑 De novo o truque das VARIAVEIS: em vez de reescrever as ~40 regras de dentro da
+     barra, redefinimos os tokens NELA. Tudo la' dentro que usa var(--txt), var(--cinza),
+     var(--borda), var(--superficie-2) ou var(--menu-txt) acorda escuro - inclusive o que
+     for escrito no futuro.
+     🔴 O `--menu-txt` NAO PODE FALTAR nesta lista: os botoes sao `.btn-claro`, e essa
+     classe pinta a cor do texto com `var(--menu-txt)`, que no tema claro e' quase preto.
+     Sem ele a barra fica preta com letra preta.
+     🔴 E o `--miv-ponto` tambem: a reticula da v250d e' "tom sobre tom", entao no claro
+     ela e' um ponto ESCURO - invisivel sobre fundo escuro. */
   body:not(.tema-escuro) .menu-lateral{
-    background-color:#CFCDCA;
+    --superficie:#181C1F;
+    --superficie-2:#20262A;
+    --txt:#E3DFD9;
+    --cinza:#9BA3AA;
+    --borda:#2C3338;
+    --menu-txt:#E3DFD9;
+    --menu-bg:transparent;
+    --menu-borda:transparent;
+    --miv-ponto:rgba(255,255,255,.040);
+    --vermelho:#FF6B6B;
+    color:#E3DFD9;
+    background-color:#181C1F;
+    /* 🔴 repetir a reticula: quem escreve `background-image` apaga a lista inteira da
+       regra anterior, e a camada de pontos da v250d sumiria sem avisar. */
     background-image:
       radial-gradient(var(--miv-ponto) 1.15px, transparent 1.25px),
-      linear-gradient(180deg,#D6D4D1 0%,#CFCDCA 44%,#C7C5C2 100%);
+      linear-gradient(#181C1F, #181C1F);
     background-size:19px 19px, auto;
-    border-right-color:#B8B6B2;
+    border-right-color:#2C3338;
   }
-  body:not(.tema-escuro) .menu-lateral{ --superficie-2:#C2C0BC;--borda:#BAB8B4 }
-  body:not(.tema-escuro) .menu-lateral button:hover{
-    background-image:linear-gradient(rgba(0,0,0,.055), rgba(0,0,0,.055));
-  }
-  /* o menu aceso continua sendo o da v243 (trilho + luz) - so' o laranja precisa de mais
-     corpo para vencer o fundo cinza em vez do branco */
-  body:not(.tema-escuro) .menu-lateral button.ativo{
-    color:#B33F03;
-    background-image:linear-gradient(90deg, rgba(var(--verde-rgb),.30) 0%, rgba(var(--verde-rgb),.10) 55%, transparent 100%);
-  }
+  /* a gaveta do celular e o fundo dela acompanham */
+  body:not(.tema-escuro) .menu-lateral{ box-shadow:2px 0 12px rgba(0,0,0,.18) }
 
   /* ---------- 3. o cabecalho ---------- */
   header{
