@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v273 — Postos Full (não é o app)</title>
+<title>PRÉVIA largura fluida — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -130,7 +130,12 @@
     color:var(--txt);
     padding:24px 16px 60px;
   }
-  .container{max-width:1280px;margin:0 auto}
+  /* v274 - LARGURA FLUIDA (pedido do Tiago, 07/08/2026). Ate a v273 o conteudo
+     era travado em 1280px e centralizado: em monitor largo sobrava faixa vazia dos
+     dois lados, e cartao que caberia na linha caia sozinho para a de baixo.
+     Agora o conteudo acompanha a janela (o respiro quem da e' o padding do body:
+     82px a esquerda por causa da barra de menus, 16px a direita). */
+  .container{width:100%;margin:0 auto}
 
   header{
     background:linear-gradient(120deg,#161616 0%,var(--grafite-2) 100%);
@@ -785,9 +790,16 @@
     display:flex;gap:18px;flex-wrap:wrap;margin-bottom:12px;
     font-size:.85rem;
   }
+  /* v274 - o cartao ESTICA para preencher a linha em vez de deixar buraco no fim.
+     flex:1 1 auto  -> cresce mantendo a proporcao do conteudo (rotulo comprido
+                       fica mais largo que rotulo curto, como antes)
+     max-width:420px -> tela com 2 ou 3 cartoes nao vira dois paineis gigantes
+     min-width:150px -> rotulo nao se parte no meio quando ha muitos cartoes
+     Os @media de celular (<=640px e <=380px) vem DEPOIS e continuam mandando. */
   .resumo-dash .cartao-kpi{
     background:var(--superficie-2);border:1px solid var(--borda);border-left:4px solid var(--verde);
     border-radius:8px;padding:8px 14px;
+    flex:1 1 auto;min-width:150px;max-width:420px;
   }
   .resumo-dash .cartao-kpi b{display:block;font-size:1.05rem;color:var(--txt)}
   .resumo-dash .cartao-kpi b small{font-size:.72rem;color:var(--cinza);font-weight:600}
