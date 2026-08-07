@@ -545,10 +545,16 @@
     border:1px solid var(--borda);
     border-top:none;
     padding:16px 24px;
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    /* v275 - era grid com `repeat(auto-fit,minmax(160px,1fr))`. Virou FLEX para o campo
+       poder ter TETO sem mudar quantos cabem por linha: no flex a conta de quantos
+       cabem usa a base (160px) e o max-width so' freia o crescimento. Com grid, o
+       `minmax(160px,260px)` conta pelo MAXIMO e tirava um filtro da linha em 1366px. */
+    display:flex;
+    flex-wrap:wrap;
     gap:12px;
   }
+  /* v275 - cada filtro cresce ate' 260px e para. A sobra fica no fim da linha. */
+  .filtro{flex:1 1 160px;max-width:260px}
   .filtro label{
     display:block;font-size:.72rem;font-weight:600;
     font-family:"Oswald","Poppins",sans-serif;
@@ -1825,7 +1831,9 @@
     header .acoes{ gap:6px; }
     header .acoes button{ flex:1 1 calc(50% - 6px); font-size:.82rem; padding:10px 8px; text-align:center; }
 
-    .filtros{ padding:12px 12px; gap:10px; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); }
+    /* v275 - no celular nada muda: volta a ser grid, sem teto. */
+    .filtros{ padding:12px 12px; gap:10px; display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); }
+    .filtro{ max-width:none; }
     .config{ padding:14px 12px; }
     .config h2{ font-size:.82rem; }
 
@@ -1874,7 +1882,9 @@
   @media print{
     body{background:#fff;padding:0}
     .menu-lateral,.menu-hamb,.menu-fundo,header .acoes,.rodape,td .btn-excluir,thead th:last-child,tbody td:last-child{display:none}
-    .filtros{grid-template-columns:repeat(6,1fr)}
+    /* v275 - a barra virou flex; para imprimir em 6 colunas ela volta a ser grid aqui. */
+    .filtros{display:grid;grid-template-columns:repeat(6,1fr)}
+    .filtro{max-width:none}
     td input,td select{border:none;background:none}
   }
 
@@ -5529,6 +5539,9 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v275", data:"07/08/2026", tit:"Os campos de filtro pararam de esticar", itens:[
+    {t:"m", h:"Caixa do tamanho do que se escreve nela", d:"Depois que o app passou a usar a tela inteira (v274), os campos de filtro cresciam junto e ficavam desproporcionais — em monitor grande, uma caixa de 345px para escrever <b>Todas</b>. Agora eles crescem até um limite e param; a sobra fica no fim da linha. Vale na tela de <b>Custos e preços</b> e no filtro do gráfico do <b>Dashboard</b>. Em tela média continua o mesmo número de campos por linha, e no celular nada muda."}
+  ]},
   {v:"v274", data:"07/08/2026", tit:"O app usa a tela inteira", itens:[
     {t:"m", h:"Acabou a faixa vazia dos lados", d:"Até agora o conteúdo tinha uma largura fixa e parava, mesmo com metade da tela sobrando — em monitor grande ficava uma faixa preta de cada lado. Agora ele <b>acompanha a janela</b>: quanto maior você abre, mais o app usa. No celular nada muda."},
     {t:"m", h:"Os quadrinhos de indicador preenchem a linha", d:"Eles não esticavam: sobrava um buraco no fim da linha e o último quadrinho caía sozinho para baixo, mesmo tendo espaço do lado. Agora eles <b>dividem a linha por igual</b>. Vale no Dashboard, na Análise, nos Relatórios, no Financeiro e no iFood."}
