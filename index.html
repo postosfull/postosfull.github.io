@@ -130,7 +130,12 @@
     color:var(--txt);
     padding:24px 16px 60px;
   }
-  .container{max-width:1280px;margin:0 auto}
+  /* v274 - LARGURA FLUIDA (pedido do Tiago, 07/08/2026). Ate a v273 o conteudo
+     era travado em 1280px e centralizado: em monitor largo sobrava faixa vazia dos
+     dois lados, e cartao que caberia na linha caia sozinho para a de baixo.
+     Agora o conteudo acompanha a janela (o respiro quem da e' o padding do body:
+     82px a esquerda por causa da barra de menus, 16px a direita). */
+  .container{width:100%;margin:0 auto}
 
   header{
     background:linear-gradient(120deg,#161616 0%,var(--grafite-2) 100%);
@@ -785,9 +790,16 @@
     display:flex;gap:18px;flex-wrap:wrap;margin-bottom:12px;
     font-size:.85rem;
   }
+  /* v274 - o cartao ESTICA para preencher a linha em vez de deixar buraco no fim.
+     flex:1 1 auto  -> cresce mantendo a proporcao do conteudo (rotulo comprido
+                       fica mais largo que rotulo curto, como antes)
+     max-width:420px -> tela com 2 ou 3 cartoes nao vira dois paineis gigantes
+     min-width:150px -> rotulo nao se parte no meio quando ha muitos cartoes
+     Os @media de celular (<=640px e <=380px) vem DEPOIS e continuam mandando. */
   .resumo-dash .cartao-kpi{
     background:var(--superficie-2);border:1px solid var(--borda);border-left:4px solid var(--verde);
     border-radius:8px;padding:8px 14px;
+    flex:1 1 auto;min-width:150px;max-width:420px;
   }
   .resumo-dash .cartao-kpi b{display:block;font-size:1.05rem;color:var(--txt)}
   .resumo-dash .cartao-kpi b small{font-size:.72rem;color:var(--cinza);font-weight:600}
@@ -5517,6 +5529,10 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v274", data:"07/08/2026", tit:"O app usa a tela inteira", itens:[
+    {t:"m", h:"Acabou a faixa vazia dos lados", d:"Até agora o conteúdo tinha uma largura fixa e parava, mesmo com metade da tela sobrando — em monitor grande ficava uma faixa preta de cada lado. Agora ele <b>acompanha a janela</b>: quanto maior você abre, mais o app usa. No celular nada muda."},
+    {t:"m", h:"Os quadrinhos de indicador preenchem a linha", d:"Eles não esticavam: sobrava um buraco no fim da linha e o último quadrinho caía sozinho para baixo, mesmo tendo espaço do lado. Agora eles <b>dividem a linha por igual</b>. Vale no Dashboard, na Análise, nos Relatórios, no Financeiro e no iFood."}
+  ]},
   {v:"v273", data:"07/08/2026", tit:"O menu Novidades mostra as 10 mais recentes", itens:[
     {t:"m", h:"“Ver versões anteriores” no fim da lista", d:"A lista já passava de 40 versões e todas eram desenhadas de uma vez, o que virava uma rolagem sem fim para achar as recentes. Agora aparecem as <b>10 mais novas</b>, e o resto fica atrás de um botão no fim. Se você tiver mais de 10 novidades sem ler, todas elas continuam aparecendo de cara — nenhuma novidade nova fica escondida."}
   ]},

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA largura fluida — Postos Full (não é o app)</title>
+<title>PRÉVIA v274 — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -5529,6 +5529,10 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v274", data:"07/08/2026", tit:"O app usa a tela inteira", itens:[
+    {t:"m", h:"Acabou a faixa vazia dos lados", d:"Até agora o conteúdo tinha uma largura fixa e parava, mesmo com metade da tela sobrando — em monitor grande ficava uma faixa preta de cada lado. Agora ele <b>acompanha a janela</b>: quanto maior você abre, mais o app usa. No celular nada muda."},
+    {t:"m", h:"Os quadrinhos de indicador preenchem a linha", d:"Eles não esticavam: sobrava um buraco no fim da linha e o último quadrinho caía sozinho para baixo, mesmo tendo espaço do lado. Agora eles <b>dividem a linha por igual</b>. Vale no Dashboard, na Análise, nos Relatórios, no Financeiro e no iFood."}
+  ]},
   {v:"v273", data:"07/08/2026", tit:"O menu Novidades mostra as 10 mais recentes", itens:[
     {t:"m", h:"“Ver versões anteriores” no fim da lista", d:"A lista já passava de 40 versões e todas eram desenhadas de uma vez, o que virava uma rolagem sem fim para achar as recentes. Agora aparecem as <b>10 mais novas</b>, e o resto fica atrás de um botão no fim. Se você tiver mais de 10 novidades sem ler, todas elas continuam aparecendo de cara — nenhuma novidade nova fica escondida."}
   ]},
