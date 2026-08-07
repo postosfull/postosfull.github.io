@@ -2351,7 +2351,12 @@
   .tqv-des{width:100%;height:auto;display:block;margin:2px 0 2px}
   .tqv-casco{fill:none;stroke:var(--borda);stroke-width:2.4}
   .tqv-pe{fill:var(--borda);opacity:.75}
-  .tqv-liq{fill:var(--tqcor);opacity:.9}
+  /* 🔴 sem `fill` aqui: quem pinta e' o atributo do SVG, que aponta para o gradiente.
+     Regra de CSS com `fill` venceria o atributo e o degrade sumiria sem erro nenhum. */
+  .tqv-liq{opacity:.95}
+  .tqv-g0{stop-color:var(--tqcor);stop-opacity:1}
+  .tqv-g1{stop-color:var(--tqcor);stop-opacity:.86}
+  .tqv-g2{stop-color:var(--tqcor);stop-opacity:.58}
   .tqv-pctxt{font-size:34px;font-weight:800;fill:var(--txt);
              stroke:var(--superficie);stroke-width:3.5;paint-order:stroke fill;
              font-family:inherit;letter-spacing:-.5px}
@@ -6340,6 +6345,14 @@ function fmtDataHora(d){
    Texto so com a data ("2026-07-30") NAO e' convertido de proposito - new Date() leria
    como meia-noite em UTC e voltaria um dia no Brasil. */
 function fmtQuandoLocal(iso){
+  /* v278 - o Firestore devolve Timestamp, nao texto. Aceitar so texto fazia o objeto virar
+     "[object Object]" e a tela imprimir "p(/ta as econd" no lugar da hora. */
+  if (iso && typeof iso === "object"){
+    if (typeof iso.toDate === "function"){ try { iso = iso.toDate().toISOString(); } catch(e){ iso = ""; } }
+    else if (typeof iso.seconds === "number") iso = new Date(iso.seconds * 1000).toISOString();
+    else if (typeof iso.getTime === "function") iso = new Date(iso.getTime()).toISOString();
+    else iso = "";
+  }
   const s = String(iso||"");
   if (s.length < 10) return "";
   const dataCrua = s.slice(8,10)+"/"+s.slice(5,7);
@@ -7163,6 +7176,8 @@ function excluir(i){
 
 /* ================== Salvar / Carregar / Exportar ================== */
 // Painéis que ocupam a página; só um fica aberto por vez
+/* v278 - a lista abaixo e a de sempre, mas ela deixou de ser a UNICA fonte: qualquer menu
+   de MENUS_APP com painel entra aqui sozinho (ver o bloco logo depois). */
 const PAINEIS = ["painelRegistros","painelDash","painelResumoDia","painelSimular","painelDescontos","painelPuxadas","painelCotacoes","painelInfleet","painelIfood","painelPedido","painelRelPosto","painelRelLoja","painelDespesas","painelFinanceiro","painelRelPetros","painelAnalise","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin","painelNovidades"];
 function fecharTodosPaineis(exceto){
   PAINEIS.forEach(id => {
@@ -7213,6 +7228,12 @@ function fecharTodosPaineis(exceto){
   // v172 - estes tres faltavam: o botao ficava aceso depois de abrir outro menu
   ["btnRelLoja:painelRelLoja","btnAnalise:painelAnalise","btnIfood:painelIfood"].forEach(par => {
     const p = par.split(":"), b = document.getElementById(p[0]), pan = document.getElementById(p[1]);
+    if (b && pan) b.classList.toggle("ativo", pan.classList.contains("aberto"));
+  });
+  /* 🔴 v278 - e agora TODOS, tirados de MENUS_APP. A v172 tapou tres buracos a mao; este
+     bloco fecha a torneira: menu novo ja nasce com o botao apagando junto. */
+  MENUS_APP.forEach(m => {
+    const b = document.getElementById(m.btn), pan = m.pan ? document.getElementById(m.pan) : null;
     if (b && pan) b.classList.toggle("ativo", pan.classList.contains("aberto"));
   });
   // v192/v207/v224 - DOIS botoes ("Relatorios" e "Financeiro") dividem os MESMOS quatro paineis.
@@ -8167,6 +8188,13 @@ function abrirPainelExclusivo(id){
 
 // A barra de filtros (Data/Posto/Forma/Combustível/Distribuidora) só serve
 // para Lançamentos e Dashboard — nos demais painéis ela fica escondida
+/* 🔴 v278 - O REMENDO QUE MATA A CLASSE INTEIRA DO DEFEITO.
+   `fecharTodosPaineis()` so fecha o que esta em PAINEIS. Menu novo cujo painel ficou de
+   fora nao fecha nunca, e passa a aparecer por baixo de todas as outras telas — foi o que
+   aconteceu com o Nivel dos tanques na primeira previa da v278.
+   🔑 MENUS_APP ja sabe o nome do painel de cada menu. Duas listas com a mesma informacao
+      sempre se desencontram; aqui a segunda passa a se completar a partir da primeira. */
+MENUS_APP.forEach(m => { if (m.pan && PAINEIS.indexOf(m.pan) < 0) PAINEIS.push(m.pan); });
 const PAINEIS_COM_FILTROS = ["painelRegistros","painelDash"];
 function atualizarFiltrosVisiveis(){
   agendarTrocaDeTela();   // v243 - roda depois de o painel novo receber a classe "aberto"
@@ -11621,16 +11649,22 @@ function tqvDiasTexto(d){
       tanque herdar o nivel do primeiro - e o erro e' silencioso, so' aparece na foto. */
 function tqvDesenho(pct, chave){
   const p = Math.max(0, Math.min(100, isFinite(pct) ? Number(pct) : 0)) / 100;
-  const id = "tqvclip_" + String(chave).replace(/[^A-Za-z0-9_]/g, "");
+  const base = String(chave).replace(/[^A-Za-z0-9_]/g, "");
+  const id = "tqvclip_" + base, gid = "tqvgrad_" + base;
   const X = 4, Y = 4, L = 292, A = 96, R = 48;
   const y = Y + A * (1 - p);
   return '<svg class="tqv-des" viewBox="0 0 300 120" role="img" aria-label="' +
       escAttr("tanque " + fmtBR(pct, 1) + "% cheio") + '">' +
       '<defs><clipPath id="' + id + '">' +
         '<rect x="' + X + '" y="' + Y + '" width="' + L + '" height="' + A + '" rx="' + R + '"/>' +
-      '</clipPath></defs>' +
+      '</clipPath>' +
+      /* 🔑 o gradiente e' relativo ao PROPRIO retangulo do liquido (padrao do SVG), entao ele
+         acompanha o nivel: tanque cheio e tanque quase vazio tem o mesmo degrade, sem conta. */
+      '<linearGradient id="' + gid + '" x1="0" y1="0" x2="0" y2="1">' +
+        '<stop class="tqv-g0" offset="0"/><stop class="tqv-g1" offset="0.5"/>' +
+        '<stop class="tqv-g2" offset="1"/></linearGradient></defs>' +
       '<g clip-path="url(#' + id + ')">' +
-        '<rect class="tqv-liq" x="' + X + '" y="' + y.toFixed(2) + '" width="' + L + '" height="' + (A * p + 0.6).toFixed(2) + '"/>' +
+        '<rect class="tqv-liq" fill="url(#' + gid + ')" x="' + X + '" y="' + y.toFixed(2) + '" width="' + L + '" height="' + (A * p + 0.6).toFixed(2) + '"/>' +
       '</g>' +
       '<rect class="tqv-casco" x="' + X + '" y="' + Y + '" width="' + L + '" height="' + A + '" rx="' + R + '"/>' +
       '<rect class="tqv-pe" x="40" y="100" width="16" height="13" rx="3"/>' +
