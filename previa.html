@@ -2350,7 +2350,6 @@
   /* --- o desenho --- */
   .tqv-des{width:100%;height:auto;display:block;margin:2px 0 2px}
   .tqv-casco{fill:none;stroke:var(--borda);stroke-width:2.4}
-  .tqv-costura{fill:none;stroke:var(--borda);stroke-width:1.6;opacity:.5}
   .tqv-pe{fill:var(--borda);opacity:.75}
   .tqv-liq{fill:var(--tqcor);opacity:.9}
   .tqv-pctxt{font-size:34px;font-weight:800;fill:var(--txt);
@@ -2387,6 +2386,28 @@
   .tqv-selo.tqv-imp{background:rgba(224,161,6,.24);border-color:rgba(224,161,6,.8);font-weight:700}
   .tqv-selo.tqv-sem{background:rgba(229,72,77,.16);border-color:rgba(229,72,77,.55);font-weight:700}
   .tqv-rod{margin-top:14px}
+  /* --- a caixa Personalizar (so' admin) --- */
+  .tqv-perslinha{margin:0 0 12px}
+  .tqv-persbt{font-size:.82rem;padding:5px 12px}
+  .tqv-pers{border:1px dashed var(--borda);border-radius:12px;padding:12px 14px;margin:0 0 14px;
+            background:rgba(127,127,127,.06)}
+  .tqv-pers-tit{font-weight:700;font-size:.9rem;margin-bottom:9px}
+  .tqv-pers-tit span{font-weight:400;opacity:.65;font-size:.8rem}
+  .tqv-pers-bl{margin-bottom:11px;font-size:.82rem}
+  .tqv-pers-bl>b{display:block;margin-bottom:6px}
+  .tqv-pers-cores{display:flex;flex-wrap:wrap;gap:8px}
+  .tqv-pers-cor{display:flex;align-items:center;gap:6px;border:1px solid var(--borda);
+                border-radius:999px;padding:3px 10px 3px 4px;font-size:.78rem}
+  .tqv-pers-cor input[type=color]{width:26px;height:26px;border:none;background:none;padding:0;cursor:pointer}
+  .tqv-pers-x{border:none;background:none;cursor:pointer;color:inherit;opacity:.7;font-size:.95rem;padding:0 2px}
+  .tqv-pers-ord{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:6px}
+  .tqv-pers-ord i{opacity:.7;font-style:normal;min-width:74px}
+  .tqv-pers-it{display:inline-flex;align-items:center;gap:3px;border:1px solid var(--borda);
+               border-radius:8px;padding:2px 4px 2px 9px;font-size:.78rem}
+  .tqv-pers-it button{border:none;background:none;cursor:pointer;color:inherit;opacity:.75;
+                      font-size:.7rem;padding:2px 3px;line-height:1}
+  .tqv-pers-it button[disabled]{opacity:.22;cursor:default}
+  .tqv-pers-bts{display:flex;gap:9px;flex-wrap:wrap;margin-top:4px}
   @media (max-width:560px){ .tqv-grade{grid-template-columns:1fr} }
 </style>
 </head>
@@ -3490,6 +3511,9 @@ const docCustosCompra = db.collection("config").doc("custosCompra");
    mediaDia,acabaEm,qualidade,medido,medidoEm,...}] } }, atualizadoEm, por }.
    ⚠️ E' FOTO DE AGORA, sem historico - por isso mora em `config`, nao num documento de mes. */
 const docTanquesNivel = db.collection("config").doc("tanquesNivel");
+/* v278 - o que o ADMIN personaliza nesta tela: cor de cada combustivel, ordem dos
+   postos e ordem dos tanques dentro de cada posto. Documento AUSENTE = tudo no padrao. */
+const docTanquesAjustes = db.collection("config").doc("tanquesAjustes");
 /* v262 - a SERIE DIARIA que o coletor monta: um documento por mes,
    custosDiarios/{AAAA-MM} = { mes, dias: { "AAAA-MM-DD": { posto: { comb: {c,f,v,vp} } } } }.
    c = custo · f = frete/L · v = venda a' vista · vp = venda a prazo. */
@@ -3706,6 +3730,10 @@ let escutaCustosCompra = null;                                              /* v
 let escutaTanquesNivel = null;                                              /* v278 */
 /* null = ainda nao chegou (esqueleto). Objeto sem `postos` = documento ausente (vazio). */
 let tanquesNivel = null;                                                    /* v278 */
+let escutaTanquesAjustes = null;                                            /* v278 */
+let tanquesAjustes = {};        /* {cores:{PRODUTO:hex}, ordemPostos:[], ordemTanques:{}} */
+/* rascunho do admin enquanto a caixa Personalizar esta aberta. null = usando o salvo. */
+let tqvEdit = null;                                                         /* v278 */
 let custosCompra = { postos: {}, atualizadoEm: "", por: "" };               /* v261 */
 let escutaCustosDiarios = null;                                             /* v262 */
 let custosDiarios = {};              /* {"AAAA-MM": {dias:{…}}} */          /* v262 */
@@ -4247,6 +4275,7 @@ function aoMudarLogin(usuario){
     if (escutaPrecosVenda){ escutaPrecosVenda(); escutaPrecosVenda = null; }
     if (escutaCustosCompra){ escutaCustosCompra(); escutaCustosCompra = null; }   /* v261 */
     if (escutaTanquesNivel){ escutaTanquesNivel(); escutaTanquesNivel = null; tanquesNivel = null; }   /* v278 */
+    if (escutaTanquesAjustes){ escutaTanquesAjustes(); escutaTanquesAjustes = null; tanquesAjustes = {}; tqvEdit = null; }   /* v278 */
     if (escutaCustosDiarios){ escutaCustosDiarios(); escutaCustosDiarios = null; }   /* v262 */
     if (escutaClientes){ escutaClientes(); escutaClientes = null; }
     if (escutaConvVendas){ escutaConvVendas(); escutaConvVendas = null; }
@@ -6768,6 +6797,13 @@ function iniciarSync(){
     const pt = document.getElementById("painelTanquesNivel");
     if (pt && pt.classList.contains("aberto")) renderTanquesNivel();
   }, ()=>{ tanquesNivel = {}; });
+
+  /* v278 - a personalizacao do admin (cores e ordem) */
+  escutaTanquesAjustes = docTanquesAjustes.onSnapshot(snap => {
+    tanquesAjustes = snap.exists ? (snap.data() || {}) : {};
+    const pt = document.getElementById("painelTanquesNivel");
+    if (pt && pt.classList.contains("aberto") && !tqvEdit) renderTanquesNivel();
+  }, ()=>{ tanquesAjustes = {}; });
 
   /* v261 - o custo que veio do Petros pelo coletor do VPS */
   escutaCustosCompra = docCustosCompra.onSnapshot(snap => {
@@ -11405,10 +11441,138 @@ const TQV_COR = [
   [/GASOLINA/i,                 "#e5484d"],
   [/GNV|GAS NATURAL/i,          "#00a0b0"]
 ];
-function tqvCorProduto(nome){
+/* 🔑 O rascunho do admin ganha do que esta' salvo, e o salvo ganha do padrao. Assim a caixa
+   Personalizar mostra o efeito NA HORA, sem gravar - e Cancelar volta tudo sem tocar no banco. */
+function tqvAj(){ return tqvEdit || tanquesAjustes || {}; }
+function tqvChaveProd(nome){ return String(nome || "").trim().toUpperCase(); }
+function tqvCorPadrao(nome){
   const n = String(nome || "");
   for (let i = 0; i < TQV_COR.length; i++) if (TQV_COR[i][0].test(n)) return TQV_COR[i][1];
   return "#FE7030";                       /* o laranja da marca, para o que nao se reconhece */
+}
+function tqvCorProduto(nome){
+  const c = (tqvAj().cores || {})[tqvChaveProd(nome)];
+  return (typeof c === "string" && /^#[0-9a-fA-F]{6}$/.test(c)) ? c : tqvCorPadrao(nome);
+}
+
+/* 🔴 ORDEM SALVA NAO PODE FAZER SUMIR O QUE E' NOVO. Posto ou tanque que nao esta' na lista
+   guardada vai para o FIM, na ordem em que veio - nunca some. E' a mesma regra da barra de menus
+   (v244): o dia em que o posto ganhar um tanque, ele tem de aparecer sozinho. */
+function tqvOrdenar(chaves, ordem){
+  const pos = {};
+  (Array.isArray(ordem) ? ordem : []).forEach((k, i) => { pos[String(k)] = i; });
+  return chaves.slice().sort((a, b) => {
+    const pa = pos[String(a)] === undefined ? 1000 + chaves.indexOf(a) : pos[String(a)];
+    const pb = pos[String(b)] === undefined ? 1000 + chaves.indexOf(b) : pos[String(b)];
+    return pa - pb;
+  });
+}
+
+/* ----- a caixa Personalizar (so' admin) ----------------------------------------------- */
+function tqvAbrirPers(){
+  const a = tanquesAjustes || {};
+  tqvEdit = { cores: Object.assign({}, a.cores || {}),
+              ordemPostos: (a.ordemPostos || []).slice(),
+              ordemTanques: JSON.parse(JSON.stringify(a.ordemTanques || {})) };
+  renderTanquesNivel();
+}
+function tqvFecharPers(){ tqvEdit = null; renderTanquesNivel(); }
+function tqvCor(prod, hex){
+  if (!tqvEdit) return;
+  tqvEdit.cores[tqvChaveProd(prod)] = hex;
+  renderTanquesNivel();
+}
+function tqvCorPadraoDe(prod){
+  if (!tqvEdit) return;
+  delete tqvEdit.cores[tqvChaveProd(prod)];
+  renderTanquesNivel();
+}
+function tqvMover(lista, i, d){
+  const j = i + d;
+  if (j < 0 || j >= lista.length) return lista;
+  const c = lista.slice(); const x = c[i]; c[i] = c[j]; c[j] = x; return c;
+}
+function tqvMoverPosto(i, d){
+  if (!tqvEdit) return;
+  const atual = tqvOrdenar(Object.keys((tanquesNivel && tanquesNivel.postos) || {}), tqvEdit.ordemPostos);
+  tqvEdit.ordemPostos = tqvMover(atual, i, d);
+  renderTanquesNivel();
+}
+function tqvMoverTanque(posto, i, d){
+  if (!tqvEdit) return;
+  const ts = ((((tanquesNivel || {}).postos || {})[posto] || {}).tanques || []).map(t => String(t.n));
+  const atual = tqvOrdenar(ts, tqvEdit.ordemTanques[posto]);
+  tqvEdit.ordemTanques[posto] = tqvMover(atual, i, d);
+  renderTanquesNivel();
+}
+function tqvPadraoTudo(){
+  if (!tqvEdit) return;
+  tqvEdit = { cores:{}, ordemPostos:[], ordemTanques:{} };
+  renderTanquesNivel();
+}
+function tqvSalvarPers(){
+  if (!tqvEdit) return;
+  const corpo = { cores: tqvEdit.cores, ordemPostos: tqvEdit.ordemPostos,
+                  ordemTanques: tqvEdit.ordemTanques,
+                  atualizadoEm: new Date().toISOString(), por: usuarioAtual || "" };
+  docTanquesAjustes.set(corpo, { merge: false }).then(() => {
+    /* 🔑 o `tqvEdit` so' morre DEPOIS de o banco aceitar: se a gravacao falhar, o rascunho
+       continua na tela e ninguem perde o que arrumou. */
+    tanquesAjustes = corpo; tqvEdit = null; renderTanquesNivel();
+    avisar("Personaliza\u00e7\u00e3o dos tanques salva.", "ok");
+  }).catch(e => avisar("N\u00e3o deu para salvar: " + (e && e.message ? e.message : e), "erro"));
+}
+function tqvCaixaPers(postos, nomes){
+  const ed = tqvEdit;
+  if (!ehAdminAtual()) return "";
+  if (!ed) return '<div class="tqv-perslinha"><button class="btn-claro tqv-persbt" onclick="tqvAbrirPers()">' +
+                  '\u2699\ufe0f Personalizar cores e ordem</button></div>';
+  /* a lista de produtos sai do DADO, nao de uma lista escrita a mao: combustivel novo aparece
+     aqui sozinho no dia em que o posto passar a vende-lo. */
+  const prods = [];
+  nomes.forEach(nm => (postos[nm].tanques || []).forEach(t => {
+    const p = t.produto || t.tanque || ""; if (p && prods.indexOf(p) < 0) prods.push(p);
+  }));
+  prods.sort();
+  let h = '<div class="tqv-pers"><div class="tqv-pers-tit">\u2699\ufe0f Personalizar <span>(s\u00f3 voc\u00ea v\u00ea esta caixa)</span></div>';
+
+  h += '<div class="tqv-pers-bl"><b>Cor de cada combust\u00edvel</b><div class="tqv-pers-cores">';
+  prods.forEach(p => {
+    const cor = tqvCorProduto(p);
+    const mexido = !!(ed.cores || {})[tqvChaveProd(p)];
+    h += '<label class="tqv-pers-cor"><input type="color" value="' + escAttr(cor) +
+         '" onchange="tqvCor(' + JSON.stringify(p).replace(/"/g, "&quot;") + ', this.value)">' +
+         '<span>' + escAttr(p) + '</span>' +
+         (mexido ? '<button class="tqv-pers-x" title="voltar ao padr\u00e3o" onclick="tqvCorPadraoDe(' +
+                   JSON.stringify(p).replace(/"/g, "&quot;") + ')">\u21ba</button>' : '') + '</label>';
+  });
+  h += '</div></div>';
+
+  h += '<div class="tqv-pers-bl"><b>Ordem dos postos</b><div class="tqv-pers-ord">';
+  nomes.forEach((nm, i) => {
+    h += '<span class="tqv-pers-it">' + escAttr(nm) +
+         '<button onclick="tqvMoverPosto(' + i + ',-1)"' + (i === 0 ? ' disabled' : '') + '>\u25b2</button>' +
+         '<button onclick="tqvMoverPosto(' + i + ',1)"' + (i === nomes.length - 1 ? ' disabled' : '') + '>\u25bc</button></span>';
+  });
+  h += '</div></div>';
+
+  h += '<div class="tqv-pers-bl"><b>Ordem dos tanques</b>';
+  nomes.forEach(nm => {
+    const ts = tqvOrdenar((postos[nm].tanques || []).map(t => String(t.n)), ed.ordemTanques[nm]);
+    h += '<div class="tqv-pers-ord"><i>' + escAttr(nm) + '</i>';
+    ts.forEach((n, i) => {
+      h += '<span class="tqv-pers-it">TQ ' + escAttr(n) +
+           '<button onclick="tqvMoverTanque(' + JSON.stringify(nm).replace(/"/g, "&quot;") + ',' + i + ',-1)"' + (i === 0 ? ' disabled' : '') + '>\u25b2</button>' +
+           '<button onclick="tqvMoverTanque(' + JSON.stringify(nm).replace(/"/g, "&quot;") + ',' + i + ',1)"' + (i === ts.length - 1 ? ' disabled' : '') + '>\u25bc</button></span>';
+    });
+    h += '</div>';
+  });
+  h += '</div>';
+
+  h += '<div class="tqv-pers-bts"><button class="btn-verde" onclick="tqvSalvarPers()">Salvar para todos</button>' +
+       '<button class="btn-claro" onclick="tqvFecharPers()">Cancelar</button>' +
+       '<button class="btn-claro" onclick="tqvPadraoTudo()">Voltar ao padr\u00e3o</button></div></div>';
+  return h;
 }
 
 function alternarTanquesNivel(){
@@ -11469,7 +11633,6 @@ function tqvDesenho(pct, chave){
         '<rect class="tqv-liq" x="' + X + '" y="' + y.toFixed(2) + '" width="' + L + '" height="' + (A * p + 0.6).toFixed(2) + '"/>' +
       '</g>' +
       '<rect class="tqv-casco" x="' + X + '" y="' + Y + '" width="' + L + '" height="' + A + '" rx="' + R + '"/>' +
-      '<ellipse class="tqv-costura" cx="52" cy="52" rx="24" ry="46"/>' +
       '<rect class="tqv-pe" x="40" y="100" width="16" height="13" rx="3"/>' +
       '<rect class="tqv-pe" x="244" y="100" width="16" height="13" rx="3"/>' +
       /* 🔑 o halo (`paint-order:stroke`) e' o que faz o numero continuar legivel por cima de
@@ -11488,7 +11651,8 @@ function renderTanquesNivel(){
   if (tanquesNivel === null){ box.innerHTML = esqueletoCaixa(4); return; }
 
   const postos = (tanquesNivel && tanquesNivel.postos) ? tanquesNivel.postos : null;
-  const nomes = postos ? Object.keys(postos) : [];
+  /* 🔴 a ordem que o admin salvou, com o que for NOVO caindo no fim (nunca sumindo) */
+  const nomes = postos ? tqvOrdenar(Object.keys(postos), tqvAj().ordemPostos) : [];
   if (!nomes.length){
     box.innerHTML = vazioHtml("Ainda n\u00e3o chegou a leitura dos tanques",
       "A coleta roda de hora em hora, das 6h \u00e0s 20h. Se isto continuar vazio depois da pr\u00f3xima hora cheia, a coleta do servidor parou.", "", "");
@@ -11521,13 +11685,18 @@ function renderTanquesNivel(){
   }
 
   /* --- 3. a regua ------------------------------------------------------------------- */
+  h += tqvCaixaPers(postos, nomes);
+
+  /* --- 3. a regua ------------------------------------------------------------------- */
   h += '<div class="tqv-regua"><span class="tqv-rg tqv-c">Cr\u00edtico: menos de 2 dias</span>' +
        '<span class="tqv-rg tqv-a">Aten\u00e7\u00e3o: 2 a 5 dias</span>' +
        '<span class="tqv-rg tqv-t">Tranquilo: mais de 5 dias</span>' + bul("tqDura") + '</div>';
 
   /* --- 4. um bloco por posto -------------------------------------------------------- */
   nomes.forEach(nm => {
-    const lista = (postos[nm].tanques || []).slice();
+    const brutos = (postos[nm].tanques || []).slice();
+    const ordT = tqvOrdenar(brutos.map(t => String(t.n)), (tqvAj().ordemTanques || {})[nm]);
+    const lista = ordT.map(n => brutos.find(t => String(t.n) === n)).filter(Boolean);
     const criticos = lista.filter(t => { const d = tqvDias(t.acabaEm); return d !== null && d < TQV_CRIT; }).length;
     h += '<h3 class="tqv-posto">' + escAttr(nm) +
          ' <span class="tqv-cnt">' + lista.length + ' tanque' + (lista.length === 1 ? '' : 's') +
