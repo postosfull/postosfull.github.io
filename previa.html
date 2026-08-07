@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v280 — Postos Full (não é o app)</title>
+<title>PRÉVIA v281 — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -59,45 +59,84 @@
     --dourado:#FE7030;        /* ações de destaque = laranja */
     --grafite:#1E1E1E;
     --grafite-2:#3A3A3A;
-    --cinza:#6E6E6E;
-    --borda:#DFDFDF;
+    /* v281 - O TEMA CLARO DEIXOU DE SER BRANCO CHAPADO.
+       O pedido do Tiago em 07/08: "no menu claro esta claro demais, a barra lateral toda
+       solida esta sem vida". Duas causas, medidas no arquivo antigo:
+         1. --fundo #F4F4F4 contra --superficie #FFFFFF = 4% de diferenca. Sem essa
+            diferenca nao existe "cartao": tudo vira uma folha branca so'.
+         2. a barra lateral usava --superficie, ou seja, era BRANCA no tema claro.
+       A paleta nova e' de AREIA (quente, casa com o laranja da marca), com tres degraus
+       de superficie de verdade, e a barra lateral saiu da paleta do tema (ver a camada
+       de acabamento no fim do <style>). */
+    --cinza:#6A635B;
+    --borda:#DCD6CE;
+    --borda-forte:#C4BCB1;
     --vermelho:#C62828;
-    --fundo:#F4F4F4;
+    --fundo:#E3DFD8;
     /* superfícies e texto (temáveis) */
-    --txt:#1E1E1E;
+    --txt:#1C1A17;
     --superficie:#FFFFFF;
-    --superficie-2:#F7F7F7;
-    --linha-par:#FAFCF9;
+    --superficie-2:#F5F2EE;
+    --linha-par:#FAF8F5;
     --menu-bg:#FFFFFF;
     --menu-txt:#1E1E1E;
     --menu-borda:transparent;
     --erro-bg:#FBEAE6;
-    --scroll-track:#EEEEEE;
-    --scroll-thumb:#C9C9C9;
+    --scroll-track:#E4E0DA;
+    --scroll-thumb:#C2BAB0;
     --grafico-bg:#FFFFFF;   /* fundo dos gráficos na tela (claro/escuro) */
-    --thead-bg:#1E1E1E;     /* topo da tabela */
+    --thead-bg:#232120;     /* topo da tabela */
+    /* v281 - profundidade. Tudo em rgba do proprio grafite da marca, para a sombra
+       nao puxar para o azul (sombra cinza-azulada em cima de fundo quente suja). */
+    --sombra-1:0 1px 2px rgba(44,36,28,.05), 0 5px 16px rgba(44,36,28,.07);
+    --sombra-2:0 2px 6px rgba(44,36,28,.08), 0 14px 32px rgba(44,36,28,.13);
+    --sombra-3:0 10px 26px rgba(44,36,28,.13), 0 28px 60px rgba(44,36,28,.18);
+    --brilho-marca:0 0 0 3px rgba(var(--verde-rgb),.16);
+    /* a barra lateral: ESCURA nos dois temas (v281) */
+    --barra-1:#262322;
+    --barra-2:#1B1918;
+    --barra-3:#141312;
+    --barra-txt:#E7E2DA;
+    --barra-tit:#A79D91;
+    --barra-borda:#332F2B;
+    --barra-hover:rgba(255,255,255,.055);
     color-scheme:light;
   }
 
   /* ===================== TEMA ESCURO ===================== */
   body.tema-escuro{
-    --fundo:#1E2122;
-    --superficie:#181A1B;
-    --superficie-2:#1D1F20;
-    --linha-par:#202324;
-    --txt:#D5D1CC;
-    --cinza:#A39B8E;
-    --borda:#393E40;
-    --verde-claro:#421A00;
+    /* v281 - O TEMA ESCURO ESTAVA INVERTIDO E CHATO.
+       🔴 --fundo (#1E2122) era MAIS CLARO que --superficie (#181A1B): o cartao afundava
+          no lugar de flutuar. E --superficie x --superficie-2 diferiam 2%, ou seja, nao
+          existia segundo degrau.
+       Agora: fundo o mais escuro, superficie um degrau acima, superficie-2 mais um. */
+    --fundo:#0F1214;
+    --superficie:#181C1F;
+    --superficie-2:#20262A;
+    --linha-par:#1C2124;
+    --txt:#E3DFD9;
+    --cinza:#9BA3AA;
+    --borda:#2C3338;
+    --borda-forte:#3C444B;
+    --verde-claro:#3E1A04;
     --vermelho:#FF6B6B;
-    --menu-bg:#181A1B;
-    --menu-txt:#D5D1CC;   /* texto do menu neutro (antes laranja) */
-    --menu-borda:#393E40;
+    --menu-bg:#181C1F;
+    --menu-txt:#E3DFD9;   /* texto do menu neutro (antes laranja) */
+    --menu-borda:#2C3338;
     --erro-bg:#3A1A18;
-    --scroll-track:#202324;
-    --scroll-thumb:#4A4F50;
-    --grafico-bg:#181A1B;   /* gráficos escuros no tema escuro */
-    --thead-bg:#141516;
+    --scroll-track:#1C2124;
+    --scroll-thumb:#414A50;
+    --grafico-bg:#181C1F;   /* gráficos escuros no tema escuro */
+    --thead-bg:#0B0E10;
+    --sombra-1:inset 0 1px 0 rgba(255,255,255,.035), 0 6px 18px rgba(0,0,0,.40);
+    --sombra-2:inset 0 1px 0 rgba(255,255,255,.05), 0 12px 30px rgba(0,0,0,.50);
+    --sombra-3:inset 0 1px 0 rgba(255,255,255,.06), 0 22px 54px rgba(0,0,0,.60);
+    --barra-1:#1E2225;
+    --barra-2:#161A1D;
+    --barra-3:#101315;
+    --barra-txt:#DDD9D3;
+    --barra-tit:#8F979E;
+    --barra-borda:#272D31;
     color-scheme:dark;
   }
 
@@ -2436,6 +2475,346 @@
   .tqv-pers-it button[disabled]{opacity:.22;cursor:default}
   .tqv-pers-bts{display:flex;gap:9px;flex-wrap:wrap;margin-top:4px}
   @media (max-width:560px){ .tqv-grade{grid-template-columns:1fr} }
+
+  /* =========================================================================
+     v281 - CAMADA DE ACABAMENTO
+     Pedido do Tiago (07/08/2026): "o app esta muito serio; no menu claro esta
+     claro demais, a barra lateral toda solida esta sem vida".
+
+     🔑 Por que uma CAMADA no fim, e nao edicao espalhada: o <style> tem 1.552
+     regras. Reescrever cada uma seria 1.552 chances de errar. Aqui a cascata
+     trabalha a favor - mesma especificidade, quem vem depois ganha - e apagar
+     a reforma inteira e' apagar UM bloco.
+     🔴 Tudo em background-IMAGE, nunca background-color: o modo escuro forcado
+     do Chrome apaga background-color (armadilha da v186, repetida na v243).
+     ========================================================================= */
+
+  /* ---------- 1. o fundo respira ---------- */
+  body{
+    background-image:
+      radial-gradient(ellipse 900px 420px at 12% -6%, rgba(var(--verde-rgb), var(--miv-halo)) 0, transparent 70%),
+      radial-gradient(ellipse 700px 500px at 108% 104%, rgba(var(--verde-rgb), calc(var(--miv-halo) * .65)) 0, transparent 70%),
+      radial-gradient(var(--miv-ponto) 1.25px, transparent 1.35px);
+    background-size:auto, auto, 21px 21px;
+    background-repeat:no-repeat, no-repeat, repeat;
+    background-attachment:fixed, fixed, fixed;
+  }
+  body{ --miv-ponto:rgba(60,48,36,.075); --miv-halo:.055; }
+  body.tema-escuro{ --miv-ponto:rgba(255,255,255,.040); --miv-halo:.115; }
+
+  /* ---------- 2. A BARRA LATERAL: escura nos dois temas ----------
+     🔑 O truque que faz isso caber em poucas linhas: em vez de reescrever as ~40
+     regras de dentro da barra, REDEFINIMOS AS VARIAVEIS no proprio .menu-lateral.
+     Variavel de CSS cascateia para os filhos, entao tudo que la' dentro usa
+     var(--txt), var(--cinza), var(--borda) ou var(--superficie-2) ja' acorda
+     escuro - inclusive o que for escrito no futuro. */
+  .menu-lateral{
+    --superficie:var(--barra-1);
+    --superficie-2:var(--barra-hover, rgba(255,255,255,.055));
+    --txt:var(--barra-txt);
+    --cinza:var(--barra-tit);
+    --borda:var(--barra-borda);
+    color:var(--barra-txt);
+    background-color:var(--barra-2);
+    background-image:linear-gradient(177deg, var(--barra-1) 0%, var(--barra-2) 46%, var(--barra-3) 100%);
+    border-right:1px solid var(--barra-borda);
+    box-shadow:inset -14px 0 22px -18px rgba(0,0,0,.9);
+  }
+  /* o fio de luz laranja na beirada direita - e' o que tira a barra do "solido sem vida" */
+  .menu-lateral::after{
+    content:"";position:absolute;top:0;right:0;bottom:0;width:1px;pointer-events:none;
+    background-image:linear-gradient(180deg,
+      transparent 0%, rgba(var(--verde-rgb),.55) 14%, rgba(var(--verde-rgb),.18) 48%, transparent 92%);
+    opacity:.85;
+  }
+  .menu-lateral:hover{ box-shadow:6px 0 30px rgba(0,0,0,.42), inset -14px 0 22px -18px rgba(0,0,0,.9) }
+  .menu-lateral button{ color:var(--barra-txt);border-radius:0 9px 9px 0;padding-top:9px;padding-bottom:9px }
+  .menu-lateral button:hover{ background-image:linear-gradient(90deg, rgba(255,255,255,.075), rgba(255,255,255,.02) 70%, transparent) }
+  .menu-lateral button.ativo{
+    color:#FFC9A6;border-left-color:var(--verde);
+    background-image:linear-gradient(90deg, rgba(var(--verde-rgb),.30) 0%, rgba(var(--verde-rgb),.10) 52%, transparent 100%);
+    box-shadow:inset 0 0 22px -6px rgba(var(--verde-rgb),.45);
+  }
+  .menu-lateral .menu-grp-tit{ color:var(--barra-tit) }
+  .menu-lateral .usr-nome{ color:var(--barra-txt) }
+  .menu-lateral .usr-fn{ color:var(--barra-tit) }
+  .menu-lateral .menu-sair{ color:#FF8A80 }
+  .menu-lateral::-webkit-scrollbar{width:8px}
+  .menu-lateral::-webkit-scrollbar-thumb{background-image:linear-gradient(rgba(255,255,255,.16),rgba(255,255,255,.16));border-radius:8px}
+  .menu-lateral::-webkit-scrollbar-track{background-image:linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.25))}
+  /* o mesmo vale para a gaveta do celular */
+  .menu-hamb{ color:var(--barra-txt) }
+
+  /* ---------- 3. o cabecalho ---------- */
+  header{
+    background-image:
+      radial-gradient(ellipse 420px 120px at 6% 130%, rgba(var(--verde-rgb),.30) 0, transparent 72%),
+      linear-gradient(112deg, #17161A 0%, #232022 58%, #1A1819 100%);
+    box-shadow:0 2px 14px rgba(0,0,0,.28);
+  }
+  @media (min-width:901px){
+    header{
+      background-image:
+        radial-gradient(ellipse 360px 90px at 4% 150%, rgba(var(--verde-rgb),.34) 0, transparent 74%),
+        linear-gradient(100deg, #131214 0%, #1C1A1C 52%, #131214 100%);
+      border-bottom:1px solid rgba(var(--verde-rgb),.22);
+      box-shadow:0 4px 20px rgba(0,0,0,.35);
+    }
+  }
+
+  /* ---------- 4. as superficies de conteudo ganham corpo ---------- */
+  .filtros{
+    background-image:linear-gradient(180deg, var(--superficie) 0%, var(--superficie-2) 100%);
+    border-color:var(--borda);
+  }
+  .config{
+    background-image:linear-gradient(180deg, var(--superficie) 0%, var(--superficie) 62%, var(--superficie-2) 100%);
+    border-radius:0 0 16px 16px;
+    box-shadow:var(--sombra-2);
+  }
+  .filtros.filtros-no-card{
+    border-radius:14px;box-shadow:var(--sombra-1);
+    background-image:linear-gradient(155deg, var(--superficie) 0%, var(--superficie-2) 100%);
+  }
+
+  /* ---------- 5. os quadrinhos de indicador ---------- */
+  .rel-kpis{ gap:12px }
+  .rel-kpi{
+    position:relative;overflow:hidden;border-radius:14px;padding:12px 14px 11px 17px;
+    border:1px solid var(--borda);
+    background-image:linear-gradient(152deg, var(--superficie) 0%, var(--superficie-2) 100%);
+    box-shadow:var(--sombra-1);
+    transition:transform .18s cubic-bezier(.22,1,.36,1), box-shadow .18s ease, border-color .18s ease;
+  }
+  .rel-kpi::before{
+    content:"";position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px;
+    background-image:linear-gradient(180deg, var(--verde) 0%, rgba(var(--verde-rgb),.22) 100%);
+  }
+  .rel-kpi.bom::before{ background-image:linear-gradient(180deg,#18a558 0%, rgba(24,165,88,.20) 100%) }
+  .rel-kpi.ruim::before{ background-image:linear-gradient(180deg,var(--vermelho) 0%, rgba(198,40,40,.20) 100%) }
+  .rel-kpi:hover{ transform:translateY(-2px);box-shadow:var(--sombra-2);border-color:rgba(var(--verde-rgb),.38) }
+  .rel-kpi b{ font-size:1.24rem;font-weight:700;letter-spacing:-.015em;margin-top:4px }
+  .rel-kpi span{ font-size:.66rem;letter-spacing:.5px;opacity:.9 }
+  /* 🔴 fill-mode BACKWARDS, nao BOTH: com `both` a animacao segura `transform:none`
+     depois de acabar e mata o translateY do :hover (a armadilha da v244). */
+  .rel-kpis > .rel-kpi{ animation:pfSobe .34s cubic-bezier(.22,1,.36,1) backwards }
+  .rel-kpis > .rel-kpi:nth-child(1){animation-delay:.02s}
+  .rel-kpis > .rel-kpi:nth-child(2){animation-delay:.06s}
+  .rel-kpis > .rel-kpi:nth-child(3){animation-delay:.10s}
+  .rel-kpis > .rel-kpi:nth-child(4){animation-delay:.14s}
+  .rel-kpis > .rel-kpi:nth-child(5){animation-delay:.18s}
+  .rel-kpis > .rel-kpi:nth-child(6){animation-delay:.22s}
+  .rel-kpis > .rel-kpi:nth-child(7){animation-delay:.26s}
+  .rel-kpis > .rel-kpi:nth-child(n+8){animation-delay:.30s}
+
+  /* ---------- 5b. os quadros do Dashboard e os blocos ---------- */
+  .pet-card,.pet-bloco{
+    position:relative;overflow:hidden;border-radius:14px;
+    background-image:linear-gradient(152deg, var(--superficie) 0%, var(--superficie-2) 100%);
+    box-shadow:var(--sombra-1);
+    transition:transform .18s cubic-bezier(.22,1,.36,1), box-shadow .18s ease, border-color .18s ease;
+  }
+  .pet-card::before,.pet-bloco::before{
+    content:"";position:absolute;left:0;right:0;top:0;height:2px;
+    background-image:linear-gradient(90deg, var(--verde) 0%, rgba(var(--verde-rgb),.10) 62%, transparent 100%);
+  }
+  .pet-card:hover,.pet-bloco:hover{ transform:translateY(-2px);box-shadow:var(--sombra-2);border-color:rgba(var(--verde-rgb),.32) }
+  .pet-card{ padding:14px 15px 13px }
+  .pet-card h4{ letter-spacing:.7px }
+  .pet-l b{ font-variant-numeric:tabular-nums }
+
+  /* ---------- 5c. os botoes ---------- */
+  .btn-verde,.btn-dourado{
+    background-image:linear-gradient(135deg, var(--verde) 0%, #E4571A 100%);
+    box-shadow:0 4px 14px rgba(var(--verde-rgb),.30);
+    transition:transform .14s ease, box-shadow .16s ease, filter .16s ease;
+  }
+  .btn-verde:hover,.btn-dourado:hover{ transform:translateY(-1px);box-shadow:0 7px 20px rgba(var(--verde-rgb),.40);filter:brightness(1.04) }
+  .btn-claro{
+    background-image:linear-gradient(180deg, var(--superficie) 0%, var(--superficie-2) 100%);
+    transition:transform .14s ease, box-shadow .16s ease, border-color .16s ease;
+  }
+  .btn-claro:hover{ transform:translateY(-1px);box-shadow:var(--sombra-1);border-color:rgba(var(--verde-rgb),.45) }
+
+  /* ---------- 6. as tabelas ---------- */
+  .rel-scroll{ border:1px solid var(--borda);border-radius:14px;box-shadow:var(--sombra-1);
+               background-image:linear-gradient(var(--superficie),var(--superficie)) }
+  .rel-scroll > .rel-tab{ margin-top:0 }
+  .rel-tab th{
+    background-image:linear-gradient(180deg, var(--superficie-2) 0%, var(--superficie) 100%);
+    border-bottom:2px solid var(--borda-forte, var(--borda));
+    font-weight:600;letter-spacing:.6px;padding:10px 11px;
+  }
+  .rel-tab td{ padding:9px 11px }
+  .rel-tab tbody tr{ transition:background-image .15s ease }
+  .rel-tab tbody tr:hover{
+    background-image:linear-gradient(90deg, rgba(var(--verde-rgb),.11) 0%, rgba(var(--verde-rgb),.02) 78%, transparent 100%);
+  }
+  .rel-tab tbody tr:last-child td{ border-bottom:none }
+  thead th{
+    background-image:linear-gradient(180deg, var(--thead-bg) 0%, rgba(0,0,0,.55) 100%);
+    background-color:var(--thead-bg);
+  }
+  tbody tr{ transition:background-image .15s ease }
+  tbody tr:hover{ background-image:linear-gradient(90deg, rgba(var(--verde-rgb),.13) 0%, rgba(var(--verde-rgb),.03) 80%, transparent 100%) }
+
+  /* ---------- 7. as pastilhas (abas, filtros de lista) ---------- */
+  .doc-chip{
+    background-image:linear-gradient(180deg, var(--superficie) 0%, var(--superficie-2) 100%);
+    transition:transform .14s ease, box-shadow .16s ease, border-color .16s ease, color .16s ease;
+    padding:7px 14px;
+  }
+  .doc-chip:hover{ transform:translateY(-1px);border-color:rgba(var(--verde-rgb),.55);color:var(--txt);box-shadow:var(--sombra-1) }
+  .doc-chip.ativo{
+    color:#fff;border-color:transparent;
+    background-image:linear-gradient(135deg, var(--verde) 0%, #E4571A 100%);
+    box-shadow:0 4px 14px rgba(var(--verde-rgb),.34);
+  }
+  .doc-chip.ativo:hover{ color:#fff }
+  .doc-chip.ativo .cnt-eti{ color:#fff;background-image:linear-gradient(rgba(255,255,255,.24),rgba(255,255,255,.24)) }
+
+  /* ---------- 8. campos ---------- */
+  .filtro input,.filtro select,.filtro-hist select,td input,td select{
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  .filtro input:focus,.filtro select:focus,.filtro-hist select:focus,
+  td input:focus,td select:focus,.pmenu-box input:focus,.pmenu-box select:focus{
+    border-color:var(--verde);box-shadow:var(--brilho-marca);
+  }
+
+  /* ---------- 9. o aviso vermelho deixa de ser um retangulo chapado ---------- */
+  .rel-alerta{
+    border-radius:12px;padding:11px 14px;border-left:4px solid var(--vermelho);
+    background-image:linear-gradient(100deg, var(--erro-bg) 0%, rgba(198,40,40,.05) 100%);
+  }
+
+  /* =========================================================================
+     v281 - A TELA DA DRE (prefixo dre-)
+     Pedida pelo Tiago em 07/08 olhando o GASview: "o efeito que aparece mostrando
+     as linhas da DRE". La' e' um grafico de linhas que se DESENHA quando a tela
+     abre. Aqui o mesmo efeito e' feito em SVG puro, sem biblioteca nenhuma:
+     stroke-dasharray = comprimento da linha, stroke-dashoffset indo a zero.
+     🔑 O comprimento e' medido com getTotalLength() DEPOIS de o SVG existir - nao
+     da' para escrever no CSS um numero que depende da largura da tela.
+     ========================================================================= */
+  .dre-topo{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:2px 0 14px}
+  .dre-grupo{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+  .dre-grupo > i{font-style:normal;font-size:.68rem;font-weight:700;letter-spacing:.7px;
+    text-transform:uppercase;color:var(--cinza);margin-right:2px}
+
+  /* --- os quatro cartoes de cima --- */
+  .dre-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:4px 0 18px}
+  .dre-kpi{position:relative;overflow:hidden;border:1px solid var(--borda);border-radius:16px;
+    padding:14px 16px 13px;background-image:linear-gradient(152deg, var(--superficie) 0%, var(--superficie-2) 100%);
+    box-shadow:var(--sombra-1);
+    transition:transform .18s cubic-bezier(.22,1,.36,1), box-shadow .18s ease, border-color .18s ease;
+    animation:pfSobe .38s cubic-bezier(.22,1,.36,1) backwards}
+  .dre-kpi:nth-child(1){animation-delay:.03s}
+  .dre-kpi:nth-child(2){animation-delay:.09s}
+  .dre-kpi:nth-child(3){animation-delay:.15s}
+  .dre-kpi:nth-child(4){animation-delay:.21s}
+  .dre-kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+    background-image:linear-gradient(180deg, var(--dre-c,var(--verde)) 0%, transparent 100%)}
+  .dre-kpi::after{content:"";position:absolute;right:-40px;top:-46px;width:120px;height:120px;
+    border-radius:50%;pointer-events:none;
+    background-image:radial-gradient(circle, rgba(var(--dre-rgb,var(--verde-rgb)),.20) 0%, transparent 68%)}
+  .dre-kpi:hover{transform:translateY(-2px);box-shadow:var(--sombra-2);border-color:rgba(var(--dre-rgb,var(--verde-rgb)),.45)}
+  .dre-kpi span{display:block;font-size:.66rem;font-weight:700;letter-spacing:.6px;
+    text-transform:uppercase;color:var(--cinza)}
+  .dre-kpi b{display:block;margin-top:5px;font-size:1.42rem;font-weight:700;letter-spacing:-.02em;
+    color:var(--dre-c,var(--txt));font-variant-numeric:tabular-nums}
+  .dre-kpi .dre-var{display:inline-flex;align-items:center;gap:4px;margin-top:7px;
+    font-size:.71rem;font-weight:700;border-radius:999px;padding:2px 9px;
+    background-image:linear-gradient(rgba(127,127,127,.13),rgba(127,127,127,.13));color:var(--cinza)}
+  .dre-kpi .dre-var.sobe{color:#18a558;background-image:linear-gradient(rgba(24,165,88,.15),rgba(24,165,88,.15))}
+  .dre-kpi .dre-var.desce{color:var(--vermelho);background-image:linear-gradient(rgba(198,40,40,.15),rgba(198,40,40,.15))}
+
+  /* --- o grafico --- */
+  .dre-cx{position:relative;border:1px solid var(--borda);border-radius:16px;padding:14px 16px 8px;
+    background-image:linear-gradient(160deg, var(--superficie) 0%, var(--superficie-2) 100%);
+    box-shadow:var(--sombra-1);margin-bottom:18px}
+  .dre-cx-tit{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;margin-bottom:2px}
+  .dre-cx-tit b{font-size:.95rem;letter-spacing:.2px}
+  .dre-cx-tit i{font-style:normal;font-size:.76rem;color:var(--cinza)}
+  .dre-leg{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px}
+  .dre-leg button{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--borda);
+    background-image:linear-gradient(180deg,var(--superficie) 0%,var(--superficie-2) 100%);
+    border-radius:999px;padding:5px 13px 5px 10px;font-size:.76rem;font-weight:600;
+    color:var(--txt);cursor:pointer;transition:opacity .15s ease,border-color .15s ease,transform .14s ease}
+  .dre-leg button:hover{transform:translateY(-1px);border-color:rgba(var(--verde-rgb),.45)}
+  .dre-leg button .dre-pt{width:11px;height:11px;border-radius:50%;flex:0 0 11px;
+    box-shadow:0 0 0 3px rgba(255,255,255,.10)}
+  .dre-leg button.off{opacity:.42}
+  .dre-leg button.off .dre-pt{background-image:linear-gradient(var(--cinza),var(--cinza)) !important}
+  .dre-svg{width:100%;height:auto;display:block;overflow:visible}
+  .dre-grade{stroke:var(--borda);stroke-width:1}
+  .dre-zero{stroke:var(--borda-forte,var(--borda));stroke-width:1.4;stroke-dasharray:4 4}
+  .dre-eixo{font-size:11px;fill:var(--cinza)}
+  .dre-eixo-dir{fill:#FE7030}
+  .dre-eixo-tit{font-size:9px;font-weight:700;letter-spacing:1px;fill:var(--cinza);opacity:.75}
+  .dre-mes{font-size:11px;fill:var(--cinza)}
+  .dre-serie{fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+  .dre-area{stroke:none;opacity:0;animation:dreArea .8s ease-out .5s forwards}
+  .dre-bola{stroke:var(--grafico-bg);stroke-width:2;opacity:0;animation:dreBola .3s ease-out forwards}
+  .dre-guia{stroke:rgba(var(--verde-rgb),.55);stroke-width:1.4;stroke-dasharray:3 3;display:none}
+  .dre-hit{fill:transparent;cursor:crosshair}
+  @keyframes dreTraco{to{stroke-dashoffset:0}}
+  @keyframes dreArea{to{opacity:1}}
+  @keyframes dreBola{to{opacity:1}}
+  .dre-tip{position:absolute;z-index:9;display:none;pointer-events:none;min-width:180px;
+    background-image:linear-gradient(var(--superficie),var(--superficie));color:var(--txt);
+    border:1px solid var(--borda);border-radius:12px;padding:10px 12px;font-size:.78rem;
+    line-height:1.6;box-shadow:var(--sombra-2)}
+  .dre-tip b{display:block;margin-bottom:6px;font-size:.82rem}
+  .dre-tip .l{display:flex;justify-content:space-between;gap:16px;white-space:nowrap}
+  .dre-tip .l i{font-style:normal;display:inline-flex;align-items:center;gap:6px;color:var(--cinza)}
+  .dre-tip .l i em{width:9px;height:9px;border-radius:50%;display:inline-block}
+  .dre-tip .l s{text-decoration:none;font-weight:700;font-variant-numeric:tabular-nums}
+
+  /* --- a tabela do demonstrativo --- */
+  .dre-tabcx{border:1px solid var(--borda);border-radius:16px;overflow:hidden;
+    box-shadow:var(--sombra-1);background-image:linear-gradient(var(--superficie),var(--superficie))}
+  table.dre-tab{width:100%;min-width:0;border-collapse:collapse;font-size:.87rem}
+  .dre-tab th{background-image:linear-gradient(180deg,var(--superficie-2) 0%,var(--superficie) 100%);
+    color:var(--cinza);text-align:right;padding:11px 14px;font-size:.68rem;font-weight:700;
+    letter-spacing:.7px;text-transform:uppercase;border-bottom:2px solid var(--borda-forte,var(--borda));white-space:nowrap}
+  .dre-tab th:first-child{text-align:left}
+  .dre-tab td{position:relative;padding:11px 14px;border-bottom:1px solid var(--borda);
+    text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;z-index:1}
+  .dre-tab td:first-child{text-align:left;font-weight:500}
+  .dre-tab tbody tr:last-child td{border-bottom:none}
+  /* 🔴 A BARRA DE PROPORCAO E' O FUNDO DA <tr>, NAO UM <span> DENTRO DA <td>.
+     A primeira tentativa foi um span absoluto dentro da primeira celula - e `width:100%`
+     ali e' 100% DA CELULA (uns 35% da tabela), entao a linha de 97,4% desenhava uma
+     barra de 34%. Numero certo, desenho mentiroso.
+     👉 Regra: barra medida em % dentro de tabela mora no fundo da LINHA. A largura vem
+     do proprio degrade (a parada dura em X%), e a animacao cresce o background-size. */
+  .dre-tab tbody tr{background-repeat:no-repeat;background-position:left center;
+    animation:dreLinha .40s cubic-bezier(.22,1,.36,1) backwards,
+              dreBarra .70s cubic-bezier(.22,1,.36,1) backwards}
+  @keyframes dreLinha{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
+  @keyframes dreBarra{from{background-size:0% 100%}to{background-size:100% 100%}}
+  .dre-tab tr.dre-tot td{font-weight:700}
+  .dre-tab tr.dre-fim td{font-weight:700;font-size:.95rem}
+  .dre-tab tr.dre-fim td:first-child{box-shadow:inset 3px 0 0 var(--verde)}
+  .dre-tab .dre-op{display:inline-block;width:26px;color:var(--cinza);font-weight:700}
+  .dre-tab td.dre-neg{color:var(--vermelho)}
+  .dre-tab td.dre-pos{color:#18a558}
+  .dre-pe{font-size:.74rem;color:var(--cinza);font-style:italic;margin-top:10px}
+  @media (max-width:700px){
+    .dre-tab th:nth-child(4),.dre-tab td:nth-child(4){display:none}
+    .dre-kpi b{font-size:1.22rem}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .dre-serie,.dre-area,.dre-bola,.dre-fundo,.dre-tab tbody tr,.dre-kpi{animation:none !important;
+      stroke-dashoffset:0 !important;opacity:1 !important;transform:none !important}
+  }
+
+  /* ---------- 10. quem prefere quieto, fica quieto ---------- */
+  @media (prefers-reduced-motion:reduce){
+    .rel-kpis > .rel-kpi{animation:none}
+    .rel-kpi:hover,.doc-chip:hover{transform:none}
+  }
 </style>
 </head>
 <body>
@@ -2506,6 +2885,7 @@
       <button class="btn-claro" id="btnSimular" onclick="alternarSimular()"><span class="mi">💰</span><span class="mt">Simular Margens</span></button>
       <button class="btn-claro" id="btnRelPosto" onclick="alternarRelatorios()"><span class="mi">📑</span><span class="mt">Relatórios</span></button>
       <button class="btn-claro" id="btnFinanceiro" onclick="alternarFinanceiro()"><span class="mi">🏦</span><span class="mt">Financeiro</span></button>
+      <button class="btn-claro" id="btnDre" onclick="alternarDre()"><span class="mi">📉</span><span class="mt">DRE</span></button>
       <button class="btn-claro" id="btnAnalise" onclick="alternarAnalise()"><span class="mi">🧠</span><span class="mt">Análise</span></button>
       <button class="btn-claro" id="btnRelLoja" onclick="alternarRelLoja()"><span class="mi">🍫</span><span class="mt">Produtos e categorias</span></button>
       <button class="btn-claro" id="btnIfood" onclick="alternarIfood()"><span class="mi">🍔</span><span class="mt">iFood</span></button>
@@ -2982,6 +3362,22 @@
       <h2>🛢️ Nível dos tanques</h2>
       <p class="nota-dash">Quanto tem em cada tanque <b>agora</b>, e quando o estoque acaba se a venda continuar no ritmo das últimas semanas. Os números vêm do Petros e chegam sozinhos, de hora em hora.</p>
       <div id="tqvBox"></div>
+    </div>
+  </div>
+
+  <!-- ===== v281 - O MENU DA DRE =====
+       Pedido do Tiago em 07/08 olhando o GASview. Le a MESMA fonte da aba
+       "Resultado do mes" (relatoriosPetros, tipo `dre`) - por isso os numeros batem
+       linha a linha com o menu Relatorios. O que esta tela acrescenta:
+         - a REDE (os tres postos somados), que nao existia em lugar nenhum;
+         - o grafico das linhas ao longo dos meses, que se desenha ao abrir;
+         - a comparacao com o mes anterior em cada quadro.
+       🔴 EMOJI EM HTML E GLIFO (em string JS a maioria do arquivo esta como \uXXXX). -->
+  <div class="config" id="painelDre">
+    <div class="grupo">
+      <h2>📉 DRE — demonstrativo de resultado</h2>
+      <p class="nota-dash">Como o dinheiro entrou e saiu, linha por linha, do que foi vendido até o que sobrou no fim. Vem do <b>Demonstrativo de Resultado no Período-Consolidado</b> do Petros — os mesmos números do menu Relatórios.</p>
+      <div id="dreBox"></div>
     </div>
   </div>
 
@@ -4052,6 +4448,7 @@ const ICO_SVG = {
   novidades:"<path d='M12 3.4 14.4 8.6l5.7.7-4.2 4 1.1 5.6L12 16.2l-5 2.7 1.1-5.6-4.2-4 5.7-.7z'/>",
   ordenarMenus:"<path d='M4 20.2h4.2L20 8.4a2 2 0 0 0-2.8-2.8L5.4 17.4z'/><path d='M15.6 7 17 8.4'/>",
   tanquesNivel:"<rect x='2.8' y='7.4' width='18.4' height='9.2' rx='2.6'/><path d='M2.8 13.4h18.4'/><path d='M6.6 7.4v9.2M11 7.4v9.2M15.4 7.4v9.2'/><path d='M5.2 19.2v1.4M18.8 19.2v1.4'/>",
+  dre:"<path d='M3.4 20.6h17.2'/><path d='M6 16.4l4-4.6 3.2 2.6 5.2-6.2'/><path d='M14.2 8.2h4.2v4.2'/>",
   sair:"<path d='M9.6 20.4H5.4a1.8 1.8 0 0 1-1.8-1.8V5.4a1.8 1.8 0 0 1 1.8-1.8h4.2'/><path d='M15.4 16.6 20 12l-4.6-4.6M20 12H9.2'/>",
   g_dia:"<path d='M20.4 11.2a8.4 8.4 0 1 0-.6 4.4'/><path d='M20.6 5.6v5.6h-5.6'/>",
   g_analise:"<path d='M3.4 20.6h17.2'/><rect x='5' y='11' width='3.6' height='7'/><rect x='10.2' y='6.6' width='3.6' height='11.4'/><rect x='15.4' y='13.6' width='3.6' height='4.4'/>",
@@ -4060,7 +4457,7 @@ const ICO_SVG = {
   empresa:"<path d='M3.6 20.4h16.8'/><path d='M5.4 20.4V6.2L12 3.6l6.6 2.6v14.2'/><path d='M9.6 20.4v-4.4h4.8v4.4'/><path d='M9.4 9.2h1.2M13.4 9.2h1.2M9.4 12.6h1.2M13.4 12.6h1.2'/>",
   g_ajustes:"<circle cx='12' cy='12' r='3.1'/><path d='M19.1 14.6a1.5 1.5 0 0 0 .3 1.7l.1.1a1.9 1.9 0 1 1-2.6 2.6l-.1-.1a1.5 1.5 0 0 0-2.6 1v.2a1.9 1.9 0 0 1-3.7 0v-.1a1.5 1.5 0 0 0-2.6-1l-.1.1a1.9 1.9 0 1 1-2.6-2.6l.1-.1a1.5 1.5 0 0 0-1-2.6h-.2a1.9 1.9 0 1 1 0-3.7h.1a1.5 1.5 0 0 0 1-2.6l-.1-.1a1.9 1.9 0 1 1 2.6-2.6l.1.1a1.5 1.5 0 0 0 1.7.3h.1a1.5 1.5 0 0 0 .9-1.4v-.2a1.9 1.9 0 0 1 3.7 0v.1a1.5 1.5 0 0 0 2.6 1l.1-.1a1.9 1.9 0 1 1 2.6 2.6l-.1.1a1.5 1.5 0 0 0 1 2.6h.2a1.9 1.9 0 0 1 0 3.7h-.1a1.5 1.5 0 0 0-1.4.9z'/>"
 };
-const ICO_BTN = {btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnTanquesNivel:"tanquesNivel",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnFinanceiro:"financeiro",btnAnalise:"analise",btnRelLoja:"relLoja",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
+const ICO_BTN = {btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnTanquesNivel:"tanquesNivel",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnFinanceiro:"financeiro",btnDre:"dre",btnAnalise:"analise",btnRelLoja:"relLoja",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
 const ICO_GRP = {dia:"g_dia",analise:"g_analise",transp:"g_transp",org:"g_org",ajustes:"g_ajustes"};
 /* 🔑 cor por GRUPO, tirada da paleta do MIV (laranja da marca + verde e dourado Petrobras).
    Assim a cor diz de que familia e' o menu, em vez de ser arco-iris. */
@@ -5716,6 +6113,15 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v281", data:"07/08/2026", tit:"O app ganhou cara nova \u2014 e a DRE ganhou menu pr\u00f3prio", itens:[
+    {t:"n", h:"Menu novo: \ud83d\udcc9 DRE", d:"No grupo <b>An\u00e1lise</b>. \u00c9 o demonstrativo de resultado inteiro, linha por linha, do que foi vendido at\u00e9 o que sobrou no fim \u2014 com uma barra atr\u00e1s de cada linha mostrando o tamanho dela em rela\u00e7\u00e3o \u00e0s vendas. Os n\u00fameros s\u00e3o os <b>mesmos</b> da aba Resultado do m\u00eas dos Relat\u00f3rios: vem tudo do Demonstrativo de Resultado do Petros."},
+    {t:"n", h:"A REDE somada, que n\u00e3o existia em lugar nenhum", d:"Na DRE d\u00e1 para escolher <b>Rede (os tr\u00eas postos)</b> e ver Teresina, Caxias e Dutra somados. Se num m\u00eas faltar o demonstrativo de algum posto, a tela <b>avisa quantas unidades entraram na soma</b> em vez de somar em sil\u00eancio."},
+    {t:"n", h:"O gr\u00e1fico que se desenha", d:"Vendas, lucro bruto, despesas e lucro l\u00edquido ao longo dos meses, com as linhas sendo tra\u00e7adas quando a tela abre. D\u00e1 para ligar e desligar cada uma, escolher 6, 12 ou 24 meses, passar o mouse para ver os valores do m\u00eas e clicar para abrir aquele m\u00eas. As <b>vendas t\u00eam r\u00e9gua pr\u00f3pria, \u00e0 direita</b>: elas s\u00e3o umas 20 vezes maiores que o lucro, e numa r\u00e9gua s\u00f3 as outras tr\u00eas viravam um risco reto colado no zero."},
+    {t:"m", h:"A barra lateral ficou escura nos dois temas", d:"No tema claro ela era branca \u2014 por isso o app parecia \u201cclaro demais\u201d e a barra, sem vida. Agora ela tem degrad\u00ea de cima para baixo, um fio de luz laranja na beirada e o menu escolhido acende mais forte."},
+    {t:"m", h:"Os quadros ganharam relevo", d:"Cartões com degrad\u00ea, sombra e uma barrinha colorida do lado; eles sobem um pouco quando o mouse passa por cima e entram em sequ\u00eancia quando a tela abre. As tabelas viraram cart\u00f5es de cantos arredondados e a linha acende em laranja ao passar o mouse. A aba escolhida deixou de ser um contorno e virou pastilha laranja cheia."},
+    {t:"m", h:"O tema claro deixou de ser branco no branco", d:"O fundo virou um tom de areia e as superf\u00edcies ganharam tr\u00eas degraus de verdade \u2014 antes o fundo e o cart\u00e3o diferiam 4%, e sem essa diferen\u00e7a n\u00e3o existe cart\u00e3o. No tema escuro o fundo era <b>mais claro</b> que o cart\u00e3o, ou seja, o quadro afundava em vez de flutuar; agora \u00e9 o contr\u00e1rio."},
+    {t:"m", h:"Quem prefere quieto, fica quieto", d:"Se o seu aparelho estiver com \u201creduzir movimento\u201d ligado, todas as anima\u00e7\u00f5es novas ficam desligadas e a tela aparece pronta."}
+  ]},
   {v:"v280", data:"07/08/2026", tit:"N\u00edvel dos tanques: escolher o posto", itens:[
     {t:"n", h:"D\u00e1 para ver um posto de cada vez", d:"No topo da tela apareceram os bot\u00f5es <b>Todos os postos</b>, <b>Posto Full - Teresina</b>, <b>Posto Full - Caxias</b> e <b>Posto Full - Pres Dutra</b>. Cada bot\u00e3o mostra, em vermelho, quantos tanques daquele posto est\u00e3o cr\u00edticos \u2014 ent\u00e3o d\u00e1 para ver onde est\u00e1 o aperto sem entrar em cada um. O app lembra a sua escolha."},
     {t:"c", h:"O aviso dos tanques sem sonda n\u00e3o some quando voc\u00ea filtra", d:"Se voc\u00ea escolher um posto e houver tanque sem leitura de sonda em <b>outro</b>, a tela avisa assim mesmo, dizendo quantos ficaram de fora. <b>Aviso que some porque algu\u00e9m filtrou \u00e9 pior que aviso nenhum</b> \u2014 quem filtrou acha que resolveu."}
@@ -6684,6 +7090,8 @@ function iniciarSync(){
     if (pr && pr.classList.contains("aberto")) renderRelPosto();
     const pf = document.getElementById("painelFinanceiro");  // v249 - faltava redesenhar estes dois
     if (pf && pf.classList.contains("aberto")) renderFinanceiro();
+    const pdre = document.getElementById("painelDre");       // v281 - a tela da DRE le a mesma colecao
+    if (pdre && pdre.classList.contains("aberto")) renderDre();
     const pdp = document.getElementById("painelDespesas");
     if (pdp && pdp.classList.contains("aberto")) renderDespesas();
     atualizarDashConv();                                     // v198
@@ -7320,6 +7728,7 @@ const MENUS_APP = [
   {key:"descontos",   btn:"btnDescontos",   pan:"painelDescontos",   emp:"postos", nome:"Descontos"},
   {key:"relPosto",    btn:"btnRelPosto",    pan:"painelRelPosto",    emp:"postos|conv", nome:"Relatórios"},
   {key:"financeiro",  btn:"btnFinanceiro",  pan:"painelFinanceiro",  emp:"postos|conv", nome:"Financeiro"},   // v224 - voltou (tinha saido na v207)
+  {key:"dre",         btn:"btnDre",         pan:"painelDre",         emp:"postos|conv", nome:"DRE"},   /* v281 */
   {key:"infleet",     btn:"btnInfleet",     pan:"painelInfleet",     emp:"transp", nome:"APP Infleet"},
   {key:"pedido",      btn:"btnPedido",      pan:"painelPedido",      emp:"transp", nome:"Pedido de carregamento"},
   {key:"cotacoes",    btn:"btnCotacoes",    pan:"painelCotacoes",    emp:"transp", nome:"Cotações do Dia"},
@@ -7348,7 +7757,7 @@ const MENUS_APP = [
 const GRUPOS_MENU = [
   {key:"soltos",  nome:"",               icone:"",       itens:["dash"]},
   {key:"dia",     nome:"Dia a dia",      icone:"\ud83d\udd01", itens:["resumoDia","tanquesNivel","registros","descontos","simular"]},
-  {key:"analise", nome:"Análise",        icone:"\ud83d\udcca", itens:["relPosto","financeiro","analise","relLoja","ifood"]},
+  {key:"analise", nome:"Análise",        icone:"\ud83d\udcca", itens:["relPosto","financeiro","dre","analise","relLoja","ifood"]},
   {key:"transp",  nome:"Transportadora", icone:"\ud83d\ude9a", itens:["infleet","pedido","cotacoes","puxadas"]},
   {key:"org",     nome:"Organização",    icone:"\ud83d\udcc1", itens:["calendario","vencimentos","caixa"]},   /* v251 - o 🗂 ninguem reconhecia */
   {key:"ajustes", nome:"Ajustes",        icone:"\u2699",        itens:["conta","config","usuarios"]},
@@ -11655,6 +12064,417 @@ function tqvCaixaPers(postos, nomes){
        '<button class="btn-claro" onclick="tqvFecharPers()">Cancelar</button>' +
        '<button class="btn-claro" onclick="tqvPadraoTudo()">Voltar ao padr\u00e3o</button></div></div>';
   return h;
+}
+
+/* ===================== v281 - O MENU 📊 DRE =====================
+   Fonte UNICA: relatoriosPetros, tipo `dre` (id `dre_{emp}_{unidade}_{AAAA-MM}`) - a
+   mesma da aba "Resultado do mes" desde a v233. Nenhuma colecao nova, nenhum passo de
+   rotina novo: se um dia o numero divergir do menu Relatorios, o defeito e' de conta,
+   nao de coleta.
+   🔑 As contas abaixo sao COPIA FIEL de resDoMesRel(): vendas - custo = lucro bruto,
+   com as OUTRAS RECEITAS por fora (regra da v233). Mudar a definicao aqui e nao la'
+   criaria dois numeros com o mesmo nome. */
+const DRE_SERIES = [
+  { k:"vendas", n:"Vendas",        c:"#FE7030", rgb:"254,112,48" },
+  { k:"lb",     n:"Lucro bruto",   c:"#18a558", rgb:"24,165,88"  },
+  { k:"desp",   n:"Despesas",      c:"#C62828", rgb:"198,40,40"  },
+  { k:"ll",     n:"Lucro líquido", c:"#2E7BC4", rgb:"46,123,196" }
+];
+const DRE_JANELAS = [[6,"6 meses"],[12,"12 meses"],[24,"24 meses"]];
+let dreUn = "rede", dreMes = "", dreJanela = 12, dreOcultas = {}, dreSerieCache = null;
+
+function dreSig(){ return siglaEmpresa(empresa); }
+function dreSemBico(){ return dreSig() === "conv"; }
+function dreUnidades(){
+  return [{ chave:"rede", nome: dreSemBico() ? "Todas as lojas" : "Rede (os três postos)" }]
+         .concat(UNIDADES_REL.map(u => ({ chave:u.chave, nome:u.nome })));
+}
+/* meses que TEM DRE gravado, na empresa atual, em qualquer unidade */
+function dreMesesDisp(){
+  const pre = "dre_" + dreSig() + "_", m = {};
+  Object.keys(relPetros || {}).forEach(k => {
+    if (String(k).indexOf(pre) !== 0) return;
+    const resto = String(k).slice(pre.length), i = resto.lastIndexOf("_");
+    if (i > 0) m[resto.slice(i + 1)] = 1;
+  });
+  return Object.keys(m).sort().reverse();
+}
+/* os litros do mes vivem no relatoriosPosto/relatoriosLoja, nao no DRE */
+function dreLitros(un, mes){
+  if (dreSemBico()) return 0;
+  if (un === "rede"){
+    let t = 0, achou = false;
+    UNIDADES_REL.forEach(u => { const v = dreLitros(u.chave, mes); if (v){ t += v; achou = true; } });
+    return achou ? t : 0;
+  }
+  const d = relDocsDaEmpresa()[un + "_" + mes];
+  return (d && d.res && +d.res.vol) ? +d.res.vol : 0;
+}
+/* o coracao: as linhas de um mes, para uma unidade ou para a rede inteira */
+function dreNums(un, mes){
+  if (!mes) return null;
+  if (un === "rede"){
+    const soma = { comb:0, outros:0, custoComb:0, custoOutros:0, outrasRec:0, desp:0, varEst:0 };
+    let quantos = 0;
+    UNIDADES_REL.forEach(u => {
+      const x = dreNums(u.chave, mes);
+      if (!x) return;
+      quantos++;
+      Object.keys(soma).forEach(k => { soma[k] += (+x[k] || 0); });
+    });
+    if (!quantos) return null;
+    return dreFechaConta(soma, dreLitros("rede", mes), quantos);
+  }
+  const doc = relPetros["dre_" + dreSig() + "_" + un + "_" + mes];
+  const D = doc ? rpzLista(doc) : null;
+  if (!D || !D.desp) return null;
+  const base = {
+    comb: rpzSoma(D.comb, 4), custoComb: rpzSoma(D.comb, 5),
+    outros: rpzSoma(D.prod, 4), custoOutros: rpzSoma(D.prod, 5),
+    outrasRec: rpzSoma(D.rec, 2), desp: rpzSoma(D.desp, 2), varEst: rpzSoma(D.varEst, 1)
+  };
+  const o = dreFechaConta(base, dreLitros(un, mes), 1);
+  o.D = D;
+  o.quando = doc.atualizadoEm ? String(doc.atualizadoEm).slice(0,10).split("-").reverse().join("/") : "";
+  o.ate = doc.ate || "";
+  return o;
+}
+function dreFechaConta(b, litros, quantos){
+  const vendas = (+b.comb || 0) + (+b.outros || 0);
+  const custo  = (+b.custoComb || 0) + (+b.custoOutros || 0);
+  const lb = vendas - custo;
+  const ll = lb + (+b.outrasRec || 0) - (+b.desp || 0) + (+b.varEst || 0);
+  const L = v => litros ? v / litros : null;
+  return { comb:+b.comb||0, outros:+b.outros||0, custoComb:+b.custoComb||0, custoOutros:+b.custoOutros||0,
+           outrasRec:+b.outrasRec||0, desp:+b.desp||0, varEst:+b.varEst||0,
+           vendas:vendas, custo:custo, lb:lb, ll:ll, vol:litros || null, unidades:quantos,
+           pct: vendas ? ll / vendas * 100 : null, lbL:L(lb), despL:L(b.desp), llL:L(ll) };
+}
+/* a serie do grafico: os N meses mais recentes que tem numero, do mais antigo ao mais novo */
+function dreSerie(un, n){
+  const meses = dreMesesDisp().slice(0, n).reverse();
+  const pts = [];
+  meses.forEach(m => { const x = dreNums(un, m); if (x) pts.push({ mes:m, x:x }); });
+  return pts;
+}
+function dreCompacto(v){
+  const a = Math.abs(+v || 0), sinal = (+v < 0) ? "-" : "";
+  if (a >= 1e6) return sinal + "R$ " + fmtBR(a / 1e6, 1) + " mi";
+  if (a >= 1e3) return sinal + "R$ " + fmtBR(a / 1e3, 0) + " mil";
+  return sinal + "R$ " + fmtBR(a, 0);
+}
+function dreVarPct(atual, ant){
+  if (ant === null || ant === undefined || !isFinite(ant) || ant === 0) return null;
+  return (atual - ant) / Math.abs(ant) * 100;
+}
+function dreMesAnterior(mes){
+  const p = String(mes).split("-"), a = +p[0], m = +p[1];
+  if (!a || !m) return "";
+  const d = (m === 1) ? [a - 1, 12] : [a, m - 1];
+  return d[0] + "-" + String(d[1]).padStart(2, "0");
+}
+
+/* ---------- as trocas de estado (todas redesenham) ---------- */
+function alternarDre(){
+  const aberto = abrirPainelExclusivo("painelDre");
+  const b = document.getElementById("btnDre");
+  if (b) b.classList.toggle("ativo", aberto);
+  if (aberto) renderDre();
+}
+function dreTrocarUn(u){ dreUn = u; renderDre(); }
+function dreTrocarMes(m){ dreMes = m; renderDre(); }
+function dreTrocarJanela(n){ dreJanela = +n || 12; renderDre(); }
+function dreAlternarSerie(k){
+  dreOcultas[k] = !dreOcultas[k];
+  /* nao deixa apagar a ultima: grafico sem linha nenhuma nao e' filtro, e' tela quebrada */
+  if (DRE_SERIES.every(s => dreOcultas[s.k])) dreOcultas[k] = false;
+  renderDre();
+}
+
+/* ---------- o grafico ---------- */
+/* Catmull-Rom -> Bezier: a curva passa POR CIMA de todos os pontos (uma spline que
+   "suaviza" inventando pontos seria bonita e mentirosa num grafico de dinheiro). */
+function dreCaminho(p){
+  if (!p.length) return "";
+  if (p.length === 1) return "M" + p[0][0] + "," + p[0][1];
+  let d = "M" + p[0][0].toFixed(1) + "," + p[0][1].toFixed(1);
+  for (let i = 0; i < p.length - 1; i++){
+    const p0 = p[i - 1] || p[i], p1 = p[i], p2 = p[i + 1], p3 = p[i + 2] || p2;
+    const t = 0.20;
+    const c1x = p1[0] + (p2[0] - p0[0]) * t, c1y = p1[1] + (p2[1] - p0[1]) * t;
+    const c2x = p2[0] - (p3[0] - p1[0]) * t, c2y = p2[1] - (p3[1] - p1[1]) * t;
+    d += "C" + c1x.toFixed(1) + "," + c1y.toFixed(1) + " " + c2x.toFixed(1) + "," + c2y.toFixed(1) +
+         " " + p2[0].toFixed(1) + "," + p2[1].toFixed(1);
+  }
+  return d;
+}
+/* 🔴 DUAS ESCALAS, DE PROPOSITO.
+   Vendas e' ~20x o lucro bruto: numa escala so' (que e' o que o GASview faz) as tres
+   linhas de resultado viram um risco reto colado no zero, e o grafico nao responde a
+   pergunta que interessa - "o lucro mexeu?". Entao:
+     - eixo da ESQUERDA  = resultado (lucro bruto, despesas, lucro liquido);
+     - eixo da DIREITA   = vendas, escrito em laranja, na cor da propria linha.
+   As duas escalas sao forcadas a compartilhar a MESMA altura do zero, senao a linha
+   pontilhada do zero valeria para uma e mentiria para a outra. */
+const DRE_EIXO_DIR = { vendas:1 };
+function dreGrafico(serie){
+  if (serie.length < 2) return "";
+  const W = 960, H = 340, ML = 86, MT = 34, MB = 38;
+  const vis = DRE_SERIES.filter(s => !dreOcultas[s.k]);
+  const esq = vis.filter(s => !DRE_EIXO_DIR[s.k]);
+  const dir = vis.filter(s => DRE_EIXO_DIR[s.k]);
+  const MR = dir.length && esq.length ? 84 : 22;
+  const x0 = ML, x1 = W - MR, y0 = MT, y1 = H - MB;
+
+  function faixa(lista){
+    let mx = 0, mn = 0;
+    serie.forEach(p => lista.forEach(s => {
+      const v = +p.x[s.k] || 0;
+      if (v > mx) mx = v;
+      if (v < mn) mn = v;
+    }));
+    if (mx === mn) mx = mx || 1;
+    /* 18% de folga em cima: sem ela a linha mais alta encosta no teto do quadro e o
+       olho le' "bateu no limite" onde nao ha' limite nenhum. */
+    const folga = (mx - mn) * 0.18;
+    return { mx: mx + folga, mn: mn - (mn < 0 ? folga : 0) };
+  }
+  const dois = esq.length && dir.length;
+  const fE = faixa(esq.length ? esq : dir);
+  let fD = dir.length ? faixa(dir) : null;
+  /* alinha o zero das duas escalas na mesma altura */
+  if (dois && fD){
+    const fz = (0 - fE.mn) / (fE.mx - fE.mn);
+    if (fz > 0 && fz < 1) fD.mn = -fz * fD.mx / (1 - fz);
+    else fD.mn = 0;
+  }
+  const px = i => x0 + (x1 - x0) * (serie.length === 1 ? .5 : i / (serie.length - 1));
+  const pyF = f => v => y1 - (y1 - y0) * (((+v || 0) - f.mn) / (f.mx - f.mn));
+  const pyE = pyF(fE), pyD = fD ? pyF(fD) : pyE;
+  const pyDe = s => (dois && DRE_EIXO_DIR[s.k]) ? pyD : (dir.length && !esq.length ? pyD : pyE);
+
+  let h = '<svg class="dre-svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img" aria-label="As linhas da DRE ao longo dos meses">';
+  h += '<defs>';
+  vis.forEach(s => {
+    h += '<linearGradient id="dreG_' + s.k + '" x1="0" y1="0" x2="0" y2="1">' +
+         '<stop offset="0%" stop-color="' + s.c + '" stop-opacity=".22"/>' +
+         '<stop offset="100%" stop-color="' + s.c + '" stop-opacity="0"/></linearGradient>';
+  });
+  h += '</defs>';
+  /* grade + os dois eixos */
+  for (let i = 0; i <= 4; i++){
+    const f = i / 4, y = y1 - (y1 - y0) * f;
+    h += '<line class="dre-grade" x1="' + x0 + '" y1="' + y.toFixed(1) + '" x2="' + x1 + '" y2="' + y.toFixed(1) + '"/>';
+    h += '<text class="dre-eixo" x="' + (x0 - 10) + '" y="' + (y + 4).toFixed(1) + '" text-anchor="end">' +
+         escAttr(dreCompacto(fE.mn + (fE.mx - fE.mn) * f)) + '</text>';
+    if (dois) h += '<text class="dre-eixo dre-eixo-dir" x="' + (x1 + 10) + '" y="' + (y + 4).toFixed(1) + '" text-anchor="start">' +
+         escAttr(dreCompacto(fD.mn + (fD.mx - fD.mn) * f)) + '</text>';
+  }
+  if (dois){
+    h += '<text class="dre-eixo-tit" x="' + (x0 - 10) + '" y="' + (y0 - 15) + '" text-anchor="end">RESULTADO</text>';
+    h += '<text class="dre-eixo-tit dre-eixo-dir" x="' + (x1 + 10) + '" y="' + (y0 - 15) + '" text-anchor="start">VENDAS</text>';
+  }
+  const zeroF = (0 - fE.mn) / (fE.mx - fE.mn);
+  if (zeroF > 0.02 && zeroF < 0.98)
+    h += '<line class="dre-zero" x1="' + x0 + '" y1="' + pyE(0).toFixed(1) + '" x2="' + x1 + '" y2="' + pyE(0).toFixed(1) + '"/>';
+  /* meses no eixo de baixo - no maximo 12 rotulos para nao virar borrao */
+  const passo = Math.max(1, Math.ceil(serie.length / 12));
+  serie.forEach((p, i) => {
+    if (i % passo !== 0 && i !== serie.length - 1) return;
+    h += '<text class="dre-mes" x="' + px(i).toFixed(1) + '" y="' + (y1 + 22) + '" text-anchor="middle">' + escAttr(rotuloMesRel(p.mes)) + '</text>';
+  });
+  /* as linhas. 🔴 A AREA PINTADA E' A DA ULTIMA VISIVEL (o lucro liquido), nao a da
+     primeira: pintar embaixo da linha de VENDAS deixa o quadro inteiro cor-de-rosa e as
+     outras tres somem dentro dele. Pintada embaixo da menor, ela vira uma faixa baixa que
+     se le' como "o que sobrou" - e o resto do quadro fica limpo. */
+  vis.forEach((s, ordem) => {
+    const py = pyDe(s);
+    const pts = serie.map((p, i) => [px(i), py(p.x[s.k])]);
+    const d = dreCaminho(pts);
+    if (ordem === vis.length - 1)
+      h += '<path class="dre-area" d="' + d + 'L' + px(serie.length - 1).toFixed(1) + ',' + y1 + 'L' + px(0).toFixed(1) + ',' + y1 + 'Z" fill="url(#dreG_' + s.k + ')"/>';
+    h += '<path class="dre-serie" data-i="' + ordem + '" d="' + d + '" stroke="' + s.c + '"/>';
+    const u = pts[pts.length - 1];
+    h += '<circle class="dre-bola" cx="' + u[0].toFixed(1) + '" cy="' + u[1].toFixed(1) + '" r="4.6" fill="' + s.c + '" style="animation-delay:' + (1.0 + ordem * .14).toFixed(2) + 's"/>';
+  });
+  /* a guia e as areas de toque, uma por mes */
+  h += '<line class="dre-guia" id="dreGuia" x1="0" y1="' + y0 + '" x2="0" y2="' + y1 + '"/>';
+  const larg = (x1 - x0) / Math.max(1, serie.length - 1);
+  serie.forEach((p, i) => {
+    h += '<rect class="dre-hit" x="' + (px(i) - larg / 2).toFixed(1) + '" y="' + y0 + '" width="' + larg.toFixed(1) + '" height="' + (y1 - y0) + '" ' +
+         'onmousemove="dreDica(event,' + i + ',' + px(i).toFixed(1) + ')" onmouseleave="dreDicaFora()" ' +
+         'onclick="dreTrocarMes(\'' + escAttr(p.mes) + '\')"/>';
+  });
+  h += '</svg>';
+  return h;
+}
+function dreDica(ev, i, cx){
+  const s = dreSerieCache;
+  if (!s || !s[i]) return;
+  const cx2 = document.getElementById("dreGrafCx"), tip = document.getElementById("dreTip"), g = document.getElementById("dreGuia");
+  if (!cx2 || !tip) return;
+  if (g){ g.setAttribute("x1", cx); g.setAttribute("x2", cx); g.style.display = "block"; }
+  const p = s[i];
+  let h = "<b>" + escAttr(rotuloMesRel(p.mes)) + "</b>";
+  DRE_SERIES.forEach(se => {
+    if (dreOcultas[se.k]) return;
+    h += '<div class="l"><i><em style="background:' + se.c + '"></em>' + escAttr(se.n) + '</i><s>' + escAttr(dreCompacto(p.x[se.k])) + '</s></div>';
+  });
+  h += '<div class="l" style="margin-top:5px;opacity:.75"><i>clique para ver o mês</i></div>';
+  tip.innerHTML = h;
+  tip.style.display = "block";
+  const r = cx2.getBoundingClientRect();
+  let px = ev.clientX - r.left + 16;
+  if (px + tip.offsetWidth > r.width - 8) px = ev.clientX - r.left - tip.offsetWidth - 16;
+  tip.style.left = Math.max(6, px) + "px";
+  tip.style.top = Math.max(6, ev.clientY - r.top - 20) + "px";
+}
+function dreDicaFora(){
+  const tip = document.getElementById("dreTip"), g = document.getElementById("dreGuia");
+  if (tip) tip.style.display = "none";
+  if (g) g.style.display = "none";
+}
+/* 🔴 O comprimento de cada linha so' existe depois que o SVG esta' no DOM. */
+function dreAnimarLinhas(){
+  const box = document.getElementById("dreBox");
+  if (!box) return;
+  box.querySelectorAll("path.dre-serie").forEach(p => {
+    let L = 0;
+    try { L = p.getTotalLength(); } catch(e){ L = 0; }
+    if (!L || !isFinite(L)) return;
+    const ordem = +p.getAttribute("data-i") || 0;
+    p.style.strokeDasharray = L;
+    p.style.strokeDashoffset = L;
+    p.style.animation = "dreTraco 1.05s cubic-bezier(.22,1,.36,1) " + (ordem * 0.14).toFixed(2) + "s forwards";
+  });
+}
+
+/* ---------- a tela ---------- */
+function renderDre(){
+  const box = document.getElementById("dreBox");
+  if (!box) return;
+  const meses = dreMesesDisp();
+  if (!meses.length){
+    box.innerHTML = (typeof vazioHtml === "function")
+      ? vazioHtml("Ainda não temos o demonstrativo", "Ele é montado na sincronização, a partir do Demonstrativo de Resultado do Petros.", "", "")
+      : '<p class="nota-dash">Ainda não temos o demonstrativo desta empresa.</p>';
+    return;
+  }
+  if (meses.indexOf(dreMes) < 0) dreMes = meses[0];
+  const semBico = dreSemBico();
+  const r = dreNums(dreUn, dreMes);
+  const ant = dreNums(dreUn, dreMesAnterior(dreMes));
+
+  /* --- barra de escolhas --- */
+  let h = '<div class="dre-topo"><div class="dre-grupo"><i>' + (semBico ? "Loja" : "Posto") + '</i>';
+  dreUnidades().forEach(u => {
+    h += '<button class="doc-chip' + (dreUn === u.chave ? " ativo" : "") + '" onclick="dreTrocarUn(\'' + escAttr(u.chave) + '\')">' + escAttr(u.nome) + '</button>';
+  });
+  h += '</div><div class="dre-grupo"><i>Mês</i>' +
+       '<select class="dre-sel" onchange="dreTrocarMes(this.value)" style="padding:7px 12px;border-radius:999px;border:1px solid var(--borda);background:var(--superficie);color:var(--txt);font-size:.8rem;font-weight:600">' +
+       meses.map(m => '<option value="' + escAttr(m) + '"' + (m === dreMes ? " selected" : "") + '>' + escAttr(rotuloMesRel(m)) + '</option>').join("") +
+       '</select></div></div>';
+
+  if (!r){
+    box.innerHTML = h + '<p class="nota-dash">Não temos o demonstrativo de <b>' + escAttr(rotuloMesRel(dreMes)) + '</b> para esta escolha. Tente outro mês.</p>';
+    return;
+  }
+
+  /* --- os quatro quadros --- */
+  const quadro = (s, valor, chaveBula, antVal, invertido) => {
+    const v = dreVarPct(valor, antVal);
+    let eti = "";
+    if (v !== null){
+      const sobe = v >= 0;
+      const bom = invertido ? !sobe : sobe;
+      eti = '<span class="dre-var ' + (Math.abs(v) < 0.05 ? "" : (bom ? "sobe" : "desce")) + '">' +
+            (sobe ? "▲" : "▼") + " " + fmtBR(Math.abs(v), 1) + "% <em style=\"font-style:normal;opacity:.7;font-weight:600\">vs " +
+            escAttr(rotuloMesRel(dreMesAnterior(dreMes))) + "</em></span>";
+    }
+    return '<div class="dre-kpi" style="--dre-c:' + s.c + ';--dre-rgb:' + s.rgb + '">' +
+           '<span>' + escAttr(s.n) + (chaveBula ? bul(chaveBula) : "") + '</span>' +
+           '<b>' + fmtR$0(valor) + '</b>' + eti + '</div>';
+  };
+  h += '<div class="dre-kpis">' +
+       quadro(DRE_SERIES[0], r.vendas, "vendas", ant ? ant.vendas : null, false) +
+       quadro(DRE_SERIES[1], r.lb, "lucroBruto", ant ? ant.lb : null, false) +
+       quadro(DRE_SERIES[2], r.desp, "despesas", ant ? ant.desp : null, true) +
+       quadro(DRE_SERIES[3], r.ll, "lucroLiquido", ant ? ant.ll : null, false) +
+       '</div>';
+
+  /* --- o grafico --- */
+  const serie = dreSerie(dreUn, dreJanela);
+  dreSerieCache = serie;
+  if (serie.length >= 2){
+    h += '<div class="dre-cx" id="dreGrafCx">' +
+         '<div class="dre-cx-tit"><b>Como as linhas caminharam</b><i>' + serie.length + ' meses. Passe o mouse em cima de um mês; clique para abrir. ' +
+           (dreOcultas.vendas ? '' : 'As <b style="color:#FE7030">vendas</b> são lidas na régua da direita — elas são ~20× maiores que o lucro, e numa régua só as outras três viravam um risco reto.') + '</i></div>' +
+         '<div class="dre-grupo" style="margin-top:6px">' +
+         DRE_JANELAS.map(j => '<button class="doc-chip' + (dreJanela === j[0] ? " ativo" : "") + '" onclick="dreTrocarJanela(' + j[0] + ')">' + escAttr(j[1]) + '</button>').join("") +
+         '</div>' +
+         '<div class="dre-leg">' +
+         DRE_SERIES.map(s => '<button class="' + (dreOcultas[s.k] ? "off" : "") + '" onclick="dreAlternarSerie(\'' + s.k + '\')">' +
+            '<span class="dre-pt" style="background:' + s.c + '"></span>' + escAttr(s.n) + '</button>').join("") +
+         '</div>' +
+         dreGrafico(serie) +
+         '<div class="dre-tip" id="dreTip"></div></div>';
+  }
+
+  /* --- a tabela --- */
+  const litros = r.vol || 0;
+  const pctDe = v => r.vendas ? Math.abs(+v || 0) / r.vendas * 100 : null;
+  const linhas = [];
+  if (!semBico) linhas.push(["+", "Venda de combustível", r.comb, "", ""]);
+  linhas.push(["+", semBico ? "Venda de produtos" : "Venda de outros produtos", r.outros, "", ""]);
+  linhas.push(["=", "Vendas", r.vendas, "tot", "vendas"]);
+  if (!semBico) linhas.push(["−", "Custo do combustível", -r.custoComb, "", ""]);
+  linhas.push(["−", semBico ? "Custo dos produtos" : "Custo dos outros produtos", -r.custoOutros, "", ""]);
+  linhas.push(["=", "Lucro bruto", r.lb, "tot", "lucroBruto"]);
+  linhas.push(["+", "Outras receitas", r.outrasRec, "", "outrasReceitas"]);
+  linhas.push(["−", "Despesas", -r.desp, "", "despesas"]);
+  linhas.push([(r.varEst < 0 ? "−" : "+"), "Variação de estoque", r.varEst, "", "varEstoque"]);
+  linhas.push(["=", "Lucro líquido", r.ll, "fim", "lucroLiquido"]);
+
+  h += '<div class="dre-tabcx"><table class="dre-tab"><thead><tr>' +
+       '<th>Linha</th><th>Valor</th><th>% das vendas' + bul("pctVendas") + '</th>' +
+       (semBico ? "" : '<th>Por litro' + bul("lucroLitro") + '</th>') + '</tr></thead><tbody>';
+  linhas.forEach((l, i) => {
+    const op = l[0], nome = l[1], v = +l[2] || 0, tipo = l[3], bula = l[4];
+    const pct = pctDe(v);
+    const cor = (tipo === "fim") ? (v >= 0 ? "dre-pos" : "dre-neg") : (v < 0 ? "dre-neg" : "");
+    const larg = pct === null ? 0 : Math.min(100, pct);
+    const se = DRE_SERIES.find(x => (tipo === "fim" && x.k === "ll") || (nome === "Despesas" && x.k === "desp") || (nome === "Lucro bruto" && x.k === "lb") || (nome === "Vendas" && x.k === "vendas"));
+    const rgb = se ? se.rgb : (v < 0 ? "198,40,40" : "254,112,48");
+    const forte = (tipo === "tot" || tipo === "fim") ? .30 : .17;
+    const fundo = 'linear-gradient(90deg, rgba(' + rgb + ',' + forte + ') 0%, rgba(' + rgb + ',' +
+                  (forte * .28).toFixed(3) + ') ' + larg.toFixed(1) + '%, transparent ' + larg.toFixed(1) + '%)';
+    h += '<tr class="' + (tipo === "tot" ? "dre-tot" : tipo === "fim" ? "dre-fim" : "") +
+         '" style="background-image:' + fundo + ';animation-delay:' + (0.05 + i * 0.045).toFixed(3) + 's,' + (0.10 + i * 0.045).toFixed(3) + 's">' +
+         '<td><span class="dre-op">' + op + '</span>' + escAttr(nome) + (bula ? bul(bula) : "") + '</td>' +
+         '<td class="' + cor + '">' + fmtR$(v) + '</td>' +
+         '<td>' + (pct === null ? "—" : fmtBR(pct, 1) + "%") + '</td>' +
+         (semBico ? "" : '<td>' + (litros ? "R$ " + fmtBR(v / litros, 3) : "—") + '</td>') +
+         '</tr>';
+  });
+  h += '</tbody></table></div>';
+
+  /* --- o rodape, que diz de onde veio e o que fica de fora --- */
+  const nomeUn = (dreUnidades().find(u => u.chave === dreUn) || {}).nome || dreUn;
+  h += '<p class="dre-pe">' + escAttr(nomeUn) + ' · ' + escAttr(rotuloMesRel(dreMes)) +
+       (r.ate ? ' · período de 1 a ' + escAttr(String(r.ate).slice(8,10)) : "") +
+       (litros ? ' · ' + escAttr(fmtL(litros)) : "") +
+       (r.quando ? ' · atualizado em ' + escAttr(r.quando) : "") +
+       '. Fonte: Demonstrativo de Resultado no Período-Consolidado (Petros). ' +
+       'O <b>lucro bruto</b> é venda menos custo — as outras receitas entram só no lucro líquido.' +
+       (dreUn === "rede" && r.unidades < UNIDADES_REL.length
+          ? ' <b>⚠️ A soma da rede tem só ' + r.unidades + ' de ' + UNIDADES_REL.length + ' unidades neste mês.</b>' : "") +
+       (!semBico && !litros ? ' <b>⚠️ Os litros deste mês ainda não foram coletados, então a coluna “por litro” aparece como “—”.</b>' : "") +
+       '</p>';
+
+  box.innerHTML = h;
+  /* 🔴 depois de o HTML existir: medir as linhas e mandar desenhar */
+  if (typeof requestAnimationFrame === "function") requestAnimationFrame(dreAnimarLinhas);
+  else setTimeout(dreAnimarLinhas, 0);
 }
 
 function alternarTanquesNivel(){
