@@ -6150,6 +6150,7 @@ const NOVIDADES_APP = [
     {t:"n", h:"Agora \u00e9 s\u00f3 dizer o motivo", d:"Na lista \ud83d\udce1 Do Petros, clique no selo da linha e escolha o <b>motivo</b> do desconto. Quando o Petros n\u00e3o souber quem \u00e9 o cliente, a tela pede o nome. <b>Nenhum n\u00famero \u00e9 digitado</b> \u2014 hora, litros, pre\u00e7o e valor v\u00eam do caixa."},
     {t:"n", h:"Os selos", d:"\u26aa a conferir \u00b7 \ud83d\udfe2 conferido \u00b7 \u26d4 marcado como \u201cn\u00e3o \u00e9 desconto\u201d \u00b7 \ud83d\udd34 esperando h\u00e1 3 dias ou mais. S\u00f3 o <b>negociado no balc\u00e3o</b> pede motivo: o acordo do cliente \u00e9 pre\u00e7o j\u00e1 combinado."},
     {t:"m", h:"O lan\u00e7amento \u00e0 m\u00e3o saiu", d:"O formul\u00e1rio de digitar desconto foi removido: o desconto tem de ser dado no <b>Petros</b>, e de l\u00e1 ele vem sozinho \u2014 assim nenhum fica de fora. O hist\u00f3rico do que j\u00e1 foi digitado continua na tela, e nada foi apagado."},
+    {t:"c", h:"Os selos das linhas j\u00e1 conferidas", d:"Ao abrir o dia, as linhas que j\u00e1 tinham motivo apareciam por um instante como <b>pendentes</b>, at\u00e9 a nuvem responder. Agora a lista se redesenha quando a confer\u00eancia chega."},
     {t:"m", h:"De 01/07 em diante, quem manda \u00e9 o Petros", d:"O Consolidado do per\u00edodo conta o lan\u00e7amento \u00e0 m\u00e3o at\u00e9 30/06 e o Petros de 01/07 em diante, para a mesma venda n\u00e3o ser contada duas vezes."}
   ]},
   {v:"v283", data:"07/08/2026", tit:"Descontos: balc\u00e3o e acordo, separados", itens:[
@@ -16655,7 +16656,13 @@ function carregarDescontos(){
       descontos = [];
       snap.forEach(d => descontos.push(Object.assign({ id:d.id }, d.data() || {})));
       renderDescontos();
-    }, () => { renderDescontos(); });
+      /* 🔴 v284a - A LISTA DO PETROS TAMBEM DEPENDE DESTE SNAPSHOT. O selo de cada linha sai de
+         `descontos`, e o `renderDescPetros()` la' de cima roda ANTES de a nuvem responder — entao
+         sem esta chamada as linhas ja' conferidas apareciam como 🔴 ate' alguem redesenhar a tela.
+         🔑 Defeito de CORRIDA: o dado estava certo e a tela mentia. A suite offline nao pegou
+         porque o falso do Firestore respondia instantaneamente — ver a nota no stub. */
+      renderDescPetros();
+    }, () => { renderDescontos(); renderDescPetros(); });
   } catch(e){ renderDescontos(); }
 }
 /* ---------- Clientes do Descontos (por posto) ---------- */
