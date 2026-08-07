@@ -92,13 +92,21 @@
     --sombra-2:0 2px 6px rgba(44,36,28,.08), 0 14px 32px rgba(44,36,28,.13);
     --sombra-3:0 10px 26px rgba(44,36,28,.13), 0 28px 60px rgba(44,36,28,.18);
     --brilho-marca:0 0 0 3px rgba(var(--verde-rgb),.16);
-    /* a barra lateral: ESCURA nos dois temas (v281) */
-    --barra-1:#262322;
-    --barra-2:#1B1918;
-    --barra-3:#141312;
-    --barra-txt:#E7E2DA;
-    --barra-tit:#A79D91;
-    --barra-borda:#332F2B;
+    /* v281b - A BARRA LATERAL SAI DO MIV, nao de um cinza inventado.
+       O manual (claude/miv-identidade-visual.md) tem quatro cores e tres grafismos com
+       nome. A barra usa: PRETO #000000 ("fundo das pecas escuras"), OFF-WHITE #DBDAD9
+       no texto, o LARANJA #FE7030 da marca nos grafismos, e os dois grafismos que o
+       manual mais repete - CIRCULOS EM EXPANSAO e FLUIDOS E LINHAS SINUOSAS.
+       ⚠️ O cinza #6D6D6D do manual e' de TEXTO SECUNDARIO no papel; em 11px sobre preto
+       ele da' 3,4:1 de contraste e nao se le'. Os titulos de grupo usam #9A9791, que e'
+       o mesmo cinza clareado ate' passar de 4,5:1. 🔑 Cor de manual impresso nao se
+       copia para tela sem medir contraste. */
+    --barra-1:#131111;
+    --barra-2:#000000;
+    --barra-3:#000000;
+    --barra-txt:#DBDAD9;
+    --barra-tit:#9A9791;
+    --barra-borda:#232120;
     --barra-hover:rgba(255,255,255,.055);
     color-scheme:light;
   }
@@ -131,12 +139,13 @@
     --sombra-1:inset 0 1px 0 rgba(255,255,255,.035), 0 6px 18px rgba(0,0,0,.40);
     --sombra-2:inset 0 1px 0 rgba(255,255,255,.05), 0 12px 30px rgba(0,0,0,.50);
     --sombra-3:inset 0 1px 0 rgba(255,255,255,.06), 0 22px 54px rgba(0,0,0,.60);
-    --barra-1:#1E2225;
-    --barra-2:#161A1D;
-    --barra-3:#101315;
-    --barra-txt:#DDD9D3;
-    --barra-tit:#8F979E;
-    --barra-borda:#272D31;
+    /* no tema escuro a barra e' a MESMA do MIV (preto), so' a borda acompanha */
+    --barra-1:#131111;
+    --barra-2:#000000;
+    --barra-3:#000000;
+    --barra-txt:#DBDAD9;
+    --barra-tit:#9A9791;
+    --barra-borda:#232120;
     color-scheme:dark;
   }
 
@@ -2516,7 +2525,25 @@
     --borda:var(--barra-borda);
     color:var(--barra-txt);
     background-color:var(--barra-2);
-    background-image:linear-gradient(177deg, var(--barra-1) 0%, var(--barra-2) 46%, var(--barra-3) 100%);
+    /* 🔑 CINCO CAMADAS, DE CIMA PARA BAIXO (a primeira da lista pinta por cima):
+       1. FLUIDOS E LINHAS SINUOSAS ("Oleos | Estradas") - a onda e o fio fino que a
+          acompanha, do manual, aqui na vertical porque a barra e' vertical;
+       2. o halo laranja do topo, que e' onde o logo da marca fica;
+       3. o VEU preto - e' ele que faz os pontos "crescerem do centro para as bordas",
+          apagando-os no meio da barra e deixando-os aparecer nas pontas;
+       4. CIRCULOS EM EXPANSAO - a reticula de pontos, tom sobre tom;
+       5. o preto do manual.
+       🔴 Tudo em background-IMAGE: o modo escuro forcado do Chrome apaga
+          background-color (armadilha da v186). */
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 900' preserveAspectRatio='none'%3E%3Cpath d='M62,0 C18,96 106,190 62,286 S18,478 62,574 S106,766 62,900' fill='none' stroke='%23FE7030' stroke-opacity='.20' stroke-width='2.2'/%3E%3Cpath d='M84,0 C40,96 128,190 84,286 S40,478 84,574 S128,766 84,900' fill='none' stroke='%23FE7030' stroke-opacity='.11' stroke-width='1.1'/%3E%3C/svg%3E"),
+      radial-gradient(ellipse 150px 170px at 32% -6%, rgba(var(--verde-rgb),.17) 0%, transparent 74%),
+      radial-gradient(ellipse 150px 62% at 50% 46%, #000 0%, rgba(0,0,0,.86) 34%, transparent 78%),
+      radial-gradient(rgba(219,218,217,.115) 1.15px, transparent 1.25px),
+      linear-gradient(177deg, var(--barra-1) 0%, var(--barra-2) 34%, var(--barra-3) 100%);
+    background-size:100% 900px, auto, auto, 13px 13px, auto;
+    background-repeat:no-repeat, no-repeat, no-repeat, repeat, no-repeat;
+    background-position:center top, left top, center center, left top, left top;
     border-right:1px solid var(--barra-borda);
     box-shadow:inset -14px 0 22px -18px rgba(0,0,0,.9);
   }
@@ -2753,7 +2780,8 @@
   .dre-eixo-dir{fill:#FE7030}
   .dre-eixo-tit{font-size:9px;font-weight:700;letter-spacing:1px;fill:var(--cinza);opacity:.75}
   .dre-mes{font-size:11px;fill:var(--cinza)}
-  .dre-serie{fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+  .dre-serie{fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+  .dre-svg{max-height:340px}
   .dre-area{stroke:none;opacity:0;animation:dreArea .8s ease-out .5s forwards}
   .dre-bola{stroke:var(--grafico-bg);stroke-width:2;opacity:0;animation:dreBola .3s ease-out forwards}
   .dre-guia{stroke:rgba(var(--verde-rgb),.55);stroke-width:1.4;stroke-dasharray:3 3;display:none}
@@ -12200,7 +12228,7 @@ function dreCaminho(p){
   let d = "M" + p[0][0].toFixed(1) + "," + p[0][1].toFixed(1);
   for (let i = 0; i < p.length - 1; i++){
     const p0 = p[i - 1] || p[i], p1 = p[i], p2 = p[i + 1], p3 = p[i + 2] || p2;
-    const t = 0.20;
+    const t = 0.24;
     const c1x = p1[0] + (p2[0] - p0[0]) * t, c1y = p1[1] + (p2[1] - p0[1]) * t;
     const c2x = p2[0] - (p3[0] - p1[0]) * t, c2y = p2[1] - (p3[1] - p1[1]) * t;
     d += "C" + c1x.toFixed(1) + "," + c1y.toFixed(1) + " " + c2x.toFixed(1) + "," + c2y.toFixed(1) +
@@ -12219,34 +12247,60 @@ function dreCaminho(p){
 const DRE_EIXO_DIR = { vendas:1 };
 function dreGrafico(serie){
   if (serie.length < 2) return "";
-  const W = 960, H = 340, ML = 86, MT = 34, MB = 38;
+  /* 🔴 A ALTURA NA TELA SAI DA PROPORCAO DO viewBox, nao de um `height` em px:
+     `.dre-svg{width:100%;height:auto}`. Com 960x340 num quadro de ~1240px o grafico
+     saía com 440px de altura - o Tiago disse "muito grande". 1180x300 da' ~315px. */
+  const W = 1180, H = 300, ML = 92, MT = 30, MB = 34;
   const vis = DRE_SERIES.filter(s => !dreOcultas[s.k]);
   const esq = vis.filter(s => !DRE_EIXO_DIR[s.k]);
   const dir = vis.filter(s => DRE_EIXO_DIR[s.k]);
   const MR = dir.length && esq.length ? 84 : 22;
   const x0 = ML, x1 = W - MR, y0 = MT, y1 = H - MB;
 
+  /* 🔴 A REGUA NAO COMECA NO ZERO — e e' isso que faz a linha ter forma.
+     Primeira tentativa: eixo de 0 ate' o maximo. Resultado, com dado de verdade: as
+     quatro linhas viram RISCOS RETOS, porque a variacao de um mes para o outro e' de
+     poucos por cento sobre um numero grande. O Tiago viu na previa e disse exatamente
+     isso: "as linhas estao retas, achei estranho".
+     🔑 Grafico de TENDENCIA responde "mexeu?"; grafico de TAMANHO responde "quanto?".
+        Sao perguntas diferentes e reguas diferentes. O tamanho ja' esta' nos quatro
+        quadros de cima e na tabela de baixo; aqui a pergunta e' se mexeu.
+     👉 E por isso a regua diz o valor de baixo em cada risco, e o rodape do quadro
+        avisa com todas as letras que ela nao comeca no zero. Recorte que nao se
+        declara e' o jeito classico de mentir com grafico. */
   function faixa(lista){
-    let mx = 0, mn = 0;
+    let mx = -Infinity, mn = Infinity;
     serie.forEach(p => lista.forEach(s => {
       const v = +p.x[s.k] || 0;
       if (v > mx) mx = v;
       if (v < mn) mn = v;
     }));
-    if (mx === mn) mx = mx || 1;
-    /* 18% de folga em cima: sem ela a linha mais alta encosta no teto do quadro e o
-       olho le' "bateu no limite" onde nao ha' limite nenhum. */
-    const folga = (mx - mn) * 0.18;
-    return { mx: mx + folga, mn: mn - (mn < 0 ? folga : 0) };
+    if (!isFinite(mx)){ mx = 1; mn = 0; }
+    if (mx === mn){ const d = Math.abs(mx) * 0.1 || 1; mx += d; mn -= d; }
+    const folga = (mx - mn) * 0.16;
+    /* 🔑 A REGRA: regua com UMA serie ZOOMA; regua com VARIAS comeca no zero.
+       - sozinha (as vendas), nao ha' com que comparar, entao a pergunta so' pode ser
+         "mexeu?" - e o recorte e' o que responde;
+       - juntas (lucro bruto, despesas, lucro liquido), a distancia ENTRE elas ja' e' a
+         informacao, e cortar o pe da regua distorceria essa distancia.
+       Assim tambem some o rotulo negativo que o recorte criava numa regua onde nenhum
+       numero e' negativo. */
+    const uma = lista.length === 1;
+    let baixo = mn - folga;
+    if (!uma && mn >= 0) baixo = 0;
+    else if (mn >= 0) baixo = Math.max(0, baixo);
+    return { mx: mx + folga, mn: baixo };
   }
   const dois = esq.length && dir.length;
   const fE = faixa(esq.length ? esq : dir);
   let fD = dir.length ? faixa(dir) : null;
-  /* alinha o zero das duas escalas na mesma altura */
-  if (dois && fD){
+  /* 🔴 So' alinha o zero das duas reguas QUANDO EXISTE ZERO NA TELA (isto e', quando a
+     regua da esquerda desce abaixo de zero). Alinhar sempre foi um defeito real: com a
+     esquerda comecando em zero, a conta empurrava a direita para zero tambem e
+     ACHATAVA a linha de vendas — desfazendo o recorte que existe justamente para ela. */
+  if (dois && fD && fE.mn < 0){
     const fz = (0 - fE.mn) / (fE.mx - fE.mn);
     if (fz > 0 && fz < 1) fD.mn = -fz * fD.mx / (1 - fz);
-    else fD.mn = 0;
   }
   const px = i => x0 + (x1 - x0) * (serie.length === 1 ? .5 : i / (serie.length - 1));
   const pyF = f => v => y1 - (y1 - y0) * (((+v || 0) - f.mn) / (f.mx - f.mn));
@@ -12257,7 +12311,11 @@ function dreGrafico(serie){
   h += '<defs>';
   vis.forEach(s => {
     h += '<linearGradient id="dreG_' + s.k + '" x1="0" y1="0" x2="0" y2="1">' +
-         '<stop offset="0%" stop-color="' + s.c + '" stop-opacity=".22"/>' +
+         /* 🔴 O degrade morre em 58%, nao em 100%: com a regua fora do zero, uma area
+            cheia ate' o pe do quadro leria como "tamanho medido a partir do zero", que
+            e' mentira. Morrendo no meio, ela le' como BRILHO embaixo da linha. */
+         '<stop offset="0%" stop-color="' + s.c + '" stop-opacity=".26"/>' +
+         '<stop offset="58%" stop-color="' + s.c + '" stop-opacity=".05"/>' +
          '<stop offset="100%" stop-color="' + s.c + '" stop-opacity="0"/></linearGradient>';
   });
   h += '</defs>';
@@ -12275,7 +12333,7 @@ function dreGrafico(serie){
     h += '<text class="dre-eixo-tit dre-eixo-dir" x="' + (x1 + 10) + '" y="' + (y0 - 15) + '" text-anchor="start">VENDAS</text>';
   }
   const zeroF = (0 - fE.mn) / (fE.mx - fE.mn);
-  if (zeroF > 0.02 && zeroF < 0.98)
+  if (fE.mn < 0 && zeroF > 0.02 && zeroF < 0.98)
     h += '<line class="dre-zero" x1="' + x0 + '" y1="' + pyE(0).toFixed(1) + '" x2="' + x1 + '" y2="' + pyE(0).toFixed(1) + '"/>';
   /* meses no eixo de baixo - no maximo 12 rotulos para nao virar borrao */
   const passo = Math.max(1, Math.ceil(serie.length / 12));
@@ -12408,7 +12466,8 @@ function renderDre(){
   if (serie.length >= 2){
     h += '<div class="dre-cx" id="dreGrafCx">' +
          '<div class="dre-cx-tit"><b>Como as linhas caminharam</b><i>' + serie.length + ' meses. Passe o mouse em cima de um mês; clique para abrir. ' +
-           (dreOcultas.vendas ? '' : 'As <b style="color:#FE7030">vendas</b> são lidas na régua da direita — elas são ~20× maiores que o lucro, e numa régua só as outras três viravam um risco reto.') + '</i></div>' +
+           'A régua <b>não começa no zero</b> — é o recorte que faz a variação do mês aparecer; o tamanho de cada linha está nos quadros acima e na tabela abaixo. ' +
+           (dreOcultas.vendas ? '' : 'As <b style="color:#FE7030">vendas</b> têm régua própria, à direita: elas são ~20× maiores que o lucro.') + '</i></div>' +
          '<div class="dre-grupo" style="margin-top:6px">' +
          DRE_JANELAS.map(j => '<button class="doc-chip' + (dreJanela === j[0] ? " ativo" : "") + '" onclick="dreTrocarJanela(' + j[0] + ')">' + escAttr(j[1]) + '</button>').join("") +
          '</div>' +
