@@ -1437,6 +1437,11 @@
   .desc-total-box b{color:var(--verde);font-size:1.05rem;margin-left:4px}
   .desc-form .btn-verde{height:40px;white-space:nowrap}
   .desc-cons{background:var(--verde-claro);border:1px solid var(--verde);border-radius:12px;padding:14px 16px;margin:4px 0 16px}
+  /* v285 - No tema escuro este cartao usava --verde-claro (#3E1A04), um marrom
+     avermelhado. Em pedaco pequeno ele funciona; num bloco desta altura cansa a vista.
+     🔑 A troca e' SO' NESTE SELETOR - o token continua igual para os outros 17 lugares
+     que o leem. Ardosia fria, escolhida pelo Tiago entre cinco opcoes fotografadas. */
+  body.tema-escuro .desc-cons{background-image:linear-gradient(180deg,#1E2429,#1A1F23);border-color:#2F3940}
   .desc-cons .dc-tit{font-family:"Oswald","Poppins",sans-serif;text-transform:uppercase;letter-spacing:.5px;font-weight:700;color:var(--verde);margin-bottom:10px;font-size:.95rem}
   .dc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px}
   .dc-item{display:flex;flex-direction:column;gap:2px}
@@ -6146,6 +6151,9 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v285", data:"07/08/2026", tit:"Descontos: um fundo que cansa menos", itens:[
+    {t:"m", h:"O quadro Consolidado do per\u00edodo mudou de cor", d:"No tema escuro ele tinha um fundo <b>marrom avermelhado</b> que cansava a vista num bloco daquele tamanho. Agora \u00e9 uma <b>ardósia fria</b>, mais calma, e s\u00f3 neste quadro \u2014 o resto do app continua igual."}
+  ]},
   {v:"v284", data:"07/08/2026", tit:"Descontos: acabou a digita\u00e7\u00e3o", itens:[
     {t:"n", h:"Agora \u00e9 s\u00f3 dizer o motivo", d:"Na lista \ud83d\udce1 Do Petros, clique no selo da linha e escolha o <b>motivo</b> do desconto. Quando o Petros n\u00e3o souber quem \u00e9 o cliente, a tela pede o nome. <b>Nenhum n\u00famero \u00e9 digitado</b> \u2014 hora, litros, pre\u00e7o e valor v\u00eam do caixa."},
     {t:"n", h:"Os selos", d:"\u26aa a conferir \u00b7 \ud83d\udfe2 conferido \u00b7 \u26d4 marcado como \u201cn\u00e3o \u00e9 desconto\u201d \u00b7 \ud83d\udd34 esperando h\u00e1 3 dias ou mais. S\u00f3 o <b>negociado no balc\u00e3o</b> pede motivo: o acordo do cliente \u00e9 pre\u00e7o j\u00e1 combinado."},
