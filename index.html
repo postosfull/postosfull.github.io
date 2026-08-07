@@ -4063,8 +4063,9 @@ function aoMudarLogin(usuario){
        passava por ehAdminEmail() - entao o painel sumiu para todo mundo.
        ehAdminEmail() consulta config/permissoes.porUsuario[email].admin no
        Firestore, que e' de onde o poder de admin vem desde a v269. */
-    const ehAdmin = ehAdminEmail(usuario.email);
-    document.getElementById("btnUsuarios").style.display = ehAdmin ? "" : "none";
+    /* v271 - quem mostra/esconde o botao do Painel Administrativo agora e'
+       aplicarVisibilidadeMenus(), chamado logo abaixo e de novo quando o snapshot
+       de config/permissoes chega. Decidir aqui daria falso negativo (ver nota la). */
     iniciarSync();
     iniciarPresenca();
     render();
@@ -7799,6 +7800,16 @@ function aplicarVisibilidadeMenus(){
   renderPersonalizarMenus();
   const gpv = document.getElementById("grupoPrecosVenda"); if (gpv) gpv.style.display = (s === "postos") ? "" : "none";
   const gcl = document.getElementById("grupoClientes"); if (gcl) gcl.style.display = (s === "postos") ? "" : "none";
+  /* v271 - 07/08/2026 - O BOTAO DO PAINEL ADMINISTRATIVO MORA AQUI AGORA.
+     Ate a v269 quem mandava nele era so' uma linha em aoMudarLogin(), lendo a lista
+     ADMINS do arquivo - que existe na hora do login, sincrona. A v269 esvaziou a lista
+     e a v270 trocou por ehAdminEmail(); so' que ehAdminEmail() depende do snapshot de
+     config/permissoes, que NAO chegou ainda na hora do login. Resultado: o botao era
+     escondido e nunca mais reavaliado - o painel sumia para o proprio dono.
+     Aqui dentro ele e' recalculado a cada aplicarVisibilidadeMenus(), que o snapshot
+     de permissoes chama assim que os dados chegam. NAO volte a decidir isso no login. */
+  const bAdm = document.getElementById("btnUsuarios");
+  if (bAdm) bAdm.style.display = ehAdminAtual() ? "" : "none";
 }
 // Abre o primeiro menu (com painel) permitido da empresa atual
 function abrirPrimeiroPermitido(){
