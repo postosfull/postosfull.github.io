@@ -5564,9 +5564,12 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v277", data:"07/08/2026", tit:"Correção do aviso da versão anterior", itens:[
+    {t:"c", h:"Não existe selo nenhum no canto da tela", d:"O aviso da v276 dizia que apareceria um pequeno selo do reCAPTCHA no canto inferior direito. <b>Não aparece</b> — o próprio Google esconde esse selo quando a proteção é usada deste jeito. Se você chegou a procurar, não estava deixando de ver nada: não há o que ver. A proteção continua funcionando, e é totalmente invisível."}
+  ]},
   {v:"v276", data:"07/08/2026", tit:"Uma camada a mais de proteção, invisível no dia a dia", itens:[
     {t:"m", h:"O app agora prova que é ele mesmo", d:"Cada pedido que o app faz ao servidor passa a levar um <b>atestado</b> dizendo que veio daqui, deste endereço — e não de um programa qualquer usando a senha de alguém. Nesta versão o atestado é só <b>observado</b>, nada é bloqueado; a exigência só entra depois que a medição mostrar que está funcionando para todo mundo."},
-    {t:"n", h:"Um selo do reCAPTCHA no canto da tela", d:"Aparece um pequeno selo no canto inferior direito. É o Google, e é o que gera o atestado — não pede nada de você, não tem semáforo nem “selecione as motos”. Se atrapalhar, dá para escondê-lo."}
+    {t:"m", h:"Nada muda na sua tela", d:"Não pede nada de você, não tem semáforo nem “selecione as motos”, e não aparece nenhum selo. Você não vai notar diferença nenhuma."}
   ]},
   {v:"v275", data:"07/08/2026", tit:"Os campos de filtro pararam de esticar", itens:[
     {t:"m", h:"Caixa do tamanho do que se escreve nela", d:"Depois que o app passou a usar a tela inteira (v274), os campos de filtro cresciam junto e ficavam desproporcionais — em monitor grande, uma caixa de 345px para escrever <b>Todas</b>. Agora eles crescem até um limite e param; a sobra fica no fim da linha. Vale na tela de <b>Custos e preços</b> e no filtro do gráfico do <b>Dashboard</b>. Em tela média continua o mesmo número de campos por linha, e no celular nada muda."}
