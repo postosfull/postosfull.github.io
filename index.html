@@ -2830,6 +2830,21 @@
     .rel-kpis > .rel-kpi{animation:none}
     .rel-kpi:hover,.doc-chip:hover{transform:none}
   }
+  /* v283 - a lista Do Petros: separadores de tipo e o teto do PDV */
+  .dc-nota{margin-top:8px;font-size:.74rem;color:var(--cinza);line-height:1.45}
+  .dc-vazio{color:var(--cinza);opacity:.7}
+  .dp-tipo{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;margin:18px 0 8px;
+    font-weight:700;font-size:.95rem}
+  .dp-tipo span{font-weight:400;font-size:.76rem;color:var(--cinza)}
+  .dp-teto{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}
+  .dp-teto-tit{font-size:.7rem;color:var(--cinza);text-transform:uppercase;letter-spacing:.3px;
+    width:100%}
+  .dp-teto-item{font-size:.8rem;padding:3px 9px;border-radius:999px;
+    background-image:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,0))}
+  .dp-teto-item i{font-style:normal;color:var(--cinza);font-size:.7rem}
+  /* 🔴 O teto alto nao e' erro — e' informacao. Chama a atencao sem gritar. */
+  .dp-teto-alto{outline:1px solid var(--laranja);outline-offset:-1px}
+
 </style>
 </head>
 <body>
@@ -6134,6 +6149,11 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v283", data:"07/08/2026", tit:"Descontos: balc\u00e3o e acordo, separados", itens:[
+    {t:"n", h:"A lista Do Petros separou os dois tipos de desconto", d:"O Petros guarda em campos diferentes o desconto <b>negociado no balc\u00e3o</b> e o que vem do <b>acordo do cliente</b> (aplicado sozinho pelo sistema). At\u00e9 agora o relat\u00f3rio somava os dois e a tela mostrava tudo junto. Em julho eram <b>R$ 2.597,36 de balc\u00e3o</b> e <b>R$ 2.089,93 de acordo</b>."},
+    {t:"m", h:"O que muda na pr\u00e1tica", d:"O acordo n\u00e3o tem quem autorizou porque n\u00e3o precisa ter \u2014 o pre\u00e7o j\u00e1 estava combinado. Ent\u00e3o o aviso de \u201csem quem autorizou\u201d passou a contar <b>s\u00f3 os de balc\u00e3o</b>. Em Caxias, em julho, isso vai de 106 linhas para <b>13</b>."},
+    {t:"n", h:"O teto de desconto de cada posto", d:"A tela mostra at\u00e9 quanto de desconto o caixa de cada posto pode dar, como est\u00e1 configurado hoje: <b>Teresina 30%, Caxias 30% e Pres. Dutra 100%</b>."}
+  ]},
   {v:"v282", data:"07/08/2026", tit:"Descontos: agora d\u00e1 para ver o que o caixa registrou", itens:[
     {t:"n", h:"A lista \ud83d\udce1 Do Petros, no topo do menu Descontos", d:"Mostra os descontos que o <b>caixa registrou</b> no dia escolhido, direto do Petros, com hora, cupom, cliente, produto, litros, valor, atendente e <b>quem autorizou</b>. Por enquanto ela s\u00f3 mostra \u2014 o lan\u00e7amento \u00e0 m\u00e3o continua igual, logo abaixo."},
     {t:"n", h:"O que o app n\u00e3o via at\u00e9 agora", d:"Em julho o caixa registrou <b>200 descontos</b> nos tr\u00eas postos; a tela mostrava s\u00f3 os lan\u00e7ados \u00e0 m\u00e3o. Em Caxias eram 4 lan\u00e7amentos para <b>106 descontos</b> de verdade."},
@@ -16119,47 +16139,42 @@ let mesPuxadas = null;   // "AAAA-MM" do resumo mensal
 
 
 /* ================== Descontos (Postos Full) ================== */
-/* ═════════════════ v282 - A LISTA "DO PETROS" DA TELA DE DESCONTOS ═════════════════
-   Le `descva_postos_{unidade}_{AAAA-MM}` da colecao `relatoriosPetros`, que o passo
-   `descontos` do coletor do VPS grava 4x por dia (claude/coletor-descontos.md).
-   A medicao que originou tudo: claude/descontos-petros-x-manual.md.
+/* ═════════════════ v283 - A LISTA "DO PETROS" DA TELA DE DESCONTOS ═════════════════
+   Le `descva_postos_{unidade}_{AAAA-MM}` da colecao `relatoriosPetros`, que o passo `descontos`
+   do coletor do VPS grava 4x por dia (claude/coletor-descontos.md).
 
-   🔑 NAO PRECISA DE LISTENER NEM DE FETCH: o `colRelPetros.onSnapshot` ja traz a colecao
-   INTEIRA para `relPetros` no login. Esta lista so le o que ja esta na memoria.
+   🔑 NAO PRECISA DE LISTENER NEM DE FETCH: o `colRelPetros.onSnapshot` ja traz a colecao INTEIRA
+   para `relPetros` no login. Esta lista so le o que ja esta na memoria.
 
-   🔴 A CHAVE DE UMA LINHA E' `id_venda_cf-sequencia_item` (posicao 0), NUNCA o cupom.
-   Medido em julho/2026: `empresa+cupom+sequencia` da 306 chaves distintas para 307 linhas
-   — o numero do cupom em Caxias REPETE em datas diferentes (60020 em 28/07 e em 07/08).
-   Quem casar por cupom perde linha, e perde calado.
+   🔴 A CHAVE DE UMA LINHA E' `id_venda_cf-sequencia_item` (posicao 0), NUNCA o cupom. Medido em
+   julho/2026: `empresa+cupom+sequencia` da 306 chaves distintas para 307 linhas.
 
-   AS 11 POSICOES do `dados`, e trocar a ordem NAO da erro: da numero errado na tela.
-   Mudou aqui, muda no `descontos.mjs` no mesmo commit.
+   🆕 v283 - SAO DOIS DESCONTOS, E ELES NAO SE MISTURAM (posicao 11):
+     'M' MANUAL     - dado no balcao. E' ESTE que vai pedir motivo.
+     'A' AUTOMATICO - acordo/tabela do cliente. Nao tem autorizador POR NATUREZA (0 de 133 em
+                      julho) e NAO se pede motivo dele: seria pedir para explicar um contrato.
+   Julho/2026: manual R$ 2.597,36 em 174 linhas · automatico R$ 2.089,93 em 133. Sem sobreposicao.
+   👉 O efeito pratico: em Caxias o trabalho da equipe cai de 106 linhas para 13.
+
+   AS 12 POSICOES do `dados` — trocar a ordem NAO da erro, da numero errado na tela:
      0 chave · 1 data AAAA-MM-DDTHH:MM · 2 cupom · 3 cliente · 4 generico "S"/"N" ·
      5 produto (nome do ERP) · 6 litros · 7 preco · 8 DESCONTO · 9 atendente ·
-     10 quem autorizou ("" quando o ERP nao registrou)                                    */
+     10 quem autorizou ("" quando o ERP nao registrou) · 11 tipo "M"/"A"
+   E no documento: `corte`, `cortadas`, `cortadasValor` e 🆕 `limites` (um item por terminal). */
 
-/* As chaves da unidade sao minusculas; o rotulo do posto e' o mesmo do resto da tela. */
 const DESC_PET_UN = { "Teresina":"teresina", "Caxias":"caxias", "Dutra":"dutra" };
 
-/* 🚩 Quando o desconto passa da METADE do valor da venda. Medido: UMA linha em 243 —
-   01/07, Pres Dutra, cupom 82786, 23,07 L x R$ 7,42 (R$ 171,18) com R$ 116,12 de desconto.
-   Nao e' defeito do coletor, e' o que o ERP tem: ou lancamento errado, ou um ajuste de
-   outra natureza jogado na linha de um item. Sozinha ela e' 2% do desconto do periodo.
-   🔑 Numero absurdo tem de chegar a pessoa MARCADO como absurdo — no meio de 243 linhas,
-   ninguem ve um R$ 116,12 sozinho. */
+/* 🚩 Desconto acima da METADE do valor da venda. Medido: UMA linha em 243 — 01/07, Pres Dutra,
+   cupom 82786, 23,07 L x R$ 7,42 (R$ 171,18) com R$ 116,12 (68%). E' MANUAL, e passou porque o
+   terminal de Dutra aceita ate 100%; em Caxias ou Teresina (30%) o proprio PDV teria barrado. */
 const DESC_PET_ABSURDO = 0.5;
 
-/* 🔴 NEM TUDO NESTA LISTA E' VENDIDO POR LITRO. O ARLA vem em GALAO DE 20 L com
-   `quantidade = 1` e preco R$ 115; o LUBRAX, em balde, a R$ 45. Medido em julho/agosto:
-   sao 12 das 13 linhas acima de R$ 1,00 por litro.
-   👉 Nelas o "R$ por litro" NAO EXISTE — R$ 15 de desconto num galao viram "R$ 15,00 por
-   litro", que e' numero verdadeiro respondendo a pergunta errada.
-   O corte: combustivel nao passa de R$ 20 o litro. E' grosseiro de proposito — nao precisa
-   ser fino, precisa ser inquestionavel.
-   ⏳ Sai daqui quando o coletor gravar o produto no vocabulario do app (posicao 11). */
+/* 🔴 Nem tudo aqui e' vendido por litro: o ARLA vem em galao de 20 L com `quantidade = 1` e preco
+   R$ 115; o LUBRAX, em balde, a R$ 45. Nelas o "R$ por litro" NAO EXISTE.
+   Combustivel nao passa de R$ 20 o litro — grosseiro de proposito, para ser inquestionavel.
+   ⏳ Sai daqui quando o coletor gravar o produto no vocabulario do app. */
 const DESC_PET_PRECO_MAX_LITRO = 20;
 
-/* Devolve as linhas do dia, dos tres postos, ja ordenadas por hora. */
 function descPetLinhas(dia){
   const mes = String(dia || "").slice(0, 7);
   if (mes.length !== 7) return [];
@@ -16176,6 +16191,10 @@ function descPetLinhas(dia){
         cupom: r[2], cliente: String(r[3] || ""), generico: r[4] === "S",
         produto: String(r[5] || ""), qtd: qtd, preco: preco, desc: desc,
         atendente: String(r[9] || ""), porErp: String(r[10] || ""),
+        /* 🔴 Documento gravado pela v1 do coletor nao tem a posicao 11. Nesse caso NAO se
+           inventa o tipo: fica indefinido e a tela mostra tudo junto, avisando. Chutar "M"
+           poria acordo comercial na fila de quem tem de escrever motivo. */
+        tipo: r.length > 11 ? String(r[11] || "") : "",
         posto: nomePosto,
         porUnidade: preco > DESC_PET_PRECO_MAX_LITRO,
         absurdo: bruto > 0 && desc > bruto * DESC_PET_ABSURDO
@@ -16185,11 +16204,55 @@ function descPetLinhas(dia){
   return saida.sort((a, b) => a.hora.localeCompare(b.hora));
 }
 
-/* Quantos documentos `descva` do mes existem (0 a 3). Serve para separar "o posto nao teve
-   desconto" de "a coleta daquele mes ainda nao aconteceu". */
 function descPetDocsDoMes(mes){
   return Object.keys(DESC_PET_UN)
     .filter(p => relPetros["descva_postos_" + DESC_PET_UN[p] + "_" + mes]).length;
+}
+
+/* 🆕 v283 - o teto de desconto de cada posto, como o Adaptive esta configurado hoje.
+   Um posto pode ter mais de um terminal (Caxias tem dois): mostra-se o conjunto de valores
+   distintos, nunca a media — media de configuracao nao quer dizer nada. */
+function descPetTetos(mes){
+  const saida = [];
+  Object.keys(DESC_PET_UN).forEach(nomePosto => {
+    const doc = relPetros["descva_postos_" + DESC_PET_UN[nomePosto] + "_" + mes];
+    const lim = (doc && Array.isArray(doc.limites)) ? doc.limites : null;
+    if (!lim || !lim.length){ saida.push({ posto: nomePosto, tetos: null }); return; }
+    saida.push({
+      posto: nomePosto,
+      tetos: [...new Set(lim.map(t => Number(t.maxItem) || 0))].sort((a, b) => a - b),
+      terminais: lim.length,
+      pedeCliente: lim.every(t => t.pedeCliente === "S")
+    });
+  });
+  return saida;
+}
+
+function descPetTabela(linhas, comTipo){
+  let h = '<div class="desc-tabela-wrap"><table class="desc-tabela"><thead><tr>' +
+    '<th>Hora</th><th>Posto</th><th>Cliente</th><th>Produto</th><th>Litros</th>' +
+    '<th>Preço/L</th><th>Desc./L</th><th>Desconto</th><th>Cupom</th><th>Atendente</th>' +
+    (comTipo ? '<th>Quem autorizou</th>' : '') + '</tr></thead><tbody>';
+  linhas.forEach(l => {
+    const rl = l.qtd > 0 ? l.desc / l.qtd : 0;
+    h += '<tr>' +
+      '<td data-lbl="Hora">' + escAttr(l.hora) + '</td>' +
+      '<td data-lbl="Posto">' + escAttr(l.posto) + '</td>' +
+      '<td data-lbl="Cliente">' + escAttr(l.cliente) + (l.generico ? ' <span title="O ERP não sabe o cliente">👤</span>' : '') + '</td>' +
+      '<td data-lbl="Produto">' + escAttr(l.produto) + '</td>' +
+      /* 🔴 Produto vendido por UNIDADE nao tem "por litro". "R$ 15,000" na coluna Desc./L de um
+         galao e' numero verdadeiro respondendo a pergunta errada — e pior que celula vazia,
+         porque parece informacao. */
+      '<td data-lbl="Litros">' + (l.porUnidade ? (fmtBR(l.qtd, 0) + ' un') : fmtBR(l.qtd, 3)) + '</td>' +
+      '<td data-lbl="Preço/L">R$ ' + fmtBR(l.preco, 3) + (l.porUnidade ? ' <span class="dc-vazio">/un</span>' : '') + '</td>' +
+      '<td data-lbl="Desc./L">' + (l.porUnidade ? '<span class="dc-vazio">—</span>' : ('R$ ' + fmtBR(rl, 3))) + '</td>' +
+      '<td data-lbl="Desconto"><b>R$ ' + fmtBR(l.desc, 2) + '</b>' + (l.absurdo ? ' <span title="Desconto acima da metade do valor da venda">⚠️</span>' : '') + '</td>' +
+      '<td data-lbl="Cupom">' + escAttr(l.cupom) + '</td>' +
+      '<td data-lbl="Atendente">' + escAttr(l.atendente) + '</td>' +
+      (comTipo ? ('<td data-lbl="Quem autorizou">' + (l.porErp ? escAttr(l.porErp) : '<span class="dc-vazio">—</span>') + '</td>') : '') +
+    '</tr>';
+  });
+  return h + '</tbody></table></div>';
 }
 
 function renderDescPetros(){
@@ -16212,25 +16275,30 @@ function renderDescPetros(){
   const mes = String(dia).slice(0, 7);
   const temDoc = descPetDocsDoMes(mes);
   const linhas = descPetLinhas(dia);
+  const manuais = linhas.filter(l => l.tipo === "M");
+  const autos   = linhas.filter(l => l.tipo === "A");
+  const semTipo = linhas.filter(l => l.tipo !== "M" && l.tipo !== "A");
 
   let totDesc = 0, totVol = 0, nAbsurdo = 0, nGenerico = 0, nSemUsuario = 0, nUnidade = 0;
-  /* 🔑 A MEDIA POR LITRO TEM RECORTE, E O RECORTE VAI DECLARADO NA TELA.
-     Fica de fora o que nao e' vendido por litro (nao tem "por litro") e a linha absurda
-     (uma sozinha puxa a media inteira). Recorte que nao se declara e' o jeito classico de
-     mentir com numero — a licao do grafico da v281, aqui em forma de media. */
+  /* 🔑 A MEDIA POR LITRO TEM RECORTE, E O RECORTE VAI DECLARADO NA TELA. Fica de fora o que nao
+     e' vendido por litro e a linha absurda. Recorte que nao se declara e' o jeito classico de
+     mentir com numero. */
   let medDesc = 0, medVol = 0, medFora = 0;
   const porPosto = {};
   linhas.forEach(l => {
     totDesc += l.desc; totVol += l.qtd;
     if (l.absurdo) nAbsurdo++;
     if (l.generico) nGenerico++;
-    if (!l.porErp) nSemUsuario++;
+    if (!l.porErp && l.tipo !== "A") nSemUsuario++;   /* 🔴 o automático não tem autorizador por natureza */
     if (l.porUnidade) nUnidade++;
     if (!l.porUnidade && !l.absurdo){ medDesc += l.desc; medVol += l.qtd; } else medFora++;
-    const o = porPosto[l.posto] || (porPosto[l.posto] = { desc: 0, vol: 0, n: 0 });
+    const o = porPosto[l.posto] || (porPosto[l.posto] = { desc: 0, vol: 0, n: 0, m: 0, a: 0 });
     o.desc += l.desc; o.vol += l.qtd; o.n += 1;
+    if (l.tipo === "M") o.m += l.desc; else if (l.tipo === "A") o.a += l.desc;
   });
   const medL = medVol > 0 ? medDesc / medVol : 0;
+  const somaM = manuais.reduce((s, l) => s + l.desc, 0);
+  const somaA = autos.reduce((s, l) => s + l.desc, 0);
 
   let porPostoHtml = "";
   const ordem = Object.keys(porPosto).sort((a, b) => porPosto[b].desc - porPosto[a].desc);
@@ -16239,7 +16307,10 @@ function renderDescPetros(){
     ordem.forEach(p => {
       porPostoHtml += '<div class="dc-posto"><span class="dc-posto-nome">' + escAttr(p) + '</span>' +
         '<span class="dc-posto-val">R$ ' + fmtBR(porPosto[p].desc, 2) + '</span>' +
-        '<span class="dc-posto-sub">' + fmtLitros(porPosto[p].vol) + ' L · ' + porPosto[p].n + (porPosto[p].n === 1 ? ' linha' : ' linhas') + '</span></div>';
+        '<span class="dc-posto-sub">' + fmtLitros(porPosto[p].vol) + ' L · ' + porPosto[p].n +
+        (porPosto[p].n === 1 ? ' linha' : ' linhas') + '</span>' +
+        '<span class="dc-posto-sub">balcão R$ ' + fmtBR(porPosto[p].m, 2) +
+        ' · acordo R$ ' + fmtBR(porPosto[p].a, 2) + '</span></div>';
     });
     porPostoHtml += '</div>';
   }
@@ -16247,6 +16318,8 @@ function renderDescPetros(){
   res.innerHTML =
     '<div class="desc-cons"><div class="dc-tit">📡 O que o caixa registrou</div><div class="dc-grid">' +
       '<div class="dc-item"><span class="dc-lbl">Desconto total</span><span class="dc-val">R$ ' + fmtBR(totDesc, 2) + '</span></div>' +
+      '<div class="dc-item"><span class="dc-lbl">🤝 Negociado no balcão</span><span class="dc-val">R$ ' + fmtBR(somaM, 2) + '</span></div>' +
+      '<div class="dc-item"><span class="dc-lbl">📄 Acordo do cliente</span><span class="dc-val">R$ ' + fmtBR(somaA, 2) + '</span></div>' +
       '<div class="dc-item"><span class="dc-lbl">Volume total</span><span class="dc-val">' + fmtLitros(totVol) + ' L</span></div>' +
       '<div class="dc-item"><span class="dc-lbl">Desconto médio / litro' + (medFora ? ' <b title="O recorte da média">*</b>' : '') + '</span><span class="dc-val">' + (medVol > 0 ? 'R$ ' + fmtBR(medL, 4) : '—') + '</span></div>' +
       '<div class="dc-item"><span class="dc-lbl">Linhas</span><span class="dc-val">' + linhas.length + '</span></div>' +
@@ -16255,8 +16328,22 @@ function renderDescPetros(){
        (medFora === 1 ? ' linha' : ' linhas') + ' — produto vendido por unidade e/ou desconto fora da curva. O <b>desconto total</b> acima inclui tudo.</div>' : '') +
     '</div>';
 
-  /* 🔴 Tres respostas diferentes para tres situacoes diferentes. Confundi-las e' o que faz
-     coleta quebrada passar por "nao teve movimento". */
+  /* 🆕 v283 - o teto configurado em cada posto, do lado do resumo. Ele explica por que um
+     desconto grande passa num posto e seria barrado no outro. */
+  const tetos = descPetTetos(mes);
+  if (tetos.some(t => t.tetos)){
+    let h = '<div class="dp-teto"><span class="dp-teto-tit">Teto de desconto configurado no PDV</span>';
+    tetos.forEach(t => {
+      const txt = t.tetos ? t.tetos.map(v => fmtBR(v, 0) + '%').join(' / ') : '—';
+      const alto = t.tetos && t.tetos.some(v => v >= 100);
+      h += '<span class="dp-teto-item' + (alto ? ' dp-teto-alto' : '') + '">' + escAttr(t.posto) +
+           ' <b>' + txt + '</b>' + (t.terminais > 1 ? ' <i>(' + t.terminais + ' terminais)</i>' : '') + '</span>';
+    });
+    h += '</div>';
+    res.innerHTML += h;
+  }
+
+  /* 🔴 Tres respostas diferentes para tres situacoes diferentes. */
   if (!temDoc){
     lst.innerHTML = vazioHtml("Sem coleta para " + rpzRotuloPeriodo(mes),
       "O coletor ainda não gravou os descontos deste mês. Isso não quer dizer que não houve desconto.");
@@ -16270,35 +16357,29 @@ function renderDescPetros(){
   }
 
   let avisos = "";
-  if (nAbsurdo)     avisos += '<p class="nota-dash">⚠️ <b>' + nAbsurdo + '</b> linha(s) com desconto acima da metade do valor da venda — conferir no ERP antes de considerar.</p>';
-  if (nGenerico)    avisos += '<p class="nota-dash">👤 <b>' + nGenerico + '</b> linha(s) em que o ERP não sabe o cliente (consumidor padrão / preço crédito).</p>';
-  if (nSemUsuario)  avisos += '<p class="nota-dash">🔓 <b>' + nSemUsuario + '</b> linha(s) sem registro de quem autorizou.</p>';
-  if (nUnidade)     avisos += '<p class="nota-dash">🧴 <b>' + nUnidade + '</b> linha(s) de produto vendido <b>por unidade</b> (ARLA, lubrificante) — entram no total, mas não têm desconto por litro.</p>';
+  if (nAbsurdo)    avisos += '<p class="nota-dash">⚠️ <b>' + nAbsurdo + '</b> linha(s) com desconto acima da metade do valor da venda — conferir no ERP antes de considerar.</p>';
+  if (nGenerico)   avisos += '<p class="nota-dash">👤 <b>' + nGenerico + '</b> linha(s) em que o ERP não sabe o cliente (consumidor padrão / preço crédito).</p>';
+  if (nSemUsuario) avisos += '<p class="nota-dash">🔓 <b>' + nSemUsuario + '</b> desconto(s) de balcão sem registro de quem autorizou.</p>';
+  if (nUnidade)    avisos += '<p class="nota-dash">🧴 <b>' + nUnidade + '</b> linha(s) de produto vendido <b>por unidade</b> (ARLA, lubrificante) — entram no total, mas não têm desconto por litro.</p>';
 
-  let h = avisos + '<div class="desc-tabela-wrap"><table class="desc-tabela"><thead><tr>' +
-    '<th>Hora</th><th>Posto</th><th>Cliente</th><th>Produto</th><th>Litros</th>' +
-    '<th>Preço/L</th><th>Desc./L</th><th>Desconto</th><th>Cupom</th><th>Atendente</th><th>Quem autorizou</th>' +
-    '</tr></thead><tbody>';
-  linhas.forEach(l => {
-    const rl = l.qtd > 0 ? l.desc / l.qtd : 0;
-    h += '<tr>' +
-      '<td data-lbl="Hora">' + escAttr(l.hora) + '</td>' +
-      '<td data-lbl="Posto">' + escAttr(l.posto) + '</td>' +
-      '<td data-lbl="Cliente">' + escAttr(l.cliente) + (l.generico ? ' <span title="O ERP não sabe o cliente">👤</span>' : '') + '</td>' +
-      '<td data-lbl="Produto">' + escAttr(l.produto) + '</td>' +
-      /* 🔴 Produto vendido por UNIDADE nao tem "por litro". Escrever "R$ 15,000" na coluna
-         Desc./L de um galao e' numero verdadeiro respondendo a pergunta errada — e e' pior
-         que celula vazia, porque parece informacao. */
-      '<td data-lbl="Litros">' + (l.porUnidade ? (fmtBR(l.qtd, 0) + ' un') : fmtBR(l.qtd, 3)) + '</td>' +
-      '<td data-lbl="Preço/L">R$ ' + fmtBR(l.preco, 3) + (l.porUnidade ? ' <span class="dc-vazio">/un</span>' : '') + '</td>' +
-      '<td data-lbl="Desc./L">' + (l.porUnidade ? '<span class="dc-vazio">—</span>' : ('R$ ' + fmtBR(rl, 3))) + '</td>' +
-      '<td data-lbl="Desconto"><b>R$ ' + fmtBR(l.desc, 2) + '</b>' + (l.absurdo ? ' <span title="Desconto acima da metade do valor da venda">⚠️</span>' : '') + '</td>' +
-      '<td data-lbl="Cupom">' + escAttr(l.cupom) + '</td>' +
-      '<td data-lbl="Atendente">' + escAttr(l.atendente) + '</td>' +
-      '<td data-lbl="Quem autorizou">' + (l.porErp ? escAttr(l.porErp) : '<span class="dc-vazio">—</span>') + '</td>' +
-    '</tr>';
-  });
-  h += '</tbody></table></div>';
+  let h = avisos;
+  if (semTipo.length){
+    /* Documento gravado pela v1 do coletor: sem a posicao 11 nao da' para separar, e inventar
+       seria pior. Diz-se o que se sabe e mostra-se junto. */
+    h += '<p class="nota-dash">ℹ️ Este mês foi coletado antes da separação entre balcão e acordo — as linhas aparecem juntas.</p>' +
+         descPetTabela(semTipo, true);
+  }
+  if (manuais.length){
+    h += '<div class="dp-tipo">🤝 Negociado no balcão <span>' + manuais.length +
+         (manuais.length === 1 ? ' linha' : ' linhas') + ' · R$ ' + fmtBR(somaM, 2) +
+         ' — é aqui que o motivo importa</span></div>' + descPetTabela(manuais, true);
+  }
+  if (autos.length){
+    h += '<div class="dp-tipo">📄 Acordo do cliente <span>' + autos.length +
+         (autos.length === 1 ? ' linha' : ' linhas') + ' · R$ ' + fmtBR(somaA, 2) +
+         ' — preço já combinado, o sistema aplica sozinho e não há quem autorizar</span></div>' +
+         descPetTabela(autos, false);
+  }
   lst.innerHTML = h;
 }
 
