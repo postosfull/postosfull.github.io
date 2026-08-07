@@ -216,6 +216,11 @@
   .nvd-atual{font-weight:700;font-size:.82rem;color:#fff;border-radius:999px;padding:3px 12px;
              background-image:linear-gradient(90deg,var(--verde),rgba(var(--verde-rgb),.75))}
   .nvd-lista{display:flex;flex-direction:column;gap:14px}
+  /* v273 - o rodape que abre as versoes antigas */
+  .nvd-mais{align-self:center;margin-top:2px;padding:9px 18px;border-radius:999px;
+    border:1px solid var(--borda);background:transparent;color:inherit;cursor:pointer;
+    font-size:.84rem;font-weight:600;opacity:.85}
+  .nvd-mais:hover{opacity:1;border-color:var(--verde)}
   .nvd-ver{border:1px solid var(--borda);border-radius:12px;padding:12px 14px;
            background-image:linear-gradient(var(--superficie),var(--superficie))}
   .nvd-ver.nova{border-color:rgba(var(--verde-rgb),.55);
@@ -5512,6 +5517,9 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v273", data:"07/08/2026", tit:"O menu Novidades mostra as 10 mais recentes", itens:[
+    {t:"m", h:"“Ver versões anteriores” no fim da lista", d:"A lista já passava de 40 versões e todas eram desenhadas de uma vez, o que virava uma rolagem sem fim para achar as recentes. Agora aparecem as <b>10 mais novas</b>, e o resto fica atrás de um botão no fim. Se você tiver mais de 10 novidades sem ler, todas elas continuam aparecendo de cara — nenhuma novidade nova fica escondida."}
+  ]},
   {v:"v272", data:"07/08/2026", tit:"O menu Novidades voltou a contar as versões", itens:[
     {t:"c", h:"Faltavam três versões nesta lista", d:"As versões 269, 270 e 271 foram publicadas sem escrever aqui o que mudou. O menu não travou nem encheu — ele mostra tudo o que está na lista, e simplesmente não tinha essas três. O selo <b>“Você está usando a vNNN”</b> também sai daqui, por isso ele continuava dizendo v268. As três entraram abaixo, com o que mudou em cada uma."}
   ]},
@@ -5658,7 +5666,13 @@ function renderNovidades(){
   const lida = nvdLida();
   const corte = lida ? NOVIDADES_APP.findIndex(x => x.v === lida) : 1;
   const novas = corte < 0 ? 1 : corte;
-  alvo.innerHTML = NOVIDADES_APP.map((ver, i) => {
+  /* v273 - a lista so' cresce; desenhar 40+ versoes de uma vez vira rolagem sem fim.
+     Mostra as MAIS_RECENTES primeiras e guarda o resto atras de um botao.
+     🔑 Nunca esconder uma versao que a pessoa ainda nao leu: o limite e' o maior
+     entre MAIS_RECENTES e a quantidade de novidades novas para ela. */
+  const MAIS_RECENTES = 10;
+  const limite = Math.max(MAIS_RECENTES, novas);
+  const desenhar = (ver, i) => {
     /* v247 - tres colunas: o que e' NOVO, o que MELHOROU e o que foi CONSERTADO.
        Coluna sem nenhum item nao e' desenhada - quadro vazio nao informa nada. */
     const cols = ["n","m","c"].map(t => {
@@ -5676,10 +5690,29 @@ function renderNovidades(){
            (i === 0 ? '<span class="nvd-atualsel">Vers\u00e3o atual</span>' : '') +
            (i < novas ? '<span class="nvd-selo">novo para voc\u00ea</span>' : '') + '</div>' +
            '<div class="nvd-cols">' + cols + '</div></div>';
-  }).join("");
+  };
+  const recentes = NOVIDADES_APP.slice(0, limite);
+  const antigas  = NOVIDADES_APP.slice(limite);
+  alvo.innerHTML =
+    recentes.map(desenhar).join("") +
+    (antigas.length
+      ? '<div id="nvdAntigas" style="display:none;flex-direction:column;gap:14px">' +
+          antigas.map((v, i) => desenhar(v, limite + i)).join("") +
+        '</div>' +
+        '<button type="button" class="nvd-mais" id="nvdBtnMais" onclick="nvdMostrarAntigas()">' +
+          'Ver vers\u00f5es anteriores (' + antigas.length + ')' +
+        '</button>'
+      : "");
   // abriu = leu: o aviso some agora, nao na proxima vez que a pagina carregar
   try { localStorage.setItem(CHAVE_NVD_LIDA, nvdVersaoApp()); } catch(e){}
   atualizarBadgeNovidades();
+}
+/* v273 - abre as versoes antigas e some com o proprio botao (nao ha por que fechar de novo) */
+function nvdMostrarAntigas(){
+  const bloco = document.getElementById("nvdAntigas");
+  const bt = document.getElementById("nvdBtnMais");
+  if (bloco) bloco.style.display = "flex";
+  if (bt) bt.remove();
 }
 /* ===== v248 - o app diz o que esta acontecendo ====================================
    Quatro pecas pequenas, todas da varredura do Concept Hub. Elas existem para acabar com
