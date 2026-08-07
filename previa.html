@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v282 — Postos Full (não é o app)</title>
+<title>PRÉVIA v284 — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -2845,6 +2845,18 @@
   /* 🔴 O teto alto nao e' erro — e' informacao. Chama a atencao sem gritar. */
   .dp-teto-alto{outline:1px solid var(--laranja);outline-offset:-1px}
 
+  /* v284 - a conferência: selo por linha e o bloco de edição */
+  .dp-selo{background:none;border:0;cursor:pointer;font-size:1.05rem;line-height:1;padding:2px 4px}
+  .dp-selo:hover{transform:scale(1.15)}
+  tr.dp-pend td{background-image:linear-gradient(90deg,rgba(214,69,69,.13),transparent 40%)}
+  tr.dp-ok td{opacity:.72}
+  tr.dp-nao td{opacity:.5;text-decoration:line-through}
+  .dp-edit-cx{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;padding:10px 4px}
+  .dp-edit-cx label{display:flex;flex-direction:column;gap:4px;font-size:.75rem;color:var(--cinza)}
+  .dp-edit-cx label i{font-style:normal;font-size:.68rem;opacity:.8}
+  .dp-edit-cx select,.dp-edit-cx input{min-width:210px}
+  .dp-edit-bt{display:flex;gap:8px;flex-wrap:wrap}
+
 </style>
 </head>
 <body>
@@ -3087,31 +3099,16 @@
     <div class="grupo" id="grupoDescPetros">
       <h2>📡 Do Petros — <span id="descPetDiaRotulo"></span></h2>
       <p class="nota-dash">Os descontos que <b>o caixa registrou</b> neste dia, direto do Petros — com cupom, atendente e quem autorizou. É a lista de conferência: por enquanto ela só mostra. Descontos abaixo de <b>R$ 1,00</b> não aparecem: são arredondamento de bomba, não negociação.</p>
+      <div class="desc-controles">
+        <label class="cot-data-lbl">Dia: <input type="date" id="descData" onchange="carregarDescontos()"></label>
+      </div>
+      <div class="msg-admin" id="msgDesconto"></div>
       <div id="descPetrosResumo"></div>
       <div id="descPetrosLista"></div>
     </div>
     <div class="grupo">
-      <h2>Controle de Desconto</h2>
-      <p class="nota-dash">Registre os descontos dados aos clientes. Informe o preço do litro, quantos centavos de desconto por litro e o volume da venda — o <b>desconto total é calculado sozinho</b> (desconto por litro × volume). Quem lançou fica identificado pelo usuário; não precisa de assinatura.</p>
-      <div class="desc-controles">
-        <label class="cot-data-lbl">Dia: <input type="date" id="descData" onchange="carregarDescontos()"></label>
-      </div>
-      <div class="desc-form">
-        <div class="desc-campo"><label>Posto</label><select id="descPosto" onchange="onDescPostoChange()"></select></div>
-        <div class="desc-campo"><label>Cliente</label><select id="descCliente"></select></div>
-        <div class="desc-campo"><label>Ou novo cliente</label><input id="descClienteNovo" maxlength="60" placeholder="Digite para cadastrar um novo"></div>
-        <div class="desc-campo"><label>Combustível</label><select id="descComb" onchange="onDescCombChange()"></select></div>
-        <div class="desc-campo"><label>Valor por litro (R$)</label><input id="descValorL" inputmode="decimal" placeholder="6,00" oninput="calcDescPreview()"></div>
-        <div class="desc-campo"><label>Desconto por litro (R$)</label><input id="descDescL" inputmode="decimal" placeholder="0,10" oninput="calcDescPreview()"></div>
-        <div class="desc-campo"><label>Volume (litros)</label><input id="descVolume" inputmode="decimal" placeholder="100" oninput="calcDescPreview()"></div>
-        <div class="desc-campo"><label>Motivo (opcional)</label><input id="descMotivo" maxlength="80" placeholder="Ex.: cliente fiel"></div>
-        <div class="desc-total-box">Desconto total: <b id="descTotalPreview">R$ 0,00</b></div>
-        <button class="btn-verde" onclick="lancarDesconto()">Lançar desconto</button>
-      </div>
-      <div class="msg-admin" id="msgDesconto"></div>
-    </div>
-    <div class="grupo">
-      <h2>Descontos do dia — <span id="descDiaRotulo"></span></h2>
+      <h2>Lançamentos à mão — <span id="descDiaRotulo"></span></h2>
+      <p class="nota-dash">🗄️ O lançamento à mão saiu: os descontos vêm do Petros, e é lá que eles têm de ser dados. O que aparece aqui é o <b>histórico</b> do que foi digitado antes — nada foi apagado.</p>
       <div id="descConsolidado"></div>
       <div id="descLista"></div>
     </div>
@@ -6149,6 +6146,12 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v284", data:"07/08/2026", tit:"Descontos: acabou a digita\u00e7\u00e3o", itens:[
+    {t:"n", h:"Agora \u00e9 s\u00f3 dizer o motivo", d:"Na lista \ud83d\udce1 Do Petros, clique no selo da linha e escolha o <b>motivo</b> do desconto. Quando o Petros n\u00e3o souber quem \u00e9 o cliente, a tela pede o nome. <b>Nenhum n\u00famero \u00e9 digitado</b> \u2014 hora, litros, pre\u00e7o e valor v\u00eam do caixa."},
+    {t:"n", h:"Os selos", d:"\u26aa a conferir \u00b7 \ud83d\udfe2 conferido \u00b7 \u26d4 marcado como \u201cn\u00e3o \u00e9 desconto\u201d \u00b7 \ud83d\udd34 esperando h\u00e1 3 dias ou mais. S\u00f3 o <b>negociado no balc\u00e3o</b> pede motivo: o acordo do cliente \u00e9 pre\u00e7o j\u00e1 combinado."},
+    {t:"m", h:"O lan\u00e7amento \u00e0 m\u00e3o saiu", d:"O formul\u00e1rio de digitar desconto foi removido: o desconto tem de ser dado no <b>Petros</b>, e de l\u00e1 ele vem sozinho \u2014 assim nenhum fica de fora. O hist\u00f3rico do que j\u00e1 foi digitado continua na tela, e nada foi apagado."},
+    {t:"m", h:"De 01/07 em diante, quem manda \u00e9 o Petros", d:"O Consolidado do per\u00edodo conta o lan\u00e7amento \u00e0 m\u00e3o at\u00e9 30/06 e o Petros de 01/07 em diante, para a mesma venda n\u00e3o ser contada duas vezes."}
+  ]},
   {v:"v283", data:"07/08/2026", tit:"Descontos: balc\u00e3o e acordo, separados", itens:[
     {t:"n", h:"A lista Do Petros separou os dois tipos de desconto", d:"O Petros guarda em campos diferentes o desconto <b>negociado no balc\u00e3o</b> e o que vem do <b>acordo do cliente</b> (aplicado sozinho pelo sistema). At\u00e9 agora o relat\u00f3rio somava os dois e a tela mostrava tudo junto. Em julho eram <b>R$ 2.597,36 de balc\u00e3o</b> e <b>R$ 2.089,93 de acordo</b>."},
     {t:"m", h:"O que muda na pr\u00e1tica", d:"O acordo n\u00e3o tem quem autorizou porque n\u00e3o precisa ter \u2014 o pre\u00e7o j\u00e1 estava combinado. Ent\u00e3o o aviso de \u201csem quem autorizou\u201d passou a contar <b>s\u00f3 os de balc\u00e3o</b>. Em Caxias, em julho, isso vai de 106 linhas para <b>13</b>."},
@@ -16139,41 +16142,45 @@ let mesPuxadas = null;   // "AAAA-MM" do resumo mensal
 
 
 /* ================== Descontos (Postos Full) ================== */
-/* ═════════════════ v283 - A LISTA "DO PETROS" DA TELA DE DESCONTOS ═════════════════
-   Le `descva_postos_{unidade}_{AAAA-MM}` da colecao `relatoriosPetros`, que o passo `descontos`
-   do coletor do VPS grava 4x por dia (claude/coletor-descontos.md).
+/* ═════════════════ v284 - CONFERENCIA DOS DESCONTOS DO PETROS ═════════════════
+   Le `descva_postos_{unidade}_{AAAA-MM}` de `relatoriosPetros` (coletor do VPS, 4x por dia) e
+   deixa a pessoa dizer o MOTIVO — a unica coisa que o Petros nao tem onde guardar. Conferido:
+   das 13.631 colunas do banco, "motivo" so' existe para CANCELAMENTO de venda.
 
-   🔑 NAO PRECISA DE LISTENER NEM DE FETCH: o `colRelPetros.onSnapshot` ja traz a colecao INTEIRA
-   para `relPetros` no login. Esta lista so le o que ja esta na memoria.
+   🔑 A PESSOA NAO DIGITA NUMERO NENHUM. Litro, preco e valor vem do ERP e nao se recalculam:
+   em 4 de 30 lancamentos antigos (13%) o valor digitado nao batia com o que saiu do caixa.
 
-   🔴 A CHAVE DE UMA LINHA E' `id_venda_cf-sequencia_item` (posicao 0), NUNCA o cupom. Medido em
-   julho/2026: `empresa+cupom+sequencia` da 306 chaves distintas para 307 linhas.
+   🔴 A CHAVE E' `id_venda_cf-sequencia_item`, NUNCA o cupom (306 chaves para 307 linhas em
+   julho). E o id do documento e' `pf_<chave>`, DERIVADO DO DADO: confirmar duas vezes regrava o
+   mesmo registro. Com `novoId()`, duas abas abertas virariam dois descontos e o mes mentiria.
 
-   🆕 v283 - SAO DOIS DESCONTOS, E ELES NAO SE MISTURAM (posicao 11):
-     'M' MANUAL     - dado no balcao. E' ESTE que vai pedir motivo.
-     'A' AUTOMATICO - acordo/tabela do cliente. Nao tem autorizador POR NATUREZA (0 de 133 em
-                      julho) e NAO se pede motivo dele: seria pedir para explicar um contrato.
-   Julho/2026: manual R$ 2.597,36 em 174 linhas · automatico R$ 2.089,93 em 133. Sem sobreposicao.
-   👉 O efeito pratico: em Caxias o trabalho da equipe cai de 106 linhas para 13.
+   🔴 SO' O BALCAO PEDE MOTIVO. O acordo do cliente e' preco ja combinado — pedir motivo dele e'
+   pedir para explicar um contrato, 133 vezes por mes.
 
-   AS 12 POSICOES do `dados` — trocar a ordem NAO da erro, da numero errado na tela:
+   AS 13 POSICOES do `dados`:
      0 chave · 1 data AAAA-MM-DDTHH:MM · 2 cupom · 3 cliente · 4 generico "S"/"N" ·
-     5 produto (nome do ERP) · 6 litros · 7 preco · 8 DESCONTO · 9 atendente ·
-     10 quem autorizou ("" quando o ERP nao registrou) · 11 tipo "M"/"A"
-   E no documento: `corte`, `cortadas`, `cortadasValor` e 🆕 `limites` (um item por terminal). */
+     5 produto (ERP) · 6 litros · 7 preco · 8 DESCONTO · 9 atendente · 10 quem autorizou ·
+     11 tipo "M"/"A" · 12 combustivel no vocabulario do app ('' se nao for combustivel)      */
 
 const DESC_PET_UN = { "Teresina":"teresina", "Caxias":"caxias", "Dutra":"dutra" };
-
-/* 🚩 Desconto acima da METADE do valor da venda. Medido: UMA linha em 243 — 01/07, Pres Dutra,
-   cupom 82786, 23,07 L x R$ 7,42 (R$ 171,18) com R$ 116,12 (68%). E' MANUAL, e passou porque o
-   terminal de Dutra aceita ate 100%; em Caxias ou Teresina (30%) o proprio PDV teria barrado. */
 const DESC_PET_ABSURDO = 0.5;
-
-/* 🔴 Nem tudo aqui e' vendido por litro: o ARLA vem em galao de 20 L com `quantidade = 1` e preco
-   R$ 115; o LUBRAX, em balde, a R$ 45. Nelas o "R$ por litro" NAO EXISTE.
-   Combustivel nao passa de R$ 20 o litro — grosseiro de proposito, para ser inquestionavel.
-   ⏳ Sai daqui quando o coletor gravar o produto no vocabulario do app. */
 const DESC_PET_PRECO_MAX_LITRO = 20;
+
+/* 🔴 A DATA DO CORTE — decidida pelo Tiago em 07/08/2026.
+   Antes dela conta o lancamento a MAO; dela em diante conta o PETROS. Sem isto, as 24 vendas
+   que aparecem nas duas fontes seriam contadas DUAS VEZES. E' o mesmo desenho do corte por
+   data do `infleet`, pelo mesmo motivo: duas fontes que nao casam 1:1 no passado. */
+const DESC_CORTE_FONTE = "2026-07-01";
+
+/* Os motivos que a equipe ja usava, normalizados — `Cliente fiel` e `CLIENTE FIEL` eram dois
+   nos 30 registros antigos. A lista cresce sozinha com o que ja foi escrito no periodo. */
+const DESC_MOTIVOS = ["Cliente fiel", "Preço negociado", "Alto volume", "Concorrência", "Cliente novo"];
+
+/* 🔴 Quantos dias sem conferir ate a linha virar PENDENTE. Fronteira testada: 3 dias vira,
+   2 nao. */
+const DESC_PET_DIAS_PEND = 3;
+
+let descPetEditando = null;      // a chave da linha aberta, ou null
 
 function descPetLinhas(dia){
   const mes = String(dia || "").slice(0, 7);
@@ -16191,11 +16198,11 @@ function descPetLinhas(dia){
         cupom: r[2], cliente: String(r[3] || ""), generico: r[4] === "S",
         produto: String(r[5] || ""), qtd: qtd, preco: preco, desc: desc,
         atendente: String(r[9] || ""), porErp: String(r[10] || ""),
-        /* 🔴 Documento gravado pela v1 do coletor nao tem a posicao 11. Nesse caso NAO se
-           inventa o tipo: fica indefinido e a tela mostra tudo junto, avisando. Chutar "M"
-           poria acordo comercial na fila de quem tem de escrever motivo. */
+        /* 🔴 Documento gravado por um coletor antigo nao tem estas posicoes. NAO se inventa:
+           sem o tipo a tela mostra tudo junto; sem o combustivel ela grava o nome do ERP. */
         tipo: r.length > 11 ? String(r[11] || "") : "",
-        posto: nomePosto,
+        combustivel: r.length > 12 ? String(r[12] || "") : "",
+        posto: nomePosto, dia: dia,
         porUnidade: preco > DESC_PET_PRECO_MAX_LITRO,
         absurdo: bruto > 0 && desc > bruto * DESC_PET_ABSURDO
       });
@@ -16209,48 +16216,162 @@ function descPetDocsDoMes(mes){
     .filter(p => relPetros["descva_postos_" + DESC_PET_UN[p] + "_" + mes]).length;
 }
 
-/* 🆕 v283 - o teto de desconto de cada posto, como o Adaptive esta configurado hoje.
-   Um posto pode ter mais de um terminal (Caxias tem dois): mostra-se o conjunto de valores
-   distintos, nunca a media — media de configuracao nao quer dizer nada. */
 function descPetTetos(mes){
   const saida = [];
   Object.keys(DESC_PET_UN).forEach(nomePosto => {
     const doc = relPetros["descva_postos_" + DESC_PET_UN[nomePosto] + "_" + mes];
     const lim = (doc && Array.isArray(doc.limites)) ? doc.limites : null;
     if (!lim || !lim.length){ saida.push({ posto: nomePosto, tetos: null }); return; }
-    saida.push({
-      posto: nomePosto,
+    saida.push({ posto: nomePosto,
       tetos: [...new Set(lim.map(t => Number(t.maxItem) || 0))].sort((a, b) => a - b),
-      terminais: lim.length,
-      pedeCliente: lim.every(t => t.pedeCliente === "S")
-    });
+      terminais: lim.length, pedeCliente: lim.every(t => t.pedeCliente === "S") });
   });
   return saida;
 }
 
-function descPetTabela(linhas, comTipo){
+/* 🔑 A confirmacao ja esta em `descontos`, que o `carregarDescontos` carrega para o dia
+   escolhido. Nao precisa de listener novo — so' de indexar por chave. */
+function descPetConfDe(chave){
+  return (descontos || []).find(d => d.fonte === "petros" && d.chave === chave) || null;
+}
+function descPetEstado(l){
+  const c = descPetConfDe(l.chave);
+  if (c && c.naoEDesconto) return "nao";
+  if (c) return "ok";
+  const dias = Math.round((new Date(hojeISO()) - new Date(l.dia)) / 86400000);
+  return dias >= DESC_PET_DIAS_PEND ? "pend" : "novo";
+}
+const DESC_PET_SELO = { novo:{i:"⚪",t:"A conferir"}, ok:{i:"🟢",t:"Conferido"},
+                        nao:{i:"⛔",t:"Não é desconto"}, pend:{i:"🔴",t:"Pendente"} };
+
+/* Os motivos ja usados no periodo, somados aos de fabrica, sem repetir por causa de caixa. */
+function descPetMotivos(){
+  const vistos = new Map();
+  DESC_MOTIVOS.forEach(m => vistos.set(m.toLowerCase(), m));
+  (descontosMes || []).concat(descontos || []).forEach(d => {
+    const m = String(d.motivo || "").trim();
+    if (m && !vistos.has(m.toLowerCase())) vistos.set(m.toLowerCase(), m);
+  });
+  return [...vistos.values()];
+}
+
+function descPetFechar(){ descPetEditando = null; renderDescPetros(); }
+function descPetAbrir(chave){
+  descPetEditando = (descPetEditando === chave) ? null : chave;
+  renderDescPetros();
+}
+
+async function descPetSalvar(chave, naoE){
+  const l = descPetLinhas(descDataSel || hojeISO()).find(x => x.chave === chave);
+  if (!l) return;
+  const motEl = document.getElementById("dpMotivo_" + chave);
+  const outEl = document.getElementById("dpOutro_" + chave);
+  const cliEl = document.getElementById("dpCliente_" + chave);
+  let motivo = motEl ? String(motEl.value || "").trim() : "";
+  if (motivo === "__outro" && outEl) motivo = String(outEl.value || "").trim();
+  const cliDigitado = cliEl ? String(cliEl.value || "").trim() : "";
+
+  /* 🔴 Motivo vazio nao salva — e' a unica coisa que a pessoa esta ali para dizer. */
+  if (!motivo){ avisoAdmin("msgDesconto", naoE ? "Diga por que esta linha não é desconto." :
+                                                 "Escolha o motivo do desconto.", "erro"); return; }
+  if (!naoE && l.generico && !cliDigitado){
+    avisoAdmin("msgDesconto", "O Petros não sabe o cliente desta venda — escreva o nome.", "erro"); return;
+  }
+  const cliente = cliDigitado || l.cliente;
+  const id = "pf_" + chave;      /* 🔴 id DERIVADO DO DADO: confirmar 2x regrava o mesmo doc */
+  progGlobal(true);
+  try {
+    await colDescontos.doc(id).set({
+      fonte: "petros", chave: chave, tipo: l.tipo || "M",
+      data: l.dia, hora: l.hora, posto: l.posto,
+      cliente: cliente, clientePeloUsuario: !!cliDigitado,
+      /* 🔴 Do ERP, nao recalculado. `combustivel` vem do de-para do coletor (posicao 12); se
+         o documento for de um coletor antigo ele vem vazio e grava-se o nome do ERP, porque
+         inventar um de-para aqui criaria um segundo, que se desencontra do primeiro. */
+      combustivel: l.combustivel || l.produto,
+      produtoErp: l.produto,
+      volume: l.qtd, valorLitro: l.preco,
+      descontoLitro: l.qtd > 0 ? Math.round((l.desc / l.qtd) * 10000) / 10000 : 0,
+      desconto: l.desc,
+      motivo: motivo, cupom: l.cupom, atendente: l.atendente, porUsuarioErp: l.porErp,
+      naoEDesconto: !!naoE,
+      conferido: !naoE, conferidoEm: Date.now(),
+      por: usuarioAtual || "", criadoEm: Date.now()
+    });
+    /* 🔴 Sem isto a gravacao nao aparece na aba 📜 Atividades e NAO DA' PARA DESFAZER. */
+    logAtividade({ acao: "criou", area: "Descontos", colecao: "descontos", docId: id,
+      tipoUndo: "criar", resumo: (naoE ? "Marcou como não-desconto " : "Conferiu o desconto de ") +
+        escAttr(cliente || "cliente") + " R$ " + fmtBR(l.desc, 2) });
+    /* 🔴 E sem isto a lista de clientes por posto para de crescer no dia em que a digitacao
+       acabar — e e' dela que sai o nome nas vendas de consumidor padrao. */
+    if (cliDigitado) registrarClienteDoLancamento(l.posto, cliDigitado);
+    avisar(naoE ? "Marcado como não-desconto." : "Conferido: " + cliente + " · R$ " + fmtBR(l.desc, 2), "ok");
+    descPetEditando = null;
+  } catch(e){
+    avisoAdmin("msgDesconto", "Não consegui salvar: " + (e && e.message ? e.message : e), "erro");
+  }
+  progGlobal(false);
+  renderDescPetros();
+}
+
+function descPetEditor(l){
+  const mot = descPetMotivos();
+  const c = descPetConfDe(l.chave);
+  const atual = c ? String(c.motivo || "") : "";
+  const conhecido = mot.some(m => m.toLowerCase() === atual.toLowerCase());
+  return '<tr class="dp-edit"><td colspan="12"><div class="dp-edit-cx">' +
+    '<label>Motivo' +
+      '<select id="dpMotivo_' + escAttr(l.chave) + '" onchange="descPetOutro(\'' + escAspas(l.chave) + '\')">' +
+        '<option value="">— escolha —</option>' +
+        mot.map(m => '<option value="' + escAttr(m) + '"' + ((conhecido && m.toLowerCase() === atual.toLowerCase()) ? ' selected' : '') + '>' + escAttr(m) + '</option>').join("") +
+        '<option value="__outro"' + ((atual && !conhecido) ? ' selected' : '') + '>Outro…</option>' +
+      '</select></label>' +
+    '<label id="dpOutroCx_' + escAttr(l.chave) + '"' + ((atual && !conhecido) ? '' : ' hidden') + '>Qual' +
+      '<input id="dpOutro_' + escAttr(l.chave) + '" maxlength="80" value="' + escAttr((atual && !conhecido) ? atual : "") + '" placeholder="Escreva o motivo"></label>' +
+    (l.generico
+      ? '<label>Cliente <i>(o Petros não sabe: veio como ' + escAttr(l.cliente) + ')</i>' +
+        '<input id="dpCliente_' + escAttr(l.chave) + '" maxlength="60" value="' + escAttr(c && c.clientePeloUsuario ? c.cliente : "") + '" placeholder="Nome do cliente"></label>'
+      : '') +
+    '<div class="dp-edit-bt">' +
+      '<button class="btn-verde" onclick="descPetSalvar(\'' + escAspas(l.chave) + '\', false)">Confirmar</button>' +
+      '<button class="btn-claro" onclick="descPetSalvar(\'' + escAspas(l.chave) + '\', true)">Não é desconto</button>' +
+      '<button class="btn-claro" onclick="descPetFechar()">Cancelar</button>' +
+    '</div></div></td></tr>';
+}
+function descPetOutro(chave){
+  const sel = document.getElementById("dpMotivo_" + chave);
+  const cx  = document.getElementById("dpOutroCx_" + chave);
+  if (sel && cx) cx.hidden = (sel.value !== "__outro");
+}
+
+function descPetTabela(linhas, conferivel){
   let h = '<div class="desc-tabela-wrap"><table class="desc-tabela"><thead><tr>' +
+    (conferivel ? '<th></th>' : '') +
     '<th>Hora</th><th>Posto</th><th>Cliente</th><th>Produto</th><th>Litros</th>' +
     '<th>Preço/L</th><th>Desc./L</th><th>Desconto</th><th>Cupom</th><th>Atendente</th>' +
-    (comTipo ? '<th>Quem autorizou</th>' : '') + '</tr></thead><tbody>';
+    (conferivel ? '<th>Quem autorizou</th><th>Motivo</th>' : '') + '</tr></thead><tbody>';
   linhas.forEach(l => {
     const rl = l.qtd > 0 ? l.desc / l.qtd : 0;
-    h += '<tr>' +
+    const est = conferivel ? descPetEstado(l) : null;
+    const c = conferivel ? descPetConfDe(l.chave) : null;
+    h += '<tr class="' + (est ? 'dp-' + est : '') + '">' +
+      (conferivel ? ('<td data-lbl="Situação"><button class="dp-selo" title="' + DESC_PET_SELO[est].t +
+        '" onclick="descPetAbrir(\'' + escAspas(l.chave) + '\')">' + DESC_PET_SELO[est].i + '</button></td>') : '') +
       '<td data-lbl="Hora">' + escAttr(l.hora) + '</td>' +
       '<td data-lbl="Posto">' + escAttr(l.posto) + '</td>' +
-      '<td data-lbl="Cliente">' + escAttr(l.cliente) + (l.generico ? ' <span title="O ERP não sabe o cliente">👤</span>' : '') + '</td>' +
-      '<td data-lbl="Produto">' + escAttr(l.produto) + '</td>' +
-      /* 🔴 Produto vendido por UNIDADE nao tem "por litro". "R$ 15,000" na coluna Desc./L de um
-         galao e' numero verdadeiro respondendo a pergunta errada — e pior que celula vazia,
-         porque parece informacao. */
+      '<td data-lbl="Cliente">' + escAttr((c && c.clientePeloUsuario) ? c.cliente : l.cliente) +
+        (l.generico ? ' <span title="O ERP não sabe o cliente">👤</span>' : '') + '</td>' +
+      '<td data-lbl="Produto">' + escAttr(l.combustivel || l.produto) + '</td>' +
       '<td data-lbl="Litros">' + (l.porUnidade ? (fmtBR(l.qtd, 0) + ' un') : fmtBR(l.qtd, 3)) + '</td>' +
       '<td data-lbl="Preço/L">R$ ' + fmtBR(l.preco, 3) + (l.porUnidade ? ' <span class="dc-vazio">/un</span>' : '') + '</td>' +
       '<td data-lbl="Desc./L">' + (l.porUnidade ? '<span class="dc-vazio">—</span>' : ('R$ ' + fmtBR(rl, 3))) + '</td>' +
       '<td data-lbl="Desconto"><b>R$ ' + fmtBR(l.desc, 2) + '</b>' + (l.absurdo ? ' <span title="Desconto acima da metade do valor da venda">⚠️</span>' : '') + '</td>' +
       '<td data-lbl="Cupom">' + escAttr(l.cupom) + '</td>' +
       '<td data-lbl="Atendente">' + escAttr(l.atendente) + '</td>' +
-      (comTipo ? ('<td data-lbl="Quem autorizou">' + (l.porErp ? escAttr(l.porErp) : '<span class="dc-vazio">—</span>') + '</td>') : '') +
+      (conferivel ? ('<td data-lbl="Quem autorizou">' + (l.porErp ? escAttr(l.porErp) : '<span class="dc-vazio">—</span>') + '</td>' +
+        '<td data-lbl="Motivo">' + (c ? escAttr(c.motivo || "") : '<span class="dc-vazio">—</span>') + '</td>') : '') +
     '</tr>';
+    if (conferivel && descPetEditando === l.chave) h += descPetEditor(l);
   });
   return h + '</tbody></table></div>';
 }
@@ -16263,8 +16384,6 @@ function renderDescPetros(){
   const rot = document.getElementById("descPetDiaRotulo");
   if (rot) rot.textContent = fmtDataCurta(dia);
 
-  /* 🔑 Enquanto a nuvem nao respondeu, ESQUELETO — nunca "nenhum desconto".
-     Ausencia tem de continuar ausencia: zero e' o unico que mente. */
   if (!vistoRelPetros){
     res.innerHTML = esqueletoCaixa(2);
     lst.innerHTML = '<div class="desc-tabela-wrap"><table class="desc-tabela"><tbody>' +
@@ -16278,18 +16397,16 @@ function renderDescPetros(){
   const manuais = linhas.filter(l => l.tipo === "M");
   const autos   = linhas.filter(l => l.tipo === "A");
   const semTipo = linhas.filter(l => l.tipo !== "M" && l.tipo !== "A");
+  const conferiveis = manuais.concat(semTipo);
 
   let totDesc = 0, totVol = 0, nAbsurdo = 0, nGenerico = 0, nSemUsuario = 0, nUnidade = 0;
-  /* 🔑 A MEDIA POR LITRO TEM RECORTE, E O RECORTE VAI DECLARADO NA TELA. Fica de fora o que nao
-     e' vendido por litro e a linha absurda. Recorte que nao se declara e' o jeito classico de
-     mentir com numero. */
   let medDesc = 0, medVol = 0, medFora = 0;
   const porPosto = {};
   linhas.forEach(l => {
     totDesc += l.desc; totVol += l.qtd;
     if (l.absurdo) nAbsurdo++;
     if (l.generico) nGenerico++;
-    if (!l.porErp && l.tipo !== "A") nSemUsuario++;   /* 🔴 o automático não tem autorizador por natureza */
+    if (!l.porErp && l.tipo !== "A") nSemUsuario++;
     if (l.porUnidade) nUnidade++;
     if (!l.porUnidade && !l.absurdo){ medDesc += l.desc; medVol += l.qtd; } else medFora++;
     const o = porPosto[l.posto] || (porPosto[l.posto] = { desc: 0, vol: 0, n: 0, m: 0, a: 0 });
@@ -16299,6 +16416,11 @@ function renderDescPetros(){
   const medL = medVol > 0 ? medDesc / medVol : 0;
   const somaM = manuais.reduce((s, l) => s + l.desc, 0);
   const somaA = autos.reduce((s, l) => s + l.desc, 0);
+  const est = conferiveis.map(descPetEstado);
+  const nOk = est.filter(e => e === "ok").length;
+  const nNao = est.filter(e => e === "nao").length;
+  const nPend = est.filter(e => e === "pend").length;
+  const nNovo = est.filter(e => e === "novo").length;
 
   let porPostoHtml = "";
   const ordem = Object.keys(porPosto).sort((a, b) => porPosto[b].desc - porPosto[a].desc);
@@ -16320,30 +16442,26 @@ function renderDescPetros(){
       '<div class="dc-item"><span class="dc-lbl">Desconto total</span><span class="dc-val">R$ ' + fmtBR(totDesc, 2) + '</span></div>' +
       '<div class="dc-item"><span class="dc-lbl">🤝 Negociado no balcão</span><span class="dc-val">R$ ' + fmtBR(somaM, 2) + '</span></div>' +
       '<div class="dc-item"><span class="dc-lbl">📄 Acordo do cliente</span><span class="dc-val">R$ ' + fmtBR(somaA, 2) + '</span></div>' +
-      '<div class="dc-item"><span class="dc-lbl">Volume total</span><span class="dc-val">' + fmtLitros(totVol) + ' L</span></div>' +
+      '<div class="dc-item"><span class="dc-lbl">🟢 Conferidos</span><span class="dc-val">' + nOk + ' de ' + conferiveis.length + '</span></div>' +
       '<div class="dc-item"><span class="dc-lbl">Desconto médio / litro' + (medFora ? ' <b title="O recorte da média">*</b>' : '') + '</span><span class="dc-val">' + (medVol > 0 ? 'R$ ' + fmtBR(medL, 4) : '—') + '</span></div>' +
-      '<div class="dc-item"><span class="dc-lbl">Linhas</span><span class="dc-val">' + linhas.length + '</span></div>' +
+      '<div class="dc-item"><span class="dc-lbl">Volume total</span><span class="dc-val">' + fmtLitros(totVol) + ' L</span></div>' +
     '</div>' + porPostoHtml +
     (medFora ? '<div class="dc-nota">* a média por litro deixa de fora ' + medFora +
        (medFora === 1 ? ' linha' : ' linhas') + ' — produto vendido por unidade e/ou desconto fora da curva. O <b>desconto total</b> acima inclui tudo.</div>' : '') +
     '</div>';
 
-  /* 🆕 v283 - o teto configurado em cada posto, do lado do resumo. Ele explica por que um
-     desconto grande passa num posto e seria barrado no outro. */
   const tetos = descPetTetos(mes);
   if (tetos.some(t => t.tetos)){
-    let h = '<div class="dp-teto"><span class="dp-teto-tit">Teto de desconto configurado no PDV</span>';
+    let h2 = '<div class="dp-teto"><span class="dp-teto-tit">Teto de desconto configurado no PDV</span>';
     tetos.forEach(t => {
       const txt = t.tetos ? t.tetos.map(v => fmtBR(v, 0) + '%').join(' / ') : '—';
       const alto = t.tetos && t.tetos.some(v => v >= 100);
-      h += '<span class="dp-teto-item' + (alto ? ' dp-teto-alto' : '') + '">' + escAttr(t.posto) +
-           ' <b>' + txt + '</b>' + (t.terminais > 1 ? ' <i>(' + t.terminais + ' terminais)</i>' : '') + '</span>';
+      h2 += '<span class="dp-teto-item' + (alto ? ' dp-teto-alto' : '') + '">' + escAttr(t.posto) +
+            ' <b>' + txt + '</b>' + (t.terminais > 1 ? ' <i>(' + t.terminais + ' terminais)</i>' : '') + '</span>';
     });
-    h += '</div>';
-    res.innerHTML += h;
+    res.innerHTML += h2 + '</div>';
   }
 
-  /* 🔴 Tres respostas diferentes para tres situacoes diferentes. */
   if (!temDoc){
     lst.innerHTML = vazioHtml("Sem coleta para " + rpzRotuloPeriodo(mes),
       "O coletor ainda não gravou os descontos deste mês. Isso não quer dizer que não houve desconto.");
@@ -16357,27 +16475,26 @@ function renderDescPetros(){
   }
 
   let avisos = "";
+  if (nPend)       avisos += '<p class="nota-dash">🔴 <b>' + nPend + '</b> desconto(s) de balcão esperando o motivo há ' + DESC_PET_DIAS_PEND + ' dias ou mais.</p>';
   if (nAbsurdo)    avisos += '<p class="nota-dash">⚠️ <b>' + nAbsurdo + '</b> linha(s) com desconto acima da metade do valor da venda — conferir no ERP antes de considerar.</p>';
-  if (nGenerico)   avisos += '<p class="nota-dash">👤 <b>' + nGenerico + '</b> linha(s) em que o ERP não sabe o cliente (consumidor padrão / preço crédito).</p>';
+  if (nGenerico)   avisos += '<p class="nota-dash">👤 <b>' + nGenerico + '</b> linha(s) em que o ERP não sabe o cliente — ao conferir, a tela pede o nome.</p>';
   if (nSemUsuario) avisos += '<p class="nota-dash">🔓 <b>' + nSemUsuario + '</b> desconto(s) de balcão sem registro de quem autorizou.</p>';
   if (nUnidade)    avisos += '<p class="nota-dash">🧴 <b>' + nUnidade + '</b> linha(s) de produto vendido <b>por unidade</b> (ARLA, lubrificante) — entram no total, mas não têm desconto por litro.</p>';
 
   let h = avisos;
-  if (semTipo.length){
-    /* Documento gravado pela v1 do coletor: sem a posicao 11 nao da' para separar, e inventar
-       seria pior. Diz-se o que se sabe e mostra-se junto. */
-    h += '<p class="nota-dash">ℹ️ Este mês foi coletado antes da separação entre balcão e acordo — as linhas aparecem juntas.</p>' +
-         descPetTabela(semTipo, true);
-  }
-  if (manuais.length){
-    h += '<div class="dp-tipo">🤝 Negociado no balcão <span>' + manuais.length +
-         (manuais.length === 1 ? ' linha' : ' linhas') + ' · R$ ' + fmtBR(somaM, 2) +
-         ' — é aqui que o motivo importa</span></div>' + descPetTabela(manuais, true);
+  if (conferiveis.length){
+    h += '<div class="dp-tipo">🤝 Negociado no balcão <span>' + conferiveis.length +
+         (conferiveis.length === 1 ? ' linha' : ' linhas') + ' · R$ ' + fmtBR(somaM + semTipo.reduce((s, l) => s + l.desc, 0), 2) +
+         ' — clique no selo para dizer o motivo' +
+         (nNovo || nPend ? ' · <b>' + (nNovo + nPend) + ' a conferir</b>' : '') +
+         (nNao ? ' · ' + nNao + ' marcada(s) como não-desconto' : '') + '</span></div>' +
+         (semTipo.length ? '<p class="nota-dash">ℹ️ Este mês foi coletado antes da separação entre balcão e acordo — as linhas aparecem juntas.</p>' : '') +
+         descPetTabela(conferiveis, true);
   }
   if (autos.length){
     h += '<div class="dp-tipo">📄 Acordo do cliente <span>' + autos.length +
          (autos.length === 1 ? ' linha' : ' linhas') + ' · R$ ' + fmtBR(somaA, 2) +
-         ' — preço já combinado, o sistema aplica sozinho e não há quem autorizar</span></div>' +
+         ' — preço já combinado, o sistema aplica sozinho: não há motivo a explicar</span></div>' +
          descPetTabela(autos, false);
   }
   lst.innerHTML = h;
@@ -16390,10 +16507,6 @@ function alternarDescontos(){
   if (aberto){
     const dt = document.getElementById("descData");
     if (dt && !dt.value) dt.value = hojeISO();
-    popularSelectDescPosto();
-    popularSelectDescComb();
-    popularSelectDescCliente();
-    calcDescPreview();
     carregarDescontos();
     inicializarDescMes();
     carregarDescontosMes();
@@ -16727,7 +16840,11 @@ function renderDescontosMes(){
   const cont = document.getElementById("descMesConsolidado"); if (!cont) return;
   const cliente = (document.getElementById("descMesCliente")||{}).value || "";
   descMesClienteSel = cliente;
-  let itens = (descontosMes||[]).slice();
+  /* 🔴 O CORTE POR DATA. Antes de DESC_CORTE_FONTE conta o lançamento à MÃO; dela em diante,
+     o PETROS. 24 das 30 vendas antigas existem nas DUAS fontes — sem isto elas seriam contadas
+     duas vezes e o mês mentiria para cima. */
+  let itens = (descontosMes||[]).filter(d => (String(d.data||"") >= DESC_CORTE_FONTE)
+    ? d.fonte === "petros" : d.fonte !== "petros");
   if (cliente) itens = itens.filter(d => (d.cliente||"").trim() === cliente);
   let totDesc=0, totVol=0; const porPosto={}, porCliente={};
   itens.forEach(d => {
@@ -16771,7 +16888,10 @@ function renderDescontos(){
   const cons = document.getElementById("descConsolidado");
   const cont = document.getElementById("descLista");
   if (!cons || !cont) return;
-  const itens = (descontos || []).slice().sort((a,b) => String(a.hora||"").localeCompare(String(b.hora||"")));
+  /* 🔴 v284 - as confirmações vindas do Petros moram na MESMA coleção. Sem este filtro
+     elas apareceriam DUAS vezes: aqui e na lista de cima. */
+  const itens = (descontos || []).filter(d => d.fonte !== "petros")
+    .slice().sort((a,b) => String(a.hora||"").localeCompare(String(b.hora||"")));
   let totDesc = 0, totVol = 0;
   const porPosto = {};
   itens.forEach(d => {
@@ -16799,7 +16919,7 @@ function renderDescontos(){
       '<div class="dc-item"><span class="dc-lbl">Desconto médio / litro</span><span class="dc-val">R$ ' + fmtBR(medL,4) + '</span></div>' +
       '<div class="dc-item"><span class="dc-lbl">Lançamentos</span><span class="dc-val">' + itens.length + '</span></div>' +
     '</div>' + porPostoHtml + '</div>';
-  if (!itens.length){ cont.innerHTML = '<p class="nota-dash">Nenhum desconto lançado neste dia.</p>'; return; }
+  if (!itens.length){ cont.innerHTML = '<p class="nota-dash">Nenhum lançamento à mão neste dia.</p>'; return; }
   const podeExcluir = d => (typeof ehAdminAtual === "function" && ehAdminAtual()) || (d.por && d.por === usuarioAtual);
   let h = '<div class="desc-tabela-wrap"><table class="desc-tabela"><thead><tr>' +
     '<th>Hora</th><th>Posto</th><th>Cliente</th><th>Combustível</th><th>Valor/L</th><th>Desc./L</th><th>Volume</th><th>Desconto</th><th>Motivo</th><th>Quem lançou</th><th></th></tr></thead><tbody>';
