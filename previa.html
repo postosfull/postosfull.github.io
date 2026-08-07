@@ -101,10 +101,9 @@
        ele da' 3,4:1 de contraste e nao se le'. Os titulos de grupo usam #9A9791, que e'
        o mesmo cinza clareado ate' passar de 4,5:1. 🔑 Cor de manual impresso nao se
        copia para tela sem medir contraste. */
-    --barra-1:#6D6D6D;   /* o cinza do manual, no topo do degrade */
-    --barra-2:#1C1C1C;
-    --barra-3:#0D0D0D;
-    --barra-veu:#1E1E1E;
+    --barra-1:#0E0E0E;   /* preto do manual, com um respiro no topo */
+    --barra-2:#000000;
+    --barra-3:#000000;
     --barra-txt:#DBDAD9;
     --barra-tit:#9A9791;
     --barra-borda:#2A2A2A;
@@ -140,11 +139,10 @@
     --sombra-1:inset 0 1px 0 rgba(255,255,255,.035), 0 6px 18px rgba(0,0,0,.40);
     --sombra-2:inset 0 1px 0 rgba(255,255,255,.05), 0 12px 30px rgba(0,0,0,.50);
     --sombra-3:inset 0 1px 0 rgba(255,255,255,.06), 0 22px 54px rgba(0,0,0,.60);
-    /* a barra e' a MESMA nos dois temas (escolha do Tiago em 07/08, opcao B) */
-    --barra-1:#6D6D6D;
-    --barra-2:#1C1C1C;
-    --barra-3:#0D0D0D;
-    --barra-veu:#1E1E1E;
+    /* a barra e' a MESMA nos dois temas */
+    --barra-1:#0E0E0E;
+    --barra-2:#000000;
+    --barra-3:#000000;
     --barra-txt:#DBDAD9;
     --barra-tit:#9A9791;
     --barra-borda:#2A2A2A;
@@ -2527,28 +2525,17 @@
     --borda:var(--barra-borda);
     color:var(--barra-txt);
     background-color:var(--barra-2);
-    /* 🔴 v281c - AS LINHAS SINUOSAS SAIRAM DA BARRA.
-       Elas passavam POR TRAS DO TEXTO dos menus e atrapalhavam a leitura - o Tiago viu
-       na previa e reclamou, com razao. Voltando ao manual com a queixa na mao, o motivo
-       ficou obvio: nas pecas dele o grafismo mora SEMPRE NA BORDA e o meio fica limpo
-       para o conteudo (o cartao de visita, a capa e a pagina "Tom de voz" sao os tres
-       exemplos). 🔑 GRAFISMO DE FUNDO NAO ATRAVESSA A AREA DE LEITURA.
-
-       O que ficou, tudo do MIV, em tres camadas (a primeira pinta por cima):
-       1. o VEU - e' ele que transforma a reticula em ANEL: apaga os pontos no meio da
-          barra e deixa os das pontas. E' o "circulos em expansao" de verdade (no manual
-          os pontos crescem do centro para as bordas, e o centro fica vazio);
-       2. CIRCULOS EM EXPANSAO - a reticula, tom sobre tom;
-       3. o degrade do CARTAO DE VISITA: o cinza #6D6D6D do manual descendo ate' o preto.
-       🔴 Tudo em background-IMAGE: o modo escuro forcado do Chrome apaga
-          background-color (armadilha da v186). */
-    background-image:
-      radial-gradient(ellipse 210px 34% at 50% 50%, var(--barra-veu) 0%, var(--barra-veu) 38%, transparent 84%),
-      radial-gradient(rgba(219,218,217,.14) 1.4px, transparent 1.5px),
-      linear-gradient(163deg, var(--barra-1) 0%, #3A3A3A 26%, var(--barra-2) 62%, var(--barra-3) 100%);
-    background-size:auto, 15px 15px, auto;
-    background-repeat:no-repeat, repeat, no-repeat;
-    background-position:center center, left top, left top;
+    /* 🔴 v281d - FUNDO LISO. NENHUMA TEXTURA, NENHUMA LINHA.
+       Duas tentativas caíram aqui antes desta:
+         1. as LINHAS SINUOSAS do MIV correndo pela barra - passavam por tras do texto
+            dos menus. Ele: "ficou ruim de ler os textos por conta das linhas onduladas".
+         2. os CIRCULOS EM EXPANSAO (a reticula de pontos), em preto, em grafite e em
+            off-white. Ele: "acho que patterns vao ficar meio infantis".
+       🔑 A conclusao que fica, e vale para qualquer tela deste app: em peca IMPRESSA o
+       grafismo preenche o vazio; em INTERFACE o vazio ja' tem dono - e' o que separa uma
+       linha da outra. Textura atras de lista de texto nao decora: compete.
+       👉 A vida da barra passou a vir do ITEM DE MENU (o "card"), nao do fundo. */
+    background-image:linear-gradient(180deg, var(--barra-1) 0%, var(--barra-2) 46%, var(--barra-3) 100%);
     border-right:1px solid var(--barra-borda);
     box-shadow:inset -14px 0 22px -18px rgba(0,0,0,.9);
   }
@@ -12114,7 +12101,12 @@ const DRE_SERIES = [
   { k:"ll",     n:"Lucro líquido", c:"#2E7BC4", rgb:"46,123,196" }
 ];
 const DRE_JANELAS = [[6,"6 meses"],[12,"12 meses"],[24,"24 meses"]];
-let dreUn = "rede", dreMes = "", dreJanela = 12, dreOcultas = {}, dreSerieCache = null;
+/* v281d - O PERIODO. Pedido do Tiago em 07/08: "so' tem como selecionar o Mes; gostaria
+   de poder selecionar o Ano ou ultimos 12 meses".
+   🔑 Os tres modos leem a MESMA fonte e usam a MESMA conta: o que muda e' QUANTOS meses
+   entram na soma. Nenhum numero novo e' inventado - o de um mes continua sendo o de um mes. */
+const DRE_MODOS = [["mes","Mês"],["12m","Últimos 12 meses"],["ano","Ano"]];
+let dreUn = "rede", dreMes = "", dreModo = "mes", dreAno = "", dreJanela = 12, dreOcultas = {}, dreSerieCache = null;
 
 function dreSig(){ return siglaEmpresa(empresa); }
 function dreSemBico(){ return dreSig() === "conv"; }
@@ -12183,11 +12175,74 @@ function dreFechaConta(b, litros, quantos){
            vendas:vendas, custo:custo, lb:lb, ll:ll, vol:litros || null, unidades:quantos,
            pct: vendas ? ll / vendas * 100 : null, lbL:L(lb), despL:L(b.desp), llL:L(ll) };
 }
+/* ---------- v281d - o PERIODO ---------- */
+function dreAnosDisp(){
+  const a = {};
+  dreMesesDisp().forEach(m => { a[String(m).slice(0,4)] = 1; });
+  return Object.keys(a).sort().reverse();
+}
+/* os meses que entram na soma, do mais antigo ao mais novo */
+function dreMesesDoPeriodo(modo, mesRef, anoRef){
+  const todos = dreMesesDisp();                       // do mais novo para o mais velho
+  if (modo === "ano") return todos.filter(m => String(m).slice(0,4) === String(anoRef)).sort();
+  if (modo === "12m"){
+    const i = Math.max(0, todos.indexOf(mesRef));
+    return todos.slice(i, i + 12).sort();
+  }
+  return mesRef ? [mesRef] : [];
+}
+/* o periodo IMEDIATAMENTE ANTERIOR, do mesmo tamanho - e' com ele que a comparacao e' feita */
+function dreMesesAnteriores(modo, mesRef, anoRef){
+  const todos = dreMesesDisp();
+  if (modo === "ano") return todos.filter(m => String(m).slice(0,4) === String(+anoRef - 1)).sort();
+  if (modo === "12m"){
+    const i = Math.max(0, todos.indexOf(mesRef));
+    return todos.slice(i + 12, i + 24).sort();
+  }
+  const a = dreMesAnterior(mesRef);
+  return a ? [a] : [];
+}
+/* 🔴 SOMAR PERIODO E' SOMAR AS PARCELAS, NUNCA OS RESULTADOS.
+   Se somasse `lb` e `ll` de cada mes daria o mesmo hoje, mas na primeira vez que uma linha
+   virar media (margem, % sobre vendas) a conta passaria a mentir em silencio. Aqui a soma
+   e' das PARCELAS e o resultado e' recalculado uma vez, pela mesma dreFechaConta(). */
+function dreNumsPeriodo(un, meses){
+  const soma = { comb:0, outros:0, custoComb:0, custoOutros:0, outrasRec:0, desp:0, varEst:0 };
+  let litros = 0, quantos = 0, unidadesMin = 99, ate = "", quando = "";
+  (meses || []).forEach(m => {
+    const x = dreNums(un, m);
+    if (!x) return;
+    quantos++;
+    Object.keys(soma).forEach(k => { soma[k] += (+x[k] || 0); });
+    litros += (+x.vol || 0);
+    if (x.unidades < unidadesMin) unidadesMin = x.unidades;
+    if (x.ate && x.ate > ate) ate = x.ate;
+    if (x.quando) quando = x.quando;
+  });
+  if (!quantos) return null;
+  const o = dreFechaConta(soma, litros, unidadesMin === 99 ? 1 : unidadesMin);
+  o.meses = quantos; o.ate = ate; o.quando = quando;
+  return o;
+}
+function dreRotuloPeriodo(modo, mesRef, anoRef, meses){
+  if (modo === "ano") return String(anoRef);
+  if (modo === "12m"){
+    if (!meses || !meses.length) return "12 meses";
+    return rotuloMesRel(meses[0]) + " a " + rotuloMesRel(meses[meses.length - 1]);
+  }
+  return rotuloMesRel(mesRef);
+}
+
 /* a serie do grafico: os N meses mais recentes que tem numero, do mais antigo ao mais novo */
 function dreSerie(un, n){
   const meses = dreMesesDisp().slice(0, n).reverse();
   const pts = [];
   meses.forEach(m => { const x = dreNums(un, m); if (x) pts.push({ mes:m, x:x }); });
+  return pts;
+}
+function dreSerieDeMeses(un, meses){
+  const pts = [];
+  (meses || []).forEach(m => { const x = dreNums(un, m); if (x) pts.push({ mes:m, x:x }); });
   return pts;
 }
 function dreCompacto(v){
@@ -12215,7 +12270,15 @@ function alternarDre(){
   if (aberto) renderDre();
 }
 function dreTrocarUn(u){ dreUn = u; renderDre(); }
-function dreTrocarMes(m){ dreMes = m; renderDre(); }
+/* 🔑 clicar num mes do grafico VOLTA para o modo Mes: o clique quer dizer "me mostre
+   ESTE mes", e mostrar a soma do ano com o mes destacado nao seria resposta nenhuma. */
+function dreTrocarMes(m){ dreMes = m; dreModo = "mes"; renderDre(); }
+function dreTrocarModo(k){
+  dreModo = k;
+  if (k === "ano" && !dreAno) dreAno = (dreAnosDisp()[0] || String(dreMes).slice(0,4));
+  renderDre();
+}
+function dreTrocarAno(a){ dreAno = a; renderDre(); }
 function dreTrocarJanela(n){ dreJanela = +n || 12; renderDre(); }
 function dreAlternarSerie(k){
   dreOcultas[k] = !dreOcultas[k];
@@ -12424,22 +12487,41 @@ function renderDre(){
     return;
   }
   if (meses.indexOf(dreMes) < 0) dreMes = meses[0];
+  const anos = dreAnosDisp();
+  if (anos.indexOf(dreAno) < 0) dreAno = anos[0] || String(dreMes).slice(0,4);
   const semBico = dreSemBico();
-  const r = dreNums(dreUn, dreMes);
-  const ant = dreNums(dreUn, dreMesAnterior(dreMes));
+  const mesesPer = dreMesesDoPeriodo(dreModo, dreMes, dreAno);
+  const rotPer   = dreRotuloPeriodo(dreModo, dreMes, dreAno, mesesPer);
+  const r   = dreNumsPeriodo(dreUn, mesesPer);
+  const ant = dreNumsPeriodo(dreUn, dreMesesAnteriores(dreModo, dreMes, dreAno));
+  const rotAnt = dreRotuloPeriodo(dreModo, dreMesAnterior(dreMes), +dreAno - 1,
+                                  dreMesesAnteriores(dreModo, dreMes, dreAno));
 
+  const SEL = 'padding:7px 12px;border-radius:999px;border:1px solid var(--borda);background:var(--superficie);color:var(--txt);font-size:.8rem;font-weight:600';
   /* --- barra de escolhas --- */
   let h = '<div class="dre-topo"><div class="dre-grupo"><i>' + (semBico ? "Loja" : "Posto") + '</i>';
   dreUnidades().forEach(u => {
     h += '<button class="doc-chip' + (dreUn === u.chave ? " ativo" : "") + '" onclick="dreTrocarUn(\'' + escAttr(u.chave) + '\')">' + escAttr(u.nome) + '</button>';
   });
-  h += '</div><div class="dre-grupo"><i>Mês</i>' +
-       '<select class="dre-sel" onchange="dreTrocarMes(this.value)" style="padding:7px 12px;border-radius:999px;border:1px solid var(--borda);background:var(--superficie);color:var(--txt);font-size:.8rem;font-weight:600">' +
-       meses.map(m => '<option value="' + escAttr(m) + '"' + (m === dreMes ? " selected" : "") + '>' + escAttr(rotuloMesRel(m)) + '</option>').join("") +
-       '</select></div></div>';
+  h += '</div><div class="dre-grupo"><i>Período</i>';
+  DRE_MODOS.forEach(m => {
+    h += '<button class="doc-chip' + (dreModo === m[0] ? " ativo" : "") + '" onclick="dreTrocarModo(\'' + m[0] + '\')">' + escAttr(m[1]) + '</button>';
+  });
+  /* o seletor que aparece depende do modo: mes (Mes e Ultimos 12) ou ano (Ano) */
+  if (dreModo === "ano"){
+    h += '<select onchange="dreTrocarAno(this.value)" style="' + SEL + '">' +
+         anos.map(a => '<option value="' + escAttr(a) + '"' + (a === dreAno ? " selected" : "") + '>' + escAttr(a) + '</option>').join("") +
+         '</select>';
+  } else {
+    h += '<select onchange="dreTrocarMes(this.value)" style="' + SEL + '">' +
+         meses.map(m => '<option value="' + escAttr(m) + '"' + (m === dreMes ? " selected" : "") + '>' +
+           escAttr(rotuloMesRel(m)) + (dreModo === "12m" ? " (e os 11 antes)" : "") + '</option>').join("") +
+         '</select>';
+  }
+  h += '</div></div>';
 
   if (!r){
-    box.innerHTML = h + '<p class="nota-dash">Não temos o demonstrativo de <b>' + escAttr(rotuloMesRel(dreMes)) + '</b> para esta escolha. Tente outro mês.</p>';
+    box.innerHTML = h + '<p class="nota-dash">Não temos o demonstrativo de <b>' + escAttr(rotPer) + '</b> para esta escolha. Tente outro período.</p>';
     return;
   }
 
@@ -12452,7 +12534,7 @@ function renderDre(){
       const bom = invertido ? !sobe : sobe;
       eti = '<span class="dre-var ' + (Math.abs(v) < 0.05 ? "" : (bom ? "sobe" : "desce")) + '">' +
             (sobe ? "▲" : "▼") + " " + fmtBR(Math.abs(v), 1) + "% <em style=\"font-style:normal;opacity:.7;font-weight:600\">vs " +
-            escAttr(rotuloMesRel(dreMesAnterior(dreMes))) + "</em></span>";
+            escAttr(rotAnt) + "</em></span>";
     }
     return '<div class="dre-kpi" style="--dre-c:' + s.c + ';--dre-rgb:' + s.rgb + '">' +
            '<span>' + escAttr(s.n) + (chaveBula ? bul(chaveBula) : "") + '</span>' +
@@ -12465,17 +12547,20 @@ function renderDre(){
        quadro(DRE_SERIES[3], r.ll, "lucroLiquido", ant ? ant.ll : null, false) +
        '</div>';
 
-  /* --- o grafico --- */
-  const serie = dreSerie(dreUn, dreJanela);
+  /* --- o grafico ---
+     🔑 No modo Mes ele mostra a JANELA que voce escolher (6/12/24). Nos modos Ano e
+     Ultimos 12 meses ele mostra EXATAMENTE os meses que entraram na soma - senao o
+     quadro de cima e a curva estariam falando de periodos diferentes na mesma tela. */
+  const serie = (dreModo === "mes") ? dreSerie(dreUn, dreJanela) : dreSerieDeMeses(dreUn, mesesPer);
   dreSerieCache = serie;
   if (serie.length >= 2){
     h += '<div class="dre-cx" id="dreGrafCx">' +
          '<div class="dre-cx-tit"><b>Como as linhas caminharam</b><i>' + serie.length + ' meses. Passe o mouse em cima de um mês; clique para abrir. ' +
            'A régua <b>não começa no zero</b> — é o recorte que faz a variação do mês aparecer; o tamanho de cada linha está nos quadros acima e na tabela abaixo. ' +
            (dreOcultas.vendas ? '' : 'As <b style="color:#FE7030">vendas</b> têm régua própria, à direita: elas são ~20× maiores que o lucro.') + '</i></div>' +
-         '<div class="dre-grupo" style="margin-top:6px">' +
-         DRE_JANELAS.map(j => '<button class="doc-chip' + (dreJanela === j[0] ? " ativo" : "") + '" onclick="dreTrocarJanela(' + j[0] + ')">' + escAttr(j[1]) + '</button>').join("") +
-         '</div>' +
+         (dreModo === "mes" ? ('<div class="dre-grupo" style="margin-top:6px">' +
+           DRE_JANELAS.map(j => '<button class="doc-chip' + (dreJanela === j[0] ? " ativo" : "") + '" onclick="dreTrocarJanela(' + j[0] + ')">' + escAttr(j[1]) + '</button>').join("") +
+           '</div>') : '') +
          '<div class="dre-leg">' +
          DRE_SERIES.map(s => '<button class="' + (dreOcultas[s.k] ? "off" : "") + '" onclick="dreAlternarSerie(\'' + s.k + '\')">' +
             '<span class="dre-pt" style="background:' + s.c + '"></span>' + escAttr(s.n) + '</button>').join("") +
@@ -12499,6 +12584,8 @@ function renderDre(){
   linhas.push([(r.varEst < 0 ? "−" : "+"), "Variação de estoque", r.varEst, "", "varEstoque"]);
   linhas.push(["=", "Lucro líquido", r.ll, "fim", "lucroLiquido"]);
 
+  h += '<p class="nota-dash" style="margin:2px 0 6px">Demonstrativo de <b>' + escAttr(rotPer) + '</b>' +
+       (r.meses > 1 ? ' — os ' + r.meses + ' meses somados' : '') + '.</p>';
   h += '<div class="dre-tabcx"><table class="dre-tab"><thead><tr>' +
        '<th>Linha</th><th>Valor</th><th>% das vendas' + bul("pctVendas") + '</th>' +
        (semBico ? "" : '<th>Por litro' + bul("lucroLitro") + '</th>') + '</tr></thead><tbody>';
@@ -12524,14 +12611,16 @@ function renderDre(){
 
   /* --- o rodape, que diz de onde veio e o que fica de fora --- */
   const nomeUn = (dreUnidades().find(u => u.chave === dreUn) || {}).nome || dreUn;
-  h += '<p class="dre-pe">' + escAttr(nomeUn) + ' · ' + escAttr(rotuloMesRel(dreMes)) +
-       (r.ate ? ' · período de 1 a ' + escAttr(String(r.ate).slice(8,10)) : "") +
+  h += '<p class="dre-pe">' + escAttr(nomeUn) + ' · ' + escAttr(rotPer) +
+       (r.meses > 1 ? ' · <b>' + r.meses + ' meses somados</b>' : "") +
+       (r.meses === 1 && r.ate ? ' · período de 1 a ' + escAttr(String(r.ate).slice(8,10)) : "") +
        (litros ? ' · ' + escAttr(fmtL(litros)) : "") +
        (r.quando ? ' · atualizado em ' + escAttr(r.quando) : "") +
        '. Fonte: Demonstrativo de Resultado no Período-Consolidado (Petros). ' +
        'O <b>lucro bruto</b> é venda menos custo — as outras receitas entram só no lucro líquido.' +
        (dreUn === "rede" && r.unidades < UNIDADES_REL.length
-          ? ' <b>⚠️ A soma da rede tem só ' + r.unidades + ' de ' + UNIDADES_REL.length + ' unidades neste mês.</b>' : "") +
+          ? ' <b>⚠️ A soma da rede tem só ' + r.unidades + ' de ' + UNIDADES_REL.length + ' unidades' +
+            (r.meses > 1 ? ' em pelo menos um dos meses' : ' neste mês') + '.</b>' : "") +
        (!semBico && !litros ? ' <b>⚠️ Os litros deste mês ainda não foram coletados, então a coluna “por litro” aparece como “—”.</b>' : "") +
        '</p>';
 
