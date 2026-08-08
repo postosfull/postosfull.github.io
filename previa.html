@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v297 — Postos Full (não é o app)</title>
+<title>PRÉVIA v298 — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -3272,7 +3272,7 @@
   <div class="config" id="painelInfleet">
     <div class="grupo">
       <h2>📡 APP Infleet</h2>
-      <p class="nota-dash">Plataforma que a Full Transportadora usa para acompanhar a frota: onde estão os caminhões, abastecimentos, manutenção, checklist e multas. O botão abaixo abre o Infleet em uma aba nova — é preciso ter login próprio na plataforma.</p>
+      <p class="nota-dash">Plataforma que a Full Transportadora usa para acompanhar a frota: onde estão os veículos, abastecimentos, manutenção, checklist e multas. O botão abaixo abre o Infleet em uma aba nova — é preciso ter login próprio na plataforma.</p>
       <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px">
         <button class="btn-verde" onclick="abrirInfleet()">🔗 Abrir o APP Infleet</button>
         <button class="btn-claro" onclick="copiarLinkInfleet()">📋 Copiar o endereço</button>
@@ -3281,14 +3281,14 @@
     </div>
     <div class="grupo">
       <h2>🚛 Frota agora</h2>
-      <p class="nota-dash">Onde estava cada caminhão na última vez que o app conversou com o Infleet, com motorista, se estava ligado, o local e o odômetro.</p>
+      <p class="nota-dash">Onde estava cada veículo na última vez que o app conversou com o Infleet, com motorista, se estava ligado, o local e o odômetro.</p>
       <div id="infMapaBox" class="inf-mapa-box"></div>
       <p class="nota-dash" id="infMapaNota" style="display:none"></p>
       <div id="infleetFrotaBox"></div>
     </div>
     <div class="grupo">
       <h2>⛽ Abastecimentos — <span id="infMesRotulo"></span></h2>
-      <p class="nota-dash">Quanto cada caminhão abasteceu no mês, quanto custou, o preço médio do litro e a média de quilômetros por litro.</p>
+      <p class="nota-dash">Quanto cada veículo abasteceu no mês, quanto custou, o preço médio do litro e a média de quilômetros por litro.</p>
       <div class="pux-mes-nav">
         <button class="btn-claro" onclick="mudarMesInfleet(-1)">◀ Mês anterior</button>
         <button class="btn-claro" onclick="mudarMesInfleet(1)">Próximo mês ▶</button>
@@ -3584,7 +3584,9 @@
 
     <div class="grupo" id="dashGrpFrota">
       <h2>🚚 Frota agora</h2>
-      <p class="nota-dash">Onde cada caminhão está neste momento, segundo o rastreador do Infleet. Quem parou de mandar posição andando aparece marcado — quase sempre é trecho sem cobertura de internet, não problema no caminhão. Quem se despediu parado continua valendo como desligado. O odômetro e o abastecimento por abastecimento ficam no menu APP Infleet.</p>
+      <p class="nota-dash">Onde cada veículo está neste momento, segundo o rastreador do Infleet. Quem parou de mandar posição andando aparece marcado — quase sempre é trecho sem cobertura de internet, não problema no veículo. Quem se despediu parado continua valendo como desligado. O odômetro e o abastecimento por abastecimento ficam no menu APP Infleet.</p>
+      <div id="dtrMapaBox" class="inf-mapa-box"></div>
+      <p class="nota-dash" id="dtrMapaNota" style="display:none"></p>
       <div id="dtrFrotaBox"></div>
     </div>
 
@@ -3616,8 +3618,8 @@
     </div>
 
     <div class="grupo" id="dashGrpEficiencia">
-      <h2>📉 Eficiência por caminhão</h2>
-      <p class="nota-dash">Quantos quilômetros cada caminhão faz com um litro, comparado com a média da frota no mês. Quem roda menos km por litro gasta mais para fazer a mesma entrega. Os quilômetros e o custo por km são estimados a partir dos litros e do km/L de cada abastecimento.</p>
+      <h2>📉 Eficiência por veículo</h2>
+      <p class="nota-dash">Quantos quilômetros cada veículo faz com um litro, comparado com a média da frota no mês. Quem roda menos km por litro gasta mais para fazer a mesma entrega. Os quilômetros e o custo por km são estimados a partir dos litros e do km/L de cada abastecimento.</p>
       <div class="evo-filtros">
         <div class="desc-campo"><label>Mês</label><select id="dtrMesEfi" onchange="dtrMesSel=this.value;renderDashTransp()"></select></div>
       </div>
@@ -6217,6 +6219,11 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v298", data:"08/08/2026", tit:"O mapa da frota abre junto com o Dashboard \u2014 e \"caminh\u00e3o\" virou \"ve\u00edculo\"", itens:[
+    {t:"n", h:"O mapa entrou no primeiro card do Dashboard", d:"O card <b>\ud83d\ude9a Frota agora</b>, que j\u00e1 \u00e9 o primeiro do Dashboard da <b>Full Transportadora</b>, ganhou o mesmo mapa que at\u00e9 ontem existia s\u00f3 dentro do menu <b>\ud83d\ude9a APP Infleet</b>. Abrindo o app na Transportadora, a posi\u00e7\u00e3o dos ve\u00edculos aparece de cara, sem entrar em menu nenhum. O menu APP Infleet continua com o dele, mais o od\u00f4metro e os abastecimentos."},
+    {t:"m", h:"\"Caminh\u00e3o\" virou \"Ve\u00edculo\" onde a lista \u00e9 a frota inteira", d:"A Oroch \u00e9 carro, e a coluna dizia <b>Caminh\u00e3o</b>. A troca foi feita em <b>Frota agora</b> (nas duas telas), nas tabelas de <b>Abastecimentos</b> e no card que agora se chama <b>\ud83d\udcc9 Efici\u00eancia por ve\u00edculo</b>. Em <b>Puxadas</b>, nos CT-e, no <b>Pedido de carregamento</b> e no cadastro continua <b>caminh\u00e3o</b> \u2014 ali \u00e9 caminh\u00e3o mesmo."},
+    {t:"m", h:"Um mapa s\u00f3 desenha as duas telas", d:"O desenho do mapa passou a ser <b>um c\u00f3digo s\u00f3</b>, usado pelas duas telas. Cada uma guarda o seu estado, ent\u00e3o abrir as duas na mesma sess\u00e3o n\u00e3o apaga as bolinhas de nenhuma."}
+  ]},
   {v:"v297", data:"08/08/2026", tit:"O mapa, a tabela e o Dashboard passaram a dizer a MESMA coisa", itens:[
     {t:"c", h:"A bolinha do mapa discordava do próprio balãozinho", d:"A Oroch aparecia <b>verde (ligado)</b> no mapa e, clicando nela, o balãozinho dizia <b>📡 sem posição nova</b> — as duas afirmações na mesma tela, a um clique de distância. A cor era decidida por um pedaço de código separado, que tinha ficado com a regra antiga das 6 horas."},
     {t:"c", h:"O contador \"Na estrada\" contava caminhão que não estava na estrada", d:"No topo do <b>Dashboard da Transportadora</b>, a Oroch parada na garagem do subsolo entrava em <b>Na estrada</b>, porque o último aviso dela veio a 6 km/h (a manobra da rampa). Número errado é pior que texto errado: ninguém desconfia de um número."},
@@ -14384,7 +14391,18 @@ function carregarLeaflet(){
   return _promessaLeaflet;
 }
 
-let _mapaInf = null, _marcasInf = [];
+/* 🔴 UM REGISTRO POR CONTAINER — e a razao esta' na v298.
+   Isto aqui era `let _mapaInf = null, _marcasInf = []`, e estava certo enquanto
+   o mapa vivia num lugar so'. Desde que ele passou a aparecer TAMBEM no card
+   Frota agora do Dashboard, variavel unica faria o segundo mapa apagar as
+   marcas do primeiro e desenhar por cima do container errado.
+   🔑 Estado de tela que existe DUAS vezes nao cabe em variavel de UMA vez so'.
+   A chave e' o id do container, entao cada tela cuida do seu. */
+const _mapasInf = {};
+function _regMapaInf(id){
+  if (!_mapasInf[id]) _mapasInf[id] = { mapa:null, marcas:[], aoMover:null };
+  return _mapasInf[id];
+}
 
 /* 🔴 A COR DIZ UMA COISA SÓ, e ela segue exatamente o que a tabela já diz —
    se as duas discordarem, a pessoa acredita na que estiver mais perto do olho.
@@ -14494,9 +14512,9 @@ function _estiloInf(v){
    bolinha. É deterministico e roda de novo a cada zoom/arraste.
    🔑 Não é enfeite: rótulo sobreposto é dois nomes ilegíveis, o que é pior que
    nenhum nome. */
-function _desempilharRotulosInf(){
-  if (!_mapaInf || _marcasInf.length < 2) return;
-  const pts = _marcasInf.map(m => ({ m, p: _mapaInf.latLngToContainerPoint(m.getLatLng()) }));
+function _desempilharRotulosInf(reg){
+  if (!reg || !reg.mapa || reg.marcas.length < 2) return;
+  const pts = reg.marcas.map(m => ({ m, p: reg.mapa.latLngToContainerPoint(m.getLatLng()) }));
   pts.sort((a,b) => a.p.y - b.p.y);
   const postos = [];
   for (const it of pts){
@@ -14512,10 +14530,17 @@ function _desempilharRotulosInf(){
   }
 }
 
-function renderInfMapa(){
-  const box = document.getElementById("infMapaBox");
-  const nota = document.getElementById("infMapaNota");
+/* 🔑 Os ids sao PARAMETRO com padrao: quem chama sem argumento (o menu APP
+   Infleet) continua funcionando exatamente como antes, e o Dashboard passa os
+   seus. Uma funcao so' desenha os dois mapas — a regra da situacao ja' mora em
+   infSituacao(), e duplicar o desenho duplicaria o proximo conserto. */
+function renderInfMapa(idBox, idNota){
+  idBox = idBox || "infMapaBox";
+  idNota = idNota || "infMapaNota";
+  const box = document.getElementById(idBox);
+  const nota = document.getElementById(idNota);
   if (!box) return;
+  const reg = _regMapaInf(idBox);
   const f = infleetFrota;
   const lista = (f && Array.isArray(f.veiculos)) ? f.veiculos : [];
 
@@ -14537,7 +14562,7 @@ function renderInfMapa(){
       if (lista.length && semPos === lista.length){
         nota.style.display = "";
         nota.textContent = "O mapa aparece quando chegar a próxima posição com coordenada" +
-          (semPos > 1 ? " dos caminhões." : " do caminhão.");
+          (semPos > 1 ? " dos veículos." : " do veículo.");
       } else { nota.style.display = "none"; }
     }
     return;
@@ -14545,21 +14570,21 @@ function renderInfMapa(){
 
   carregarLeaflet().then(() => {
     box.classList.add("tem-mapa");
-    if (!_mapaInf){
-      _mapaInf = L.map(box, { scrollWheelZoom:false, attributionControl:true });
+    if (!reg.mapa){
+      reg.mapa = L.map(box, { scrollWheelZoom:false, attributionControl:true });
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 18, attribution: "© OpenStreetMap"
-      }).addTo(_mapaInf);
+      }).addTo(reg.mapa);
     }
-    _marcasInf.forEach(m => _mapaInf.removeLayer(m));
-    _marcasInf = [];
+    reg.marcas.forEach(m => reg.mapa.removeLayer(m));
+    reg.marcas = [];
 
     comPos.forEach(v => {
       /* 🔴 As duas linhas que mediam as 6 h aqui eram SOBRA da v295: o `sumido`
          não era usado por ninguém depois, e o `hs` só alimentava ele. Sobra que
          calcula uma regra é a semente da próxima discordância. */
       const sit = infSituacao(v).curto;
-      const m = L.circleMarker([v.lat, v.lon], Object.assign({ radius: 9 }, _estiloInf(v))).addTo(_mapaInf);
+      const m = L.circleMarker([v.lat, v.lon], Object.assign({ radius: 9 }, _estiloInf(v))).addTo(reg.mapa);
       m.bindTooltip(String(v.nome || v.placa || "—"), { permanent: true, direction: "top", offset: [0,-8] });
       m.bindPopup(
         '<div class="inf-mapa-pop"><b>' + escAttr(v.nome || v.placa || "—") + '</b>' +
@@ -14568,26 +14593,35 @@ function renderInfMapa(){
         '<p class="nota-dash">' + escAttr(v.onde || "—") + '</p>' +
         '<p class="nota-dash">Posição de ' + fmtQuandoInf(v.quando) + '</p></div>'
       );
-      _marcasInf.push(m);
+      reg.marcas.push(m);
     });
 
     /* 🔑 "fitBounds" com um ponto só devolve um zoom absurdo (rua inteira na
        tela); com dois caminhões a 500 km, devolve o Brasil. Os dois casos são
        normais aqui, então cada um tem o seu tratamento. */
-    if (comPos.length === 1) _mapaInf.setView([comPos[0].lat, comPos[0].lon], 12);
-    else _mapaInf.fitBounds(comPos.map(v => [v.lat, v.lon]), {
+    if (comPos.length === 1) reg.mapa.setView([comPos[0].lat, comPos[0].lon], 12);
+    else reg.mapa.fitBounds(comPos.map(v => [v.lat, v.lon]), {
       /* 🔑 A folga de cima é MAIOR que as outras de propósito: o rótulo do
          caminhão fica ACIMA da bolinha, e com folga igual em todos os lados ele
-         encostava no topo no celular (medido: bolinha em y=30, rótulo em y≈10). */
-      paddingTopLeft: [26, 44], paddingBottomRight: [26, 26], maxZoom: 13
+         encostava no topo no celular (medido: bolinha em y=30, rótulo em y≈10).
+         🔑 E a de BAIXO virou igual na v298, pela razão irmã: quando dois
+         rótulos se cruzam, o de baixo VAI PARA BAIXO da bolinha (26 px) — e com
+         folga de 26 ele saía pela borda inferior. Medido no celular, com o mapa
+         de 260 px, no card novo do Dashboard.
+         👉 A folga da borda tem de caber o RÓTULO, não a bolinha. */
+      paddingTopLeft: [26, 44], paddingBottomRight: [26, 44], maxZoom: 13
     });
 
     /* 🔴 O painel nasce escondido ("display:none"), e o Leaflet mede o tamanho
        do container quando o mapa é criado. Sem este "invalidateSize" o mapa fica
        cinza com um pedacinho de tile no canto — o defeito clássico de mapa
        dentro de aba que abre depois. */
-    setTimeout(() => { try { _mapaInf.invalidateSize(); _desempilharRotulosInf(); } catch(e){} }, 60);
-    _mapaInf.off("zoomend moveend", _desempilharRotulosInf).on("zoomend moveend", _desempilharRotulosInf);
+    /* 🔴 O ouvinte tem de ser O MESMO objeto de funcao para o `off` conseguir
+       tira'-lo. Com dois mapas, uma funcao solta serviria aos dois e o `off` de
+       um desligaria o do outro — por isso cada registro guarda o seu. */
+    if (!reg.aoMover) reg.aoMover = function(){ _desempilharRotulosInf(reg); };
+    setTimeout(() => { try { reg.mapa.invalidateSize(); reg.aoMover(); } catch(e){} }, 60);
+    reg.mapa.off("zoomend moveend", reg.aoMover).on("zoomend moveend", reg.aoMover);
 
     if (nota){
       if (semPos > 0){
@@ -14612,14 +14646,14 @@ function renderInfFrota(){
     box.innerHTML = '<p class="nota-dash">Ainda não recebemos os dados do Infleet. Eles chegam junto com a sincronização automática.</p>';
     return;
   }
-  let h = '<div class="tabela-wrap"><table class="pux-tab pux-lista"><thead><tr><th>Caminhão</th><th>Motorista</th><th>Situação</th><th>Onde está</th><th>Última posição</th><th>Odômetro</th></tr></thead><tbody>';
+  let h = '<div class="tabela-wrap"><table class="pux-tab pux-lista"><thead><tr><th>Veículo</th><th>Motorista</th><th>Situação</th><th>Onde está</th><th>Última posição</th><th>Odômetro</th></tr></thead><tbody>';
   lista.forEach(v => {
     const st = infSituacao(v);
     const sit = st.texto;
     const sumido = st.sumido;
     const alerta = st.nota ? ('<br><span class="inf-sumido">'+st.nota+'</span>') : '';
     h += '<tr'+(sumido?' class="inf-linha-sumida"':'')+'>'+
-      '<td data-lbl="Caminhão"><b>'+escAttr(v.nome||v.placa||"—")+'</b><br><span class="nota-dash">'+escAttr(v.placa||"")+'</span></td>'+
+      '<td data-lbl="Veículo"><b>'+escAttr(v.nome||v.placa||"—")+'</b><br><span class="nota-dash">'+escAttr(v.placa||"")+'</span></td>'+
       '<td data-lbl="Motorista">'+escAttr(v.motorista||"—")+'</td>'+
       '<td data-lbl="Situação">'+sit+'</td>'+
       '<td data-lbl="Onde está">'+escAttr(v.onde||"—")+'</td>'+
@@ -14628,8 +14662,8 @@ function renderInfFrota(){
     '</tr>';
   });
   h += '</tbody></table></div>';
-  if (lista.some(v => infSituacao(v).sumido)) h += '<p class="nota-dash">📡 <b>Sem posição nova</b> quer dizer que o rastreador parou de falar <b>com o caminhão andando</b> — quase sempre trecho sem cobertura de internet. A tela não sabe onde ele está agora, e a hora da última posição está na coluna ao lado. Quem <b>se despediu parado</b> continua aparecendo como desligado, porque isso continua sendo verdade.</p>';
-  if (lista.some(v => { const s = infSituacao(v); return s.semContato && !s.sumido; })) h += '<p class="nota-dash">⚪ <b>Sem contato</b> é outra coisa: o rastreador manda um sinal de vida a cada 10 minutos mesmo com o caminhão parado e desligado. Se ele calou parado e passaram horas, ou o caminhão está onde não há cobertura (garagem, subsolo) ou o aparelho precisa de atenção. A posição continua valendo — ele não saiu de lá.</p>';
+  if (lista.some(v => infSituacao(v).sumido)) h += '<p class="nota-dash">📡 <b>Sem posição nova</b> quer dizer que o rastreador parou de falar <b>com o veículo andando</b> — quase sempre trecho sem cobertura de internet. A tela não sabe onde ele está agora, e a hora da última posição está na coluna ao lado. Quem <b>se despediu parado</b> continua aparecendo como desligado, porque isso continua sendo verdade.</p>';
+  if (lista.some(v => { const s = infSituacao(v); return s.semContato && !s.sumido; })) h += '<p class="nota-dash">⚪ <b>Sem contato</b> é outra coisa: o rastreador manda um sinal de vida a cada 10 minutos mesmo com o veículo parado e desligado. Se ele calou parado e passaram horas, ou o veículo está onde não há cobertura (garagem, subsolo) ou o aparelho precisa de atenção. A posição continua valendo — ele não saiu de lá.</p>';
   if (f && f.atualizadoEm) h += '<p class="nota-dash">Atualizado em '+fmtQuandoInf(f.atualizadoEm)+'.</p>';
   box.innerHTML = h;
 }
@@ -14684,13 +14718,13 @@ function renderInfAbast(){
     '<div class="cartao-kpi"><span>Média km/L</span><b>'+(kmlT? fmtBR(kmlT,2) : "—")+'</b></div>'+
   '</div>';
 
-  h += '<div class="tabela-wrap"><table class="pux-tab pux-lista pux-resumo"><thead><tr><th>Caminhão</th><th>Abastec.</th><th>Combustível</th><th>Gasto comb.</th><th>R$/L médio</th><th>Arla 32</th><th>Gasto Arla</th><th>Média km/L</th></tr></thead><tbody>';
+  h += '<div class="tabela-wrap"><table class="pux-tab pux-lista pux-resumo"><thead><tr><th>Veículo</th><th>Abastec.</th><th>Combustível</th><th>Gasto comb.</th><th>R$/L médio</th><th>Arla 32</th><th>Gasto Arla</th><th>Média km/L</th></tr></thead><tbody>';
   placas.forEach(pl => {
     const r = porVeic[pl];
     const precoL = r.litros>0 ? (r.valor/r.litros) : 0;
     const kml = r.litrosKmL ? (r.somaKmL/r.litrosKmL) : 0;
     h += '<tr>'+
-      '<td data-lbl="Caminhão"><b>'+escAttr(r.nome||pl)+'</b><br><span class="nota-dash">'+escAttr(pl+(r.motorista?(" · "+r.motorista):""))+'</span></td>'+
+      '<td data-lbl="Veículo"><b>'+escAttr(r.nome||pl)+'</b><br><span class="nota-dash">'+escAttr(pl+(r.motorista?(" · "+r.motorista):""))+'</span></td>'+
       '<td data-lbl="Abastec.">'+r.qtd+'</td>'+
       '<td data-lbl="Combustível">'+fmtLitros(r.litros)+' L</td>'+
       '<td data-lbl="Gasto comb.">R$ '+fmtBR(r.valor,2)+'</td>'+
@@ -14700,7 +14734,7 @@ function renderInfAbast(){
       '<td data-lbl="Média km/L">'+(kml? fmtBR(kml,2) : "—")+'</td>'+
     '</tr>';
   });
-  h += '<tr class="pux-total"><td data-lbl="Caminhão">Total</td><td data-lbl="Abastec.">'+totQ+'</td>'+
+  h += '<tr class="pux-total"><td data-lbl="Veículo">Total</td><td data-lbl="Abastec.">'+totQ+'</td>'+
        '<td data-lbl="Combustível">'+fmtLitros(totL)+' L</td><td data-lbl="Gasto comb.">R$ '+fmtBR(totV,2)+'</td>'+
        '<td data-lbl="R$/L médio">R$ '+fmtBR(precoT,3)+'</td><td data-lbl="Arla 32">'+fmtLitros(totAL)+' L</td>'+
        '<td data-lbl="Gasto Arla">R$ '+fmtBR(totAV,2)+'</td><td data-lbl="Média km/L">'+(kmlT? fmtBR(kmlT,2) : "—")+'</td></tr>';
@@ -14708,11 +14742,11 @@ function renderInfAbast(){
   if (totOut > 0) h += '<p class="nota-dash">Fora das colunas acima, R$ '+fmtBR(totOut,2)+' em outros itens lançados no Infleet.</p>';
 
   h += '<p class="nota-dash"><b>Abastecimento por abastecimento</b></p>';
-  h += '<div class="tabela-wrap"><table class="pux-tab pux-lista"><thead><tr><th>Data</th><th>Caminhão</th><th>Motorista</th><th>Combustível</th><th>Litros</th><th>R$/L</th><th>Valor</th><th>km/L</th><th>Onde abasteceu</th></tr></thead><tbody>';
+  h += '<div class="tabela-wrap"><table class="pux-tab pux-lista"><thead><tr><th>Data</th><th>Veículo</th><th>Motorista</th><th>Combustível</th><th>Litros</th><th>R$/L</th><th>Valor</th><th>km/L</th><th>Onde abasteceu</th></tr></thead><tbody>';
   doMes.forEach(a => {
     h += '<tr>'+
       '<td data-lbl="Data">'+fmtDataCurta(a.data)+'</td>'+
-      '<td data-lbl="Caminhão">'+escAttr(a.veiculo||a.placa||"")+'</td>'+
+      '<td data-lbl="Veículo">'+escAttr(a.veiculo||a.placa||"")+'</td>'+
       '<td data-lbl="Motorista">'+escAttr(a.motorista||"—")+'</td>'+
       '<td data-lbl="Combustível">'+escAttr(nomeCombInf(a.combustivel))+'</td>'+
       '<td data-lbl="Litros">'+fmtLitros(+a.litros||0)+' L</td>'+
@@ -19966,7 +20000,7 @@ const CARDS_DASH = [
   { k:"puxadasMes", id:"dashGrpPuxadasMes", n:"📦 Puxadas do mês",               emp:"transp" },
   { k:"freteCusto", id:"dashGrpFreteCusto", n:"💰 Frete × custo do diesel",       emp:"transp" },
   { k:"combustivel",id:"dashGrpCombustivel",n:"⛽ Combustível do mês",             emp:"transp" },
-  { k:"eficiencia", id:"dashGrpEficiencia", n:"📉 Eficiência por caminhão",       emp:"transp" },
+  { k:"eficiencia", id:"dashGrpEficiencia", n:"📉 Eficiência por veículo",       emp:"transp" },
   { k:"docsVencer", id:"dashGrpDocsVencer", n:"📄 Documentos a vencer",          emp:"transp" }
 ];
 function cardsDashDaEmpresa(s){
@@ -20245,6 +20279,8 @@ function atualizarDashTransp(){
 function renderDtrFrota(){
   const box = document.getElementById("dtrFrotaBox");
   if (!box) return;
+  /* v298 — o mesmo mapa do menu APP Infleet, no card que abre primeiro. */
+  renderInfMapa("dtrMapaBox", "dtrMapaNota");
   const f = infleetFrota;
   const lista = (f && Array.isArray(f.veiculos)) ? f.veiculos : [];
   if (!lista.length){
@@ -20271,14 +20307,14 @@ function renderDtrFrota(){
     '<div class="cartao-kpi"><span>Parados</span><b>' + parados + '</b></div>' +
     '<div class="cartao-kpi"><span>Sem posi\u00e7\u00e3o</span><b class="' + (sumidos ? "rpz-neg" : "") + '">' + sumidos + '</b></div>' +
   '</div>';
-  h += '<div class="tabela-wrap"><table class="pux-tab pux-lista"><thead><tr><th>Caminh\u00e3o</th><th>Motorista</th><th>Situa\u00e7\u00e3o</th><th>Onde est\u00e1</th><th>\u00daltima posi\u00e7\u00e3o</th></tr></thead><tbody>';
+  h += '<div class="tabela-wrap"><table class="pux-tab pux-lista"><thead><tr><th>Ve\u00edculo</th><th>Motorista</th><th>Situa\u00e7\u00e3o</th><th>Onde est\u00e1</th><th>\u00daltima posi\u00e7\u00e3o</th></tr></thead><tbody>';
   lista.forEach(v => {
     const st = infSituacao(v);
     const sumido = st.sumido;
     const sit = sumido ? ('<span class="inf-sumido">' + st.texto + '</span>') : st.texto;
     const alerta = st.nota ? ('<br><span class="inf-sumido">' + st.nota + '</span>') : "";
     h += '<tr' + (sumido ? ' class="inf-linha-sumida"' : '') + '>' +
-      '<td data-lbl="Caminh\u00e3o"><b>' + escAttr(v.nome || v.placa || "\u2014") + '</b><br><span class="nota-dash">' + escAttr(v.placa || "") + '</span></td>' +
+      '<td data-lbl="Ve\u00edculo"><b>' + escAttr(v.nome || v.placa || "\u2014") + '</b><br><span class="nota-dash">' + escAttr(v.placa || "") + '</span></td>' +
       '<td data-lbl="Motorista">' + escAttr(v.motorista || "\u2014") + '</td>' +
       '<td data-lbl="Situa\u00e7\u00e3o">' + sit + '</td>' +
       '<td data-lbl="Onde est\u00e1">' + escAttr(v.onde || "\u2014") + '</td>' +
@@ -20366,18 +20402,18 @@ function renderDtrEficiencia(){
   const c = dtrComb(dtrMesSel);
   const comKml = c.lista.filter(r => r.kml > 0);
   if (!comKml.length){
-    box.innerHTML = '<p class="nota-dash">Sem km/L neste m\u00eas. O Infleet s\u00f3 calcula o km/L quando o od\u00f4metro \u00e9 informado em dois abastecimentos seguidos do mesmo caminh\u00e3o.</p>';
+    box.innerHTML = '<p class="nota-dash">Sem km/L neste m\u00eas. O Infleet s\u00f3 calcula o km/L quando o od\u00f4metro \u00e9 informado em dois abastecimentos seguidos do mesmo ve\u00edculo.</p>';
     return;
   }
   let h = '<div class="tabela-wrap"><table class="pux-tab pux-lista pux-resumo"><thead><tr>' +
-    '<th>Caminh\u00e3o</th><th>km/L</th><th>Contra a m\u00e9dia</th><th>Litros</th><th>Gasto</th><th>km rodados</th><th>Custo por km</th>' +
+    '<th>Ve\u00edculo</th><th>km/L</th><th>Contra a m\u00e9dia</th><th>Litros</th><th>Gasto</th><th>km rodados</th><th>Custo por km</th>' +
     '</tr></thead><tbody>';
   comKml.forEach(r => {
     const dif = c.kml > 0 ? ((r.kml - c.kml) / c.kml * 100) : 0;
     // faixa de 1% para cima ou para baixo conta como "na media"; fora dela, cor
     const cls = dif < -1 ? "rpz-neg" : (dif > 1 ? "rpz-pos" : "");
     h += '<tr>' +
-      '<td data-lbl="Caminh\u00e3o"><b>' + escAttr(r.nome || r.placa) + '</b><br><span class="nota-dash">' + escAttr(r.placa + (r.motorista ? (" \u00b7 " + r.motorista) : "")) + '</span></td>' +
+      '<td data-lbl="Ve\u00edculo"><b>' + escAttr(r.nome || r.placa) + '</b><br><span class="nota-dash">' + escAttr(r.placa + (r.motorista ? (" \u00b7 " + r.motorista) : "")) + '</span></td>' +
       '<td data-lbl="km/L"><b>' + fmtBR(r.kml, 2) + '</b></td>' +
       '<td data-lbl="Contra a m\u00e9dia"><b class="' + cls + '">' + (dif >= 0 ? "+" : "") + fmtPctRel(dif) + '</b></td>' +
       '<td data-lbl="Litros">' + fmtLitros(r.litros) + ' L</td>' +
@@ -20386,13 +20422,13 @@ function renderDtrEficiencia(){
       '<td data-lbl="Custo por km">R$ ' + fmtBR(r.custoKm, 2) + '</td>' +
     '</tr>';
   });
-  h += '<tr class="pux-total"><td data-lbl="Caminh\u00e3o">M\u00e9dia da frota</td>' +
+  h += '<tr class="pux-total"><td data-lbl="Ve\u00edculo">M\u00e9dia da frota</td>' +
        '<td data-lbl="km/L"><b>' + fmtBR(c.kml, 2) + '</b></td><td data-lbl="Contra a m\u00e9dia">\u2014</td>' +
        '<td data-lbl="Litros">' + fmtLitros(c.litros) + ' L</td><td data-lbl="Gasto">' + fmtR$0(c.valor) + '</td>' +
        '<td data-lbl="km rodados">\u2014</td><td data-lbl="Custo por km">\u2014</td></tr>';
   h += '</tbody></table></div>';
   const fora = c.lista.length - comKml.length;
-  if (fora > 0) h += '<p class="nota-dash">' + fora + (fora === 1 ? " caminh\u00e3o ficou" : " caminh\u00f5es ficaram") + ' de fora por n\u00e3o ter km/L calculado no m\u00eas.</p>';
+  if (fora > 0) h += '<p class="nota-dash">' + fora + (fora === 1 ? " ve\u00edculo ficou" : " ve\u00edculos ficaram") + ' de fora por n\u00e3o ter km/L calculado no m\u00eas.</p>';
   box.innerHTML = h;
 }
 
