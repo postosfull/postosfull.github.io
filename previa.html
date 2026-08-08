@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v290 — Postos Full (não é o app)</title>
+<title>PRÉVIA v291 — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -2894,10 +2894,12 @@
   try { if (localStorage.getItem("margens_tema") !== "claro") document.body.classList.add("tema-escuro"); } catch (e) {}
 </script>
 
+<!-- v291 - a barra tem DOIS estados: "saiu versao nova" (com botao) e "trazendo a versao
+     nova" (sem botao, enquanto o servidor ainda nao entregou o arquivo novo). -->
 <div class="atz-barra" id="barraAtualizar" role="status" aria-live="polite" style="display:none">
-  <span class="atz-txt">⟳ Saiu uma versão nova do app.</span>
-  <button type="button" class="atz-bt" onclick="atualizarAgora()">Atualizar agora</button>
-  <button type="button" class="atz-x" onclick="fecharAvisoVersao()">Depois</button>
+  <span class="atz-txt" id="atzTexto">⟳ Saiu uma versão nova do app.</span>
+  <button type="button" class="atz-bt" id="atzBtAtualizar" onclick="atualizarAgora()">Atualizar agora</button>
+  <button type="button" class="atz-x" id="atzBtDepois" onclick="fecharAvisoVersao()">Depois</button>
 </div>
 
 <div id="telaLogin">
@@ -6168,6 +6170,11 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v291", data:"08/08/2026", tit:"O aviso de versão nova aparecia duas vezes — agora aparece uma", itens:[
+    {t:"c", h:"Uma clicada, uma barra", d:"A cada publicação a barra <b>⟳ Saiu uma versão nova</b> aparecia, você clicava em Atualizar agora… e ela voltava. O motivo: o arquivo pequeno que avisa a versão chega ao servidor <b>antes</b> do arquivo grande que é o app, então a recarga trazia o app velho de volta e o aviso disparava outra vez."},
+    {t:"m", h:"Agora o app sabe qual versão ele é", d:"Antes ele só sabia que <i>alguma coisa mudou</i> desde que a tela abriu. Agora compara a versão que está rodando com a que está publicada — e só avisa se estiver mesmo atrasado."},
+    {t:"n", h:"Se a versão nova ainda não chegou, ele espera por você", d:"A barra passa a dizer <b>Trazendo a versão nova…</b>, sem botão nenhum, e o app recarrega sozinho assim que o arquivo novo estiver no ar. Não precisa clicar de novo."}
+  ]},
   {v:"v290", data:"08/08/2026", tit:"Relatórios e Financeiro viraram um menu só: Relatórios Adaptive", itens:[
     {t:"m", h:"Um menu no lugar de dois", d:"As telas que ficavam em <b>📑 Relatórios</b> e em <b>🏦 Financeiro</b> agora moram juntas em <b>📑 Relatórios Adaptive</b>, dentro do grupo 📊 Análise. <b>Nenhuma tela saiu</b> — todas as abas continuam ali, na mesma ordem, com os mesmos números."},
     {t:"m", h:"Por que o nome mudou", d:"O desenho dessas telas vem inteiro do Adaptive. O nome deixa isso claro: elas ficam como estão e servem de referência enquanto as telas próprias do app vão sendo desenhadas."},
@@ -20784,47 +20791,50 @@ render();
 atualizarFiltrosVisiveis();
 
 /* ================== PWA: service worker ================== */
-/* ===== v214 - avisar que saiu versao nova =====
-   Quem esta com a pagina aberta continua com o JS antigo depois de uma publicacao:
-   o service worker so entrega o codigo novo em uma carga nova da pagina. Aqui o app
+/* ===== v214/v291 - avisar que saiu versao nova =====
+   Quem esta com a pagina aberta continua com o JS antigo depois de uma publicacao: o
+   service worker so entrega o codigo novo em uma carga nova da pagina. Aqui o app
    descobre sozinho que saiu versao e mostra uma barra com o botao "Atualizar agora".
-   Como descobre: a cada 10 min (e sempre que a aba volta a ficar visivel) le o sw.js
-   e compara com o texto lido quando a pagina abriu. Toda versao muda o "postos-full-vNNN"
-   do sw.js, entao qualquer diferenca = versao nova. Nao existe numero de versao escrito
-   dentro do index.html de proposito: assim nao ha o que esquecer de trocar, e nao ha
-   como a barra ficar presa na tela depois de atualizar.
-   As duas redes de protecao do proprio service worker (updatefound / controllerchange)
-   ficam junto, para o aviso aparecer na hora em que a troca acontece.
+
+   🔴 v291 - O QUE MUDOU, E POR QUE. Ate a v290 a conta era "o sw.js de agora e' diferente
+   do sw.js de quando a pagina abriu". Isso avisava DUAS VEZES em toda publicacao, e a
+   causa foi MEDIDA: o `sw.js` tem 3 KB e o `index.html` 1,2 MB; no CDN do GitHub Pages o
+   pequeno chega primeiro. A pessoa clicava em "Atualizar agora", a recarga vinha com o
+   index AINDA VELHO, e o aviso disparava de novo — porque ele nunca perguntava QUAL
+   VERSAO A PAGINA E'.
+   🔑 Comparar "mudou desde que abri" responde a pergunta errada. A pergunta certa e'
+      "a pagina que estou rodando esta' atrasada?".
+
+   Agora:
+   - a versao da PAGINA sai de NOVIDADES_APP[0].v (existe desde a v246);
+   - a versao do SERVIDOR sai do "postos-full-vNNN" do sw.js;
+   - avisa so' quando o numero do servidor e' MAIOR que o da pagina;
+   - quem clica guarda a versao esperada no sessionStorage. Se a pagina voltar velha, o
+     app NAO avisa outra vez: mostra "trazendo a versao nova", sonda o index.html de 20
+     em 20 s e recarrega sozinho quando o arquivo novo estiver mesmo no ar.
    O estado mora em variavel, nunca no DOM (regra da v137/v213). */
-const ATZ_INTERVALO_MS = 600000;   // 10 minutos
-let atzVersaoInicial = null;       // o "postos-full-vNNN" lido quando a pagina abriu
-let atzNaTela        = false;      // a barra esta aparecendo?
-let atzDispensado    = false;      // a pessoa clicou em "Depois" nesta sessao
+const ATZ_INTERVALO_MS   = 600000;   // conferencia de rotina: 10 minutos
+const ATZ_SONDA_MS       = 20000;    // no modo "trazendo": de 20 em 20 segundos
+const ATZ_SONDA_MAX      = 8;        // ~2,7 min tentando; depois devolve o botao
+const ATZ_CHAVE_ESPERA   = "pf_atz_esperando";
 
-function mostrarAvisoVersao() {
-  if (atzNaTela || atzDispensado) return;
-  const b = document.getElementById("barraAtualizar");
-  if (!b) return;
-  atzNaTela = true;
-  b.style.display = "flex";
-  document.body.classList.add("com-atz");
+let atzNaTela      = false;    // a barra esta aparecendo?
+let atzDispensado  = false;    // a pessoa clicou em "Depois" nesta sessao
+let atzTrazendo    = false;    // estamos esperando o servidor entregar o arquivo novo
+let atzSondas      = 0;
+let atzTimerSonda  = null;
+
+/* "v290", "postos-full-v290", "v284a" -> 290 / 290 / 284. Numero, nunca texto: o sufixo
+   de conserto (v284a) nao pode virar "diferente" e deixar a barra presa na tela. */
+function atzNumero(txt){
+  const m = String(txt == null ? "" : txt).match(/v(\d+)/i);
+  return m ? parseInt(m[1], 10) : 0;
 }
-
-function fecharAvisoVersao() {
-  atzDispensado = true;
-  atzNaTela = false;
-  const b = document.getElementById("barraAtualizar");
-  if (b) b.style.display = "none";
-  document.body.classList.remove("com-atz");
+function atzVersaoDaPagina(){
+  try { return (typeof NOVIDADES_APP !== "undefined" && NOVIDADES_APP[0]) ? NOVIDADES_APP[0].v : ""; }
+  catch (e){ return ""; }
 }
-
-function atualizarAgora() {
-  const b = document.getElementById("barraAtualizar");
-  if (b) b.textContent = "Atualizando\u2026";
-  location.reload();
-}
-
-async function atzLerVersao() {
+async function atzLerVersao(){        // a do SERVIDOR, pelo sw.js
   try {
     const r = await fetch("sw.js", { cache: "no-store" });
     if (!r || !r.ok) return null;
@@ -20833,31 +20843,112 @@ async function atzLerVersao() {
     return m ? m[0] : null;
   } catch (e) { return null; }
 }
+/* Sonda o PROPRIO index.html, sem querystring: e' o unico jeito de saber o que uma
+   recarga vai receber de verdade. Com "?ts=" o endereco muda e o CDN pode responder o
+   arquivo novo enquanto a recarga continuaria pegando o velho — sonda que mente. */
+async function atzVersaoServidaDoApp(){
+  try {
+    const r = await fetch("index.html", { cache: "no-store" });
+    if (!r || !r.ok) return 0;
+    const t = await r.text();
+    const m = t.match(/\{v:"v(\d+)/);
+    return m ? parseInt(m[1], 10) : 0;
+  } catch (e) { return 0; }
+}
 
-async function atzConferirVersao() {
-  if (atzNaTela || atzDispensado) return;
+function atzPintarBarra(modo){
+  const b  = document.getElementById("barraAtualizar");
+  const tx = document.getElementById("atzTexto");
+  const b1 = document.getElementById("atzBtAtualizar");
+  const b2 = document.getElementById("atzBtDepois");
+  if (!b) return;
+  const trazendo = (modo === "trazendo");
+  if (tx) tx.textContent = trazendo
+    ? "⏳ Trazendo a versão nova… pode levar um minuto. Não precisa fazer nada."
+    : "⟳ Saiu uma versão nova do app.";
+  if (b1) b1.style.display = trazendo ? "none" : "";
+  if (b2) b2.style.display = trazendo ? "none" : "";
+  b.style.display = "flex";
+  document.body.classList.add("com-atz");
+  atzNaTela = true;
+}
+function mostrarAvisoVersao(){
+  if (atzNaTela || atzDispensado || atzTrazendo) return;
+  atzPintarBarra("nova");
+}
+function fecharAvisoVersao(){
+  atzDispensado = true; atzNaTela = false; atzTrazendo = false;
+  if (atzTimerSonda){ clearInterval(atzTimerSonda); atzTimerSonda = null; }
+  const b = document.getElementById("barraAtualizar");
+  if (b) b.style.display = "none";
+  document.body.classList.remove("com-atz");
+}
+/* guardar a espera e' passo SEPARADO de recarregar, para poder ser testado: `location`
+   nao se troca por dublê no navegador, entao funcao que recarrega nao se testa. */
+function atzGuardarEspera(v){
+  const alvo = Math.max(atzNumero(v), atzNumero(atzVersaoDaPagina()) + 1);   // reserva, se a leitura falhar
+  try { sessionStorage.setItem(ATZ_CHAVE_ESPERA, String(alvo)); } catch (e){}
+  return alvo;
+}
+function atualizarAgora(){
+  atzLerVersao()
+    .then(v => { atzGuardarEspera(v); location.reload(); })
+    .catch(() => { atzGuardarEspera(null); location.reload(); });
+}
+
+/* ---- o modo "trazendo": a recarga voltou velha, entao o app insiste sozinho ---- */
+function atzEntrarNoModoTrazendo(esperado){
+  atzTrazendo = true; atzDispensado = false; atzSondas = 0;
+  atzPintarBarra("trazendo");
+  if (atzTimerSonda) clearInterval(atzTimerSonda);
+  atzTimerSonda = setInterval(async () => {
+    atzSondas++;
+    const servida = await atzVersaoServidaDoApp();
+    if (servida >= esperado){ clearInterval(atzTimerSonda); atzTimerSonda = null; location.reload(); return; }
+    if (atzSondas >= ATZ_SONDA_MAX){          // desistiu de sozinho: devolve o botao
+      clearInterval(atzTimerSonda); atzTimerSonda = null;
+      atzTrazendo = false; atzNaTela = false;
+      atzPintarBarra("nova");
+    }
+  }, ATZ_SONDA_MS);
+}
+/* Roda ao abrir a pagina: fecha o ciclo de quem clicou em "Atualizar agora". */
+function atzFecharCiclo(){
+  let esperado = 0;
+  try { esperado = parseInt(sessionStorage.getItem(ATZ_CHAVE_ESPERA) || "0", 10) || 0; } catch (e){}
+  if (!esperado) return false;
+  const agora = atzNumero(atzVersaoDaPagina());
+  if (agora >= esperado){                      // chegou: uma linha discreta e acabou
+    try { sessionStorage.removeItem(ATZ_CHAVE_ESPERA); } catch (e){}
+    try { if (typeof avisar === "function") avisar("Pronto — você está na " + atzVersaoDaPagina() + ".", "ok"); } catch (e){}
+    return false;
+  }
+  atzEntrarNoModoTrazendo(esperado);           // voltou velha: insiste, sem avisar de novo
+  return true;
+}
+
+async function atzConferirVersao(){
+  if (atzNaTela || atzDispensado || atzTrazendo) return;
   if (navigator.onLine === false) return;
   const v = await atzLerVersao();
   if (!v) return;
-  if (!atzVersaoInicial) { atzVersaoInicial = v; return; }
-  if (v !== atzVersaoInicial) mostrarAvisoVersao();
+  if (atzNumero(v) > atzNumero(atzVersaoDaPagina())) mostrarAvisoVersao();
 }
 
 if ("serviceWorker" in navigator) {
-  // se nao havia service worker no comando quando a pagina abriu, esta e a PRIMEIRA
-  // instalacao: o codigo ja e o mais novo e nao se deve avisar nada.
-  const atzTinhaControlador = !!navigator.serviceWorker.controller;
-
   window.addEventListener("load", () => {
-    atzLerVersao().then(v => { if (v) atzVersaoInicial = v; });
+    if (atzFecharCiclo()) { /* modo trazendo cuida de tudo */ } else { atzConferirVersao(); }
 
     navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(reg => {
       if (!reg) return;
+      /* v291 - updatefound e controllerchange NAO mostram mais a barra por conta propria:
+         eles so' pedem a conferencia. Service worker novo com a pagina JA' na versao dele
+         (o caso da primeira instalacao, e o da recarga que deu certo) nao avisa nada. */
       reg.addEventListener("updatefound", () => {
         const novo = reg.installing;
         if (!novo) return;
         novo.addEventListener("statechange", () => {
-          if (atzTinhaControlador && (novo.state === "installed" || novo.state === "activated")) mostrarAvisoVersao();
+          if (novo.state === "installed" || novo.state === "activated") atzConferirVersao();
         });
       });
       const pedirUpdate = () => { if (navigator.onLine !== false) { try { reg.update(); } catch (e) {} } };
@@ -20868,14 +20959,12 @@ if ("serviceWorker" in navigator) {
       window.addEventListener("focus", () => { pedirUpdate(); atzConferirVersao(); });
     }).catch(() => {});
 
-    navigator.serviceWorker.addEventListener("controllerchange", () => {
-      if (atzTinhaControlador) mostrarAvisoVersao();
-    });
+    navigator.serviceWorker.addEventListener("controllerchange", () => { atzConferirVersao(); });
   });
 } else {
   // navegador sem service worker: so a conferencia pelo texto do sw.js
   window.addEventListener("load", () => {
-    atzLerVersao().then(v => { if (v) atzVersaoInicial = v; });
+    if (!atzFecharCiclo()) atzConferirVersao();
     setInterval(atzConferirVersao, ATZ_INTERVALO_MS);
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible") atzConferirVersao();
