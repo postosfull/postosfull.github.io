@@ -945,8 +945,8 @@
 .inf-mapa-pop b{font-size:1.05em}
 .inf-mapa-pop .nota-dash{margin:2px 0 0}
 @media (max-width:700px){.inf-mapa-box{height:260px}}
-.inf-sumido{color:var(--vermelho);font-size:.78rem;font-weight:600}
-  .inf-linha-sumida td:first-child{border-left:3px solid var(--vermelho)}
+.inf-sumido{color:var(--cinza);font-size:.78rem;font-weight:600}
+  .inf-linha-sumida td:first-child{border-left:3px solid var(--cinza)}
   /* iFood (Full Conveniencia) */
   .ifd-tab{min-width:0}
   .ifd-status{font-weight:700;font-size:1.05rem;margin:0 0 8px}
@@ -3584,7 +3584,7 @@
 
     <div class="grupo" id="dashGrpFrota">
       <h2>🚚 Frota agora</h2>
-      <p class="nota-dash">Onde cada caminhão está neste momento, segundo o rastreador do Infleet. Quem está há 6 horas ou mais sem mandar posição aparece marcado — quase sempre é o rastreador, não o caminhão. O odômetro e o abastecimento por abastecimento ficam no menu APP Infleet.</p>
+      <p class="nota-dash">Onde cada caminhão está neste momento, segundo o rastreador do Infleet. Quem parou de mandar posição andando aparece marcado — quase sempre é trecho sem cobertura de internet, não problema no caminhão. Quem se despediu parado continua valendo como desligado. O odômetro e o abastecimento por abastecimento ficam no menu APP Infleet.</p>
       <div id="dtrFrotaBox"></div>
     </div>
 
@@ -6217,6 +6217,14 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v296", data:"08/08/2026", tit:"A tela deixou de confundir \"parado\" com \"perdido\"", itens:[
+    {t:"n", h:"Nasceu de um teste no seu prédio", d:"Você ligou a Oroch, estacionou na rua, deu uma volta no quarteirão e desligou — e a API mostrou minuto a minuto como o rastreador funciona: <b>movimento acorda ele</b> (5 minutos com o motor ligado e parado: nenhuma posição), ele <b>se despede ao parar</b> e <b>avisa quando a chave sai</b>, em 72 segundos."},
+    {t:"n", h:"Agora o último aviso do rastreador decide", d:"Se a última posição veio com <b>velocidade zero</b>, ele se despediu — o veículo <b>está parado ali</b>, e isso continua valendo por horas. Se veio <b>andando</b>, ele emudeceu no caminho: vale por minutos, e depois a tela diz <b>📡 sem posição nova</b>, porque ela não sabe mais onde ele está."},
+    {t:"c", h:"O FH Prata não aparece mais como perdido dormindo no posto", d:"Ele passa a noite no posto de Caxias e mandava seu último aviso <b>parado</b>. A tela chamava isso de \"sem sinal\", como se ele tivesse desaparecido. Agora ele aparece <b>⚪ Desligado</b>, que é a verdade."},
+    {t:"c", h:"E a Oroch não volta mais a dizer \"Ligado · 6 km/h\"", d:"Quando ela desce para a garagem no subsolo, o aviso de \"parei\" não consegue sair — o sinal morre lá embaixo. A tela ficava com a manobra de entrada, a 6 km/h, e demorava <b>6 horas</b> para desconfiar. Agora demora <b>15 minutos</b>."},
+    {t:"m", h:"Sem sinal deixou de ser vermelho", d:"Medi <b>21 silêncios em duas semanas</b> nos três veículos, e a maioria é <b>trecho sem cobertura de internet</b> — dois rastreadores de marcas diferentes calam nos mesmos lugares, e o FH Branco rodou <b>294 km</b> durante um silêncio. Se é rotina, não é vermelho: vermelho para tudo ensina a ignorar vermelho."},
+    {t:"c", h:"O Dashboard dizia uma coisa que não era verdade", d:"O texto dele afirmava que <i>\"quase sempre é o rastreador, não o caminhão\"</i>. A medição diz que quase sempre é <b>falta de cobertura no trecho</b>. O rastreador está bem — e agora o Dashboard, a tabela e o mapa usam <b>a mesma regra</b>, em um lugar só do código."}
+  ]},
   {v:"v295", data:"08/08/2026", tit:"Caminhão sem sinal não diz mais \"Ligado\" — e o motivo foi medido", itens:[
     {t:"c", h:"A Oroch aparecia como 🟢 Ligado · 6 km/h estando parada", d:"Na tabela do menu <b>APP Infleet</b> ela dizia <b>Ligado · 6 km/h</b> e, na coluna ao lado, <b>sem sinal há 14h</b> — duas coisas que não podem ser verdade juntas. Agora quem está sem sinal mostra <b>só ⚠️ sem sinal</b>."},
     {t:"n", h:"O motivo, medido em 3.164 posições", d:"Não é rastreador ligado antes da chave: <b>189 de 1.000</b> posições da Oroch vêm com a ignição <b>desligada</b>, então ele sabe dizer. O que acontece é que <b>o rastreador para de transmitir com o carro andando</b>: nas cinco pausas de mais de 1 hora entre 24/07 e 08/08, <b>quatro</b> congelaram em movimento (11, 6, 9 e 17 km/h). O <b>6 km/h</b> era coincidência de duas delas."},
@@ -14375,13 +14383,56 @@ let _mapaInf = null, _marcasInf = [];
    ⚠️ NÃO é rastreador ligado antes da chave: 189 de 1.000 posições da Oroch vêm
    com ignição DESLIGADA. E 6.000002184 não é valor travado, é 6 km/h (a API
    multiplica por 1,000000364). Isto está medido, não suposto. */
+/* 🔴 QUINZE MINUTOS, E O NÚMERO SAIU DE MEDIÇÃO, NÃO DE GOSTO.
+   Andando, este rastreador manda posição a cada ~1,5 minuto (medido em 08/08:
+   24 posições em 5 minutos, com atraso de envio de 0 a 1 s). Quinze minutos é
+   DEZ VEZES essa cadência: quem estava andando e não falou nesse tempo não está
+   mais contando nada sobre o agora.
+   ⚠️ NÃO confundir com a régua de 6 h (INF_HORAS_SEM_SINAL), que vale para quem
+   SE DESPEDIU parado. As duas réguas são diferentes porque as duas situações são
+   diferentes — e é a única coisa desta versão que precisa ser lembrada. */
+const INF_MIN_CALOU_ANDANDO = 15;
+
 function infSituacao(v){
   const hs = horasSemSinalInf(v.quando);
   const sumido = (hs !== null && hs >= INF_HORAS_SEM_SINAL);
-  if (sumido) return { sumido:true, horas:hs, texto:"⚠️ sem sinal", curto:"⚠️ sem sinal há " + textoTempoInf(hs) };
+  /* 🔑 A régua de 6 h NÃO se aplica a quem se despediu parado — quem mandou
+     `vel=0` está parado ali, e isso continua verdade por horas. O FH Prata dorme
+     no posto de Caxias e aparecia como se estivesse perdido.
+     👉 Quem calou ANDANDO cai na regra dos 15 minutos, logo abaixo — que é mais
+     rígida que estas 6 h, então esta linha ficou sem trabalho e saiu. */
+  /* 🔴 O ÚLTIMO PACOTE DIZ SE A INFORMAÇÃO AINDA VALE — é o achado do teste de
+     campo de 08/08. Velocidade zero = o rastreador se despediu (ele manda
+     `vel=0` ao parar e `ign=false` ao desligar, em ~1 min). Velocidade acima de
+     zero = ele emudeceu ANDANDO, e aí a foto envelhece em minutos. */
+  const paradoQuandoCalou = !(+v.velocidade > 1);
+
+  /* 🔴 E AQUI ESTÁ A PARTE QUE QUASE ME ESCAPOU, pega pela suíte com dado real:
+     os 15 minutos NÃO se contam de AGORA — contam-se de quando o SERVIDOR
+     olhou. O coletor busca de hora em hora (minuto :18), então um caminhão
+     rodando perfeitamente fica com a posição até ~60 min velha na tela, sem
+     nada de errado. Medir de agora faria a tela gritar "sem posição nova" em
+     TODO caminhão em movimento durante 45 dos 60 minutos.
+     🔑 É a lição do contador do `fechamento`: regra herdada de outra frequência.
+     A pergunta certa não é "a posição é velha?" — é "o rastreador JÁ ESTAVA
+     calado quando o servidor olhou?". Isso não depende de quando ele olhou. */
+  let refer = new Date();
+  try {
+    const q = (typeof infleetFrota !== "undefined" && infleetFrota) ? infleetFrota.atualizadoEm : null;
+    if (q) refer = q.toDate ? q.toDate() : new Date(q);
+  } catch (e) {}
+  const min = v.quando ? ((refer - new Date(v.quando)) / 60000) : null;
+
+  /* calou ANDANDO e já estava calado quando o servidor olhou */
+  if (!paradoQuandoCalou && min !== null && min >= INF_MIN_CALOU_ANDANDO){
+    return { sumido:true, andando:true, horas:hs,
+             texto:"📡 sem posição nova",
+             curto:"📡 sem posição nova há " + textoTempoInf(hs) };
+  }
+
   const vel = (+v.velocidade > 1) ? (fmtBR(+v.velocidade,0) + " km/h") : null;
-  if (v.ligado) return { sumido:false, horas:hs, texto:"🟢 Ligado" + (vel ? " · " + vel : ""), curto:"🟢 Ligado" + (vel ? " · " + vel : "") };
-  return { sumido:false, horas:hs, texto:"⚪ Desligado", curto:"⚪ Desligado" };
+  if (v.ligado) return { sumido:false, andando:false, horas:hs, texto:"🟢 Ligado" + (vel ? " · " + vel : ""), curto:"🟢 Ligado" + (vel ? " · " + vel : "") };
+  return { sumido:false, andando:false, horas:hs, texto:"⚪ Desligado", curto:"⚪ Desligado" };
 }
 
 function _corInf(v){
@@ -14535,7 +14586,7 @@ function renderInfFrota(){
     '</tr>';
   });
   h += '</tbody></table></div>';
-  if (lista.some(v => infSituacao(v).sumido)) h += '<p class="nota-dash">Quem está <b>sem sinal</b> não mostra ligado ou desligado: a última posição é a foto do instante em que o rastreador parou de falar, não o estado agora. A hora dessa foto está na coluna ao lado.</p>';
+  if (lista.some(v => infSituacao(v).sumido)) h += '<p class="nota-dash">📡 <b>Sem posição nova</b> quer dizer que o rastreador parou de falar <b>com o caminhão andando</b> — quase sempre trecho sem cobertura de internet. A tela não sabe onde ele está agora, e a hora da última posição está na coluna ao lado. Quem <b>se despediu parado</b> continua aparecendo como desligado, porque isso continua sendo verdade.</p>';
   if (f && f.atualizadoEm) h += '<p class="nota-dash">Atualizado em '+fmtQuandoInf(f.atualizadoEm)+'.</p>';
   box.innerHTML = h;
 }
@@ -20172,11 +20223,10 @@ function renderDtrFrota(){
   '</div>';
   h += '<div class="tabela-wrap"><table class="pux-tab pux-lista"><thead><tr><th>Caminh\u00e3o</th><th>Motorista</th><th>Situa\u00e7\u00e3o</th><th>Onde est\u00e1</th><th>\u00daltima posi\u00e7\u00e3o</th></tr></thead><tbody>';
   lista.forEach(v => {
-    const vel = (+v.velocidade > 1) ? (" \u00b7 " + fmtBR(+v.velocidade, 0) + " km/h") : "";
-    const hs = horasSemSinalInf(v.quando);
-    const sumido = (hs !== null && hs >= INF_HORAS_SEM_SINAL);
-    const sit = sumido ? '<span class="inf-sumido">\u26a0\ufe0f sem sinal</span>' : (v.ligado ? ("\ud83d\udfe2 Ligado" + vel) : "\u26aa Desligado");
-    const alerta = sumido ? ('<br><span class="inf-sumido">h\u00e1 ' + textoTempoInf(hs) + '</span>') : "";
+    const st = infSituacao(v);
+    const sumido = st.sumido;
+    const sit = sumido ? ('<span class="inf-sumido">' + st.texto + '</span>') : st.texto;
+    const alerta = sumido ? ('<br><span class="inf-sumido">h\u00e1 ' + textoTempoInf(st.horas) + '</span>') : "";
     h += '<tr' + (sumido ? ' class="inf-linha-sumida"' : '') + '>' +
       '<td data-lbl="Caminh\u00e3o"><b>' + escAttr(v.nome || v.placa || "\u2014") + '</b><br><span class="nota-dash">' + escAttr(v.placa || "") + '</span></td>' +
       '<td data-lbl="Motorista">' + escAttr(v.motorista || "\u2014") + '</td>' +
