@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v293 — Postos Full (não é o app)</title>
+<title>PRÉVIA v294 — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -6208,10 +6208,26 @@ function persistirListas(){
    proprio arquivo que ela descreve: o texto sobe junto com a versao, e nao existe um
    segundo lugar para ficar desencontrado.
    🔴 REGRA PERMANENTE: TODA VERSAO NOVA POE A ENTRADA DELA NO TOPO DESTA LISTA.
-   Esquecer nao da erro nenhum - so' faz a tela dizer que a versao mais nova e' a
-   anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
+   🔴 E ISSO DEIXOU DE SER COSMETICO NA v291. Antes, esquecer so' fazia a tela dizer
+   que a versao mais nova era a anterior. Desde que a v291 passou a COMPARAR a versao
+   que roda (NOVIDADES_APP[0].v) com a publicada (o sw.js), esquecer PRENDE a barra
+   "Trazendo a versao nova..." na tela de todo mundo, para sempre: o app se acha
+   atrasado e a sonda nunca encontra a versao que ele espera. Aconteceu na v293.
+   👉 O numero do sw.js e o de NOVIDADES_APP[0].v tem de ser O MESMO, sempre.
+   E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v294", data:"08/08/2026", tit:"O aviso de versão nova ficava preso na tela — corrigido", itens:[
+    {t:"c", h:"A barra laranja não saía mais", d:"Depois de publicar a v293, a faixa <b>⏳ Trazendo a versão nova…</b> ficava na tela sem nunca terminar, mesmo com o app já atualizado e o mapa novo funcionando. <b>Não era o seu navegador nem a sua internet.</b>"},
+    {t:"c", h:"O motivo, em uma frase", d:"O app descobre qual versão ele é lendo a <b>primeira entrada desta lista</b>. A v293 foi publicada sem a entrada dela aqui — então o app se achava v292, via a v293 publicada e ficava esperando um arquivo que, na conta dele, nunca chegava."},
+    {t:"m", h:"O que mudou para não repetir", d:"O aviso dentro do código que fala dessa lista dizia que esquecer uma entrada <i>“não dá erro nenhum”</i>. Isso era verdade até a v291, que passou a comparar a versão que roda com a publicada. Agora o aviso diz o que acontece de verdade."}
+  ]},
+  {v:"v293", data:"08/08/2026", tit:"Os caminhões agora aparecem no MAPA, dentro do APP Infleet", itens:[
+    {t:"n", h:"Um mapa com os três caminhões", d:"No menu <b>🚚 APP Infleet</b>, acima da tabela <b>Frota agora</b>, entrou um mapa com a posição de cada caminhão. Clicando na bolinha aparecem placa, motorista, situação, endereço e a hora da última posição."},
+    {t:"n", h:"A cor diz a situação", d:"<b>Verde</b> ligado, <b>cinza</b> desligado e <b>vermelho</b> quem está há 6 horas ou mais sem mandar posição. É a mesma informação da tabela, na mesma ordem de importância: sem sinal vem antes de ligado."},
+    {t:"n", h:"A posição agora vem do servidor, não do computador", d:"Antes a frota só era atualizada quando a rotina abria o Infleet no Chrome, duas vezes por dia. Agora um coletor no <b>servidor</b> busca direto no Infleet <b>de hora em hora</b>, das 6h às 20h — e o computador não precisa estar ligado."},
+    {t:"m", h:"Quando falta coordenada, o mapa some em vez de mentir", d:"Se o rastreador não mandar a coordenada, o bloco do mapa <b>desaparece</b> e uma linha explica que ele volta na próxima posição. A tabela continua mostrando tudo. Mapa com o caminhão no lugar errado seria pior que mapa nenhum."}
+  ]},
   {v:"v292", data:"08/08/2026", tit:"O menu Novidades ganhou o histórico inteiro do app", itens:[
     {t:"n", h:"176 versões, da v115 até hoje", d:"Faltavam <b>113 versões</b> aqui dentro: tudo o que mudou entre 23 de julho e 3 de agosto nunca tinha sido contado nesta tela. Entrou tudo, uma entrada por versão. Antes da v115 não há registro — o app já existia pronto quando o histórico começou a ser guardado."},
     {t:"n", h:"A lista agora abre por mês e por dia", d:"No fim da tela ficam os meses fechados (<b>Julho de 2026 · 98 versões em 9 dias</b>). Você clica no mês e ele mostra os dias; clica no dia e ele mostra as versões daquele dia. O dia mais recente já vem aberto, e <b>nada que você ainda não leu nasce fechado</b>."},
