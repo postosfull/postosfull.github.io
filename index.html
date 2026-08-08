@@ -2717,7 +2717,10 @@
      🔑 O comprimento e' medido com getTotalLength() DEPOIS de o SVG existir - nao
      da' para escrever no CSS um numero que depende da largura da tela.
      ========================================================================= */
-  .dre-topo{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:2px 0 14px}
+  /* v289 - UMA CAIXA POR LINHA: o Posto em cima, o Periodo embaixo (pedido do Tiago em 08/08).
+     Antes as duas dividiam a mesma linha e so' quebravam quando faltava espaco - o que fazia a
+     quebra mudar de lugar conforme a largura da tela. */
+  .dre-topo{display:flex;flex-direction:column;flex-wrap:nowrap;gap:9px;align-items:flex-start;margin:2px 0 14px}
   .dre-grupo{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
   .dre-grupo > i{font-style:normal;font-size:.68rem;font-weight:700;letter-spacing:.7px;
     text-transform:uppercase;color:var(--cinza);margin-right:2px}
@@ -6165,6 +6168,12 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v289", data:"08/08/2026", tit:"DRE: um bot\u00e3o s\u00f3 para o per\u00edodo, e o m\u00eas em aberto sai das linhas", itens:[
+    {t:"m", h:"Uma fileira de bot\u00f5es no lugar de duas", d:"A tela tinha <b>duas</b> fileiras mexendo no per\u00edodo: uma em cima (M\u00eas / \u00daltimos 12 meses / Ano) e outra dentro do gr\u00e1fico (6 / 12 / 24 meses) \u2014 e elas brigavam entre si. Agora \u00e9 <b>uma s\u00f3</b>: <b>M\u00eas \u00b7 6 meses \u00b7 12 meses \u00b7 24 meses \u00b7 Ano</b>. O que voc\u00ea escolher vale ao mesmo tempo para os quadros de cima, para o gr\u00e1fico e para a tabela."},
+    {t:"n", h:"6 e 24 meses agora somam de verdade", d:"Antes eles s\u00f3 esticavam ou encolhiam o desenho. Agora s\u00e3o per\u00edodos como o Ano: os quadros e a tabela mostram <b>os 6 (ou 24) meses somados</b>, comparados com os 6 (ou 24) meses anteriores."},
+    {t:"c", h:"As linhas paravam de cair \u00e0 toa no fim", d:"O gr\u00e1fico puxava o <b>m\u00eas em andamento</b>, que tem s\u00f3 alguns dias lan\u00e7ados \u2014 e desenhava uma queda que n\u00e3o aconteceu. Agora as linhas terminam no <b>\u00faltimo m\u00eas fechado</b>, e a tela diz qual m\u00eas ficou de fora. Nos quadros de cima e na tabela o m\u00eas em aberto continua inteiro, como sempre."},
+    {t:"m", h:"No modo M\u00eas o gr\u00e1fico vira pano de fundo", d:"Ele mostra os <b>12 meses fechados at\u00e9 o m\u00eas que voc\u00ea escolheu</b> \u2014 antes mostrava sempre os \u00faltimos, mesmo quando voc\u00ea estava olhando um m\u00eas de tr\u00e1s."}
+  ]},
   {v:"v288", data:"08/08/2026", tit:"O app volta a abrir no Dashboard", itens:[
     {t:"c", h:"Entrar no app caía sempre na Caixa de entrada", d:"Mesmo sem nada nela. O app escolhia a primeira tela <b>antes</b> de saber quais menus você pode ver, e nesse instante a Caixa era a única liberada. Agora ele espera essa resposta e abre no <b>Dashboard da última empresa</b> em que você esteve."},
     {t:"m", h:"O sino agora conta a Caixa de entrada também", d:"A bolinha vermelha do \ud83d\udd14 no canto de cima somava só os avisos de vencimento. Agora ela soma <b>avisos + tarefas e recados pendentes</b>, e o cartão do sino mostra as duas listas separadas."},
@@ -12238,13 +12247,21 @@ const DRE_SERIES = [
   { k:"desp",   n:"Despesas",      c:"#C62828", rgb:"198,40,40"  },
   { k:"ll",     n:"Lucro líquido", c:"#2E7BC4", rgb:"46,123,196" }
 ];
-const DRE_JANELAS = [[6,"6 meses"],[12,"12 meses"],[24,"24 meses"]];
+/* v289 - UMA FILEIRA SO'. Ate' a v288 havia DUAS: a de cima (Mes / Ultimos 12 meses / Ano)
+   mandava nos quadros e na tabela, e a de baixo (6/12/24) mandava so' no grafico. Aos olhos
+   de quem olha as duas mudavam "o periodo", e brigavam.
+   🔑 QUANDO DOIS CONTROLES MUDAM A MESMA COISA AOS OLHOS DE QUEM OLHA, O DEFEITO NAO E' DE
+   ROTULO: E' DE HAVER DOIS. O 6/12/24 subiu e virou MODO de periodo, igual ao Ano - manda
+   nos quadros, na tabela e no grafico ao mesmo tempo. */
+const DRE_JANELA_CONTEXTO = 12;   /* no modo Mes o grafico mostra estes meses fechados, so' de pano de fundo */
 /* v281d - O PERIODO. Pedido do Tiago em 07/08: "so' tem como selecionar o Mes; gostaria
    de poder selecionar o Ano ou ultimos 12 meses".
    🔑 Os tres modos leem a MESMA fonte e usam a MESMA conta: o que muda e' QUANTOS meses
    entram na soma. Nenhum numero novo e' inventado - o de um mes continua sendo o de um mes. */
-const DRE_MODOS = [["mes","Mês"],["12m","Últimos 12 meses"],["ano","Ano"]];
-let dreUn = "rede", dreMes = "", dreModo = "mes", dreAno = "", dreJanela = 12, dreOcultas = {}, dreSerieCache = null;
+const DRE_MODOS = [["mes","Mês"],["6m","6 meses"],["12m","12 meses"],["24m","24 meses"],["ano","Ano"]];
+let dreUn = "rede", dreMes = "", dreModo = "mes", dreAno = "", dreOcultas = {}, dreSerieCache = null;
+/* quantos meses o modo soma. 0 = nao e' modo de bloco (Mes e Ano nao sao). */
+function dreNDoModo(modo){ const m = /^(\d+)m$/.exec(String(modo || "")); return m ? +m[1] : 0; }
 
 function dreSig(){ return siglaEmpresa(empresa); }
 function dreSemBico(){ return dreSig() === "conv"; }
@@ -12278,15 +12295,22 @@ function dreNums(un, mes){
   if (!mes) return null;
   if (un === "rede"){
     const soma = { comb:0, outros:0, custoComb:0, custoOutros:0, outrasRec:0, desp:0, varEst:0 };
-    let quantos = 0;
+    let quantos = 0, ate = "", quando = "";
     UNIDADES_REL.forEach(u => {
       const x = dreNums(u.chave, mes);
       if (!x) return;
       quantos++;
       Object.keys(soma).forEach(k => { soma[k] += (+x[k] || 0); });
+      if (x.ate && x.ate > ate) ate = x.ate;
+      if (x.quando) quando = x.quando;
     });
     if (!quantos) return null;
-    return dreFechaConta(soma, dreLitros("rede", mes), quantos);
+    const o = dreFechaConta(soma, dreLitros("rede", mes), quantos);
+    /* v289 - 🔑 a REDE tambem carrega o `ate` e o `quando`. Sem isso o rodape so' dizia
+       "periodo de 1 a 07" quando a escolha era UM posto - e a escolha de fabrica e' a rede,
+       que e' onde o aviso do mes pela metade faz mais falta. */
+    o.ate = ate; o.quando = quando;
+    return o;
   }
   const doc = relPetros["dre_" + dreSig() + "_" + un + "_" + mes];
   const D = doc ? rpzLista(doc) : null;
@@ -12323,19 +12347,28 @@ function dreAnosDisp(){
 function dreMesesDoPeriodo(modo, mesRef, anoRef){
   const todos = dreMesesDisp();                       // do mais novo para o mais velho
   if (modo === "ano") return todos.filter(m => String(m).slice(0,4) === String(anoRef)).sort();
-  if (modo === "12m"){
+  const n = dreNDoModo(modo);
+  if (n){
     const i = Math.max(0, todos.indexOf(mesRef));
-    return todos.slice(i, i + 12).sort();
+    return todos.slice(i, i + n).sort();
   }
   return mesRef ? [mesRef] : [];
 }
 /* o periodo IMEDIATAMENTE ANTERIOR, do mesmo tamanho - e' com ele que a comparacao e' feita */
 function dreMesesAnteriores(modo, mesRef, anoRef){
   const todos = dreMesesDisp();
-  if (modo === "ano") return todos.filter(m => String(m).slice(0,4) === String(+anoRef - 1)).sort();
-  if (modo === "12m"){
+  if (modo === "ano"){
+    /* v289 - 🔴 O ANO ANTERIOR ENTRA COM OS MESMOS MESES. Ate' a v288 o ano corrente (8 meses
+       lancados) era comparado com o ano passado INTEIRO (12 meses), e a etiqueta anunciava uma
+       queda de um terco que era so' o ano nao ter acabado. */
+    const mm = {};
+    dreMesesDoPeriodo("ano", mesRef, anoRef).forEach(m => { mm[String(m).slice(5,7)] = 1; });
+    return todos.filter(m => String(m).slice(0,4) === String(+anoRef - 1) && mm[String(m).slice(5,7)]).sort();
+  }
+  const n = dreNDoModo(modo);
+  if (n){
     const i = Math.max(0, todos.indexOf(mesRef));
-    return todos.slice(i + 12, i + 24).sort();
+    return todos.slice(i + n, i + n * 2).sort();
   }
   const a = dreMesAnterior(mesRef);
   return a ? [a] : [];
@@ -12363,24 +12396,43 @@ function dreNumsPeriodo(un, meses){
   return o;
 }
 function dreRotuloPeriodo(modo, mesRef, anoRef, meses){
-  if (modo === "ano") return String(anoRef);
-  if (modo === "12m"){
-    if (!meses || !meses.length) return "12 meses";
+  /* v289 - ano que ainda nao acabou nao se chama pelo nome do ano: diz o pedaco que tem */
+  if (modo === "ano") return (meses && meses.length && meses.length < 12)
+    ? (rotuloMesRel(meses[0]) + " a " + rotuloMesRel(meses[meses.length - 1]))
+    : String(anoRef);
+  const n = dreNDoModo(modo);
+  if (n){
+    if (!meses || !meses.length) return n + " meses";
     return rotuloMesRel(meses[0]) + " a " + rotuloMesRel(meses[meses.length - 1]);
   }
   return rotuloMesRel(mesRef);
 }
 
-/* a serie do grafico: os N meses mais recentes que tem numero, do mais antigo ao mais novo */
-function dreSerie(un, n){
-  const meses = dreMesesDisp().slice(0, n).reverse();
-  const pts = [];
-  meses.forEach(m => { const x = dreNums(un, m); if (x) pts.push({ mes:m, x:x }); });
-  return pts;
+/* v289 - 🔴 O MES EM ANDAMENTO NAO ENTRA NAS LINHAS.
+   Pedido do Tiago em 08/08: "o grafico esta sempre puxando o mes em aberto; hoje e' dia 07,
+   entao as linhas tendem a puxar pra baixo no final". Ele tem razao, e o defeito e' de
+   LEITURA: sete dias de agosto desenham uma queda que nao aconteceu, e a queda e' a
+   primeira coisa que o olho ve'.
+   🔑 O mes aberto continua INTEIRO nos quadros e na tabela - la' o rodape diz "periodo de
+   1 a 07". O que sai e' a LINHA, e a tela diz que ele saiu. */
+function dreMesEmAndamento(mes){
+  const p = String(mes || "").split("-"), a = +p[0], m = +p[1];
+  if (!a || !m) return false;
+  const hoje = new Date();
+  return a === hoje.getFullYear() && m === (hoje.getMonth() + 1);
+}
+function dreMesAberto(){ return dreMesesDisp().filter(dreMesEmAndamento)[0] || ""; }
+/* a serie do grafico: os N meses FECHADOS ate' o mes de referencia, do mais antigo ao mais novo */
+function dreSerieAte(un, mesRef, n){
+  const meses = dreMesesDisp().filter(m => !dreMesEmAndamento(m) && (!mesRef || m <= mesRef));
+  return dreSerieDeMeses(un, meses.slice(0, n).reverse());
 }
 function dreSerieDeMeses(un, meses){
   const pts = [];
-  (meses || []).forEach(m => { const x = dreNums(un, m); if (x) pts.push({ mes:m, x:x }); });
+  (meses || []).forEach(m => {
+    if (dreMesEmAndamento(m)) return;                 /* v289 - o mes aberto fica de fora das linhas */
+    const x = dreNums(un, m); if (x) pts.push({ mes:m, x:x });
+  });
   return pts;
 }
 function dreCompacto(v){
@@ -12417,7 +12469,6 @@ function dreTrocarModo(k){
   renderDre();
 }
 function dreTrocarAno(a){ dreAno = a; renderDre(); }
-function dreTrocarJanela(n){ dreJanela = +n || 12; renderDre(); }
 function dreAlternarSerie(k){
   dreOcultas[k] = !dreOcultas[k];
   /* nao deixa apagar a ultima: grafico sem linha nenhuma nao e' filtro, e' tela quebrada */
@@ -12628,12 +12679,18 @@ function renderDre(){
   const anos = dreAnosDisp();
   if (anos.indexOf(dreAno) < 0) dreAno = anos[0] || String(dreMes).slice(0,4);
   const semBico = dreSemBico();
+  const nModo = dreNDoModo(dreModo);
   const mesesPer = dreMesesDoPeriodo(dreModo, dreMes, dreAno);
   const rotPer   = dreRotuloPeriodo(dreModo, dreMes, dreAno, mesesPer);
-  const r   = dreNumsPeriodo(dreUn, mesesPer);
-  const ant = dreNumsPeriodo(dreUn, dreMesesAnteriores(dreModo, dreMes, dreAno));
-  const rotAnt = dreRotuloPeriodo(dreModo, dreMesAnterior(dreMes), +dreAno - 1,
-                                  dreMesesAnteriores(dreModo, dreMes, dreAno));
+  const r      = dreNumsPeriodo(dreUn, mesesPer);
+  const mesesAnt = dreMesesAnteriores(dreModo, dreMes, dreAno);
+  const antBruto = dreNumsPeriodo(dreUn, mesesAnt);
+  const rotAnt   = dreRotuloPeriodo(dreModo, dreMesAnterior(dreMes), +dreAno - 1, mesesAnt);
+  /* v289 - 🔴 SO' COMPARA PERIODO COM PERIODO DO MESMO TAMANHO. Somar 24 meses e chamar de
+     "+1.200% vs os 2 meses que existiam antes" nao e' comparacao, e' ruido com cara de
+     noticia. 🔑 Comparacao que nao da' para fazer some da tela - e o rodape diz por que. */
+  const ant = (r && antBruto && antBruto.meses === r.meses) ? antBruto : null;
+  const compTruncada = !!(r && antBruto && antBruto.meses !== r.meses);
 
   const SEL = 'padding:7px 12px;border-radius:999px;border:1px solid var(--borda);background:var(--superficie);color:var(--txt);font-size:.8rem;font-weight:600';
   /* --- barra de escolhas --- */
@@ -12653,7 +12710,7 @@ function renderDre(){
   } else {
     h += '<select onchange="dreTrocarMes(this.value)" style="' + SEL + '">' +
          meses.map(m => '<option value="' + escAttr(m) + '"' + (m === dreMes ? " selected" : "") + '>' +
-           escAttr(rotuloMesRel(m)) + (dreModo === "12m" ? " (e os 11 antes)" : "") + '</option>').join("") +
+           escAttr(rotuloMesRel(m)) + (nModo > 1 ? " (e os " + (nModo - 1) + " antes)" : "") + '</option>').join("") +
          '</select>';
   }
   h += '</div></div>';
@@ -12689,16 +12746,21 @@ function renderDre(){
      🔑 No modo Mes ele mostra a JANELA que voce escolher (6/12/24). Nos modos Ano e
      Ultimos 12 meses ele mostra EXATAMENTE os meses que entraram na soma - senao o
      quadro de cima e a curva estariam falando de periodos diferentes na mesma tela. */
-  const serie = (dreModo === "mes") ? dreSerie(dreUn, dreJanela) : dreSerieDeMeses(dreUn, mesesPer);
+  const serie = (dreModo === "mes") ? dreSerieAte(dreUn, dreMes, DRE_JANELA_CONTEXTO)
+                                   : dreSerieDeMeses(dreUn, mesesPer);
+  /* a frase do mes aberto so' aparece quando ele REALMENTE ficou de fora desta vista */
+  const mesAberto = dreMesAberto();
+  const fimPer = (dreModo === "mes") ? dreMes : (mesesPer[mesesPer.length - 1] || "");
+  const avisoAberto = (mesAberto && fimPer && mesAberto <= fimPer)
+    ? ' <b>' + escAttr(rotuloMesRel(mesAberto)) + '</b> ainda está em andamento e por isso fica ' +
+      '<b>fora das linhas</b> — elas terminam no último mês fechado. Nos quadros acima e na tabela ele continua inteiro.'
+    : "";
   dreSerieCache = serie;
   if (serie.length >= 2){
     h += '<div class="dre-cx" id="dreGrafCx">' +
-         '<div class="dre-cx-tit"><b>Como as linhas caminharam</b><i>' + serie.length + ' meses. Passe o mouse em cima de um mês; clique para abrir. ' +
+         '<div class="dre-cx-tit"><b>Como as linhas caminharam</b><i>' + serie.length + ' meses fechados.' + avisoAberto + ' Passe o mouse em cima de um mês; clique para abrir. ' +
            'A régua <b>não começa no zero</b> — é o recorte que faz a variação do mês aparecer; o tamanho de cada linha está nos quadros acima e na tabela abaixo. ' +
            (dreOcultas.vendas ? '' : 'As <b style="color:#FE7030">vendas</b> têm régua própria, à direita: elas são ~20× maiores que o lucro.') + '</i></div>' +
-         (dreModo === "mes" ? ('<div class="dre-grupo" style="margin-top:6px">' +
-           DRE_JANELAS.map(j => '<button class="doc-chip' + (dreJanela === j[0] ? " ativo" : "") + '" onclick="dreTrocarJanela(' + j[0] + ')">' + escAttr(j[1]) + '</button>').join("") +
-           '</div>') : '') +
          '<div class="dre-leg">' +
          DRE_SERIES.map(s => '<button class="' + (dreOcultas[s.k] ? "off" : "") + '" onclick="dreAlternarSerie(\'' + s.k + '\')">' +
             '<span class="dre-pt" style="background:' + s.c + '"></span>' + escAttr(s.n) + '</button>').join("") +
@@ -12760,6 +12822,8 @@ function renderDre(){
           ? ' <b>⚠️ A soma da rede tem só ' + r.unidades + ' de ' + UNIDADES_REL.length + ' unidades' +
             (r.meses > 1 ? ' em pelo menos um dos meses' : ' neste mês') + '.</b>' : "") +
        (!semBico && !litros ? ' <b>⚠️ Os litros deste mês ainda não foram coletados, então a coluna “por litro” aparece como “—”.</b>' : "") +
+       (compTruncada ? ' <b>Sem comparação com o período anterior:</b> antes de ' + escAttr(rotuloMesRel(mesesPer[0])) +
+          ' só temos ' + antBruto.meses + (antBruto.meses === 1 ? ' mês' : ' meses') + ' de demonstrativo, e comparar períodos de tamanhos diferentes daria uma variação que não existe.' : "") +
        '</p>';
 
   box.innerHTML = h;
