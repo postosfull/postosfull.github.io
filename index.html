@@ -250,11 +250,41 @@
   .nvd-atual{font-weight:700;font-size:.82rem;color:#fff;border-radius:999px;padding:3px 12px;
              background-image:linear-gradient(90deg,var(--verde),rgba(var(--verde-rgb),.75))}
   .nvd-lista{display:flex;flex-direction:column;gap:14px}
-  /* v273 - o rodape que abre as versoes antigas */
-  .nvd-mais{align-self:center;margin-top:2px;padding:9px 18px;border-radius:999px;
-    border:1px solid var(--borda);background:transparent;color:inherit;cursor:pointer;
-    font-size:.84rem;font-weight:600;opacity:.85}
-  .nvd-mais:hover{opacity:1;border-color:var(--verde)}
+  /* v292 - a busca e os dias dobraveis (o botao "ver versoes anteriores" da v273 saiu) */
+  .nvd-busca{display:flex;align-items:center;gap:8px;margin:10px 0 14px;padding:7px 14px;
+    border:1px solid var(--borda);border-radius:999px;background-image:linear-gradient(var(--superficie),var(--superficie))}
+  .nvd-busca:focus-within{border-color:var(--verde)}
+  .nvd-lupa{opacity:.7;font-size:.9rem}
+  .nvd-busca input{flex:1;min-width:0;border:none;background:transparent;color:inherit;
+    font:inherit;font-size:.9rem;outline:none}
+  .nvd-mesbloco{display:flex;flex-direction:column;gap:12px;margin-top:6px}
+  /* 🔴 background:transparent ANTES do background-image - o atalho apaga a imagem se vier
+     depois, e sem ele o botao herda o fundo CLARO da folha e a faixa do mes sai bege. */
+  .nvd-mes-cab{display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;
+    border:1px solid var(--borda);border-radius:12px;background:transparent;
+    background-image:linear-gradient(rgba(var(--verde-rgb),.14),rgba(var(--verde-rgb),.06));
+    color:inherit;font:inherit;text-align:left;cursor:pointer}
+  .nvd-mes-cab:hover{border-color:var(--verde)}
+  .nvd-mes-tit{font-weight:800;font-size:.82rem;letter-spacing:1.2px;text-transform:uppercase}
+  .nvd-mes-cnt{font-size:.76rem;opacity:.62;margin-left:auto;white-space:nowrap}
+  .nvd-mes-corpo{display:flex;flex-direction:column;gap:12px;padding-left:14px;
+    border-left:2px solid var(--borda);margin-left:6px}
+  .nvd-mesbloco.aberto > .nvd-mes-cab .nvd-seta{transform:rotate(90deg)}
+  .nvd-dia{border:1px solid var(--borda);border-radius:12px;overflow:hidden}
+  .nvd-dia-cab{display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;border:none;
+    background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
+  .nvd-dia-cab:hover{background-image:linear-gradient(rgba(var(--verde-rgb),.10),rgba(var(--verde-rgb),.10))}
+  .nvd-dia-tit{font-weight:700;font-size:.93rem}
+  .nvd-dia-cnt{font-size:.76rem;opacity:.62;margin-left:auto;white-space:nowrap}
+  .nvd-seta{display:inline-block;opacity:.65;transition:transform .2s ease}
+  .nvd-dia.aberto .nvd-seta{transform:rotate(90deg)}
+  .nvd-dia.aberto .nvd-dia-cab{border-bottom:1px solid var(--borda)}
+  .nvd-dia-corpo{display:flex;flex-direction:column;gap:12px;padding:12px}
+  .nvd-achou{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:.86rem;
+    font-weight:600;opacity:.85;margin-bottom:2px}
+  .nvd-limpar{border:1px solid var(--borda);background:transparent;color:inherit;cursor:pointer;
+    border-radius:999px;padding:3px 12px;font-size:.78rem;font-weight:600;opacity:.85}
+  .nvd-limpar:hover{opacity:1;border-color:var(--verde)}
   .nvd-ver{border:1px solid var(--borda);border-radius:12px;padding:12px 14px;
            background-image:linear-gradient(var(--superficie),var(--superficie))}
   .nvd-ver.nova{border-color:rgba(var(--verde-rgb),.55);
@@ -3730,7 +3760,11 @@
         <h2 style="margin:0">🎁 Novidades do app</h2>
         <span class="nvd-atual" id="nvdVersaoAtual"></span>
       </div>
-      <p class="nota-dash">O que mudou em cada versão, da mais nova para a mais antiga. As versões que você ainda não tinha visto ficam destacadas.</p>
+      <p class="nota-dash">O que mudou em cada versão, da mais nova para a mais antiga. As versões que você ainda não tinha visto ficam destacadas. <span id="nvdConta"></span></p>
+      <div class="nvd-busca">
+        <span class="nvd-lupa">🔎</span>
+        <input id="nvdCampoBusca" type="search" autocomplete="off" placeholder="Buscar por palavra (tanque, desconto, iFood) ou pelo número da versão" oninput="nvdDigitouBusca(this.value)">
+      </div>
       <div class="nvd-lista" id="nvdLista"></div>
     </div>
   </div>
@@ -6170,6 +6204,11 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v292", data:"08/08/2026", tit:"O menu Novidades ganhou o histórico inteiro do app", itens:[
+    {t:"n", h:"176 versões, da v115 até hoje", d:"Faltavam <b>113 versões</b> aqui dentro: tudo o que mudou entre 23 de julho e 3 de agosto nunca tinha sido contado nesta tela. Entrou tudo, uma entrada por versão. Antes da v115 não há registro — o app já existia pronto quando o histórico começou a ser guardado."},
+    {t:"n", h:"A lista agora abre por mês e por dia", d:"No fim da tela ficam os meses fechados (<b>Julho de 2026 · 98 versões em 9 dias</b>). Você clica no mês e ele mostra os dias; clica no dia e ele mostra as versões daquele dia. O dia mais recente já vem aberto, e <b>nada que você ainda não leu nasce fechado</b>."},
+    {t:"n", h:"Campo de busca", d:"Procure por palavra — <i>tanque</i>, <i>desconto</i>, <i>iFood</i>, <i>WhatsApp</i> — ou pelo número da versão (<i>v250</i>), e a tela mostra só as versões que falam daquilo. A busca não liga para acento."}
+  ]},
   {v:"v291", data:"08/08/2026", tit:"O aviso de versão nova aparecia duas vezes — agora aparece uma", itens:[
     {t:"c", h:"Uma clicada, uma barra", d:"A cada publicação a barra <b>⟳ Saiu uma versão nova</b> aparecia, você clicava em Atualizar agora… e ela voltava. O motivo: o arquivo pequeno que avisa a versão chega ao servidor <b>antes</b> do arquivo grande que é o app, então a recarga trazia o app velho de volta e o aviso disparava outra vez."},
     {t:"m", h:"Agora o app sabe qual versão ele é", d:"Antes ele só sabia que <i>alguma coisa mudou</i> desde que a tela abriu. Agora compara a versão que está rodando com a que está publicada — e só avisa se estiver mesmo atrasado."},
@@ -6376,6 +6415,122 @@ const NOVIDADES_APP = [
   {v:"v230", data:"03/08/2026", tit:"Tanques avisa quando ainda não mediram", itens:[{t:"c",h:"Tanques avisa quando ainda não mediram",d:"A aba dizia 0 de 16 tanques com perda, que parecia mês sem problema. Agora ela diz que a medição do mês ainda não foi feita."}]},
   {v:"v229", data:"03/08/2026", tit:"Resultado do mês monta mesmo sem os litros", itens:[{t:"c",h:"Resultado do mês monta mesmo sem os litros",d:"A tela ficava vazia quando faltava o volume do painel, mesmo com o DRE inteiro disponível."}]},
   {v:"v228", data:"03/08/2026", tit:"A Pagar / Fluxo entende a liquidez em qualquer formato", itens:[{t:"c",h:"A Pagar / Fluxo entende a liquidez em qualquer formato",d:"A tela mostrava R$ 0 quando a coleta gravava num formato diferente do esperado. Agora ela entende os dois e, quando não entender, avisa em vez de mostrar zero."}]},
+  {v:"v227", data:"02/08/2026", tit:"O menu 💸 Despesas da loja vira aba do 🏦 Financeiro", itens:[{t:"m",h:"A tela mudou de porta, não de conteúdo",d:"Na Full Conveniência o botão <b>💸 Despesas</b> saiu da barra lateral e a tela virou a aba <b>📅 Despesas do ano</b>, dentro do menu <b>🏦 Financeiro</b>. São os mesmos números; a loja passou de 5 para 6 abas ali e a barra ficou com um botão a menos."},{t:"n",h:"Uma aba pode ter nome diferente em cada empresa",d:"A mesma aba passou a poder se chamar de um jeito nos Postos e de outro na loja. Junto veio o acerto do 'voltar ao nome original': ele agora compara com o nome de fábrica <b>daquela empresa</b>, senão deixaria de funcionar justamente nessas abas."}]},
+  {v:"v226", data:"02/08/2026", tit:"A aba 💰 A Pagar / Fluxo chega à Full Conveniência", itens:[{t:"n",h:"A loja também vê o que vence e o que tem em caixa",d:"A aba <b>💰 A Pagar / Fluxo</b>, que tinha nascido na versão anterior só nos Postos, passou a aparecer também na <b>Full Conveniência</b>, com os números da própria loja."},{t:"c",h:"Faltou trocar uma palavra no gráfico",d:"A notinha do bloco <b>Entrou × Saiu</b> passou a falar em compra de <b>mercadoria</b> em vez de combustível, mas a legenda logo acima continuou com a palavra do posto. Essa metade só foi acertada seis versões depois."}]},
+  {v:"v225", data:"02/08/2026", tit:"Aba nova 💰 A Pagar / Fluxo: a tela que olha para a frente", itens:[{t:"n",h:"Posição de liquidez",d:"Em <b>🏦 Financeiro → 💰 A Pagar / Fluxo</b>, o primeiro bloco mostra o que a empresa tem disponível (caixa, bancos, cartões a receber e cheques à vista), mais o que tem a receber, menos o que tem a pagar — e a posição no fim da conta."},{t:"n",h:"O que vence",d:"Segundo bloco: <b>Vencido · Vence hoje · Próximos 7 dias · Resto do mês</b>. Os vencidos vêm na frente porque é neles que ainda dá para fazer alguma coisa, e a lista dos próximos vencimentos já abre aberta."},{t:"n",h:"Entrou × Saiu mês a mês",d:"Terceiro bloco: quanto entrou e quanto saiu em cada mês, com a saída partida em duas cores — a compra de um lado e todo o resto do outro."}]},
+  {v:"v224", data:"02/08/2026", tit:"O menu 🏦 Financeiro volta, e as abas passam a mudar de menu", itens:[{t:"n",h:"O Financeiro voltou a ser um menu",d:"Desde a v207 tudo morava dentro do <b>📑 Relatórios</b>, que tinha chegado a <b>17 abas</b> numa fileira só. Agora Relatórios ficou com 4 e nasceu o <b>🏦 Financeiro</b> com 13. Nenhuma tela saiu — só mudou por qual botão se chega nela."},{t:"n",h:"Botão 🔀 Mover abas, só para o administrador",d:"Para não depender de versão nova toda vez que uma aba precisa trocar de menu, o administrador passou a mover as abas de um menu para o outro pela própria tela. A escolha fica gravada e vale para todo mundo."},{t:"m",h:"Menu que fica sem nenhuma aba some da barra",d:"Como a divisão agora é escolhida, um menu pode acabar vazio numa empresa. Quando isso acontece, o botão simplesmente não aparece ali."}]},
+  {v:"v223", data:"02/08/2026", tit:"Sai do card Vendas do dia o aviso das despesas não lançadas", itens:[{t:"m",h:"Um aviso que apareceria todo santo dia",d:"A versão anterior tinha posto a frase 'Despesas do dia — ainda não lançadas' no card <b>Vendas do dia</b>. Como o caixa nunca fecha no mesmo dia, ela apareceria sempre — e aviso que nunca muda de estado vira ruído. A frase saiu e <b>nenhum número mudou</b>."},{t:"m",h:"O card continua trocando de rótulo sozinho",d:"Enquanto a despesa não entra, ele mostra Volume, <b>Lucro Bruto</b> e Lucro Bruto por litro. Assim que a despesa do dia é lançada, aquele posto ou aquela loja volta sozinho a mostrar o Lucro Líquido."}]},
+  {v:"v222", data:"01/08/2026", tit:"Número que não é número não derruba mais a tela", itens:[{t:"c",h:"Valores viravam R$ 0,00 no Caixas e no iFood",d:"Quando o valor chegava escrito como texto no formato brasileiro (<b>1.234,56</b>), o app não entendia a vírgula e tratava tudo como zero. Agora ele lê o número do nosso jeito, com o ponto de milhar e a vírgula de centavos."},{t:"c",h:"Campo em branco travava a tela inteira",d:"Faltando o valor, a formatação estourava e o resto da tela nem chegava a desenhar. Agora, quando não há número, aparece um travessão (—) no lugar: melhor faltar do que inventar um zero."}]},
+  {v:"v221", data:"01/08/2026", tit:"Sem perfil, o app inteiro fica fechado", itens:[{t:"c",h:"Entre cadastrar alguém e dar o perfil, era acesso total",d:"Quem entrava antes de o administrador marcar o que pode ver enxergava o app inteiro, nas três empresas. Agora é o contrário: <b>sem perfil, nenhum menu</b> — só <b>Minha conta</b> e a <b>Caixa de entrada</b>."},{t:"n",h:"A tela de espera",d:"A pessoa vê a mensagem 'Aguardando o administrador selecionar seu perfil' com o e-mail do login, e o seletor de empresa some. Assim que o perfil é escolhido, os menus aparecem na hora, sem precisar sair e entrar de novo."},{t:"n",h:"O administrador fica sabendo",d:"Aparece uma tarefa na Caixa de entrada dos administradores dizendo quem está esperando perfil. Ela se reescreve sozinha a cada pessoa nova e <b>se conclui sozinha</b> quando não sobra ninguém na espera."}]},
+  {v:"v220", data:"01/08/2026", tit:"Vendas do dia para de chamar de líquido um número que é bruto", itens:[{t:"c",h:"Lucro Bruto/L e Lucro Líquido/L davam o mesmo valor",d:"E davam mesmo: enquanto a despesa do dia não é lançada ela vale zero, e o lucro líquido é o lucro bruto menos a despesa. <b>O errado era o nome, não o número</b> — nenhum valor mudou nesta versão."},{t:"m",h:"Agora o card decide pelo que tem lançado",d:"Com despesa do dia lançada ele mostra Volume · Lucro Líquido · Lucro Bruto por litro · Lucro Líquido por litro. Sem despesa, mostra Volume · <b>Lucro Bruto</b> · Lucro Bruto por litro. A escolha é feita posto a posto e loja a loja."}]},
+  {v:"v219", data:"01/08/2026", tit:"O app parou de abrir na versão anterior", itens:[{t:"c",h:"Abrir pelo atalho trazia o app de ontem",d:"Quem <b>abria</b> o app pelo atalho, pelo favorito ou pelo ícone do celular podia continuar caindo na versão antiga, porque o app usava a cópia guardada no aparelho sem perguntar nada ao servidor. Agora ele confere com o servidor toda vez que a página abre. Com F5 o problema nunca aparecia — por isso demorou tanto a ser visto."},{t:"c",h:"Um arquivo faltando deixava o app sem cópia nenhuma",d:"A cópia guardada no aparelho era tudo ou nada: bastava um arquivinho falhar para o app ficar sem guardar coisa alguma. Agora cada arquivo é guardado por conta própria. Nenhuma tela mudou nesta versão."}]},
+  {v:"v218", data:"01/08/2026", tit:"As caixinhas dos responsáveis pelos caixas desmarcavam sozinhas", itens:[{t:"c",h:"Você marcava e, um instante depois, desmarcava",d:"No quadro da conferência dos caixas, no <b>Painel Administrativo</b>, as caixinhas de responsável e de quem recebe o aviso voltavam ao estado anterior sozinhas. O quadro se redesenhava sempre que alguém logado dava sinal de vida — o que acontece <b>a cada minuto</b> — e reimprimia o que estava gravado, apagando o que você tinha acabado de clicar."},{t:"m",h:"O botão Salvar sumiu, e é de propósito",d:"Cada caixinha passou a gravar <b>na hora</b> em que é clicada, e a meta em dias e o 'não contar sábado e domingo' também. Tela que se redesenha sozinha não pode ter botão Salvar."}]},
+  {v:"v217", data:"01/08/2026", tit:"As três Full Conveniência viram agendas próprias", itens:[{t:"c",h:"As lojas não apareciam nas notificações",d:"A queixa era essa, mas o problema era maior: havia uma lista fixa de cinco origens, escrita à mão, alimentando <b>quatro telas</b> — Calendário, Documentos, Arquivos e as caixinhas do Painel Administrativo. Não dava nem para criar um evento ou um documento <i>de</i> uma conveniência."},{t:"n",h:"Agora são 8 agendas",d:"Os três postos, as <b>três lojas</b>, a Full Transportadora e Outros — todas saindo de uma lista só. Cada loja usa a cor da sua cidade num tom mais escuro, para não se confundir com o posto."},{t:"c",h:"A loja caía no balde do posto da mesma cidade",d:"A separação era feita pela <b>cidade</b> que aparecia no texto, então a Full Conveniência Caxias ia parar junto com o Posto Full Caxias. Agora o app olha primeiro se é conveniência e só depois a cidade."}]},
+  {v:"v216", data:"01/08/2026", tit:"O Painel Administrativo vira 5 abas e separa os menus por empresa", itens:[{t:"n",h:"Cinco abas no lugar de nove quadros",d:"<b>👥 Pessoas · 🎭 Perfis de acesso · 🔎 Quem vê o quê · ⚙️ Regras do app · 📜 Atividades</b>. Na aba Pessoas, a ficha de cada funcionário reúne perfil, exceções, notificações, troca de senha e atividades — e <b>abre mesmo com a pessoa desconectada</b>, o que antes não dava. A aba 🔎 mostra numa tabela só quem enxerga o quê, com alerta em vermelho para quem está sem perfil."},{t:"n",h:"Os menus vêm divididos por empresa",d:"Liberar um menu nos Postos deixou de liberar também na Transportadora e na Conveniência: são três colunas, uma por empresa, mais um grupo para o que vale em todas. Até aqui o seletor de empresa do topo <b>não obedecia a permissão nenhuma</b> — qualquer pessoa trocava de empresa à vontade."},{t:"n",h:"Todos os privilégios num lugar só",d:"Enviar avisos e tarefas, criar eventos e vencimentos e <b>ser administrador</b> ficaram lado a lado, com a mesma regra: a pessoa herda do perfil e você pode abrir ou fechar caso a caso. Dar administrador deixou de exigir versão nova do app. Quem já tinha acesso não perdeu nada na virada."}]},
+  {v:"v215", data:"01/08/2026", tit:"Puxadas: cada cliente com um nome só, e o volume por cliente", itens:[{t:"c",h:"O mesmo cliente aparecia escrito de dois jeitos",d:"Nas <b>🚚 Puxadas</b> o nome do destinatário vem copiado do CT-e, e cada distribuidora escreve do seu jeito: FCN.X e FCN X, NC Distribuidora com e sem o LTDA, Discar com e sem ponto final. Isso quebrava qualquer soma por cliente — no fechamento de julho as linhas tiveram de ser somadas à mão. Agora quem manda é o <b>CNPJ</b>, e a lista mostra a razão social oficial, guardando a grafia do CT-e."},{t:"n",h:"Bloco novo: Volume por cliente",d:"Entre o Volume por motorista e a lista: puxadas, litros e frete de cada cliente. Quando o mesmo cliente chegou escrito de mais de um jeito, aparece o selo <b>2 grafias</b> dizendo quais são."},{t:"m",h:"Cliente desconhecido nunca some",d:"Quem não estiver na lista de clientes continua aparecendo exatamente como veio no CT-e — o app não junta ninguém a outro por chute."}]},
+  {v:"v214", data:"01/08/2026", tit:"O app avisa sozinho que saiu versão nova", itens:[{t:"n",h:"Faixa laranja no topo da tela",d:"Quando sai uma versão nova aparece <b>⟳ Saiu uma versão nova do app</b> com dois botões: <b>Atualizar agora</b>, que recarrega na hora, e <b>Depois</b>, que esconde a faixa e não insiste mais naquela sessão."},{t:"m",h:"Por que isso fazia falta",d:"Quem fica com a página aberta continua usando a versão antiga até fechar e abrir de novo — e no celular quase nunca se fecha. O app passou a conferir se saiu versão nova <b>a cada 10 minutos</b> e sempre que você volta para a aba dele."}]},
+  {v:"v213", data:"01/08/2026", tit:"A meta de conferência dos caixas", itens:[{t:"n",h:"O card 🧾 Caixas passou a dizer se está na meta",d:"Verde com <b>✓ dentro da meta</b> ou vermelho com <b>▲ N dias acima</b>. O card já existia; o que faltava era a meta para comparar."},{t:"n",h:"Quadro novo no Painel Administrativo",d:"Dá para definir a meta em <b>dias úteis</b>, marcar 'não contar sábado e domingo', dizer quem é o responsável por cada posto e quem recebe o aviso semanal. As listas de gente são montadas na hora em que a tela abre, então quem for cadastrado depois já aparece sem precisar de versão nova do app."},{t:"m",h:"Dias úteis viram dias corridos na hora da conta",d:"O sistema conta em dias corridos e a equipe não trabalha no fim de semana, então o app converte pela média da semana: meta de <b>1 dia útil</b> equivale a <b>1,43 dia corrido</b>. Caxias vinha rodando entre 1,0 e 1,8, praticamente no limite."}]},
+  {v:"v212", data:"31/07/2026", tit:"A aba 📆 Ano mês a mês mostra o ano inteiro de uma vez", itens:[{t:"n",h:"O ano inteiro numa tela só",d:"Em <b>Relatórios → 📆 Ano mês a mês</b>: litros vendidos, venda total, despesas, lucro líquido e o % sobre vendas de cada um dos 12 meses, mais a linha do ano. Tem <b>2026 e 2025</b>, nos postos e nas lojas."},{t:"n",h:"Gráfico de barras, um mês por barra",d:"Litros nos postos e R$ nas lojas, com o % do lucro ao lado — verde quando é positivo, vermelho quando é negativo. Mês sem movimento aparece como traço, não como zero."},{t:"m",h:"A tela avisa o que pode enganar a leitura",d:"No fim está escrito que as <b>retiradas de sócios entram como despesa</b> nesta conta e que o mês em andamento ainda vai mudar. Os postos fecham 2026 em +2,45% (Teresina), +1,36% (Caxias) e +0,88% (Dutra); 2025 tinha fechado no vermelho em Teresina e Caxias."}]},
+  {v:"v211", data:"31/07/2026", tit:"O botão ✓ já conferi nos lançamentos fora do padrão", itens:[{t:"n",h:"Tirar da lista o que você já conferiu",d:"Em <b>Relatórios → 💵 Resultado do mês</b>, cada lançamento fora do padrão ganhou o botão <b>✓ já conferi</b>. Ao clicar, a linha sai da lista e do total. Só o administrador vê o botão."},{t:"n",h:"O aluguel vem marcado como pagamento por trimestre",d:"A linha de aluguel ganhou o selo 'pago por trimestre', para não parecer erro. Em <b>abril de 2026 o aluguel de todas as empresas saiu pelo Full de Pres. Dutra</b>: R$ 111.493 contra uma média de R$ 12.434 — e está certo."},{t:"c",h:"O que estava bom aparecia numa cor alaranjada",d:"Na lista dos lançamentos, a marca de 'dentro do padrão' saía num tom que se lia como alerta. Agora é verde de verdade."}]},
+  {v:"v210", data:"31/07/2026", tit:"Ordenar cards encosta no Exportar PDF, do lado direito", itens:[{t:"m",h:"Os três botões na mesma ponta",d:"Continuando o acerto da versão anterior, o <b>Ordenar cards</b> deixou de ficar sozinho na esquerda e encostou nos outros dois. No alto do Dashboard ficou <b>Ordenar cards · Exportar PDF · Imprimir</b>, tudo à direita."}]},
+  {v:"v209", data:"31/07/2026", tit:"O botão Ordenar cards sobe para a linha do Exportar PDF", itens:[{t:"m",h:"O botão saiu da faixa própria",d:"No Dashboard, o <b>Ordenar cards</b> passou a ficar na mesma linha do <b>Exportar PDF</b> e do <b>Imprimir</b>, em vez de ocupar uma faixa só dele. Nesta versão ele ainda ficou na ponta esquerda da linha."},{t:"c",h:"Ele parou de sair impresso no PDF",d:"Por estar agora no mesmo grupo dos outros botões, o exportador passou a ignorá-lo — antes ele aparecia dentro do arquivo gerado."}]},
+  {v:"v208", data:"31/07/2026", tit:"Ordenar abas e Renomear abas vão para o canto do título", itens:[{t:"m",h:"Os dois botões saíram do meio da tela",d:"Em <b>📑 Relatórios</b>, o <b>⚙️ Ordenar abas</b> e o <b>✏️ Renomear abas</b> passaram para o canto direito da linha do título, em vez de disputarem espaço com as abas."}]},
+  {v:"v207", data:"31/07/2026", tit:"Tudo dentro do menu 📑 Relatórios: o Financeiro vira abas", itens:[{t:"m",h:"O Financeiro sai da barra no dia em que entrou",d:"As seis telas criadas horas antes no menu <b>💰 Financeiro</b> viraram abas de <b>📑 Relatórios</b>, que ficou com <b>16 abas</b>. Nada foi apagado — só mudou de porta. A permissão passou a ser uma só: quem vê Relatórios vê também recebimentos, pagamentos e despesas."},{t:"n",h:"Dá para renomear as abas",d:"O administrador pode trocar o nome de cada aba do menu Relatórios, e o nome escolhido passa a valer para todo mundo daquela empresa."},{t:"m",h:"A aba ⛽ Combustíveis saiu",d:"Ela deixou de existir no menu Relatórios."}]},
+  {v:"v206", data:"31/07/2026", tit:"O ícone do Simular Margens vira uma calculadora 🧮", itens:[{t:"m",h:"Dois botões da barra estavam com o mesmo desenho",d:"Com a chegada do menu Financeiro na versão anterior, dois botões ficaram com o mesmo ícone de dinheiro. O <b>Simular Margens</b> passou a usar a calculadora. Durou poucas horas: na versão seguinte o Financeiro saiu da barra e o ícone antigo voltou."}]},
+  {v:"v205", data:"31/07/2026", tit:"Nasce o menu 💰 Financeiro, com seis telas", itens:[{t:"n",h:"Seis telas de dinheiro num menu só",d:"O menu <b>💰 Financeiro</b> chegou com <b>A Prazo sem faturar</b>, <b>Recebimentos</b>, <b>Pagamentos</b>, <b>Descontos</b>, <b>Despesas do mês</b> e <b>Despesas do ano</b>, com um filtro que inclui a opção <b>Todos os postos</b>."},{t:"m",h:"As Despesas mudaram de lugar",d:"A aba Despesas saiu do menu Relatórios e o botão Despesas saiu da barra dos Postos Full — na Conveniência ele continuou. Nada foi apagado, as telas só passaram a morar no Financeiro."},{t:"n",h:"Duas abas novas nos Relatórios",d:"O menu <b>📑 Relatórios</b> foi a 11 abas, com <b>📏 Aferições</b> e <b>⏳ Vendas pendentes</b>."}]},
+  {v:"v204", data:"31/07/2026", tit:"O link do app passa a mostrar uma prévia no WhatsApp", itens:[{t:"n",h:"Mandar o endereço do app deixa de ser texto cru",d:"Quem compartilha o link agora vê o nome do app, uma descrição e uma imagem de capa. Antes o WhatsApp mostrava só o endereço, porque a página não tinha essas etiquetas de compartilhamento."}]},
+  {v:"v203", data:"31/07/2026", tit:"A Full Transportadora ganha o próprio Dashboard 🚚", itens:[{t:"n",h:"Seis cards, e a empresa passa a abrir neles",d:"O Dashboard da Transportadora nasceu com <b>Frota agora</b>, <b>Puxadas do mês</b>, <b>Frete × custo do diesel</b>, <b>Combustível do mês</b>, <b>Eficiência por caminhão</b> e <b>Documentos a vencer</b>."},{t:"n",h:"Cada aviso com a sua régua",d:"A eficiência trata como 'na média' quem fica dentro de <b>1%</b>; os documentos avisam com <b>60 dias</b> de antecedência; e o card de frete fica vermelho quando falta um dos dois lados do mês. Caixas e despesas ficaram de fora por enquanto, por falta de dado."}]},
+  {v:"v202", data:"31/07/2026", tit:"O % do lucro líquido sobre as vendas nos Dashboards", itens:[{t:"n",h:"Uma linha nova no card Resultado do mês",d:"Nos Dashboards dos <b>Postos Full</b> e da <b>Full Conveniência</b>, o card passou a mostrar quanto o lucro líquido representa das vendas, em porcentagem."}]},
+  {v:"v201", data:"30/07/2026", tit:"Some o há NaN dias da Caixa de entrada", itens:[{t:"c",h:"Aparecia um texto sem sentido no lugar do tempo",d:"Alguns avisos e tarefas mostravam 'há NaN dias' porque a data era gravada de dois jeitos diferentes: de um jeito quando a pessoa escreve pelo app, de outro quando quem escreve é a rotina automática. Agora o app entende os dois."},{t:"c",h:"A lista também estava fora de ordem",d:"O mesmo defeito estava calado na ordenação: como a conta do tempo não fechava, a lista simplesmente não se ordenava. Agora ordena."}]},
+  {v:"v200", data:"30/07/2026", tit:"Cada Dashboard mostra só os números da própria empresa", itens:[{t:"c",h:"Apareciam números de outra empresa",d:"Nos cards <b>Vendas do dia</b> e <b>Evolução das vendas</b>, cada Dashboard passou a mostrar só a empresa em que o app está."},{t:"n",h:"Resultado do mês também nos Postos Full",d:"O card que já existia na Conveniência chegou ao Dashboard dos postos."},{t:"n",h:"O administrador põe os cards na ordem que quiser",d:"Nos dois Dashboards dá para subir e descer cada card. Card novo entra no fim da lista — nunca desaparece."}]},
+  {v:"v199", data:"30/07/2026", tit:"O Dashboard da Conveniência para de mostrar os postos", itens:[{t:"c",h:"As vendas do dia traziam junto o bloco dos postos",d:"No Dashboard da <b>Full Conveniência</b> o card <b>Vendas do dia</b> passou a mostrar só as três lojas."},{t:"c",h:"O seletor da Evolução das vendas oferecia posto",d:"Na Conveniência ele passou a listar só as conveniências."}]},
+  {v:"v198", data:"30/07/2026", tit:"A Full Conveniência ganha Dashboard próprio", itens:[{t:"n",h:"Oito cards, e a loja passa a abrir neles",d:"O Dashboard da <b>Full Conveniência</b> nasceu com vendas do dia, resultado do mês, despesas contra a média, evolução das vendas, caixas, categorias, comparação das três lojas e iFood."},{t:"m",h:"O menu 🧾 Caixas virou um card do Dashboard",d:"Ele deixou de ser um botão na barra: os indicadores de caixa passaram a ficar dentro do Dashboard, junto dos outros números do mês."}]},
+  {v:"v197", data:"30/07/2026", tit:"Fim da diferença do lucro líquido entre duas telas", itens:[{t:"c",h:"As duas telas davam lucro líquido diferente",d:"O <b>Resultado do mês</b> e o <b>Resultado do período</b> passaram a ler o mesmo relatório. Não era erro de conta — despesas, outras receitas e variação de estoque batiam ao centavo. Eram duas fotografias do mesmo relatório tiradas em horas diferentes do mesmo dia, com o dia ainda aberto."},{t:"c",h:"O lucro positivo saía numa cor alaranjada",d:"Lucro líquido positivo passou a aparecer em verde de verdade."}]},
+  {v:"v196", data:"30/07/2026", tit:"Hora certa no APP Infleet, no iFood e no Resumo do dia", itens:[{t:"c",h:"As três telas mostravam 3 horas a mais",d:"A hora vinha no fuso de fora e aparecia adiantada. Agora é a hora daqui."}]},
+  {v:"v195", data:"30/07/2026", tit:"Nasce o menu 🍔 iFood na Full Conveniência", itens:[{t:"n",h:"Atalho para o Portal do Parceiro",d:"Logo no começo do menu, um botão abre o portal do iFood direto e outro copia o endereço — igual ao que já era feito com o APP Infleet na Transportadora."},{t:"n",h:"Vendas, faturamento e repasses na mesma tela",d:"Pedidos e valor do dia, de 7 e de 30 dias com a comparação com o período anterior, o faturamento do mês depois das taxas e a lista de repasses com a data em que o dinheiro cai. A tela fecha com a conta: de cada R$ 100 vendidos, <b>R$ 12,22 ficaram com o iFood</b>."},{t:"n",h:"Status da loja, avaliações e cancelamentos",d:"Mostra se a loja está aberta agora, quantas horas ficou aberta na semana contra as 20h recomendadas, a nota da loja e a taxa de cancelamento contra a meta de 5%. Na primeira leitura: nota <b>5,0</b>, loja aberta 14h55 na semana e cancelamento em <b>13,04%</b>."}]},
+  {v:"v194", data:"30/07/2026", tit:"O app aponta os lançamentos fora do padrão do mês", itens:[{t:"n",h:"A despesa que destoa fica marcada",d:"No fim do <b>Resultado do mês</b> aparece a lista do que está fora do padrão, com o valor, a média dos outros meses e quanto está acima. A régua marca quando o valor passa do <b>dobro da média</b> e o excesso é de pelo menos <b>R$ 20 mil</b> — em sete meses e três postos, isso deu cinco linhas."},{t:"n",h:"Dá para ver o resultado sem eles",d:"Dois botões: <b>Tirar da conta</b> e <b>Tirar as retiradas de sócios</b>. Com um ligado, os cards de Despesas e Lucro Líquido mostram o valor ajustado e uma frase diz quanto o mês fecharia. Conferido com junho de Teresina: o mês saía de −R$ 270.155 para +R$ 11.767."},{t:"m",h:"A tabela continua mostrando como está lançado",d:"Uma nota avisa que o ajuste vale só para a leitura dos cards — a tabela de baixo mostra o que está gravado no sistema."}]},
+  {v:"v193", data:"30/07/2026", tit:"A Prazo sai da Conveniência e o Resultado do mês diz a fonte", itens:[{t:"c",h:"A loja não vende a prazo",d:"A aba <b>📄 A Prazo</b> deixou de aparecer na <b>Full Conveniência</b>, que ficou com quatro abas."},{t:"m",h:"Cada aba diz o período que está mostrando",d:"O <b>Resultado do mês</b> passou a imprimir o próprio período e de onde vem o número, porque ele pode cobrir mais dias que as abas de caixa, equipe e combustíveis."}]},
+  {v:"v192", data:"30/07/2026", tit:"Um menu só chamado 📑 Relatórios, com as 10 abas", itens:[{t:"m",h:"Dois menus muito parecidos viraram um",d:"O <b>Relatórios do posto</b> e o <b>Relatórios Petros</b> se juntaram num menu só, com as <b>10 abas</b> na mesma barra (cinco na Conveniência). Quem já tinha permissão em qualquer um dos dois continuou vendo."},{t:"n",h:"O administrador ordena as abas",d:"Botão <b>⚙️ Ordenar abas</b> na própria barra, com setas e volta à ordem original. Aba nova entra no fim da lista, nunca some."},{t:"c",h:"A variação de estoque estava escrita em litros",d:"O número sempre foi em reais, mas a tela escrevia L. Em Teresina eram <b>−R$ 8.970</b> sendo lidos como litros. Agora aparece em R$, no card, na tabela e no alerta, com o valor por litro ao lado."}]},
+  {v:"v191", data:"30/07/2026", tit:"Seis relatórios do sistema entram no app", itens:[{t:"n",h:"Um menu novo com Mapa Anual, Despesas, Tanques e mais",d:"Chegaram <b>🗺️ Mapa Anual</b>, <b>📊 Resultado do período</b>, <b>💸 Despesas</b>, <b>🛢️ Tanques</b>, <b>🙋 Colaboradores</b> e <b>📄 A Prazo</b>, com filtro de unidade e de período. Foi o primeiro passo: na versão seguinte esse menu se juntou ao Relatórios do posto."}]},
+  {v:"v190", data:"29/07/2026", tit:"Sai o botão Ordem original do app da ordenação dos menus", itens:[{t:"m",h:"Um ponto de retorno só",d:"No quadro de ordem dos menus sobraram dois botões. Foi pedido dele: a ordem guardada como padrão passa a ser o único lugar para onde voltar caso algo saia do lugar."}]},
+  {v:"v189", data:"29/07/2026", tit:"Botão Definir ordem padrão na ordenação dos menus", itens:[{t:"n",h:"Guardar a ordem atual como referência",d:"No <b>Painel Administrativo → 🔄 Ordem dos menus</b>, o <b>⭐ Definir ordem padrão</b> guarda a ordem que está na tela e o <b>↩ Voltar ao padrão</b> a devolve na hora, sem recarregar a página. O texto abaixo dos botões muda conforme já exista ou não um padrão guardado."}]},
+  {v:"v188", data:"29/07/2026", tit:"Você mesmo reordena os menus da barra lateral", itens:[{t:"n",h:"Ordem dos menus na barra lateral",d:"Quadro novo no <b>Painel Administrativo</b>: escolhe a empresa, sobe e desce os menus com as setas, e a mudança chega em todo mundo sem publicar versão nova. Só o administrador vê. Menu criado depois entra no fim da lista, nunca some."},{t:"m",h:"Caixas e Despesas também na Full Conveniência",d:"Os dois menus valiam só nos Postos Full. Agora mostram os números da loja quando o app está na Conveniência, com os títulos e o seletor falando em lojas em vez de postos."},{t:"m",h:"O quadro de quem pode enviar avisos mudou de lugar",d:"Ele tinha ido para <b>Configurações</b> na versão anterior e voltou para o <b>Painel Administrativo</b>, junto dos outros controles de permissão. Quem já estava marcado continuou marcado."}]},
+  {v:"v187", data:"29/07/2026", tit:"Escolher quem pode enviar avisos e tarefas", itens:[{t:"n",h:"Quadro novo para liberar o envio",d:"Dá para liberar <b>por perfil de acesso</b> — marcando o perfil, todo mundo dele passa a poder — e <b>pessoa por pessoa</b>, com três opções: seguir o perfil, pode enviar, não pode. Só o administrador vê o quadro."},{t:"c",h:"Só dava para liberar quem estivesse online",d:"A permissão já existia, mas a caixinha só aparecia dentro da lista de quem estava logado naquele instante. Por isso ninguém tinha: era preciso pegar a pessoa conectada no mesmo momento. Agora todos os funcionários aparecem na lista."}]},
+  {v:"v186", data:"29/07/2026", tit:"As barras dos gráficos voltam a aparecer no Chrome", itens:[{t:"c",h:"As barras estavam invisíveis para quem usa modo escuro",d:"Nos menus <b>🧾 Caixas</b> e <b>💸 Despesas</b> os gráficos apareciam vazios em quem tem o modo escuro forçado do Chrome ligado — o navegador apagava a cor de fundo das barras. Elas passaram a ser pintadas de um jeito que ele não apaga."}]},
+  {v:"v185", data:"29/07/2026", tit:"Nascem os menus 🧾 Caixas e 💸 Despesas mês a mês", itens:[{t:"n",h:"Caixas: quanto tempo cada posto leva para confirmar",d:"Três cartões, um por posto, com o tempo médio de confirmação em destaque, % de caixas fechados, % confirmados, sobra, falta e a diferença entre falta e sobra. Tem o gráfico comparando com o mês anterior e uma faixa somando a rede. Mês ainda em andamento vem com aviso, porque aí o % de confirmados é naturalmente menor."},{t:"n",h:"Despesas: o ano inteiro por tipo de gasto",d:"Filtros de ano, posto e retiradas de sócios (incluir ou tirar da conta), tabela dos <b>25 maiores tipos</b> e um aviso automático quando um mês está fora do padrão, explicando em uma frase por que ele engana a leitura do resultado."}]},
+  {v:"v184", data:"28/07/2026", tit:"Volta o menu Produtos e categorias, apagado sem querer", itens:[{t:"c",h:"Uma publicação por cima apagou as telas novas",d:"As duas listas e a aba de comparação de <b>Produtos e categorias</b>, publicadas poucos minutos antes, sumiram: outra publicação do mesmo dia subiu uma cópia antiga do app por cima e levou junto o que tinha acabado de entrar. O acerto do gráfico de Evolução das vendas continuou valendo, e as telas que faltavam foram repostas em cima dele — agora as duas coisas convivem."}]},
+  {v:"v183", data:"28/07/2026", tit:"Produtos e categorias mais fáceis de ler e a legenda no lugar", itens:[{t:"m",h:"Duas listas curtas no lugar do tabelão",d:"Em <b>Produtos e categorias</b>, as 32 linhas de categorias viraram <b>💰 Onde está o lucro</b> (as seis de maior lucro) e <b>⚠️ Onde a margem está baixa</b>, em barras — esta última mostrando quanto a loja deixou de ganhar. Os itens também viraram dois blocos, <b>🏆 Campeões de venda</b> e <b>⚠️ Piores margens</b>. As tabelas completas continuam, recolhidas."},{t:"n",h:"Aba ⚖️ Comparar lojas",d:"Compara a margem da mesma categoria nas três lojas, pinta de verde a que tem a melhor e ordena pelo quanto cada uma deixou de ganhar por não estar naquela margem. Clicar numa categoria da lista já abre a comparação nela."},{t:"c",h:"A legenda do gráfico ficava por cima dos números",d:"No card <b>Evolução das vendas</b>, com o comparativo com o ano passado ligado, a legenda de ano passado e ano atual se sobrepunha ao número da coluna mais alta sempre que o pico caía nos primeiros meses. Agora ela tem uma faixa só dela, no alto do gráfico."}]},
+  {v:"v182", data:"28/07/2026", tit:"O menu 💲 Cotações do Dia perde o bloco repetido", itens:[{t:"m",h:"Os mesmos preços apareciam duas vezes na tela",d:"Depois que os cartões de lançamento ficaram compactos, o bloco 📋 Resumo do dia logo abaixo virou uma cópia deles — os mesmos preços, duas vezes na mesma tela. O bloco saiu e o botão <b>📲 Enviar no WhatsApp</b>, que era a única coisa exclusiva dele, subiu para o topo, ao lado do seletor de dia. A mensagem enviada continua exatamente a mesma."}]},
+  {v:"v181", data:"28/07/2026", tit:"Cartões das Cotações do Dia com uma linha por combustível", itens:[{t:"m",h:"Cada combustível cabe numa linha só",d:"Em <b>💲 Cotações do Dia</b> cada combustível ocupava duas linhas — o nome e o campo numa, e a variação escrita por extenso embaixo ('▼ R$ 0,04 mais barato que 27/07') — e nos cartões estreitos o nome ainda quebrava em duas. Agora é <b>nome · preço · pastilha de variação</b>, tudo na mesma linha."}]},
+  {v:"v180", data:"28/07/2026", tit:"Resumo das Cotações em cartões e mensagem do WhatsApp mais curta", itens:[{t:"m",h:"O resumo ocupava tela demais",d:"O bloco de resumo das cotações tinha um vão enorme entre o nome do produto e o preço. Ele virou um cartão por distribuidora, escolha do Tiago entre três desenhos que foram mostrados lado a lado. Foi por ficar igual aos cartões de cima que esse bloco acabou saindo na versão seguinte."},{t:"m",h:"A mensagem do WhatsApp ficou mais enxuta",d:"Sem o marcador '•' e sem repetir 'R$' em cada linha — o cabeçalho já diz (R$/L) —, com o nome curto do produto (Comum, Aditivada, S10) e a variação colada no preço."}]},
+  {v:"v179", data:"28/07/2026", tit:"Nome completo e CPF do motorista viram cadastro de verdade", itens:[{t:"n",h:"Nome completo e CPF agora ficam guardados",d:"Em <b>Configurações → Motoristas e caminhões</b> entraram os campos <b>Nome completo</b> e <b>CPF</b>: no cadastro, como colunas da lista e dentro do ✏️ Editar. E no <b>📝 Pedido de carregamento</b>, digitar esses campos já grava no cadastro assim que você sai do campo — não precisa mais enviar o pedido para ficar guardado."},{t:"c",h:"O pedido saía com o CPF do motorista anterior",d:"Trocar para um motorista que ainda não tinha CPF ou placa cadastrados mantinha os dados de quem estava antes — e o pedido ia para o grupo com o CPF de outra pessoa. Agora a troca substitui tudo."},{t:"m",h:"O CPF entra sozinho no formato certo",d:"Digita-se só os números e sai 000.000.000-00, tanto no pedido quanto no cadastro. Assim o mesmo CPF não fica guardado de dois jeitos diferentes."}]},
+  {v:"v178", data:"28/07/2026", tit:"Os filtros do Dashboard vão para dentro do card a que pertencem", itens:[{t:"m",h:"A barra de filtros dizia valer para a tela toda",d:"Data inicial, data final, posto, forma e combustível ficavam no alto do <b>Dashboard</b>, mas mexiam só no card <b>Evolução de preços e margens</b>. Agora a barra fica dentro desse card, com a nota 'Os filtros abaixo valem só para os gráficos deste bloco'. Em <b>Lançamentos</b> ela continua no topo da página, como sempre foi."}]},
+  {v:"v177", data:"28/07/2026", tit:"O Comparativo de Preços entra no menu 💲 Cotações do Dia", itens:[{t:"m",h:"Não precisa mais digitar os preços duas vezes",d:"O menu 🚛 Comparativo de Preços deixou de existir sozinho: virou a seção <b>🚛 Onde compensa comprar</b>, dentro de <b>💲 Cotações do Dia</b>. As cotações já chegam ali, digitadas pela equipe ou puxadas pelas rotinas — no menu antigo era preciso digitar tudo de novo."},{t:"n",h:"Onde compensa comprar, em três blocos",d:"Os litros de cada combustível do pedido, o frete por distribuidora (já preenchido com o padrão das Configurações) e o resultado: a melhor opção, a economia em R$ e em %, o ranking em barras, quem ficou de fora e o detalhe produto a produto. Dá para compartilhar como imagem."},{t:"m",h:"A Vibra e a Podium ficam fora da comparação",d:"A Vibra é exclusiva do Posto Full Teresina e a Gasolina Podium é produto dela: as duas continuam aparecendo nos cartões e na mensagem do WhatsApp, mas não entram no ranking, que serve para as compras de Dutra e Caxias."}]},
+  {v:"v176", data:"27/07/2026", tit:"Escolher o caminhão já abre os compartimentos do tanque", itens:[{t:"n",h:"Caminhão e tanque viraram lista",d:"No <b>📝 Pedido de carregamento</b> o caminhão passou a ser escolhido numa lista e, ao escolher, o tanque de sempre dele já vem marcado — e continua trocável. 'Cavalo' virou 'Caminhão', decisão do Tiago."},{t:"n",h:"Os compartimentos abrem prontos, com os litros",d:"O tanque do Marcone tem 7 compartimentos (1 de 7.000 + 6 de 5.000 = 37.000 L) e o do Clécio tem 8 (2 de 10.000 + 6 de 5.000 = 50.000 L). Cada um abre com os litros já preenchidos e dá para baixar num carregamento parcial; você só diz o produto. Compartimento sem produto não entra na mensagem, e o cabeçalho mostra '3 de 8 com produto escolhido'."},{t:"n",h:"Cadastro de caminhões e tanques nas Configurações",d:"Em <b>Configurações → Caminhões e tanques</b>, só na Full Transportadora: a placa do caminhão, o tanque de sempre e os compartimentos escritos separados por vírgula. Na primeira vez o app monta a frota sozinho a partir dos motoristas já cadastrados."}]},
+  {v:"v175", data:"27/07/2026", tit:"Coluna Viagens no card dos motoristas das 🚚 Puxadas", itens:[{t:"n",h:"Puxadas não é a mesma coisa que viagens",d:"Um CT-e é emitido por destinatário e por remetente, então uma viagem só podia virar duas puxadas e dar a impressão de que o motorista foi duas vezes. O card <b>Volume por motorista</b> ganhou a coluna <b>Viagens</b> ao lado de <b>Puxadas</b>. A regra é: mesmo dia, mesmo motorista e mesmo endereço de entrega = uma viagem."},{t:"m",h:"A conta fecha com a capacidade do tanque",d:"Nos dados reais de julho, toda viagem soma exatamente o tanque do motorista — 50.000 L do Clécio Jean e 37.000 L do Marcones, sem sobra. As duas causas da nota dobrada: carregar em duas distribuidoras para o mesmo cliente, e descarregar no mesmo endereço para duas empresas (o Posto Full Caxias e a Discar ficam no mesmo prédio)."}]},
+  {v:"v174", data:"27/07/2026", tit:"O rodapé da 🧠 Análise cita a fonte certa de cada empresa", itens:[{t:"c",h:"O rodapé mandava conferir no lugar errado",d:"Ele dizia 'confira no Petros' em todas as empresas. Na <b>Full Transportadora</b> os números não vêm de lá: agora o rodapé manda conferir <b>no Infleet e nos CT-e</b>."}]},
+  {v:"v173", data:"27/07/2026", tit:"A 🧠 Análise diz de qual empresa é e entra na Transportadora", itens:[{t:"c",h:"Dava para confundir o posto com a loja da mesma cidade",d:"A pastilha trazia só a cidade e o título dizia apenas 'Análise' — mas em cada cidade existem quatro empresas do grupo, e ninguém sabia se 'Teresina' era o posto ou a conveniência. Agora o título diz <b>🧠 Análise — Postos Full</b>, <b>Full Conveniência</b> ou <b>Full Transportadora</b>, e a unidade aparece sempre por extenso."},{t:"n",h:"A Análise passa a existir na Transportadora",d:"Antes ela só valia para os postos e para as conveniências."}]},
+  {v:"v172", data:"27/07/2026", tit:"Menu novo 🧠 Análise: a leitura dos números escrita de manhã", itens:[{t:"n",h:"Uma leitura dos números do dia, em português",d:"O menu <b>🧠 Análise</b> traz um resumo em texto, cartões de achado (⚠️ atenção, ✅ bom, 👀 de olho), uma caixa 'O que vale conferir' e um seletor para reler as análises de dias anteriores. O rodapé diz quem escreveu, quando, e que aquilo é uma leitura, não um laudo."},{t:"m",h:"Quando ainda não há análise, a tela explica",d:"Em vez de um painel em branco, aparece um aviso dizendo que a análise é escrita de manhã."},{t:"c",h:"O botão do menu ficava aceso depois de trocar de tela",d:"Os botões de Relatórios do posto, Produtos e categorias e Análise continuavam realçados na barra lateral mesmo depois de você abrir outro menu."}]},
+  {v:"v171", data:"27/07/2026", tit:"Duas coisas que não apareciam direito na tela", itens:[{t:"c",h:"As barras do ranking de frentistas não apareciam",d:"Em <b>📑 Relatórios do posto → Equipe e movimento</b> a barra de cada frentista ficava sempre com largura zero, ou seja, invisível. Agora ela desenha do tamanho certo."},{t:"c",h:"O selo da empresa sumia no tema escuro",d:"Em <b>📁 Documentos</b>, o selo 🏢 com o nome da empresa ficava ilegível no tema escuro: o texto era quase da mesma cor do fundo da pastilha."}]},
+  {v:"v170", data:"27/07/2026", tit:"Saem os menus Vendas e Margem da Loja e Compras e Fornecedores", itens:[{t:"m",h:"Duas telas de digitação à mão saíram do app",d:"Elas exigiam lançar item a item o que a loja vendeu e nota a nota o que ela comprou — ninguém ia fazer isso, e ficaram paradas. O lado das vendas já vem pronto no menu <b>🍫 Produtos e categorias</b>, sem digitação. <b>Nada foi apagado:</b> o que já tinha sido lançado continua guardado."},{t:"m",h:"A Conveniência abre em Produtos e categorias",d:"Era o antigo Vendas e Margem da Loja que abria primeiro na Full Conveniência."}]},
+  {v:"v169", data:"27/07/2026", tit:"As tabelas dos relatórios voltam a aparecer", itens:[{t:"c",h:"Tabela guardada em bloco ficava vazia na tela",d:"As tabelas de <b>📑 Relatórios do posto</b> e de <b>🍫 Produtos e categorias</b> — frentistas, movimento por hora, combustíveis, categorias e itens — são guardadas na nuvem num bloco só de texto, e o app não sabia abrir esse bloco. Agora ele abre e desenha as linhas."}]},
+  {v:"v168", data:"27/07/2026", tit:"Menus novos 📑 Relatórios do posto e 🍫 Produtos e categorias", itens:[{t:"n",h:"O mês do posto inteiro, sem digitar nada",d:"O menu <b>📑 Relatórios do posto</b> tem seletor de posto e de mês e quatro abas: <b>Resultado</b> (volume, faturamento, lucro bruto, despesas, lucro líquido e variação de estoque, com o valor por litro), <b>Caixa</b> (sobra, falta, % de caixas fechados e confirmados, tempo de confirmação, aferições), <b>Equipe e movimento</b> (ranking de frentistas e abastecimentos por hora) e <b>Combustíveis</b> (litros, % do volume, lucro bruto e R$/L de cada produto)."},{t:"n",h:"O que dá dinheiro na conveniência",d:"O menu <b>🍫 Produtos e categorias</b> mostra faturamento, custo, lucro bruto, margem, ticket médio e mix da loja, os itens que mais vendem e o resultado por categoria, com escolha de conveniência, mês e ordenação."},{t:"m",h:"Os números vêm do Petros, mês a mês",d:"Entrou de uma vez o histórico de janeiro a julho de 2026 nas três unidades de cada empresa."}]},
+  {v:"v167", data:"27/07/2026", tit:"O botão ⭐ Usar como padrão volta para a linha dos filtros", itens:[{t:"m",h:"O botão caía sozinho para a linha de baixo",d:"No card <b>📈 Evolução das vendas</b> do Dashboard, a empresa, o período, a caixinha de comparar e o botão <b>⭐ Usar como padrão</b> voltaram a ficar na mesma linha, cada um com a largura de que precisa."}]},
+  {v:"v166", data:"27/07/2026", tit:"Campo Empresa nos 📁 Documentos e a visão 🏢 Por empresa", itens:[{t:"n",h:"Agora dá para saber de qual empresa é cada papel",d:"O menu <b>📁 Documentos</b> só separava por unidade (Teresina, Caxias, Dutra, Full Transportadora e Outros) — e em cada cidade existem quatro empresas do grupo. Entrou o campo <b>Empresa</b>, com as 13 empresas, no formulário do documento e na barra de envio de arquivo; escolher a empresa já preenche a unidade."},{t:"n",h:"Visão 🏢 Por empresa",d:"Uma nova forma de ver a lista, agrupada por empresa, com razão social e CNPJ no cabeçalho de cada grupo. Cada item ganhou um selo 🏢 verde, e a busca passou a achar também por empresa, razão social e CNPJ."}]},
+  {v:"v165", data:"27/07/2026", tit:"Janelinha com os números no gráfico 📈 Evolução das vendas", itens:[{t:"n",h:"Toque num mês e veja os números por extenso",d:"No card <b>📈 Evolução das vendas</b> do Dashboard, passar o mouse — ou tocar, no celular — em cima de um mês abre uma janelinha com o valor daquele mês, o mesmo mês do ano passado e o mês anterior, cada um com a diferença em litros ou em reais <b>e</b> em porcentagem. Linha sem dado guardado simplesmente não aparece."}]},
+  {v:"v164", data:"27/07/2026", tit:"Comparar cada mês com o mesmo mês do ano passado", itens:[{t:"n",h:"Uma caixinha liga o comparativo",d:"No card <b>📈 Evolução das vendas</b>, marcar 'comparar com o ano passado' desenha duas barras por mês — cinza o ano passado, laranja o ano atual — e a diferença em % embaixo de cada mês, verde quando sobe e vermelho quando desce."},{t:"n",h:"Quadro 'Contra o ano passado'",d:"Entrou junto dos outros números abaixo do gráfico. Ele conta só os meses fechados: o mês em andamento fica de fora para não distorcer a comparação."}]},
+  {v:"v163", data:"27/07/2026", tit:"Card novo 📈 Evolução das vendas no Dashboard", itens:[{t:"n",h:"A venda mês a mês, em barras",d:"Novo card no <b>Dashboard</b>, logo acima de Evolução de preços e margens. Nos postos ele mostra <b>litros vendidos</b>; nas conveniências, <b>faturamento</b>. Dá para escolher entre as seis empresas do grupo e o período de 3, 6 ou 12 meses. O mês em andamento aparece com a barra mais clara, marcado como parcial."},{t:"n",h:"⭐ Usar como padrão",d:"O botão guarda a empresa e o período que você prefere, e é assim que o card abre da próxima vez."}]},
+  {v:"v162", data:"26/07/2026", tit:"O Dashboard abre sem nenhum gráfico marcado", itens:[{t:"m",h:"A tela abre limpa e você escolhe o que ver",d:"No card <b>Evolução de preços e margens</b> a opção 'Evolução do preço de compra' já vinha marcada. Agora nenhuma das três vem marcada, e o app pede para marcar ao menos um gráfico."}]},
+  {v:"v161", data:"26/07/2026", tit:"O pedido acompanha na hora a mudança das distribuidoras", itens:[{t:"c",h:"Era preciso sair e voltar para ver a lista nova",d:"Cadastrando ou apagando uma distribuidora nas <b>Configurações</b> com o <b>📝 Pedido de carregamento</b> aberto, a lista do pedido só mudava depois de fechar e abrir a tela. Agora ela se atualiza sozinha. É o fim do acerto começado nas duas versões anteriores."}]},
+  {v:"v160", data:"26/07/2026", tit:"As distribuidoras do pedido são só as cadastradas nas Configurações", itens:[{t:"m",h:"Uma lista só, sem nome órfão",d:"Continuando a v159: o que fosse digitado no pedido virava distribuidora nova e sobrava um nome que ninguém conseguia apagar. Agora vale só o cadastro das <b>Configurações</b> — o mesmo que as Cotações e as Puxadas usam — e saíram as quatro sugestões fixas que vinham de fábrica."}]},
+  {v:"v159", data:"26/07/2026", tit:"Companhia vira Distribuidora no 📝 Pedido de carregamento", itens:[{t:"m",h:"O campo passa a se chamar Distribuidora",d:"O nome mudou no formulário e também na mensagem que vai para o grupo dos motoristas, que agora sai 'Distribuidora: PETROBAHIA'. E a sugestão do campo passou a vir da lista de distribuidoras já cadastrada nas <b>Configurações</b>, em vez de uma lista separada só do pedido."}]},
+  {v:"v158", data:"26/07/2026", tit:"Botões + e − de 5.000 litros no pedido", itens:[{t:"n",h:"Um toque soma ou tira 5.000 litros",d:"Cada linha de produto do <b>📝 Pedido de carregamento</b> ganhou os botões − e +, que mexem de 5.000 em 5.000 litros, que é o tamanho do compartimento. O número nunca fica negativo, e continua dando para digitar à mão."}]},
+  {v:"v157", data:"26/07/2026", tit:"Nome completo do motorista no pedido", itens:[{t:"n",h:"Campo Nome completo do motorista",d:"O <b>📝 Pedido de carregamento</b> ganhou um campo próprio para o nome como ele vai escrito no pedido. Escolher o motorista já traz esse nome, e o que for digitado fica guardado no cadastro dele."}]},
+  {v:"v156", data:"26/07/2026", tit:"Menu novo 📝 Pedido de carregamento na Transportadora", itens:[{t:"n",h:"O pedido deixa de ser digitado à mão no grupo",d:"O que hoje é escrito na mão no grupo dos motoristas passa a ser preenchido em formulário na <b>Full Transportadora</b>: motorista, CPF, placas do caminhão e do tanque, hora do carregamento, companhia e base; depois o cliente e os produtos com os litros de cada compartimento. Dá para pôr mais de um destino no mesmo pedido."},{t:"n",h:"A mensagem sai pronta, do jeito de sempre",d:"O app monta o texto igualzinho ao que eles mandam hoje e você escolhe: <b>🖼️ Enviar como imagem</b> (cartão com a logo da Full), 📲 enviar como texto, 📋 copiar ou 🧹 limpar."},{t:"m",h:"Escolher o motorista já preenche o resto",d:"O CPF e as placas vêm do cadastro dele; escolher o cliente traz o CNPJ sozinho. Os produtos são Gasolina Comum, Gasolina Aditivada, Etanol, Diesel S-10 e Diesel S-500."}]},
+  {v:"v155", data:"26/07/2026", tit:"O cartão do Resumo do dia perde os cantos arredondados", itens:[{t:"c",h:"Sobrava branco nas pontas da imagem",d:"A imagem do <b>📊 Resumo do dia</b> saía com os cantos redondos e, ao ser enviada, apareciam quatro pontas brancas em volta. Agora o cartão é reto."}]},
+  {v:"v154", data:"26/07/2026", tit:"Resumo do dia em imagem para mandar no WhatsApp", itens:[{t:"n",h:"Botão 🖼️ Enviar como imagem",d:"O <b>📊 Resumo do dia</b> passou a montar um cartão claro com a logo, a tabela de litros por posto, a de faturamento por conveniência e o acumulado do mês no rodapé. No celular ele abre direto o compartilhamento; no computador, baixa a imagem."}]},
+  {v:"v153", data:"26/07/2026", tit:"O R$ sai das linhas e vai para o título da seção", itens:[{t:"m",h:"Menos repetição na mensagem das conveniências",d:"Fechando o acerto da mensagem do WhatsApp começado na v148: o 'R$' deixou de aparecer em cada linha. Agora o título já diz <b>🛒 Conveniências (faturamento em R$)</b> e as linhas trazem só o número. Foi a opção escolhida pelo Tiago."}]},
+  {v:"v152", data:"26/07/2026", tit:"R$ e centavos alinhados na mensagem do WhatsApp", itens:[{t:"m",h:"As casas decimais passam a bater umas com as outras",d:"Continuando a v151, agora quem manda no alinhamento é o <b>número</b>: o 'R$' fica numa coluna fixa e os centavos batem mesmo quando um valor tem um dígito a mais que o outro. No acumulado do mês, em que uma linha é em litros e a outra em reais, alinhar não ajudava — voltou a ser linha simples."}]},
+  {v:"v151", data:"26/07/2026", tit:"A prévia da mensagem passa a usar fonte de largura fixa", itens:[{t:"m",h:"A prévia mostra a mensagem como ela vai chegar",d:"Na tela do <b>📊 Resumo do dia</b> a prévia usava a fonte normal, então as colunas pareciam tortas mesmo estando certas. Agora ela usa uma fonte de largura fixa, igual à do WhatsApp — e as marcas de bloco somem da prévia, para não confundir quem lê."}]},
+  {v:"v150", data:"26/07/2026", tit:"A mensagem alinha de verdade e 'Pres. Dutra' vira 'Dutra'", itens:[{t:"m",h:"As colunas passam a ficar alinhadas mesmo",d:"Continuando a v149: os números da mensagem passaram a ir dentro de um bloco de largura fixa, que é o único jeito de o WhatsApp manter uma coluna embaixo da outra. O cabeçalho também encurtou, para '📊 Vendas de sábado, 25/07/2026'."},{t:"m",h:"'Pres. Dutra' aparece como 'Dutra'",d:"É o nome que vem do sistema; na tela e na mensagem ele passa a sair curto, do jeito que o pessoal fala."},{t:"c",h:"A tabela estreita insistia em ficar larga",d:"Uma regra geral de largura mínima vencia o ajuste da versão anterior e as tabelas do Resumo do dia voltavam a se esticar de ponta a ponta."}]},
+  {v:"v149", data:"26/07/2026", tit:"As colunas do Resumo do dia ficam mais juntas", itens:[{t:"m",h:"Nome e número deixam de ficar em pontas opostas",d:"As tabelas de litros e de faturamento do <b>📊 Resumo do dia</b> se esticavam de ponta a ponta da tela. Agora elas têm largura própria, com as duas colunas coladas uma na outra — pedido do Tiago."}]},
+  {v:"v148", data:"26/07/2026", tit:"Resumo do dia: colunas alinhadas e 'Loja' vira 'Conveniência'", itens:[{t:"m",h:"As duas colunas ganham largura fixa",d:"Nas tabelas do <b>📊 Resumo do dia</b> o número foi para a direita e as colunas pararam de mudar de tamanho conforme o nome de cada unidade."},{t:"m",h:"'Loja' passa a se chamar 'Conveniência'",d:"Na tabela da tela, na mensagem do WhatsApp e nos quadrinhos do mês."},{t:"m",h:"O acumulado do mês diz de quem é cada número",d:"Os quadrinhos viraram <b>Postos no mês</b> e <b>Conveniências no mês</b>, e na mensagem o 'No mês até aqui' passou a ter uma linha para cada um, em vez de tudo junto."}]},
+  {v:"v147", data:"26/07/2026", tit:"Menu novo 📊 Resumo do dia, com a mensagem pronta do WhatsApp", itens:[{t:"n",h:"As vendas de ontem numa tela só",d:"O menu <b>📊 Resumo do dia</b> mostra os litros vendidos por posto e o faturamento de cada conveniência do dia anterior, mais o acumulado do mês. O seletor de dia abre em ontem e dá para voltar em qualquer data."},{t:"n",h:"A mensagem para o grupo sai pronta",d:"A tela monta a prévia do texto e traz os botões de enviar no WhatsApp e de copiar. Foi um pedido do Tiago: toda manhã, as vendas do dia anterior de todos os postos e conveniências no grupo da rede."}]},
+  {v:"v146", data:"26/07/2026", tit:"O APP Infleet vira o primeiro menu da Transportadora", itens:[{t:"m",h:"A tela que mais se usa fica na frente",d:"Na <b>Full Transportadora</b> o <b>📡 APP Infleet</b> passou a ser o primeiro menu da barra. Veio logo depois da versão anterior, que já fez a empresa abrir nessa tela."}]},
+  {v:"v145", data:"26/07/2026", tit:"A Full Transportadora passa a abrir no APP Infleet", itens:[{t:"m",h:"O app já abre na tela da frota",d:"Ao entrar na <b>Full Transportadora</b>, o app vai direto para o <b>📡 APP Infleet</b>. Antes ele abria no Comparativo de Preços, que continua sendo a tela de abertura de quem não tem acesso ao Infleet."}]},
+  {v:"v144", data:"26/07/2026", tit:"Atalho para o Bsoft CT-e dentro do menu Puxadas", itens:[{t:"n",h:"Abrir o Bsoft CT-e sem procurar o endereço",d:"No topo de <b>🚚 Puxadas</b> entrou o bloco <b>🖥 Bsoft CT-e</b>, com os botões <b>🔗 Abrir o Bsoft CT-e</b> e <b>📋 Copiar o endereço</b>. É o sistema onde os CT-e são emitidos — ele se chamava HiveCloud, mudou de nome e continua no mesmo endereço."},{t:"m",h:"Os dois atalhos passam a funcionar igual",d:"O atalho do Bsoft e o do <b>📡 APP Infleet</b> passaram a usar o mesmo jeito de abrir o site e de copiar o endereço, então se comportam da mesma forma nas duas telas."}]},
+  {v:"v143", data:"26/07/2026", tit:"Correção: o painel do APP Infleet ficava aberto por cima", itens:[{t:"c",h:"Duas telas apareciam ao mesmo tempo",d:"Quem estava no <b>📡 APP Infleet</b> e clicava em outro menu via as duas telas juntas. A tela nova não tinha entrado na lista de painéis que o app fecha quando você troca de menu."}]},
+  {v:"v142", data:"26/07/2026", tit:"Infleet: o Arla sai da conta do combustível e o mês ganha totais", itens:[{t:"m",h:"Arla 32 em coluna separada",d:"No <b>📡 APP Infleet</b> o Arla 32 deixou de entrar no preço por litro e na média de km/L, porque não é combustível. Ele passou a ter colunas próprias de litros e de gasto no resumo por caminhão."},{t:"n",h:"Os totais do mês e a troca de mês",d:"Entraram os quadrinhos <b>Gasto no mês</b>, <b>Gasto comb.</b>, <b>Gasto Arla</b> e a média de km/L, com botões para ir e voltar de mês."},{t:"n",h:"Aviso de caminhão sem sinal",d:"Caminhão que fica <b>6 horas ou mais</b> sem mandar posição nova aparece com o aviso de sem sinal (em horas, e em dias quando passa de dois) e com a linha marcada de vermelho. Antes a posição velha parecia atual."}]},
+  {v:"v141", data:"26/07/2026", tit:"O APP Infleet ganha os dados: frota agora e abastecimentos", itens:[{t:"n",h:"Onde cada caminhão está, sem sair do app",d:"O menu <b>📡 APP Infleet</b> passou a mostrar, por caminhão: apelido e placa, motorista, se está ligado e a que velocidade, o endereço, a hora da última posição e o odômetro."},{t:"n",h:"Os abastecimentos do mês",d:"Entrou a lista de abastecimentos com data, caminhão, motorista, combustível, litros, valor e km/L, mais o resumo por caminhão. Na primeira carga vieram <b>3 caminhões</b> e <b>87 abastecimentos</b> de 05/05 a 20/07."}]},
+  {v:"v140", data:"25/07/2026", tit:"Nasce o menu 📡 APP Infleet na Full Transportadora", itens:[{t:"n",h:"Um atalho para o Infleet dentro do app",d:"Na <b>Full Transportadora</b> entrou o menu <b>📡 APP Infleet</b>, com os botões <b>🔗 Abrir o APP Infleet</b> e <b>📋 Copiar o endereço</b>. Enquanto não houver dados salvos, a tela avisa que ainda não há dados do Infleet no app."}]},
+  {v:"v139", data:"25/07/2026", tit:"O sino para de cair para a linha de baixo na Conveniência", itens:[{t:"c",h:"O cabeçalho ficava mais alto só numa empresa",d:"Em telas médias (celular dobrável aberto, tablet ou janela estreita) a logo comprida da <b>Full Conveniência</b> não cabia ao lado do sino, e o sino descia uma linha — o cabeçalho ficava cerca de 50 px mais alto. Agora o sino fica sempre na mesma linha e a logo encolhe sozinha quando falta espaço."}]},
+  {v:"v138", data:"25/07/2026", tit:"A palavra FULL fica do mesmo tamanho nas três logos", itens:[{t:"c",h:"Trocar de empresa mudava o tamanho da marca",d:"Cada uma das três logomarcas traz a palavra <b>FULL</b> numa proporção diferente dentro do próprio arquivo. Com a mesma altura de imagem, a palavra saía maior numa empresa e menor na outra. Agora o tamanho é calculado a partir da palavra FULL, e o cabeçalho não pula ao trocar de empresa."}]},
+  {v:"v137", data:"25/07/2026", tit:"Concluir tarefa com comprovante e observação", itens:[{t:"n",h:"Anexar foto ou documento ao concluir",d:"Na <b>Caixa de entrada</b>, ao concluir uma tarefa dá para anexar uma foto ou um documento e escrever no campo <b>Conte como foi</b>. O anexo fica guardado junto com a tarefa."},{t:"n",h:"Tarefa que exige comprovante",d:"Quem envia pode marcar <b>📎 Exigir comprovante</b>. A tarefa só fecha com pelo menos um arquivo anexado, e a pessoa vê esse aviso na hora de concluir."}]},
+  {v:"v136", data:"25/07/2026", tit:"Sai o nome antigo Controle de Margens da aba e dos PDFs", itens:[{t:"m",h:"O app se chama Postos Full em todo lugar",d:"A aba do navegador passou a mostrar só <b>Postos Full</b>, e o cabeçalho dos PDFs deixou de trazer o nome antigo — no relatório de combustíveis ele virou <b>Lançamentos — Combustíveis</b>. É a continuação da limpeza começada na versão anterior, na tela de entrada."}]},
+  {v:"v135", data:"25/07/2026", tit:"A tela de entrada perde o título Controle de Margens", itens:[{t:"m",h:"Só a logomarca na tela de entrar",d:"O texto <b>Controle de Margens</b>, nome antigo do app, saiu da tela de login. Ficou só a logomarca."}]},
+  {v:"v134", data:"25/07/2026", tit:"Nasce a Full Conveniência, a terceira empresa do app", itens:[{t:"n",h:"Uma empresa nova no seletor do topo",d:"Ao lado de <b>Postos Full</b> e <b>Full Transportadora</b> entrou a <b>Full Conveniência</b>, com menus próprios da loja."},{t:"n",h:"Vendas e Margem da Loja",d:"Tela nova para as vendas da loja, com produto, quantidade, hora, categoria e unidade, e a <b>margem em %</b> a partir do custo e do preço de venda."},{t:"n",h:"Compras e Fornecedores",d:"Tela nova das compras da loja: data, fornecedor, nota, categoria, vencimento e o botão para marcar como <b>pago</b>. Mostra o total do período e quanto cada fornecedor representa nele."}]},
+  {v:"v133", data:"24/07/2026", tit:"Vencimentos e Arquivos viram um menu só: Documentos", itens:[{t:"m",h:"Uma tela só para tudo que é papel",d:"Os menus <b>Vencimentos</b> e <b>Arquivos</b> viraram o menu único <b>Documentos</b>: o que vence continua em grupos por prazo, e o <b>📄 Tudo</b> mostra os arquivos guardados, agrupados por unidade."},{t:"n",h:"Busca e um grupo para o que não vence",d:"Dá para procurar pelo nome do documento, e o que não tem data de validade fica no grupo <b>Sem vencimento</b>, em vez de ficar de fora da lista."}]},
+  {v:"v132", data:"24/07/2026", tit:"As tarefas concluídas viram um histórico que não some", itens:[{t:"m",h:"O que foi concluído fica guardado",d:"Em <b>Notificações</b>, a lista <b>Concluídos</b> passou a mostrar tudo o que já foi marcado como feito, e não só o que ainda estava na agenda. A lista rola dentro do próprio quadro."},{t:"n",h:"Busca no que já foi feito, e quem concluiu",d:"Entrou o campo <b>🔎 Buscar tarefa concluída</b>, e cada linha passou a mostrar quem concluiu. O botão <b>↩ Reabrir</b> continua trazendo o item de volta para os pendentes."}]},
+  {v:"v131", data:"24/07/2026", tit:"O Diesel S500 some da cotação da Vibra", itens:[{t:"c",h:"Aparecia um preço que não serve para nada",d:"Em <b>Cotações do Dia</b>, o Diesel S500 deixou de aparecer nas linhas da <b>Vibra</b>: ela só abastece Teresina, e Teresina não vende S500."}]},
+  {v:"v130", data:"23/07/2026", tit:"Fica só o botão Abrir nos arquivos e nos anexos", itens:[{t:"m",h:"Um botão a menos na linha",d:"O botão <b>Baixar</b>, criado na versão anterior, saiu dos arquivos e dos anexos de documento. Ficou só o <b>Abrir</b>."}]},
+  {v:"v129", data:"23/07/2026", tit:"Correção: o anexo dava erro ao abrir", itens:[{t:"c",h:"O Ver arquivo respondia erro de acesso",d:"O app guardava o endereço do arquivo de quando ele foi enviado, e esse endereço deixava de valer com o tempo — dava erro 403. Agora ele pede um endereço novo na hora de abrir."},{t:"n",h:"Botão Baixar",d:"Entrou o <b>⬇️ Baixar</b> ao lado do Abrir, nos arquivos e nos anexos de documento. Ele foi retirado na versão seguinte."}]},
+  {v:"v128", data:"23/07/2026", tit:"Anexo de arquivo nos vencimentos e o menu Arquivos", itens:[{t:"n",h:"O documento vem junto com a data",d:"Cada vencimento passou a aceitar um anexo — <b>PDF ou imagem, até 20 MB</b> — e ganha o link <b>📎 Ver arquivo</b> na lista."},{t:"n",h:"Menu Arquivos por unidade",d:"Entrou o menu <b>Arquivos (Licenças e Contratos)</b>, com os arquivos agrupados por unidade e mostrando o tipo e o tamanho de cada um."},{t:"m",h:"Quem pode mexer",d:"A permissão passou a se chamar <b>Pode criar e editar eventos, vencimentos e arquivos</b>. O administrador sempre pode."}]},
+  {v:"v127", data:"23/07/2026", tit:"Central de Vencimentos de documentos e licenças", itens:[{t:"n",h:"Uma tela para tudo que tem prazo",d:"Entrou a <b>Central de Vencimentos</b>: alvará, licença ambiental, certificado do Corpo de Bombeiros, certificado digital, CNH e o que mais tiver data. Cada documento tem categoria, unidade e vencimento, e a lista separa os <b>vencidos</b>, os que <b>vencem em breve</b> e os que estão <b>em dia</b>, com a contagem em cada grupo."},{t:"m",h:"O vencimento avisa como um evento",d:"Os documentos usam a mesma antecedência de aviso criada na versão anterior, então aparecem no sino e no calendário junto com os outros compromissos."}]},
+  {v:"v126", data:"23/07/2026", tit:"Cada evento escolhe com quantos dias avisar", itens:[{t:"n",h:"Avisar com antecedência",d:"No <b>📅 Calendário</b>, ao criar ou editar um evento dá para dizer quantos dias antes ele deve avisar. Quem tem aviso marcado mostra uma etiqueta com o número de dias na lista."}]},
+  {v:"v125", data:"23/07/2026", tit:"Calendário próprio: dá para criar evento dentro do app", itens:[{t:"n",h:"Novo evento, sem passar pela agenda do Google",d:"O <b>📅 Calendário</b> passou a aceitar evento criado no próprio app: nome, unidade, observação e a opção de <b>Repetir</b>, com uma data de até quando repetir."},{t:"n",h:"Importar o que já está na agenda",d:"O botão <b>⬇️ Importar eventos do Google</b> traz para dentro do app os eventos das agendas que já eram lidas."},{t:"m",h:"Quem pode criar",d:"Entrou a permissão <b>Pode criar e editar eventos do calendário</b>. O administrador sempre pode."}]},
+  {v:"v124", data:"23/07/2026", tit:"Exceção de notificações para uma pessoa só", itens:[{t:"n",h:"Seguir o perfil ou escolher à mão",d:"No quadro de acessos de cada funcionário, as notificações passaram a ter duas opções: <b>Seguir o perfil</b> ou <b>Escolher manualmente</b>. A escolha manual vale só para aquela pessoa e ignora o perfil dela."}]},
+  {v:"v123", data:"23/07/2026", tit:"Notificações escolhidas por perfil de acesso", itens:[{t:"n",h:"Cada perfil vê os avisos que interessam a ele",d:"No <b>Painel Administrativo</b>, além dos menus, o perfil de acesso passou a escolher <b>quais notificações ele vê</b>, por origem — a agenda de cada posto e a da Transportadora."}]},
+  {v:"v122", data:"23/07/2026", tit:"Descontos ganha o cartão Consolidado no Mês", itens:[{t:"n",h:"O total do período em um cartão só",d:"Em <b>Descontos</b> entrou o <b>Consolidado no Mês</b>, com <b>Desconto total</b>, <b>Volume total</b>, <b>Desconto médio por litro</b> e o número de lançamentos, dentro do período escolhido em De e Até."},{t:"m",h:"Aberto por unidade e por cliente",d:"Abaixo dos números vêm as quebras <b>Por unidade</b> e <b>Por cliente</b>, cada uma com litros, lançamentos e valor. Ao filtrar por um cliente, a quebra por cliente sai da tela."}]},
+  {v:"v121", data:"23/07/2026", tit:"Painel Administrativo: perfis em caixa e quem está online", itens:[{t:"m",h:"O perfil vira uma escolha, não uma lista aberta",d:"Os perfis de acesso passaram a ser escolhidos numa caixa, e o quadro edita um perfil por vez, em vez de mostrar todos abertos na mesma rolagem."},{t:"n",h:"Online agora e usuários offline",d:"O painel separou quem está <b>online agora</b> de quem está <b>offline</b>, e para quem está fora mostra o último acesso — ou avisa que a pessoa nunca acessou o app."}]},
+  {v:"v120", data:"23/07/2026", tit:"Acessos por funcionário e o que cada um fez no app", itens:[{t:"n",h:"Escolher a pessoa e marcar os menus dela",d:"No <b>Painel Administrativo</b> entrou o quadro <b>Acessos aos menus</b>: escolhe-se o funcionário e diz-se se ele segue um perfil ou se os menus são marcados um a um. A tela resume o que ele está vendo e avisa que a mudança vale quando a pessoa recarregar o app."},{t:"n",h:"Atividades por funcionário",d:"Entrou o quadro <b>Atividades por funcionário</b>, com o que cada pessoa fez no app, e os botões <b>Desfazer</b> (quando dá para reverter) e <b>Excluir</b>."}]},
+  {v:"v119", data:"23/07/2026", tit:"Exportar PDF vira texto de verdade em todos os menus", itens:[{t:"m",h:"Dá para selecionar e copiar de dentro do PDF",d:"O <b>Exportar PDF</b> deixou de ser uma foto da tela: as tabelas viram tabelas de verdade e os cartões viram texto, em todos os menus. Antes só o Dashboard saía assim."},{t:"c",h:"Some o rabisco no lugar dos emojis",d:"Emojis e símbolos que a fonte do PDF não sabe desenhar saíam impressos como lixo no meio da frase. Agora eles são retirados do texto antes de gerar o arquivo."}]},
+  {v:"v118", data:"23/07/2026", tit:"O PDF para de cortar gráfico e tabela ao meio", itens:[{t:"c",h:"A quebra de página respeita o bloco inteiro",d:"A página do PDF passou a quebrar só no fim de um bloco inteiro — cartão, linha de tabela, parágrafo — e nunca dentro de um gráfico ou de uma imagem."},{t:"m",h:"O Dashboard sai em texto e desenho",d:"O Dashboard passou a ser exportado em texto e vetor, e a peça que faz isso passou a vir junto com o app, em vez de ser buscada fora na hora de exportar."}]},
+  {v:"v117", data:"23/07/2026", tit:"📥 Caixa de entrada: avisos e tarefas para a equipe", itens:[{t:"n",h:"Mandar recado para quem está no posto",d:"Entrou a <b>Caixa de entrada</b>: dá para enviar um <b>📣 Aviso</b> (informação) ou uma <b>✅ Tarefa</b>, para todos ou escolhendo as pessoas. A lista separa <b>Pendentes</b> de <b>Concluídos</b> e avisa quando não há nada pendente."},{t:"n",h:"Quem pode enviar",d:"No Painel Administrativo apareceu a caixinha <b>Pode enviar avisos/tarefas</b> por pessoa. O administrador sempre pode."}]},
+  {v:"v116", data:"23/07/2026", tit:"O Painel Administrativo mostra quem está online", itens:[{t:"n",h:"Quem está usando o app agora",d:"O <b>Painel Administrativo</b> passou a mostrar quantas pessoas estão <b>online agora</b> e, para cada uma, há quanto tempo foi vista — ou que ela nunca entrou."}]},
+  {v:"v115", data:"23/07/2026", tit:"Descontos com clientes salvos por posto", itens:[{t:"n",h:"Escolher o cliente numa lista, sem digitar",d:"No lançamento de desconto, o cliente passou a vir de uma lista salva por posto. Quem ainda não está na lista entra pela opção de novo cliente, ali mesmo."},{t:"n",h:"Os clientes se organizam em Configurações",d:"Entrou o quadro <b>Clientes (Descontos)</b> em <b>Configurações</b>: escolhe-se a unidade e dá para <b>Adicionar cliente</b>, <b>✏️ Editar</b> o nome e remover, com confirmação antes de apagar."}]},
+  /* 🔴 v292 - o registro para aqui, e para de proposito: o repositorio comeca numa copia
+     do app JA' PRONTO (a v113/v114 subiram como "Add files via upload", sem historia).
+     Da v115 em diante cada versao tem commit descrito, e e' por isso que a lista comeca ali. */
 ];
 const NVD_TAGS = { n:"Novidade", m:"Melhoria", c:"Corre\u00e7\u00e3o" };
 // v247 - o titulo de cada coluna da tela (o NVD_TAGS continua sendo a etiqueta de um item)
@@ -6405,6 +6560,193 @@ function alternarNovidades(){
   if (aberto) renderNovidades();
   agendarTrocaDeTela();
 }
+/* ===== v292 - a lista por MES e por DIA, dobravel, com busca ======================
+   O menu passou de 62 para 176 versoes (a catalogacao da v115 a v227 entrou aqui). O
+   botao "ver versoes anteriores" da v273 nao servia mais: ele so' empurrava 165 versoes
+   de uma vez para dentro da tela.
+   🔑 So' o MES nao bastaria: o app inteiro cabe em dois meses (julho tem 98 versoes e
+   agosto 78) - clicar em "julho" jogaria 98 na tela, que e' o mesmo problema. E so' o DIA
+   deixava 17 cabecalhos soltos no pe da tela. Entao sao DOIS degraus:
+   mes fechado -> clicou, aparecem os DIAS fechados -> clicou no dia, aparecem as versoes.
+   Regras que ficam:
+   - 🔴 o que esta' fechado NAO e' desenhado, so' o cabecalho. Mes fechado nao tem nem os
+     dias dentro. O HTML das 176 versoes so' nasce se pedirem;
+   - os dias mais recentes ja' vem abertos ate' cobrir NVD_ABERTAS_MIN versoes, e o mes que
+     tem dia aberto nasce aberto junto;
+   - 🔴 nada que a pessoa ainda NAO leu nasce fechado - nem o dia, nem o mes. E a regra da
+     v273 aplicada aos dois degraus;
+   - a busca varre numero, titulo e texto, sem acento e sem as marcas de HTML, e desliga o
+     agrupamento enquanto durar. */
+const NVD_MESES = ["janeiro","fevereiro","mar\u00e7o","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+/* 🔑 Quanto ja' vem aberto. Com 10, o dia 07/08 (16 versoes) entrava junto com o 08/08 e a
+   tela abria com 23 versoes esticadas antes da primeira faixa de dia. Com 5, abre o dia mais
+   recente e para - e o numero existe (em vez de "abre 1 dia") para o caso do dia fraco: dia
+   de uma ou duas versoes abre o seguinte junto, senao a tela abriria quase vazia. */
+const NVD_ABERTAS_MIN = 5;
+let nvdBusca = "";
+let nvdNovas = 0;   // quantas versoes eram novas para esta pessoa QUANDO ela abriu a tela
+function nvdRotuloDia(d){
+  const p = String(d || "").split("/");
+  if (p.length !== 3) return d || "sem data";
+  return (+p[0]) + " de " + (NVD_MESES[(+p[1]) - 1] || "") + " de " + p[2];
+}
+function nvdRotuloMes(d){
+  const p = String(d || "").split("/");
+  if (p.length !== 3) return "";
+  const m = NVD_MESES[(+p[1]) - 1] || "";
+  return m.charAt(0).toUpperCase() + m.slice(1) + " de " + p[2];
+}
+function nvdPlural(n, um, muitos){ return n + (n === 1 ? um : muitos); }
+/* Os grupos sao feitos por data SEGUIDA - a lista ja' vem da mais nova para a mais
+   velha, entao data igual e' sempre vizinha. O indice do dia nesta lista e' o numero
+   que os botoes carregam (nvdAlternarDia). */
+function nvdGrupos(){
+  const gs = [];
+  NOVIDADES_APP.forEach((ver, i) => {
+    const ult = gs[gs.length - 1];
+    if (ult && ult.data === ver.data) ult.idx.push(i);
+    else gs.push({ data: ver.data, mes: String(ver.data || "").slice(3), idx: [i] });
+  });
+  return gs;
+}
+/* Os meses, com os dias dentro. Mesma ideia: mes igual e' sempre vizinho. */
+function nvdMeses(){
+  const gs = nvdGrupos(), ms = [];
+  gs.forEach((g, gi) => {
+    g.gi = gi;
+    const ult = ms[ms.length - 1];
+    if (ult && ult.mes === g.mes){ ult.dias.push(g); ult.total += g.idx.length; }
+    else ms.push({ mes: g.mes, data: g.data, dias: [g], total: g.idx.length });
+  });
+  return ms;
+}
+/* Quais dias nascem abertos - a conta e' UMA so', e o mes herda dela. */
+function nvdAberturaInicial(gs){
+  let abertas = 0;
+  return gs.map(g => {
+    const nova = g.idx[0] < nvdNovas;
+    const ab = nova || abertas < NVD_ABERTAS_MIN;
+    if (ab) abertas += g.idx.length;
+    return ab;
+  });
+}
+function nvdTextoBusca(ver){
+  if (!ver._bt){
+    const t = [ver.v, ver.tit || "", ver.data || ""]
+      .concat((ver.itens || []).map(x => x.h + " " + x.d)).join(" ");
+    ver._bt = bscSemAcento(t.replace(/<[^>]*>/g, " "));
+  }
+  return ver._bt;
+}
+/* v247 - tres colunas: o que e' NOVO, o que MELHOROU e o que foi CONSERTADO.
+   Coluna sem nenhum item nao e' desenhada - quadro vazio nao informa nada. */
+function nvdDesenhaVer(ver, i){
+  const cols = ["n","m","c"].map(t => {
+    const its = (ver.itens || []).filter(x => x.t === t);
+    if (!its.length) return "";
+    return '<div class="nvd-col ' + t + '"><span class="nvd-col-tit">' + (NVD_COLS[t] || "") + '</span>' +
+      its.map(it => '<div class="nvd-li"><span class="nvd-pt">\u2022</span><span>' +
+        '<span class="nvd-tit">' + it.h + '</span><span class="nvd-txt">' + it.d + '</span></span></div>').join("") +
+      '</div>';
+  }).join("");
+  return '<div class="nvd-ver' + (i < nvdNovas ? " nova" : "") + '">' +
+         '<div class="nvd-cab"><span class="nvd-num">' + ver.v + '</span>' +
+         (ver.tit ? '<span class="nvd-cab-tit">' + ver.tit + '</span>' : '') +
+         '<span class="nvd-data">' + (ver.data || "") + '</span>' +
+         (i === 0 ? '<span class="nvd-atualsel">Vers\u00e3o atual</span>' : '') +
+         (i < nvdNovas ? '<span class="nvd-selo">novo para voc\u00ea</span>' : '') + '</div>' +
+         '<div class="nvd-cols">' + cols + '</div></div>';
+}
+function nvdDesenhaDia(g, aberto){
+  const temNova = g.idx[0] < nvdNovas;
+  return '<div class="nvd-dia' + (aberto ? " aberto" : "") + '" id="nvdDia' + g.gi + '">' +
+      '<button type="button" class="nvd-dia-cab" onclick="nvdAlternarDia(' + g.gi + ')">' +
+        '<span class="nvd-seta">\u25b8</span>' +
+        '<span class="nvd-dia-tit">' + nvdRotuloDia(g.data) + '</span>' +
+        (temNova ? '<span class="nvd-selo">novo para voc\u00ea</span>' : '') +
+        '<span class="nvd-dia-cnt">' + nvdPlural(g.idx.length, " vers\u00e3o", " vers\u00f5es") + '</span>' +
+      '</button>' +
+      '<div class="nvd-dia-corpo" id="nvdCorpo' + g.gi + '"' + (aberto ? "" : ' style="display:none"') + '>' +
+        (aberto ? g.idx.map(i => nvdDesenhaVer(NOVIDADES_APP[i], i)).join("") : "") +
+      '</div>' +
+    '</div>';
+}
+function nvdRedesenhar(){
+  const alvo = document.getElementById("nvdLista");
+  if (!alvo) return;
+  if (nvdBusca){
+    const termos = nvdBusca.split(/\s+/).filter(Boolean);
+    const achou = [];
+    NOVIDADES_APP.forEach((ver, i) => {
+      const t = nvdTextoBusca(ver);
+      if (termos.every(x => t.indexOf(x) >= 0)) achou.push(i);
+    });
+    alvo.innerHTML =
+      '<div class="nvd-achou"><span>' +
+        (achou.length ? nvdPlural(achou.length, " vers\u00e3o encontrada", " vers\u00f5es encontradas")
+                      : "Nenhuma vers\u00e3o fala nisso") +
+      '</span><button type="button" class="nvd-limpar" onclick="nvdLimparBusca()">limpar a busca</button></div>' +
+      achou.map(i => nvdDesenhaVer(NOVIDADES_APP[i], i)).join("");
+    return;
+  }
+  const ms = nvdMeses();
+  const abre = nvdAberturaInicial(nvdGrupos());
+  alvo.innerHTML = ms.map((m, mi) => {
+    const aberto = m.dias.some(g => abre[g.gi]);
+    const temNova = m.dias[0].idx[0] < nvdNovas;
+    return '<div class="nvd-mesbloco' + (aberto ? " aberto" : "") + '" id="nvdMes' + mi + '">' +
+        '<button type="button" class="nvd-mes-cab" onclick="nvdAlternarMes(' + mi + ')">' +
+          '<span class="nvd-seta">\u25b8</span>' +
+          '<span class="nvd-mes-tit">' + nvdRotuloMes(m.data) + '</span>' +
+          (temNova ? '<span class="nvd-selo">novo para voc\u00ea</span>' : '') +
+          '<span class="nvd-mes-cnt">' + nvdPlural(m.total, " vers\u00e3o", " vers\u00f5es") +
+            " \u00b7 " + nvdPlural(m.dias.length, " dia", " dias") + '</span>' +
+        '</button>' +
+        '<div class="nvd-mes-corpo" id="nvdCorpoMes' + mi + '"' + (aberto ? "" : ' style="display:none"') + '>' +
+          (aberto ? m.dias.map(g => nvdDesenhaDia(g, abre[g.gi])).join("") : "") +
+        '</div>' +
+      '</div>';
+  }).join("");
+}
+/* Mes fechado nasce sem os dias dentro: eles sao desenhados na primeira vez que se abre.
+   Dia dentro de mes que estava fechado nasce FECHADO - se algum devesse estar aberto, o
+   mes nao estaria fechado. */
+function nvdAlternarMes(mi){
+  const cx = document.getElementById("nvdMes" + mi), corpo = document.getElementById("nvdCorpoMes" + mi);
+  if (!cx || !corpo) return;
+  const abrir = !cx.classList.contains("aberto");
+  if (abrir && !corpo.innerHTML){
+    const m = nvdMeses()[mi];
+    if (m) corpo.innerHTML = m.dias.map(g => nvdDesenhaDia(g, false)).join("");
+  }
+  cx.classList.toggle("aberto", abrir);
+  corpo.style.display = abrir ? "" : "none";
+}
+function nvdAlternarDia(gi){
+  const cx = document.getElementById("nvdDia" + gi), corpo = document.getElementById("nvdCorpo" + gi);
+  if (!cx || !corpo) return;
+  const abrir = !cx.classList.contains("aberto");
+  if (abrir && !corpo.innerHTML){
+    const g = nvdGrupos()[gi];
+    if (g) corpo.innerHTML = g.idx.map(i => nvdDesenhaVer(NOVIDADES_APP[i], i)).join("");
+  }
+  cx.classList.toggle("aberto", abrir);
+  corpo.style.display = abrir ? "" : "none";
+}
+function nvdDigitouBusca(v){
+  nvdBusca = bscSemAcento(v).trim();
+  nvdRedesenhar();
+}
+function nvdLimparBusca(){
+  const c = document.getElementById("nvdCampoBusca");
+  if (c) c.value = "";
+  nvdBusca = "";
+  nvdRedesenhar();
+  if (c) c.focus();
+}
+/* 🔴 renderNovidades GRAVA a versao lida. Quem redesenha (busca, abrir e fechar) chama
+   nvdRedesenhar, que NAO toca no localStorage - senao nvdNovas viraria 0 na segunda tecla
+   digitada e o destaque verde sumiria no meio do uso. */
 function renderNovidades(){
   const alvo = document.getElementById("nvdLista");
   if (!alvo) return;
@@ -6412,54 +6754,17 @@ function renderNovidades(){
   if (at) at.textContent = "Voc\u00ea est\u00e1 usando a " + nvdVersaoApp();
   const lida = nvdLida();
   const corte = lida ? NOVIDADES_APP.findIndex(x => x.v === lida) : 1;
-  const novas = corte < 0 ? 1 : corte;
-  /* v273 - a lista so' cresce; desenhar 40+ versoes de uma vez vira rolagem sem fim.
-     Mostra as MAIS_RECENTES primeiras e guarda o resto atras de um botao.
-     🔑 Nunca esconder uma versao que a pessoa ainda nao leu: o limite e' o maior
-     entre MAIS_RECENTES e a quantidade de novidades novas para ela. */
-  const MAIS_RECENTES = 10;
-  const limite = Math.max(MAIS_RECENTES, novas);
-  const desenhar = (ver, i) => {
-    /* v247 - tres colunas: o que e' NOVO, o que MELHOROU e o que foi CONSERTADO.
-       Coluna sem nenhum item nao e' desenhada - quadro vazio nao informa nada. */
-    const cols = ["n","m","c"].map(t => {
-      const its = (ver.itens || []).filter(x => x.t === t);
-      if (!its.length) return "";
-      return '<div class="nvd-col ' + t + '"><span class="nvd-col-tit">' + (NVD_COLS[t] || "") + '</span>' +
-        its.map(it => '<div class="nvd-li"><span class="nvd-pt">\u2022</span><span>' +
-          '<span class="nvd-tit">' + it.h + '</span><span class="nvd-txt">' + it.d + '</span></span></div>').join("") +
-        '</div>';
-    }).join("");
-    return '<div class="nvd-ver' + (i < novas ? " nova" : "") + '">' +
-           '<div class="nvd-cab"><span class="nvd-num">' + ver.v + '</span>' +
-           (ver.tit ? '<span class="nvd-cab-tit">' + ver.tit + '</span>' : '') +
-           '<span class="nvd-data">' + (ver.data || "") + '</span>' +
-           (i === 0 ? '<span class="nvd-atualsel">Vers\u00e3o atual</span>' : '') +
-           (i < novas ? '<span class="nvd-selo">novo para voc\u00ea</span>' : '') + '</div>' +
-           '<div class="nvd-cols">' + cols + '</div></div>';
-  };
-  const recentes = NOVIDADES_APP.slice(0, limite);
-  const antigas  = NOVIDADES_APP.slice(limite);
-  alvo.innerHTML =
-    recentes.map(desenhar).join("") +
-    (antigas.length
-      ? '<div id="nvdAntigas" style="display:none;flex-direction:column;gap:14px">' +
-          antigas.map((v, i) => desenhar(v, limite + i)).join("") +
-        '</div>' +
-        '<button type="button" class="nvd-mais" id="nvdBtnMais" onclick="nvdMostrarAntigas()">' +
-          'Ver vers\u00f5es anteriores (' + antigas.length + ')' +
-        '</button>'
-      : "");
+  nvdNovas = corte < 0 ? 1 : corte;
+  const cnt = document.getElementById("nvdConta");
+  const ultima = NOVIDADES_APP[NOVIDADES_APP.length - 1];
+  if (cnt) cnt.textContent = "S\u00e3o " + NOVIDADES_APP.length + " vers\u00f5es aqui, desde " + ((ultima && ultima.data) || "") + ".";
+  nvdBusca = "";
+  const c = document.getElementById("nvdCampoBusca");
+  if (c) c.value = "";
+  nvdRedesenhar();
   // abriu = leu: o aviso some agora, nao na proxima vez que a pagina carregar
   try { localStorage.setItem(CHAVE_NVD_LIDA, nvdVersaoApp()); } catch(e){}
   atualizarBadgeNovidades();
-}
-/* v273 - abre as versoes antigas e some com o proprio botao (nao ha por que fechar de novo) */
-function nvdMostrarAntigas(){
-  const bloco = document.getElementById("nvdAntigas");
-  const bt = document.getElementById("nvdBtnMais");
-  if (bloco) bloco.style.display = "flex";
-  if (bt) bt.remove();
 }
 /* ===== v248 - o app diz o que esta acontecendo ====================================
    Quatro pecas pequenas, todas da varredura do Concept Hub. Elas existem para acabar com
