@@ -6206,7 +6206,7 @@ function persistirListas(){
 const NOVIDADES_APP = [
   {v:"v292", data:"08/08/2026", tit:"O menu Novidades ganhou o histórico inteiro do app", itens:[
     {t:"n", h:"176 versões, da v115 até hoje", d:"Faltavam <b>113 versões</b> aqui dentro: tudo o que mudou entre 23 de julho e 3 de agosto nunca tinha sido contado nesta tela. Entrou tudo, uma entrada por versão. Antes da v115 não há registro — o app já existia pronto quando o histórico começou a ser guardado."},
-    {t:"n", h:"A lista agora abre por mês e por dia", d:"No fim da tela ficam os meses fechados (<b>Julho de 2026 · 98 versões em 9 dias</b>). Você clica no mês e ele mostra os dias; clica no dia e ele mostra as versões daquele dia. Os dias mais recentes já vêm abertos, e <b>nada que você ainda não leu nasce fechado</b>."},
+    {t:"n", h:"A lista agora abre por mês e por dia", d:"No fim da tela ficam os meses fechados (<b>Julho de 2026 · 98 versões em 9 dias</b>). Você clica no mês e ele mostra os dias; clica no dia e ele mostra as versões daquele dia. O dia mais recente já vem aberto, e <b>nada que você ainda não leu nasce fechado</b>."},
     {t:"n", h:"Campo de busca", d:"Procure por palavra — <i>tanque</i>, <i>desconto</i>, <i>iFood</i>, <i>WhatsApp</i> — ou pelo número da versão (<i>v250</i>), e a tela mostra só as versões que falam daquilo. A busca não liga para acento."}
   ]},
   {v:"v291", data:"08/08/2026", tit:"O aviso de versão nova aparecia duas vezes — agora aparece uma", itens:[
@@ -6578,7 +6578,11 @@ function alternarNovidades(){
    - a busca varre numero, titulo e texto, sem acento e sem as marcas de HTML, e desliga o
      agrupamento enquanto durar. */
 const NVD_MESES = ["janeiro","fevereiro","mar\u00e7o","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
-const NVD_ABERTAS_MIN = 10;
+/* 🔑 Quanto ja' vem aberto. Com 10, o dia 07/08 (16 versoes) entrava junto com o 08/08 e a
+   tela abria com 23 versoes esticadas antes da primeira faixa de dia. Com 5, abre o dia mais
+   recente e para - e o numero existe (em vez de "abre 1 dia") para o caso do dia fraco: dia
+   de uma ou duas versoes abre o seguinte junto, senao a tela abriria quase vazia. */
+const NVD_ABERTAS_MIN = 5;
 let nvdBusca = "";
 let nvdNovas = 0;   // quantas versoes eram novas para esta pessoa QUANDO ela abriu a tela
 function nvdRotuloDia(d){
