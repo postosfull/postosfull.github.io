@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v294 — Postos Full (não é o app)</title>
+<title>PRÉVIA v295 — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -6217,6 +6217,12 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v295", data:"08/08/2026", tit:"Caminhão sem sinal não diz mais \"Ligado\" — e o motivo foi medido", itens:[
+    {t:"c", h:"A Oroch aparecia como 🟢 Ligado · 6 km/h estando parada", d:"Na tabela do menu <b>APP Infleet</b> ela dizia <b>Ligado · 6 km/h</b> e, na coluna ao lado, <b>sem sinal há 14h</b> — duas coisas que não podem ser verdade juntas. Agora quem está sem sinal mostra <b>só ⚠️ sem sinal</b>."},
+    {t:"n", h:"O motivo, medido em 3.164 posições", d:"Não é rastreador ligado antes da chave: <b>189 de 1.000</b> posições da Oroch vêm com a ignição <b>desligada</b>, então ele sabe dizer. O que acontece é que <b>o rastreador para de transmitir com o carro andando</b>: nas cinco pausas de mais de 1 hora entre 24/07 e 08/08, <b>quatro</b> congelaram em movimento (11, 6, 9 e 17 km/h). O <b>6 km/h</b> era coincidência de duas delas."},
+    {t:"m", h:"A tabela e o mapa agora respondem juntos", d:"A situação de cada caminhão passou a ser decidida em <b>um lugar só</b> do código, usado pela tabela e pelo mapa. É a mesma classificação que o <b>Dashboard</b> já usava (Na estrada · Parados · Sem sinal)."},
+    {t:"m", h:"E a tela explica o que aconteceu", d:"Embaixo da tabela: <i>a última posição é a foto do instante em que o rastreador parou de falar, não o estado agora</i>. Campo em branco faria você achar que o app perdeu a informação — ela não se perdeu, ela deixou de valer."}
+  ]},
   {v:"v294", data:"08/08/2026", tit:"O aviso de versão nova ficava preso na tela — corrigido", itens:[
     {t:"c", h:"A barra laranja não saía mais", d:"Depois de publicar a v293, a faixa <b>⏳ Trazendo a versão nova…</b> ficava na tela sem nunca terminar, mesmo com o app já atualizado e o mapa novo funcionando. <b>Não era o seu navegador nem a sua internet.</b>"},
     {t:"c", h:"O motivo, em uma frase", d:"O app descobre qual versão ele é lendo a <b>primeira entrada desta lista</b>. A v293 foi publicada sem a entrada dela aqui — então o app se achava v292, via a v293 publicada e ficava esperando um arquivo que, na conta dele, nunca chegava."},
@@ -14355,6 +14361,29 @@ let _mapaInf = null, _marcasInf = [];
    se as duas discordarem, a pessoa acredita na que estiver mais perto do olho.
    ⚠️ E "var(--verde)" NÃO serve para "bom": ele é o LARANJA da marca (#FE7030).
    O verde de "bom" no projeto é o #18a558. */
+/* 🔴 A SITUAÇÃO DE UM CAMINHÃO SE DECIDE AQUI, E SÓ AQUI — a tabela e o mapa
+   chamam esta função. Duas telas respondendo a mesma pergunta com dois códigos é
+   como elas voltam a discordar.
+
+   🔴 E A REGRA MAIS IMPORTANTE DELA: SEM SINAL VEM ANTES DE TUDO.
+   Posição velha não diz o que o caminhão está fazendo agora — diz o que ele
+   estava fazendo no instante em que o rastreador parou de falar. Medido em 08/08
+   na Oroch (3.164 posições): das cinco pausas de mais de 1 h do período, QUATRO
+   congelaram com o carro ANDANDO (11, 6, 9 e 17 km/h, ignição ligada). Era por
+   isso que a tela dizia "🟢 Ligado · 6 km/h" embaixo de "sem sinal há 14h" —
+   duas coisas que não podem ser verdade juntas.
+   ⚠️ NÃO é rastreador ligado antes da chave: 189 de 1.000 posições da Oroch vêm
+   com ignição DESLIGADA. E 6.000002184 não é valor travado, é 6 km/h (a API
+   multiplica por 1,000000364). Isto está medido, não suposto. */
+function infSituacao(v){
+  const hs = horasSemSinalInf(v.quando);
+  const sumido = (hs !== null && hs >= INF_HORAS_SEM_SINAL);
+  if (sumido) return { sumido:true, horas:hs, texto:"⚠️ sem sinal", curto:"⚠️ sem sinal há " + textoTempoInf(hs) };
+  const vel = (+v.velocidade > 1) ? (fmtBR(+v.velocidade,0) + " km/h") : null;
+  if (v.ligado) return { sumido:false, horas:hs, texto:"🟢 Ligado" + (vel ? " · " + vel : ""), curto:"🟢 Ligado" + (vel ? " · " + vel : "") };
+  return { sumido:false, horas:hs, texto:"⚪ Desligado", curto:"⚪ Desligado" };
+}
+
 function _corInf(v){
   const hs = horasSemSinalInf(v.quando);
   if (hs !== null && hs >= INF_HORAS_SEM_SINAL) return "#c0392b";   // sem sinal
@@ -14433,9 +14462,7 @@ function renderInfMapa(){
       const cor = _corInf(v);
       const hs = horasSemSinalInf(v.quando);
       const sumido = (hs !== null && hs >= INF_HORAS_SEM_SINAL);
-      const vel = (+v.velocidade > 1) ? (fmtBR(+v.velocidade,0) + " km/h") : "parado";
-      const sit = sumido ? ("⚠️ sem sinal há " + textoTempoInf(hs))
-                         : (v.ligado ? ("🟢 Ligado · " + vel) : "⚪ Desligado");
+      const sit = infSituacao(v).curto;
       const m = L.circleMarker([v.lat, v.lon], {
         radius: 9, color: "#fff", weight: 2, fillColor: cor, fillOpacity: 1
       }).addTo(_mapaInf);
@@ -14493,8 +14520,8 @@ function renderInfFrota(){
   }
   let h = '<div class="tabela-wrap"><table class="pux-tab pux-lista"><thead><tr><th>Caminhão</th><th>Motorista</th><th>Situação</th><th>Onde está</th><th>Última posição</th><th>Odômetro</th></tr></thead><tbody>';
   lista.forEach(v => {
-    const vel = (+v.velocidade > 1) ? (' · '+fmtBR(+v.velocidade,0)+' km/h') : '';
-    const sit = v.ligado ? ('🟢 Ligado'+vel) : '⚪ Desligado';
+    const st = infSituacao(v);
+    const sit = st.texto;
     const hs = horasSemSinalInf(v.quando);
     const sumido = (hs !== null && hs >= INF_HORAS_SEM_SINAL);
     const alerta = sumido ? ('<br><span class="inf-sumido">⚠️ sem sinal há '+textoTempoInf(hs)+'</span>') : '';
@@ -14508,6 +14535,7 @@ function renderInfFrota(){
     '</tr>';
   });
   h += '</tbody></table></div>';
+  if (lista.some(v => infSituacao(v).sumido)) h += '<p class="nota-dash">Quem está <b>sem sinal</b> não mostra ligado ou desligado: a última posição é a foto do instante em que o rastreador parou de falar, não o estado agora. A hora dessa foto está na coluna ao lado.</p>';
   if (f && f.atualizadoEm) h += '<p class="nota-dash">Atualizado em '+fmtQuandoInf(f.atualizadoEm)+'.</p>';
   box.innerHTML = h;
 }
