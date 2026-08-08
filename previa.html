@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v284 — Postos Full (não é o app)</title>
+<title>PRÉVIA v286 — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -2853,6 +2853,20 @@
   /* v284 - a conferência: selo por linha e o bloco de edição */
   .dp-selo{background:none;border:0;cursor:pointer;font-size:1.05rem;line-height:1;padding:2px 4px}
   .dp-selo:hover{transform:scale(1.15)}
+  /* v286 - O SELO VIROU BOTAO COM PALAVRA. A bolinha sozinha nao dizia que era para
+     clicar: o Tiago usou a tela por quatro versoes sem ver que ali abria alguma coisa.
+     🔑 Icone explica o ESTADO para quem ja sabe; VERBO ensina quem nao sabe. */
+  .dp-bt{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-family:inherit;
+    font-size:.82rem;font-weight:600;cursor:pointer;border-radius:8px;padding:7px 12px;
+    border:1px solid var(--verde);background:rgba(var(--verde-rgb),.12);color:var(--verde)}
+  .dp-bt:hover{filter:brightness(1.12)}
+  .dp-bt.e-pend{box-shadow:0 0 0 2px rgba(255,107,107,.25)}
+  .dp-bt.e-ok{border-color:#3FBF6F;background:rgba(63,191,111,.12);color:#2E8B57}
+  body.tema-escuro .dp-bt.e-ok{border-color:#2F6B45;color:#8FE0AE}
+  .dp-bt.e-nao{border-color:var(--borda-forte);background:var(--superficie-2);color:var(--cinza)}
+  .dp-ro{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--cinza);white-space:nowrap}
+  .dp-conf-dica{margin:10px 0 2px;font-size:.86rem;color:var(--cinza)}
+  .dp-conf-dica b{color:var(--txt)}
   tr.dp-pend td{background-image:linear-gradient(90deg,rgba(214,69,69,.13),transparent 40%)}
   tr.dp-ok td{opacity:.72}
   tr.dp-nao td{opacity:.5;text-decoration:line-through}
@@ -3103,29 +3117,19 @@
   <div class="config" id="painelDescontos">
     <div class="grupo" id="grupoDescPetros">
       <h2>📡 Do Petros — <span id="descPetDiaRotulo"></span></h2>
-      <p class="nota-dash">Os descontos que <b>o caixa registrou</b> neste dia, direto do Petros — com cupom, atendente e quem autorizou. É a lista de conferência: por enquanto ela só mostra. Descontos abaixo de <b>R$ 1,00</b> não aparecem: são arredondamento de bomba, não negociação.</p>
+      <p class="nota-dash">Os descontos que <b>o caixa registrou</b>, direto do Petros — com cupom, atendente e quem autorizou. Descontos abaixo de <b>R$ 1,00</b> não aparecem: são arredondamento de bomba, não negociação. O <b>lançamento à mão</b> saiu da tela; o histórico do que foi digitado antes continua guardado.</p>
       <div class="desc-controles">
         <label class="cot-data-lbl">Dia: <input type="date" id="descData" onchange="carregarDescontos()"></label>
       </div>
       <div class="msg-admin" id="msgDesconto"></div>
       <div id="descPetrosResumo"></div>
-      <div id="descPetrosLista"></div>
-    </div>
-    <div class="grupo">
-      <h2>Lançamentos à mão — <span id="descDiaRotulo"></span></h2>
-      <p class="nota-dash">🗄️ O lançamento à mão saiu: os descontos vêm do Petros, e é lá que eles têm de ser dados. O que aparece aqui é o <b>histórico</b> do que foi digitado antes — nada foi apagado.</p>
-      <div id="descConsolidado"></div>
-      <div id="descLista"></div>
-    </div>
-    <div class="grupo" id="grupoDescMes">
-      <h2>Consolidado no Mês</h2>
-      <p class="nota-dash">Soma os descontos de um período. Por padrão mostra o mês atual; você pode escolher outras datas e filtrar por um cliente específico (ou ver todos).</p>
       <div class="desc-mes-filtros">
-        <label class="cot-data-lbl">De: <input type="date" id="descMesIni" onchange="carregarDescontosMes()"></label>
+        <label class="cot-data-lbl">Período de: <input type="date" id="descMesIni" onchange="carregarDescontosMes()"></label>
         <label class="cot-data-lbl">Até: <input type="date" id="descMesFim" onchange="carregarDescontosMes()"></label>
         <label class="cot-data-lbl">Cliente: <select id="descMesCliente" onchange="renderDescontosMes()"></select></label>
       </div>
       <div id="descMesConsolidado"></div>
+      <div id="descPetrosLista"></div>
     </div>
   </div>
 
@@ -3989,6 +3993,7 @@ const docConvFornec = db.collection("config").doc("convFornecedores"); // fornec
 const docConvProdutos = db.collection("config").doc("convProdutos");   // produtos já vendidos por unidade (autocompletar das Vendas)
 const colEventos = db.collection("eventos");                      // eventos do calendário criados no próprio app (substituem a sincronização do Google)
 const docPermEventos = db.collection("config").doc("permissoesEventos"); // quem pode criar/editar eventos do calendário
+const docPermDescontos = db.collection("config").doc("permissoesDescontos"); // v286 - quem pode conferir desconto (dizer o motivo)
 const colDocumentos = db.collection("documentos");                // documentos/licenças com vencimento (Central de Vencimentos)
 const colArquivos = db.collection("arquivos");                    // metadados dos arquivos (licenças/contratos) guardados no Firebase Storage
 const colResumoDiario = db.collection("resumoDiario");             // um doc por dia: litros por posto + faturamento por loja
@@ -4056,6 +4061,9 @@ let escutaEventos = null;
 let permissaoEventos = {};             // emailLower -> true|false (pode criar/editar eventos do calendário)
 let permissaoEventosPerfil = {};       // v216 - perfilId -> true (o mesmo poder, pelo perfil)
 let escutaPermEventos = null;
+let permissaoDesc = {};                // v286 - emailLower -> true|false (pode conferir desconto)
+let permissaoDescPerfil = {};          // v286 - perfilId -> true (o mesmo poder, pelo perfil)
+let escutaPermDesc = null;
 let calFormAberto = false;             // form de novo/editar evento aberto?
 let editandoEvento = null;             // id do evento em edição
 let confirmarExclEvento = null, timerExclEvento = null;
@@ -5289,6 +5297,7 @@ const EMPRESAS_ADM = [
 const PODERES_ADM = [
   {k:"envio",   nome:"🔔 Enviar avisos e tarefas na Caixa de entrada"},
   {k:"eventos", nome:"📅 Criar e editar eventos, vencimentos e arquivos"},
+  {k:"descontos", nome:"✅ Conferir descontos (dizer o motivo)"},
   {k:"admin",   nome:"🛠 Administrador (vê tudo e edita permissões)"}
 ];
 let admAba = "pessoas";
@@ -5577,6 +5586,7 @@ function fichaPessoaHtml(e){
     let modoP = "perfil", vale = false, rotSim = "Pode", rotNao = "Não pode", chamada = "";
     if (pd.k === "envio"){ modoP = origemEnvioDe(e); vale = podeEnviarRecadosDe(e); chamada = "setPermEnvioModo('" + a + "', this.value)"; }
     else if (pd.k === "eventos"){ modoP = origemEventosDe(e); vale = podeGerenciarEventosDe(e); chamada = "setPermEventosModo('" + a + "', this.value)"; }
+    else if (pd.k === "descontos"){ modoP = origemDescontosDe(e); vale = podeConferirDescontosDe(e); chamada = "setPermDescontosModo('" + a + "', this.value)"; }
     else { modoP = origemPoderAdm(e); vale = ehAdminEmail(e); chamada = "setPoderAdminUsuario('" + a + "', this.value)"; rotSim = "É administrador"; rotNao = "Não é"; }
     h += '<div class="adm-pod"><span>' + pd.nome + '</span>';
     if (modoP === "admin" || (pd.k === "admin" && fixo)) h += '<span class="adm-pill sim">sempre pode (admin do app)</span>';
@@ -5747,6 +5757,7 @@ function renderEditorPerfil(){
     let on = false, chamada = "";
     if (pd.k === "envio"){ on = permissaoEnvioPerfil[id] === true; chamada = "setPermEnvioPerfil('" + aspAdm(id) + "', this.checked)"; }
     else if (pd.k === "eventos"){ on = permissaoEventosPerfil[id] === true; chamada = "setPermEventosPerfil('" + aspAdm(id) + "', this.checked)"; }
+    else if (pd.k === "descontos"){ on = permissaoDescPerfil[id] === true; chamada = "setPermDescontosPerfil('" + aspAdm(id) + "', this.checked)"; }
     else { on = !!(p.poderes && p.poderes.admin === true); chamada = "setPoderPerfil('" + aspAdm(id) + "', 'admin', this.checked)"; }
     h += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked ' : '') + 'onchange="' + chamada + '"> ' + pd.nome + '</label>';
   });
@@ -5807,10 +5818,12 @@ function renderAdmMatriz(){
     if (c.tipo === "perfil"){
       if (k === "envio") return permissaoEnvioPerfil[c.id] === true;
       if (k === "eventos") return permissaoEventosPerfil[c.id] === true;
+      if (k === "descontos") return permissaoDescPerfil[c.id] === true;
       return !!((perfisAcesso[c.id] || {}).poderes && perfisAcesso[c.id].poderes.admin === true);
     }
     if (k === "envio") return podeEnviarRecadosDe(c.id);
     if (k === "eventos") return podeGerenciarEventosDe(c.id);
+    if (k === "descontos") return podeConferirDescontosDe(c.id);
     return ehAdminEmail(c.id);
   };
   PODERES_ADM.forEach(pd => {
@@ -6151,6 +6164,13 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v286", data:"08/08/2026", tit:"Descontos: a confer\u00eancia deixou de ser adivinha\u00e7\u00e3o", itens:[
+    {t:"m", h:"O selo virou bot\u00e3o com palavra", d:"A bolinha sozinha n\u00e3o dizia que era para clicar. Agora cada linha tem um bot\u00e3o escrito: <b>Dizer o motivo</b>, ou o pr\u00f3prio <b>motivo em verde</b> quando j\u00e1 foi explicado, ou <b>N\u00e3o \u00e9 desconto</b>. A coluna Motivo do fim da linha saiu \u2014 o motivo agora se l\u00ea no come\u00e7o."},
+    {t:"n", h:"Quem pode conferir agora \u00e9 escolhido", d:"No Painel Administrativo entrou o poder <b>\u2705 Conferir descontos</b>, ao lado de \u201cenviar avisos\u201d e \u201ccriar eventos\u201d. Quem n\u00e3o tiver continua <b>vendo</b> a lista inteira, s\u00f3 que sem os bot\u00f5es."},
+    {t:"m", h:"Um cart\u00e3o s\u00f3: o dia e o per\u00edodo", d:"O <b>Consolidado no M\u00eas</b> deixou de ser um quadro separado no fim da p\u00e1gina e entrou no <b>Do Petros</b>. Em cima, o que o caixa registrou no <b>dia</b>; embaixo, o mesmo no <b>per\u00edodo</b> que voc\u00ea escolher, com filtro por cliente."},
+    {t:"m", h:"O consolidado do per\u00edodo vem do Petros", d:"Antes ele somava o que tinha sido <b>digitado</b> \u00e0 m\u00e3o, e por isso precisava de um corte em 01/07 para n\u00e3o contar a mesma venda duas vezes. Agora a fonte \u00e9 uma s\u00f3 \u2014 e o motivo escrito por voc\u00eas continua sendo lido de onde sempre esteve."},
+    {t:"m", h:"O hist\u00f3rico \u00e0 m\u00e3o saiu da tela", d:"O quadro de lan\u00e7amentos digitados n\u00e3o aparece mais. <b>Nada foi apagado</b>: os registros continuam guardados."}
+  ]},
   {v:"v285", data:"07/08/2026", tit:"Descontos: um fundo que cansa menos", itens:[
     {t:"m", h:"O quadro Consolidado do per\u00edodo mudou de cor", d:"No tema escuro ele tinha um fundo <b>marrom avermelhado</b> que cansava a vista num bloco daquele tamanho. Agora \u00e9 uma <b>ardósia fria</b>, mais calma, e s\u00f3 neste quadro \u2014 o resto do app continua igual."}
   ]},
@@ -7030,6 +7050,17 @@ function iniciarSync(){
     if (pAdm && pAdm.classList.contains("aberto")) renderAbaAdm();
   }, ()=>{});
 
+  // v286 - Quem pode conferir desconto
+  escutaPermDesc = docPermDescontos.onSnapshot(snap => {
+    const d = snap.exists ? (snap.data() || {}) : {};
+    permissaoDesc = (d && d.porUsuario) ? d.porUsuario : {};
+    permissaoDescPerfil = (d && d.porPerfil) ? d.porPerfil : {};
+    const pd2 = document.getElementById("painelDescontos");
+    if (pd2 && pd2.classList.contains("aberto")) renderDescPetros();
+    const pAdm3 = document.getElementById("painelAdmin");
+    if (pAdm3 && pAdm3.classList.contains("aberto")) renderAbaAdm();
+  }, ()=>{});
+
   // v168 - relatórios mensais vindos do Adaptive
   escutaRelPosto = colRelPosto.onSnapshot(snap => {
     const m = {}; snap.forEach(d => m[d.id] = normalizaRel(Object.assign({ id: d.id }, d.data()))); relPostos = m;
@@ -7152,7 +7183,8 @@ function iniciarSync(){
     const pdre = document.getElementById("painelDre");       // v281 - a tela da DRE le a mesma colecao
     if (pdre && pdre.classList.contains("aberto")) renderDre();
     const pdesc = document.getElementById("painelDescontos"); // v282 - a lista Do Petros idem
-    if (pdesc && pdesc.classList.contains("aberto")) renderDescPetros();
+    if (pdesc && pdesc.classList.contains("aberto")){ renderDescPetros();
+      popularSelectDescMesCliente(); renderDescontosMes(); }   // v286 - o periodo le a mesma colecao
     const pdp = document.getElementById("painelDespesas");
     if (pdp && pdp.classList.contains("aberto")) renderDespesas();
     atualizarDashConv();                                     // v198
@@ -15074,6 +15106,48 @@ function gravarPermEventos(){
 }
 function podeGerenciarEventos(){ return podeGerenciarEventosDe(usuarioAtual); }
 function setPermEventos(email, on){ setPermEventosModo(email, on ? "sim" : ""); }
+
+/* ===== v286 - QUEM PODE CONFERIR DESCONTO (dizer o motivo) =====
+   Molde igual ao de avisos e eventos: admin > exceção da pessoa > perfil > não pode.
+   🔴 ISTO TRANCA A TELA, NÃO O BANCO. As regras do Firestore continuam deixando qualquer
+      pessoa logada escrever na coleção `descontos`. Fechar lá é outra tarefa — está nas
+      pendências do projeto. Dizer que "só fulano pode" sem a regra seria falso.
+   🔑 Quem NÃO tem o poder continua vendo a lista inteira: esconder o dado não protege
+      nada e tira de todo mundo a razão de a tela existir. O que ele não vê é o BOTÃO. */
+function podeConferirDescontosDe(email){
+  email = (email||"").toLowerCase();
+  if (ehAdminEmail(email)) return true;
+  if (permissaoDesc && permissaoDesc[email] === true) return true;
+  if (permissaoDesc && permissaoDesc[email] === false) return false;
+  const p = perfilDoUsuario(email);
+  return !!(p && permissaoDescPerfil && permissaoDescPerfil[p] === true);
+}
+function origemDescontosDe(email){
+  email = (email||"").toLowerCase();
+  if (ehAdminFixo(email)) return "admin";
+  if (permissaoDesc && permissaoDesc[email] === true) return "sim";
+  if (permissaoDesc && permissaoDesc[email] === false) return "nao";
+  return "perfil";
+}
+function setPermDescontosModo(email, modo){
+  email = (email||"").toLowerCase();
+  if (!permissaoDesc) permissaoDesc = {};
+  if (modo === "sim") permissaoDesc[email] = true;
+  else if (modo === "nao") permissaoDesc[email] = false;
+  else delete permissaoDesc[email];
+  gravarPermDescontos();
+}
+function setPermDescontosPerfil(id, on){
+  if (!permissaoDescPerfil) permissaoDescPerfil = {};
+  if (on) permissaoDescPerfil[id] = true; else delete permissaoDescPerfil[id];
+  gravarPermDescontos();
+}
+function gravarPermDescontos(){
+  docPermDescontos.set({ porUsuario: permissaoDesc || {}, porPerfil: permissaoDescPerfil || {} })
+    .then(()=>{ renderAbaAdm(); renderDescPetros(); })
+    .catch(()=>{});
+}
+function podeConferirDescontos(){ return podeConferirDescontosDe(usuarioAtual); }
 function _isoDe(dt){ return dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0"); }
 function ocorrenciasEventos(){
   const out = [];
@@ -16191,6 +16265,26 @@ const DESC_PET_DIAS_PEND = 3;
 
 let descPetEditando = null;      // a chave da linha aberta, ou null
 
+/* v286 - UMA SO MONTAGEM DE LINHA, lida pelo dia E pelo periodo.
+   🔑 Duas montagens do mesmo registro se desencontram no dia em que uma posicao muda —
+   e a segunda erra CALADA, porque nenhum total denuncia. Foi o achado do odometro. */
+function descPetLinhaDe(r, nomePosto){
+  const qtd = +r[6] || 0, preco = +r[7] || 0, desc = +r[8] || 0;
+  const bruto = qtd * preco;
+  return {
+    chave: String(r[0] || ""), hora: String(r[1] || "").slice(11, 16),
+    cupom: r[2], cliente: String(r[3] || ""), generico: r[4] === "S",
+    produto: String(r[5] || ""), qtd: qtd, preco: preco, desc: desc,
+    atendente: String(r[9] || ""), porErp: String(r[10] || ""),
+    /* 🔴 Documento gravado por um coletor antigo nao tem estas posicoes. NAO se inventa:
+       sem o tipo a tela mostra tudo junto; sem o combustivel ela grava o nome do ERP. */
+    tipo: r.length > 11 ? String(r[11] || "") : "",
+    combustivel: r.length > 12 ? String(r[12] || "") : "",
+    posto: nomePosto, dia: String(r[1] || "").slice(0, 10),
+    porUnidade: preco > DESC_PET_PRECO_MAX_LITRO,
+    absurdo: bruto > 0 && desc > bruto * DESC_PET_ABSURDO
+  };
+}
 function descPetLinhas(dia){
   const mes = String(dia || "").slice(0, 7);
   if (mes.length !== 7) return [];
@@ -16200,24 +16294,39 @@ function descPetLinhas(dia){
     if (!doc) return;
     rpzLista(doc).forEach(r => {
       if (String(r[1] || "").slice(0, 10) !== dia) return;
-      const qtd = +r[6] || 0, preco = +r[7] || 0, desc = +r[8] || 0;
-      const bruto = qtd * preco;
-      saida.push({
-        chave: String(r[0] || ""), hora: String(r[1] || "").slice(11, 16),
-        cupom: r[2], cliente: String(r[3] || ""), generico: r[4] === "S",
-        produto: String(r[5] || ""), qtd: qtd, preco: preco, desc: desc,
-        atendente: String(r[9] || ""), porErp: String(r[10] || ""),
-        /* 🔴 Documento gravado por um coletor antigo nao tem estas posicoes. NAO se inventa:
-           sem o tipo a tela mostra tudo junto; sem o combustivel ela grava o nome do ERP. */
-        tipo: r.length > 11 ? String(r[11] || "") : "",
-        combustivel: r.length > 12 ? String(r[12] || "") : "",
-        posto: nomePosto, dia: dia,
-        porUnidade: preco > DESC_PET_PRECO_MAX_LITRO,
-        absurdo: bruto > 0 && desc > bruto * DESC_PET_ABSURDO
-      });
+      saida.push(descPetLinhaDe(r, nomePosto));
     });
   });
   return saida.sort((a, b) => a.hora.localeCompare(b.hora));
+}
+/* v286 - os meses que o periodo atravessa, do primeiro ao ultimo. O guarda de 120 voltas
+   existe para uma data digitada errada (ano 2202) nao virar laco infinito na tela. */
+function descPetMesesEntre(ini, fim){
+  const out = []; let a = String(ini).slice(0, 7); const b = String(fim).slice(0, 7);
+  if (a.length !== 7 || b.length !== 7) return out;
+  let volta = 0;
+  while (a <= b && volta++ < 120){
+    out.push(a);
+    let y = +a.slice(0, 4), m = +a.slice(5, 7) + 1;
+    if (m > 12){ m = 1; y++; }
+    a = y + "-" + String(m).padStart(2, "0");
+  }
+  return out;
+}
+function descPetLinhasPeriodo(ini, fim){
+  const saida = [];
+  descPetMesesEntre(ini, fim).forEach(mes => {
+    Object.keys(DESC_PET_UN).forEach(nomePosto => {
+      const doc = relPetros["descva_postos_" + DESC_PET_UN[nomePosto] + "_" + mes];
+      if (!doc) return;
+      rpzLista(doc).forEach(r => {
+        const dia = String(r[1] || "").slice(0, 10);
+        if (dia < ini || dia > fim) return;
+        saida.push(descPetLinhaDe(r, nomePosto));
+      });
+    });
+  });
+  return saida;
 }
 
 function descPetDocsDoMes(mes){
@@ -16271,6 +16380,11 @@ function descPetAbrir(chave){
 }
 
 async function descPetSalvar(chave, naoE){
+  /* v286 - a mesma pergunta na PORTA DA FRENTE e na de tras: o botao some para quem nao
+     pode, mas quem chamar a funcao pela mao tambem nao passa. 🔑 Regra que so' vale na
+     tela e regra que vai ser quebrada no dia em que alguem mexer por fora. */
+  if (!podeConferirDescontos()){
+    avisoAdmin("msgDesconto", "Você não tem permissão para conferir descontos.", "erro"); return; }
   const l = descPetLinhas(descDataSel || hojeISO()).find(x => x.chave === chave);
   if (!l) return;
   const motEl = document.getElementById("dpMotivo_" + chave);
@@ -16353,19 +16467,31 @@ function descPetOutro(chave){
   if (sel && cx) cx.hidden = (sel.value !== "__outro");
 }
 
+/* v286 - o rotulo do botao: e' ele que ensina o que fazer ali. */
+function descPetRotulo(est, c){
+  if (est === 'nao') return 'Não é desconto';
+  if (est === 'ok')  return (c && c.motivo) ? c.motivo : 'Conferido';
+  return 'Dizer o motivo';
+}
 function descPetTabela(linhas, conferivel){
+  const pode = conferivel && podeConferirDescontos();
   let h = '<div class="desc-tabela-wrap"><table class="desc-tabela"><thead><tr>' +
-    (conferivel ? '<th></th>' : '') +
+    (conferivel ? '<th>Conferência</th>' : '') +
     '<th>Hora</th><th>Posto</th><th>Cliente</th><th>Produto</th><th>Litros</th>' +
     '<th>Preço/L</th><th>Desc./L</th><th>Desconto</th><th>Cupom</th><th>Atendente</th>' +
-    (conferivel ? '<th>Quem autorizou</th><th>Motivo</th>' : '') + '</tr></thead><tbody>';
+    (conferivel ? '<th>Quem autorizou</th>' : '') + '</tr></thead><tbody>';
   linhas.forEach(l => {
     const rl = l.qtd > 0 ? l.desc / l.qtd : 0;
     const est = conferivel ? descPetEstado(l) : null;
     const c = conferivel ? descPetConfDe(l.chave) : null;
     h += '<tr class="' + (est ? 'dp-' + est : '') + '">' +
-      (conferivel ? ('<td data-lbl="Situação"><button class="dp-selo" title="' + DESC_PET_SELO[est].t +
-        '" onclick="descPetAbrir(\'' + escAspas(l.chave) + '\')">' + DESC_PET_SELO[est].i + '</button></td>') : '') +
+      (conferivel ? ('<td data-lbl="Conferência">' + (pode
+        ? ('<button class="dp-bt e-' + est + '" title="' + DESC_PET_SELO[est].t +
+           '" onclick="descPetAbrir(\'' + escAspas(l.chave) + '\')">' + DESC_PET_SELO[est].i + ' ' +
+           escAttr(descPetRotulo(est, c)) + '</button>')
+        : ('<span class="dp-ro" title="' + DESC_PET_SELO[est].t + '">' + DESC_PET_SELO[est].i + ' ' +
+           escAttr(est === 'ok' || est === 'nao' ? descPetRotulo(est, c) : 'A conferir') + '</span>')) +
+        '</td>') : '') +
       '<td data-lbl="Hora">' + escAttr(l.hora) + '</td>' +
       '<td data-lbl="Posto">' + escAttr(l.posto) + '</td>' +
       '<td data-lbl="Cliente">' + escAttr((c && c.clientePeloUsuario) ? c.cliente : l.cliente) +
@@ -16377,10 +16503,9 @@ function descPetTabela(linhas, conferivel){
       '<td data-lbl="Desconto"><b>R$ ' + fmtBR(l.desc, 2) + '</b>' + (l.absurdo ? ' <span title="Desconto acima da metade do valor da venda">⚠️</span>' : '') + '</td>' +
       '<td data-lbl="Cupom">' + escAttr(l.cupom) + '</td>' +
       '<td data-lbl="Atendente">' + escAttr(l.atendente) + '</td>' +
-      (conferivel ? ('<td data-lbl="Quem autorizou">' + (l.porErp ? escAttr(l.porErp) : '<span class="dc-vazio">—</span>') + '</td>' +
-        '<td data-lbl="Motivo">' + (c ? escAttr(c.motivo || "") : '<span class="dc-vazio">—</span>') + '</td>') : '') +
+      (conferivel ? ('<td data-lbl="Quem autorizou">' + (l.porErp ? escAttr(l.porErp) : '<span class="dc-vazio">—</span>') + '</td>') : '') +
     '</tr>';
-    if (conferivel && descPetEditando === l.chave) h += descPetEditor(l);
+    if (pode && descPetEditando === l.chave) h += descPetEditor(l);
   });
   return h + '</tbody></table></div>';
 }
@@ -16447,7 +16572,8 @@ function renderDescPetros(){
   }
 
   res.innerHTML =
-    '<div class="desc-cons"><div class="dc-tit">📡 O que o caixa registrou</div><div class="dc-grid">' +
+    /* v286 - agora sao DOIS cartoes: o titulo tem de dizer QUAL recorte cada um mostra. */
+    '<div class="desc-cons"><div class="dc-tit">📡 No dia — ' + escAttr(fmtDataCurta(dia)) + '</div><div class="dc-grid">' +
       '<div class="dc-item"><span class="dc-lbl">Desconto total</span><span class="dc-val">R$ ' + fmtBR(totDesc, 2) + '</span></div>' +
       '<div class="dc-item"><span class="dc-lbl">🤝 Negociado no balcão</span><span class="dc-val">R$ ' + fmtBR(somaM, 2) + '</span></div>' +
       '<div class="dc-item"><span class="dc-lbl">📄 Acordo do cliente</span><span class="dc-val">R$ ' + fmtBR(somaA, 2) + '</span></div>' +
@@ -16494,10 +16620,13 @@ function renderDescPetros(){
   if (conferiveis.length){
     h += '<div class="dp-tipo">🤝 Negociado no balcão <span>' + conferiveis.length +
          (conferiveis.length === 1 ? ' linha' : ' linhas') + ' · R$ ' + fmtBR(somaM + semTipo.reduce((s, l) => s + l.desc, 0), 2) +
-         ' — clique no selo para dizer o motivo' +
+         (podeConferirDescontos() ? '' : ' — somente leitura') +
          (nNovo || nPend ? ' · <b>' + (nNovo + nPend) + ' a conferir</b>' : '') +
          (nNao ? ' · ' + nNao + ' marcada(s) como não-desconto' : '') + '</span></div>' +
          (semTipo.length ? '<p class="nota-dash">ℹ️ Este mês foi coletado antes da separação entre balcão e acordo — as linhas aparecem juntas.</p>' : '') +
+         (podeConferirDescontos()
+           ? '<p class="dp-conf-dica">Clique em <b>Dizer o motivo</b> na linha para explicar por que o desconto foi dado. O que já foi explicado mostra o motivo em verde — clique de novo para trocar.</p>'
+           : '<p class="dp-conf-dica">Você vê os descontos, mas não pode dizer o motivo. Quem libera essa permissão é o administrador, no Painel Administrativo.</p>') +
          descPetTabela(conferiveis, true);
   }
   if (autos.length){
@@ -16670,6 +16799,7 @@ function carregarDescontos(){
          🔑 Defeito de CORRIDA: o dado estava certo e a tela mentia. A suite offline nao pegou
          porque o falso do Firestore respondia instantaneamente — ver a nota no stub. */
       renderDescPetros();
+      renderDescontosMes();          // v286 - o "conferidos" do periodo tambem muda
     }, () => { renderDescontos(); renderDescPetros(); });
   } catch(e){ renderDescontos(); }
 }
@@ -16846,45 +16976,95 @@ function carregarDescontosMes(){
 }
 function popularSelectDescMesCliente(){
   const sel = document.getElementById("descMesCliente"); if (!sel) return;
-  const nomes = [...new Set((descontosMes||[]).map(d => (d.cliente||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"pt-BR"));
+  /* v286 - a lista vem das linhas DO PETROS do periodo, com o nome escrito por gente
+     vencendo o do ERP quando existe. Antes ela vinha da colecao `descontos`, que agora
+     so' guarda a conferencia — o select nasceria quase vazio. */
+  const ini = descMesIniSel || primeiroDiaMesISO(), fim = descMesFimSel || hojeISO();
+  const nomes = [...new Set(descPetLinhasPeriodo(ini, fim)
+    .map(l => descPetNomeCliente(l).trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"pt-BR"));
   const atual = sel.value;
   sel.innerHTML = '<option value="">Todos os clientes</option>' + nomes.map(n => '<option value="'+escAttr(n)+'">'+escAttr(n)+'</option>').join("");
   if (atual && nomes.indexOf(atual) >= 0) sel.value = atual;
 }
+/* v286 - O CONSOLIDADO DO PERIODO PASSOU A LER O PETROS, como o do dia.
+   Antes ele somava a colecao `descontos` (o que alguem tinha DIGITADO) e por isso precisava
+   do corte por data de 01/07 para nao contar a mesma venda duas vezes. Agora a fonte e uma
+   so', e o corte deixou de existir aqui — nao por descuido, mas porque o problema saiu.
+   🔑 `descontosMes` continua sendo lido: e' dele que saem os MOTIVOS e os nomes de cliente
+   escritos por gente, que o ERP nao tem. Fonte do numero: Petros. Fonte do porque: nos. */
 function renderDescontosMes(){
   const cont = document.getElementById("descMesConsolidado"); if (!cont) return;
   const cliente = (document.getElementById("descMesCliente")||{}).value || "";
   descMesClienteSel = cliente;
-  /* 🔴 O CORTE POR DATA. Antes de DESC_CORTE_FONTE conta o lançamento à MÃO; dela em diante,
-     o PETROS. 24 das 30 vendas antigas existem nas DUAS fontes — sem isto elas seriam contadas
-     duas vezes e o mês mentiria para cima. */
-  let itens = (descontosMes||[]).filter(d => (String(d.data||"") >= DESC_CORTE_FONTE)
-    ? d.fonte === "petros" : d.fonte !== "petros");
-  if (cliente) itens = itens.filter(d => (d.cliente||"").trim() === cliente);
-  let totDesc=0, totVol=0; const porPosto={}, porCliente={};
-  itens.forEach(d => {
-    const de=(+d.desconto||0), vo=(+d.volume||0);
-    totDesc+=de; totVol+=vo;
-    const p=d.posto||"(sem posto)"; if(!porPosto[p])porPosto[p]={desc:0,vol:0,n:0}; porPosto[p].desc+=de; porPosto[p].vol+=vo; porPosto[p].n++;
-    const c=(d.cliente||"").trim()||"(sem cliente)"; if(!porCliente[c])porCliente[c]={desc:0,vol:0,n:0}; porCliente[c].desc+=de; porCliente[c].vol+=vo; porCliente[c].n++;
+  const ini = descMesIniSel || primeiroDiaMesISO(), fim = descMesFimSel || hojeISO();
+  const periodo = fmtData(ini) + " a " + fmtData(fim);
+  if (!vistoRelPetros){ cont.innerHTML = esqueletoCaixa(2); return; }
+  let linhas = descPetLinhasPeriodo(ini, fim);
+  if (cliente) linhas = linhas.filter(l => descPetNomeCliente(l).trim() === cliente);
+  if (!linhas.length){
+    cont.innerHTML = '<div class="desc-cons"><div class="dc-tit">📅 No período — ' + escAttr(periodo) +
+      (cliente ? (' · ' + escAttr(cliente)) : "") + '</div><p class="nota-dash">' +
+      (descPetMesesEntre(ini, fim).some(m => descPetDocsDoMes(m))
+        ? "Nenhum desconto acima de R$ 1,00 neste período."
+        : "O coletor ainda não gravou os descontos deste período. Isso não quer dizer que não houve desconto.") +
+      '</p></div>';
+    return;
+  }
+  let totDesc = 0, totVol = 0, somaM = 0, somaA = 0, nConf = 0, nConferivel = 0;
+  let medDesc = 0, medVol = 0, medFora = 0;
+  const porPosto = {}, porCliente = {};
+  linhas.forEach(l => {
+    totDesc += l.desc; totVol += l.qtd;
+    if (l.tipo === "A") somaA += l.desc; else somaM += l.desc;
+    if (l.tipo !== "A"){ nConferivel++; if (descPetConfPeriodo(l.chave)) nConf++; }
+    if (!l.porUnidade && !l.absurdo){ medDesc += l.desc; medVol += l.qtd; } else medFora++;
+    const p = l.posto; if (!porPosto[p]) porPosto[p] = { desc:0, vol:0, n:0 };
+    porPosto[p].desc += l.desc; porPosto[p].vol += l.qtd; porPosto[p].n++;
+    const c = descPetNomeCliente(l).trim() || "(sem cliente)";
+    if (!porCliente[c]) porCliente[c] = { desc:0, vol:0, n:0 };
+    porCliente[c].desc += l.desc; porCliente[c].vol += l.qtd; porCliente[c].n++;
   });
-  const periodo = fmtData(descMesIniSel) + " a " + fmtData(descMesFimSel);
-  if (!itens.length){ cont.innerHTML = '<p class="nota-dash">Nenhum desconto no período ('+escAttr(periodo)+')'+(cliente?(' para '+escAttr(cliente)):'')+'.</p>'; return; }
-  const medL = totVol>0 ? totDesc/totVol : 0;
-  const bloco = (titulo, mapa) => {
-    const ord = Object.keys(mapa).sort((a,b)=>mapa[b].desc-mapa[a].desc);
+  const medL = medVol > 0 ? medDesc / medVol : 0;
+  const bloco = (titulo, mapa, teto) => {
+    let ord = Object.keys(mapa).sort((a,b) => mapa[b].desc - mapa[a].desc);
     if (!ord.length) return "";
-    let x = '<div class="dc-posto-tit">'+titulo+'</div><div class="dc-postos">';
-    ord.forEach(k => { x += '<div class="dc-posto"><span class="dc-posto-nome">'+escAttr(k)+'</span><span class="dc-posto-val">R$ '+fmtBR(mapa[k].desc,2)+'</span><span class="dc-posto-sub">'+fmtLitros(mapa[k].vol)+' L \u00b7 '+mapa[k].n+' lan\u00e7.</span></div>'; });
-    return x + '</div>';
+    const sobra = teto && ord.length > teto ? ord.length - teto : 0;
+    if (sobra) ord = ord.slice(0, teto);
+    let x = '<div class="dc-posto-tit">' + titulo + '</div><div class="dc-postos">';
+    ord.forEach(k => { x += '<div class="dc-posto"><span class="dc-posto-nome">' + escAttr(k) +
+      '</span><span class="dc-posto-val">R$ ' + fmtBR(mapa[k].desc, 2) +
+      '</span><span class="dc-posto-sub">' + fmtLitros(mapa[k].vol) + ' L · ' + mapa[k].n +
+      (mapa[k].n === 1 ? ' linha' : ' linhas') + '</span></div>'; });
+    /* 🔑 Teto que corta sem dizer quanto cortou mente por omissao: o total acima inclui todos. */
+    return x + '</div>' + (sobra ? '<p class="nota-dash">e mais <b>' + sobra +
+      '</b> cliente(s) — o total acima inclui todos.</p>' : "");
   };
-  let h = '<div class="desc-cons"><div class="dc-tit">\ud83d\udcc5 Consolidado do período — '+escAttr(periodo)+(cliente?(' \u00b7 '+escAttr(cliente)):'')+'</div><div class="dc-grid">' +
-    '<div class="dc-item"><span class="dc-lbl">Desconto total</span><span class="dc-val">R$ '+fmtBR(totDesc,2)+'</span></div>' +
-    '<div class="dc-item"><span class="dc-lbl">Volume total</span><span class="dc-val">'+fmtLitros(totVol)+' L</span></div>' +
-    '<div class="dc-item"><span class="dc-lbl">Desconto médio / litro</span><span class="dc-val">R$ '+fmtBR(medL,4)+'</span></div>' +
-    '<div class="dc-item"><span class="dc-lbl">Lançamentos</span><span class="dc-val">'+itens.length+'</span></div>' +
-    '</div>' + bloco('Por unidade', porPosto) + (cliente ? '' : bloco('Por cliente', porCliente)) + '</div>';
-  cont.innerHTML = h;
+  cont.innerHTML = '<div class="desc-cons"><div class="dc-tit">📅 No período — ' + escAttr(periodo) +
+    (cliente ? (' · ' + escAttr(cliente)) : "") + '</div><div class="dc-grid">' +
+    '<div class="dc-item"><span class="dc-lbl">Desconto total</span><span class="dc-val">R$ ' + fmtBR(totDesc, 2) + '</span></div>' +
+    '<div class="dc-item"><span class="dc-lbl">🤝 Negociado no balcão</span><span class="dc-val">R$ ' + fmtBR(somaM, 2) + '</span></div>' +
+    '<div class="dc-item"><span class="dc-lbl">📄 Acordo do cliente</span><span class="dc-val">R$ ' + fmtBR(somaA, 2) + '</span></div>' +
+    '<div class="dc-item"><span class="dc-lbl">🟢 Conferidos</span><span class="dc-val">' + nConf + ' de ' + nConferivel + '</span></div>' +
+    '<div class="dc-item"><span class="dc-lbl">Desconto médio / litro' + (medFora ? ' <b title="O recorte da média">*</b>' : "") + '</span><span class="dc-val">' + (medVol > 0 ? 'R$ ' + fmtBR(medL, 4) : "—") + '</span></div>' +
+    '<div class="dc-item"><span class="dc-lbl">Volume total</span><span class="dc-val">' + fmtLitros(totVol) + ' L</span></div>' +
+    '<div class="dc-item"><span class="dc-lbl">Linhas</span><span class="dc-val">' + linhas.length + '</span></div>' +
+    '</div>' + bloco("Por unidade", porPosto, 0) + (cliente ? "" : bloco("Por cliente", porCliente, 12)) +
+    (medFora ? '<div class="dc-nota">* a média por litro deixa de fora ' + medFora +
+      (medFora === 1 ? ' linha' : ' linhas') + ' — produto vendido por unidade e/ou desconto fora da curva. O <b>desconto total</b> acima inclui tudo.</div>' : "") +
+    '</div>';
+}
+/* A conferencia do PERIODO sai de `descontosMes`; a do dia, de `descontos`. Sao dois
+   listeners diferentes de proposito: o do dia e' o que a tela edita. */
+/* 🔴 UMA SO' RESPOSTA PARA "de quem e' esta venda". O select do filtro e o bloco Por
+   cliente perguntavam a mesma coisa em dois lugares — e a mutacao provou: mexer num
+   deixava o outro certo, entao um defeito passaria com a suite verde. */
+function descPetNomeCliente(l){
+  const c = descPetConfPeriodo(l.chave);
+  return String((c && c.clientePeloUsuario && c.cliente) ? c.cliente : l.cliente || "");
+}
+function descPetConfPeriodo(chave){
+  return (descontosMes || []).find(d => d.fonte === "petros" && d.chave === chave) ||
+         descPetConfDe(chave);
 }
 function limparFormDesconto(){
   ["descClienteNovo","descValorL","descDescL","descVolume","descMotivo"].forEach(id => { const el = document.getElementById(id); if (el) el.value = ""; });
