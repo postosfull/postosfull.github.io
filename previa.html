@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v289 — Postos Full (não é o app)</title>
+<title>PRÉVIA v290 — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -2717,7 +2717,10 @@
      🔑 O comprimento e' medido com getTotalLength() DEPOIS de o SVG existir - nao
      da' para escrever no CSS um numero que depende da largura da tela.
      ========================================================================= */
-  .dre-topo{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:2px 0 14px}
+  /* v289 - UMA CAIXA POR LINHA: o Posto em cima, o Periodo embaixo (pedido do Tiago em 08/08).
+     Antes as duas dividiam a mesma linha e so' quebravam quando faltava espaco - o que fazia a
+     quebra mudar de lugar conforme a largura da tela. */
+  .dre-topo{display:flex;flex-direction:column;flex-wrap:nowrap;gap:9px;align-items:flex-start;margin:2px 0 14px}
   .dre-grupo{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
   .dre-grupo > i{font-style:normal;font-size:.68rem;font-weight:700;letter-spacing:.7px;
     text-transform:uppercase;color:var(--cinza);margin-right:2px}
@@ -2951,8 +2954,8 @@
       <button class="btn-claro" id="btnRegistros" onclick="alternarRegistros()"><span class="mi">📋</span><span class="mt">Custos e preços</span></button>
       <button class="btn-claro" id="btnDescontos" onclick="alternarDescontos()"><span class="mi">🏷️</span><span class="mt">Descontos</span></button>
       <button class="btn-claro" id="btnSimular" onclick="alternarSimular()"><span class="mi">💰</span><span class="mt">Simular Margens</span></button>
-      <button class="btn-claro" id="btnRelPosto" onclick="alternarRelatorios()"><span class="mi">📑</span><span class="mt">Relatórios</span></button>
-      <button class="btn-claro" id="btnFinanceiro" onclick="alternarFinanceiro()"><span class="mi">🏦</span><span class="mt">Financeiro</span></button>
+      <!-- v290 - Relatorios + Financeiro viraram UM menu so: "Relatorios Adaptive" -->
+      <button class="btn-claro" id="btnRelPosto" onclick="alternarRelatorios()"><span class="mi">📑</span><span class="mt">Relatórios Adaptive</span></button>
       <button class="btn-claro" id="btnDre" onclick="alternarDre()"><span class="mi">📉</span><span class="mt">DRE</span></button>
       <button class="btn-claro" id="btnAnalise" onclick="alternarAnalise()"><span class="mi">🧠</span><span class="mt">Análise</span></button>
       <button class="btn-claro" id="btnRelLoja" onclick="alternarRelLoja()"><span class="mi">🍫</span><span class="mt">Produtos e categorias</span></button>
@@ -4501,7 +4504,7 @@ const ICO_SVG = {
   empresa:"<path d='M3.6 20.4h16.8'/><path d='M5.4 20.4V6.2L12 3.6l6.6 2.6v14.2'/><path d='M9.6 20.4v-4.4h4.8v4.4'/><path d='M9.4 9.2h1.2M13.4 9.2h1.2M9.4 12.6h1.2M13.4 12.6h1.2'/>",
   g_ajustes:"<circle cx='12' cy='12' r='3.1'/><path d='M19.1 14.6a1.5 1.5 0 0 0 .3 1.7l.1.1a1.9 1.9 0 1 1-2.6 2.6l-.1-.1a1.5 1.5 0 0 0-2.6 1v.2a1.9 1.9 0 0 1-3.7 0v-.1a1.5 1.5 0 0 0-2.6-1l-.1.1a1.9 1.9 0 1 1-2.6-2.6l.1-.1a1.5 1.5 0 0 0-1-2.6h-.2a1.9 1.9 0 1 1 0-3.7h.1a1.5 1.5 0 0 0 1-2.6l-.1-.1a1.9 1.9 0 1 1 2.6-2.6l.1.1a1.5 1.5 0 0 0 1.7.3h.1a1.5 1.5 0 0 0 .9-1.4v-.2a1.9 1.9 0 0 1 3.7 0v.1a1.5 1.5 0 0 0 2.6 1l.1-.1a1.9 1.9 0 1 1 2.6 2.6l-.1.1a1.5 1.5 0 0 0 1 2.6h.2a1.9 1.9 0 0 1 0 3.7h-.1a1.5 1.5 0 0 0-1.4.9z'/>"
 };
-const ICO_BTN = {btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnTanquesNivel:"tanquesNivel",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnFinanceiro:"financeiro",btnDre:"dre",btnAnalise:"analise",btnRelLoja:"relLoja",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
+const ICO_BTN = {btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnTanquesNivel:"tanquesNivel",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnDre:"dre",btnAnalise:"analise",btnRelLoja:"relLoja",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
 const ICO_GRP = {dia:"g_dia",analise:"g_analise",transp:"g_transp",org:"g_org",ajustes:"g_ajustes"};
 /* 🔑 cor por GRUPO, tirada da paleta do MIV (laranja da marca + verde e dourado Petrobras).
    Assim a cor diz de que familia e' o menu, em vez de ser arco-iris. */
@@ -6165,6 +6168,11 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v290", data:"08/08/2026", tit:"Relatórios e Financeiro viraram um menu só: Relatórios Adaptive", itens:[
+    {t:"m", h:"Um menu no lugar de dois", d:"As telas que ficavam em <b>📑 Relatórios</b> e em <b>🏦 Financeiro</b> agora moram juntas em <b>📑 Relatórios Adaptive</b>, dentro do grupo 📊 Análise. <b>Nenhuma tela saiu</b> — todas as abas continuam ali, na mesma ordem, com os mesmos números."},
+    {t:"m", h:"Por que o nome mudou", d:"O desenho dessas telas vem inteiro do Adaptive. O nome deixa isso claro: elas ficam como estão e servem de referência enquanto as telas próprias do app vão sendo desenhadas."},
+    {t:"m", h:"Quem via só o Financeiro continua vendo tudo", d:"A permissão antiga vale para o menu novo: ninguém perdeu acesso a nada."}
+  ]},
   {v:"v289", data:"08/08/2026", tit:"DRE: um bot\u00e3o s\u00f3 para o per\u00edodo, e o m\u00eas em aberto sai das linhas", itens:[
     {t:"m", h:"Uma fileira de bot\u00f5es no lugar de duas", d:"A tela tinha <b>duas</b> fileiras mexendo no per\u00edodo: uma em cima (M\u00eas / \u00daltimos 12 meses / Ano) e outra dentro do gr\u00e1fico (6 / 12 / 24 meses) \u2014 e elas brigavam entre si. Agora \u00e9 <b>uma s\u00f3</b>: <b>M\u00eas \u00b7 6 meses \u00b7 12 meses \u00b7 24 meses \u00b7 Ano</b>. O que voc\u00ea escolher vale ao mesmo tempo para os quadros de cima, para o gr\u00e1fico e para a tabela."},
     {t:"n", h:"6 e 24 meses agora somam de verdade", d:"Antes eles s\u00f3 esticavam ou encolhiam o desenho. Agora s\u00e3o per\u00edodos como o Ano: os quadros e a tabela mostram <b>os 6 (ou 24) meses somados</b>, comparados com os 6 (ou 24) meses anteriores."},
@@ -6566,8 +6574,8 @@ function bscDestinos(){
     saida.push({ g:"Telas", ic:(ic || "▦").trim(), nm:nomeMenu(k, s), sub:"Menu",
                  run:() => abrirMenuPorChave(k) });
   });
-  // 2) as abas de Relatorios e Financeiro (so' as do menu que esta' na barra)
-  const donoDaAba = { rel:"relPosto", fin:"financeiro" };
+  // 2) as abas do menu unico "Relatorios Adaptive" (v290)
+  const donoDaAba = { rel:"relPosto", fin:"relPosto" };
   abasRelDaEmpresa(s).forEach(a => {
     const mk = donoDaAba[menuDaAba(a, s)] || "relPosto";
     if (!bscBotaoVisivel(mk)) return;
@@ -7802,15 +7810,14 @@ function fecharTodosPaineis(exceto){
     const b = document.getElementById(m.btn), pan = m.pan ? document.getElementById(m.pan) : null;
     if (b && pan) b.classList.toggle("ativo", pan.classList.contains("aberto"));
   });
-  // v192/v207/v224 - DOIS botoes ("Relatorios" e "Financeiro") dividem os MESMOS quatro paineis.
-  // Por isso o painel aberto nao basta: quem decide qual acender e' o menuRelAtivo.
+  /* v290 - agora e' UM botao para os QUATRO paineis ("Relatorios Adaptive"). O laco de
+     MENUS_APP acima olha so' o painelRelPosto, e a pessoa pode estar no painelFinanceiro
+     ou no painelRelPetros - por isso este bloco continua existindo. */
   const abertoRel = paineisDosRelatorios().some(id => {
     const e = document.getElementById(id); return e && e.classList.contains("aberto");
   });
   const brel = document.getElementById("btnRelPosto");
-  if (brel) brel.classList.toggle("ativo", abertoRel && menuRelAtivo === "rel");
-  const bfin = document.getElementById("btnFinanceiro");
-  if (bfin) bfin.classList.toggle("ativo", abertoRel && menuRelAtivo === "fin");
+  if (brel) brel.classList.toggle("ativo", abertoRel);
   agendarTrocaDeTela();   // v243 - grupo do menu aceso, luz do cabecalho e painel entrando
 }
 
@@ -7854,8 +7861,10 @@ const MENUS_APP = [
   {key:"simular",     btn:"btnSimular",     pan:"painelSimular",     emp:"postos", nome:"Simular Margens"},
   {key:"tanquesNivel", btn:"btnTanquesNivel", pan:"painelTanquesNivel", emp:"postos", nome:"Nível dos tanques"},   /* v278 */
   {key:"descontos",   btn:"btnDescontos",   pan:"painelDescontos",   emp:"postos", nome:"Descontos"},
-  {key:"relPosto",    btn:"btnRelPosto",    pan:"painelRelPosto",    emp:"postos|conv", nome:"Relatórios"},
-  {key:"financeiro",  btn:"btnFinanceiro",  pan:"painelFinanceiro",  emp:"postos|conv", nome:"Financeiro"},   // v224 - voltou (tinha saido na v207)
+  /* v290 - um menu so no lugar de dois (o "Financeiro" saiu daqui; o painel dele continua vivo,
+     agora como abas deste menu). Quem tinha permissao SO no Financeiro continua enxergando:
+     menuPermitidoDe("relPosto") faz OR com "financeiro", "relPetros" e "despesas". */
+  {key:"relPosto",    btn:"btnRelPosto",    pan:"painelRelPosto",    emp:"postos|conv", nome:"Relatórios Adaptive"},
   {key:"dre",         btn:"btnDre",         pan:"painelDre",         emp:"postos|conv", nome:"DRE"},   /* v281 */
   {key:"infleet",     btn:"btnInfleet",     pan:"painelInfleet",     emp:"transp", nome:"APP Infleet"},
   {key:"pedido",      btn:"btnPedido",      pan:"painelPedido",      emp:"transp", nome:"Pedido de carregamento"},
@@ -7885,7 +7894,7 @@ const MENUS_APP = [
 const GRUPOS_MENU = [
   {key:"soltos",  nome:"",               icone:"",       itens:["dash"]},
   {key:"dia",     nome:"Dia a dia",      icone:"\ud83d\udd01", itens:["resumoDia","tanquesNivel","registros","descontos","simular"]},
-  {key:"analise", nome:"Análise",        icone:"\ud83d\udcca", itens:["relPosto","financeiro","dre","analise","relLoja","ifood"]},
+  {key:"analise", nome:"Análise",        icone:"\ud83d\udcca", itens:["relPosto","dre","analise","relLoja","ifood"]},
   {key:"transp",  nome:"Transportadora", icone:"\ud83d\ude9a", itens:["infleet","pedido","cotacoes","puxadas"]},
   {key:"org",     nome:"Organização",    icone:"\ud83d\udcc1", itens:["calendario","vencimentos","caixa"]},   /* v251 - o 🗂 ninguem reconhecia */
   {key:"ajustes", nome:"Ajustes",        icone:"\u2699",        itens:["conta","config","usuarios"]},
@@ -8620,9 +8629,8 @@ function aplicarVisibilidadeMenus(){
     if (!b) return;
     b.style.display = (menuVisivelEmpresa(m, s) && menuPermitido(m.key, s)) ? "" : "none";
   });
-  // v224 - menu de abas que ficou sem NENHUMA aba nesta empresa nao aparece na barra.
-  // E' o que permite ao Tiago esvaziar um dos dois menus so' movendo abas.
-  [["btnRelPosto","rel"], ["btnFinanceiro","fin"]].forEach(par => {
+  // v224/v290 - menu de abas que ficou sem NENHUMA aba nesta empresa nao aparece na barra.
+  [["btnRelPosto","rel"]].forEach(par => {
     const bm = document.getElementById(par[0]);
     if (bm && bm.style.display !== "none" && !abasDoMenu(par[1], s).length) bm.style.display = "none";
   });
@@ -9160,12 +9168,11 @@ function menuFabricaDaAba(a, s){
   if (typeof f === "string") return f;
   return f[s] || "rel";
 }
-function menuDaAba(a, s){
-  s = s || siglaEmpresa(empresa);
-  const m = (menusAbasRel && menusAbasRel[s]) ? menusAbasRel[s][a.k] : "";
-  if (m === "rel" || m === "fin") return m;
-  return menuFabricaDaAba(a, s);
-}
+/* 🔴 v290 - EXISTE UM MENU SO. Toda aba mora nele, e por isso esta funcao devolve sempre
+   "rel". O campo `menu` de ABAS_REL_UNIF e o config/ordemAbasRel.menus continuam gravados e
+   INTACTOS: se um dia os dois menus voltarem, e' so' devolver o corpo antigo (esta abaixo,
+   em menuFabricaDaAba). Apagar o dado seria perder a divisao que o Tiago montou a mao. */
+function menuDaAba(a, s){ return "rel"; }
 function abasDoMenu(mk, s){
   s = s || siglaEmpresa(empresa);
   return abasRelDaEmpresa(s).filter(a => menuDaAba(a, s) === mk);
@@ -9191,8 +9198,8 @@ function paineisDosRelatorios(){
 }
 function tituloRel(){
   const emp = (siglaEmpresa(empresa) === "conv" ? "Full Conveniência" : "Postos Full");
-  // v224 - o titulo diz em qual dos dois menus a pessoa esta'
-  return (menuRelAtivo === "fin" ? "🏦 Financeiro — " : "📑 Relatórios — ") + emp;
+  // v290 - um menu so: o titulo le o nome que estiver valendo (o Tiago pode renomear)
+  return "📑 " + nomeMenu("relPosto", siglaEmpresa(empresa)) + " — " + emp;
 }
 // abas desta empresa, ja na ordem que esta valendo
 function abasRelDaEmpresa(s){
@@ -9321,10 +9328,9 @@ function botoesAbasRel(){
   return '<button class="doc-chip' + (ordAbasAberto ? ' ativo' : '') +
     '" onclick="alternarOrdemAbasRel()" title="Mudar a ordem das abas">⚙️ Ordenar abas</button>' +
     '<button class="doc-chip' + (renAbasAberto ? ' ativo' : '') +
-    '" onclick="alternarRenomearAbasRel()" title="Trocar o nome das abas">✏️ Renomear abas</button>' +
-    /* v224 - TEMPORARIO: sai quando o Tiago disser que terminou de arrumar os menus */
-    '<button class="doc-chip' + (movAbasAberto ? ' ativo' : '') +
-    '" onclick="alternarMoverAbas()" title="Escolher em qual menu cada aba aparece">🔀 Mover abas</button>';
+    '" onclick="alternarRenomearAbasRel()" title="Trocar o nome das abas">✏️ Renomear abas</button>';
+    /* v290 - o "🔀 Mover abas" SAIU: com um menu so ele nao decidia mais nada, e
+       caixinha que nao decide nada e' caixinha que mente (regra da v246). */
 }
 function recarregarBotoesAbasRel(){
   /* v227 - o painelDespesas virou aba nas duas empresas, entao nao ha mais excecao */
@@ -9359,8 +9365,8 @@ function relatoriosAberto(){
   });
 }
 function alternarRelatorios(){ alternarMenuAbas("rel"); }
-/* v224 - o menu Financeiro voltou a existir; os dois compartilham os mesmos quatro paineis */
-function alternarFinanceiro(){ alternarMenuAbas("fin"); }
+/* v290 - o menu Financeiro deixou de existir; quem chamar esta porta cai no menu unico */
+function alternarFinanceiro(){ alternarRelatorios(); }
 function alternarMenuAbas(mk){
   if (relatoriosAberto() && menuRelAtivo === mk){
     fecharTodosPaineis(); ordAbasAberto = false; renAbasAberto = false; movAbasAberto = false; return;
@@ -9469,33 +9475,13 @@ function renderOrdemAbasRel(){
   recarregarBotoesAbasRel();          // v208 - os botoes do canto acompanham o estado
   const caixas = document.querySelectorAll(".ord-abas-box");
   if (!caixas.length) return;
-  if ((!ordAbasAberto && !renAbasAberto && !movAbasAberto) || !ehAdminAtual()){ caixas.forEach(c => { c.innerHTML = ""; }); return; }
+  if ((!ordAbasAberto && !renAbasAberto) || !ehAdminAtual()){ caixas.forEach(c => { c.innerHTML = ""; }); return; }
   const s = siglaEmpresa(empresa);
   const onde = (s === "conv" ? "a Full Conveniência" : "os Postos Full");
-  /* v224 - TEMPORARIO: escolher em qual menu cada aba aparece */
-  if (movAbasAberto){
-    const todas = abasRelDaEmpresa(s);
-    let m = '<div class="ord-abas"><p class="nota-dash">Escolha em qual menu cada aba vai aparecer. ' +
-      'Vale para ' + onde + ' e todo mundo passa a ver assim. ' +
-      'Menu que ficar sem nenhuma aba some da barra lateral.</p><div class="ord-lista">';
-    todas.forEach(a => {
-      const atual = menuDaAba(a, s);
-      m += '<div class="ord-item mov-linha"><span class="ord-nome">' + nomeAba(a, s) + '</span>' +
-           '<span class="mov-bts">' +
-           '<button class="btn-claro mov-bt' + (atual === "rel" ? " ativo" : "") +
-           '" onclick="moverAbaParaMenu(\'' + a.k + '\',\'rel\')">📑 Relatórios</button>' +
-           '<button class="btn-claro mov-bt' + (atual === "fin" ? " ativo" : "") +
-           '" onclick="moverAbaParaMenu(\'' + a.k + '\',\'fin\')">🏦 Financeiro</button>' +
-           '</span></div>';
-    });
-    m += '</div><div class="ord-acoes"><button class="btn-claro" onclick="resetarMenusAbas()">\u21a9 Voltar todas ao padrão</button>' +
-         '<button class="btn-claro" onclick="alternarMoverAbas()">\u2713 Pronto</button></div></div>';
-    caixas.forEach(c => { c.innerHTML = m; });
-    return;
-  }
+  /* v290 - a caixa "Mover abas" saiu junto com o botao dela: existe UM menu so. */
   // v224 - ordenar e renomear passam a mexer so' nas abas do menu que esta' aberto
   const lista = abasDoMenu(menuRelAtivo, s);
-  const noMenu = (menuRelAtivo === "fin" ? "do menu Financeiro" : "do menu Relatórios");
+  const noMenu = "do menu " + nomeMenu("relPosto", s);   // v290
   if (renAbasAberto){
     let r = '<div class="ord-abas"><p class="nota-dash">Escreva o nome que você quer em cada aba ' + noMenu +
       '. O desenho no começo faz parte do nome — pode trocar ou apagar. Vale para ' +
