@@ -3284,7 +3284,7 @@
       <div id="infMapaBox" class="inf-mapa-box"></div>
       <p class="nota-dash" id="infMapaNota" style="display:none"></p>
       <div id="infleetFrotaBox"></div>
-      <p class="nota-dash">Onde estava cada veículo na última vez que o app conversou com o Infleet, com motorista, se estava ligado, o local e o odômetro.</p>
+      <p class="nota-dash">Onde estava cada veículo na última vez que o app conversou com o Infleet, com motorista, se estava ligado, o local e o odômetro. <span id="infFrotaAtual"></span></p>
     </div>
     <div class="grupo">
       <h2>⛽ Abastecimentos — <span id="infMesRotulo"></span></h2>
@@ -3587,7 +3587,7 @@
       <div id="dtrMapaBox" class="inf-mapa-box"></div>
       <p class="nota-dash" id="dtrMapaNota" style="display:none"></p>
       <div id="dtrFrotaBox"></div>
-      <p class="nota-dash">Onde cada veículo está neste momento, segundo o rastreador do Infleet. Quem parou de mandar posição andando aparece marcado — quase sempre é trecho sem cobertura de internet, não problema no veículo. Quem se despediu parado continua valendo como desligado. O odômetro e o abastecimento por abastecimento ficam no menu APP Infleet.</p>
+      <p class="nota-dash">Onde cada veículo está neste momento, segundo o rastreador do Infleet. Quem parou de mandar posição andando aparece marcado — quase sempre é trecho sem cobertura de internet, não problema no veículo. Quem se despediu parado continua valendo como desligado. O odômetro e o abastecimento por abastecimento ficam no menu APP Infleet. <span id="dtrFrotaAtual"></span></p>
     </div>
 
     <div class="grupo" id="dashGrpPuxadasMes">
@@ -6219,6 +6219,9 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v300", data:"08/08/2026", tit:"O \"Atualizado em\" passou a fechar a frase que explica o card", itens:[
+    {t:"m", h:"A hora da última leitura terminou de virar bula", d:"Em <b>Frota agora</b> — nas duas telas — o <b>Atualizado em</b> deixou de ser uma linha solta embaixo da tabela e passou a <b>terminar o parágrafo que explica o card</b>. Junto do texto que diz de onde vem a informação, fica claro que aquela hora é a da <b>última conversa com o Infleet</b>, não a hora de agora."}
+  ]},
   {v:"v299", data:"08/08/2026", tit:"A frota lista os caminhões primeiro, e a explicação desceu para o fim do card", itens:[
     {t:"m", h:"Caminhões primeiro, carro por último", d:"Em <b>Frota agora</b> — no Dashboard da Transportadora e no menu <b>🚚 APP Infleet</b> — a lista passou a começar pelos <b>caminhões</b>, deixando os outros veículos no fim. Quem é caminhão e quem não é sai do próprio cadastro de <b>Configurações → Caminhões e tanques</b>: cadastrou a placa lá, o veículo já sobe na lista, sem precisar de versão nova. Entre iguais, a ordem é pelo nome, de A a Z."},
     {t:"m", h:"A explicação saiu de cima do mapa", d:"O parágrafo que explica o card estava <b>entre o título e o mapa</b>, empurrando o mapa para baixo. Ele foi para o <b>fim do card</b>, depois da tabela, junto com as outras explicações que já nasciam ali. Vale para as duas telas."}
@@ -14691,8 +14694,12 @@ function renderInfFrota(){
   h += '</tbody></table></div>';
   if (lista.some(v => infSituacao(v).sumido)) h += '<p class="nota-dash">📡 <b>Sem posição nova</b> quer dizer que o rastreador parou de falar <b>com o veículo andando</b> — quase sempre trecho sem cobertura de internet. A tela não sabe onde ele está agora, e a hora da última posição está na coluna ao lado. Quem <b>se despediu parado</b> continua aparecendo como desligado, porque isso continua sendo verdade.</p>';
   if (lista.some(v => { const s = infSituacao(v); return s.semContato && !s.sumido; })) h += '<p class="nota-dash">⚪ <b>Sem contato</b> é outra coisa: o rastreador manda um sinal de vida a cada 10 minutos mesmo com o veículo parado e desligado. Se ele calou parado e passaram horas, ou o veículo está onde não há cobertura (garagem, subsolo) ou o aparelho precisa de atenção. A posição continua valendo — ele não saiu de lá.</p>';
-  if (f && f.atualizadoEm) h += '<p class="nota-dash">Atualizado em '+fmtQuandoInf(f.atualizadoEm)+'.</p>';
   box.innerHTML = h;
+  /* v300 - o carimbo de hora nao mora mais dentro da caixa da tabela: ele fecha
+     a frase que explica o card, que desceu para o fim na v299. Escolha dele,
+     pela foto das duas opcoes. Elemento vazio quando nao ha hora - nada de "-". */
+  const atI = document.getElementById("infFrotaAtual");
+  if (atI) atI.textContent = (f && f.atualizadoEm) ? ('Atualizado em ' + fmtQuandoInf(f.atualizadoEm) + '.') : '';
 }
 function mudarMesInfleet(delta){
   if (!mesInfleet) mesInfleet = hojeISO().slice(0,7);
@@ -20349,8 +20356,12 @@ function renderDtrFrota(){
     '</tr>';
   });
   h += '</tbody></table></div>';
-  if (f && f.atualizadoEm) h += '<p class="nota-dash">Atualizado em ' + fmtQuandoInf(f.atualizadoEm) + '.</p>';
   box.innerHTML = h;
+  /* v300 - o carimbo de hora nao mora mais dentro da caixa da tabela: ele fecha
+     a frase que explica o card, que desceu para o fim na v299. Escolha dele,
+     pela foto das duas opcoes. Elemento vazio quando nao ha hora - nada de "-". */
+  const atD = document.getElementById("dtrFrotaAtual");
+  if (atD) atD.textContent = (f && f.atualizadoEm) ? ('Atualizado em ' + fmtQuandoInf(f.atualizadoEm) + '.') : '';
 }
 
 /* ---- card 2: Puxadas do mes ---- */
