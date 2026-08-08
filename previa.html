@@ -2864,6 +2864,8 @@
   .dp-bt.e-ok{border-color:#3FBF6F;background:rgba(63,191,111,.12);color:#2E8B57}
   body.tema-escuro .dp-bt.e-ok{border-color:#2F6B45;color:#8FE0AE}
   .dp-bt.e-nao{border-color:var(--borda-forte);background:var(--superficie-2);color:var(--cinza)}
+  /* v287 - o historico e' discreto DE PROPOSITO: ele nao esta pedindo nada. */
+  .dp-bt.e-hist{border-color:var(--borda);background:transparent;color:var(--cinza);font-weight:500}
   .dp-ro{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--cinza);white-space:nowrap}
   .dp-conf-dica{margin:10px 0 2px;font-size:.86rem;color:var(--cinza)}
   .dp-conf-dica b{color:var(--txt)}
@@ -6164,6 +6166,11 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v287", data:"08/08/2026", tit:"Descontos: o hist\u00f3rico entrou, e ele n\u00e3o cobra nada", itens:[
+    {t:"n", h:"Janeiro a julho est\u00e3o no app", d:"O coletor puxou os descontos de <b>2026 inteiro</b> at\u00e9 aqui. O filtro de per\u00edodo do quadro <b>No per\u00edodo</b> j\u00e1 enxerga tudo: s\u00e3o mais de <b>1.900 linhas</b> que a tela n\u00e3o via."},
+    {t:"m", h:"A cobran\u00e7a do motivo come\u00e7a em 08/08", d:"Linha de <b>antes de hoje</b> aparece marcada como <b>\ud83d\uddc4\ufe0f Hist\u00f3rico</b>: ela conta nos totais, mas <b>n\u00e3o entra na conta do que est\u00e1 devendo motivo</b>. Um contador com mil e quatrocentas pend\u00eancias antigas s\u00f3 ensinaria a ignorar o contador."},
+    {t:"m", h:"E d\u00e1 para explicar uma linha antiga assim mesmo", d:"O bot\u00e3o \ud83d\uddc4\ufe0f Hist\u00f3rico continua clic\u00e1vel \u2014 se algu\u00e9m quiser dizer o motivo de um desconto de mar\u00e7o, pode."}
+  ]},
   {v:"v286", data:"08/08/2026", tit:"Descontos: a confer\u00eancia deixou de ser adivinha\u00e7\u00e3o", itens:[
     {t:"m", h:"O selo virou bot\u00e3o com palavra", d:"A bolinha sozinha n\u00e3o dizia que era para clicar. Agora cada linha tem um bot\u00e3o escrito: <b>Dizer o motivo</b>, ou o pr\u00f3prio <b>motivo em verde</b> quando j\u00e1 foi explicado, ou <b>N\u00e3o \u00e9 desconto</b>. A coluna Motivo do fim da linha saiu \u2014 o motivo agora se l\u00ea no come\u00e7o."},
     {t:"n", h:"Quem pode conferir agora \u00e9 escolhido", d:"No Painel Administrativo entrou o poder <b>\u2705 Conferir descontos</b>, ao lado de \u201cenviar avisos\u201d e \u201ccriar eventos\u201d. Quem n\u00e3o tiver continua <b>vendo</b> a lista inteira, s\u00f3 que sem os bot\u00f5es."},
@@ -16263,6 +16270,18 @@ const DESC_MOTIVOS = ["Cliente fiel", "Preço negociado", "Alto volume", "Concor
    2 nao. */
 const DESC_PET_DIAS_PEND = 3;
 
+/* 🔴 v287 - DE QUANDO EM DIANTE A TELA COBRA O MOTIVO.
+   A carga historica de janeiro a julho trouxe 1.407 linhas de balcao. Todas nasceriam 🔴 e
+   ja vencidas — um contador de mil e quatrocentas pendencias nao cobra nada, ensina a
+   ignorar o contador. 🔑 Alarme que dispara sempre nao e' alarme.
+   Data escolhida pelo Tiago em 08/08: a cobranca comeca HOJE, e ele explica a rotina para
+   a equipe na segunda. Antes disso a linha e' 🗄️ HISTORICO: aparece, soma nos totais, pode
+   receber motivo se alguem quiser — mas nao entra na conta do que esta devendo.
+   ⚠️ E' DIFERENTE do DESC_CORTE_FONTE (01/07), que decide de que FONTE vem o numero.
+   Uma diz de onde vem o dado; esta diz de quem se cobra. Misturar as duas datas numa so'
+   pouparia uma constante e trocaria duas perguntas por uma resposta errada. */
+const DESC_PET_COBRA_DE = "2026-08-08";
+
 let descPetEditando = null;      // a chave da linha aberta, ou null
 
 /* v286 - UMA SO MONTAGEM DE LINHA, lida pelo dia E pelo periodo.
@@ -16356,10 +16375,16 @@ function descPetEstado(l){
   const c = descPetConfDe(l.chave);
   if (c && c.naoEDesconto) return "nao";
   if (c) return "ok";
+  /* 🔴 v287 - o que ja tem motivo continua 🟢/⛔ mesmo sendo antigo: quem explicou,
+     explicou. So' o que NAO foi explicado vira historico. */
+  if (String(l.dia) < DESC_PET_COBRA_DE) return "hist";
   const dias = Math.round((new Date(hojeISO()) - new Date(l.dia)) / 86400000);
   return dias >= DESC_PET_DIAS_PEND ? "pend" : "novo";
 }
+/* v287 - a linha entra na COBRANCA? (o acordo do cliente nunca entra; ele nem chega aqui) */
+function descPetCobravel(l){ return String(l.dia) >= DESC_PET_COBRA_DE; }
 const DESC_PET_SELO = { novo:{i:"⚪",t:"A conferir"}, ok:{i:"🟢",t:"Conferido"},
+                        hist:{i:"🗄️",t:"Histórico — não entra na cobrança, mas pode receber motivo"},
                         nao:{i:"⛔",t:"Não é desconto"}, pend:{i:"🔴",t:"Pendente"} };
 
 /* Os motivos ja usados no periodo, somados aos de fabrica, sem repetir por causa de caixa. */
@@ -16469,6 +16494,7 @@ function descPetOutro(chave){
 
 /* v286 - o rotulo do botao: e' ele que ensina o que fazer ali. */
 function descPetRotulo(est, c){
+  if (est === 'hist') return 'Histórico';
   if (est === 'nao') return 'Não é desconto';
   if (est === 'ok')  return (c && c.motivo) ? c.motivo : 'Conferido';
   return 'Dizer o motivo';
@@ -16551,10 +16577,16 @@ function renderDescPetros(){
   const somaM = manuais.reduce((s, l) => s + l.desc, 0);
   const somaA = autos.reduce((s, l) => s + l.desc, 0);
   const est = conferiveis.map(descPetEstado);
-  const nOk = est.filter(e => e === "ok").length;
   const nNao = est.filter(e => e === "nao").length;
   const nPend = est.filter(e => e === "pend").length;
   const nNovo = est.filter(e => e === "novo").length;
+  /* 🔴 v287 - o denominador de "conferidos" e' o que a tela COBRA, nao tudo que existe.
+     Com a carga historica dentro, "3 de 1420" nao informa: assusta e depois anestesia. */
+  const cobraveis = conferiveis.filter(descPetCobravel);
+  const nOk = cobraveis.map(descPetEstado).filter(e => e === "ok").length;
+  const nHist = est.filter(e => e === "hist").length;
+  const nOkHist = conferiveis.filter(l => !descPetCobravel(l)).map(descPetEstado)
+                    .filter(e => e === "ok" || e === "nao").length;
 
   let porPostoHtml = "";
   const ordem = Object.keys(porPosto).sort((a, b) => porPosto[b].desc - porPosto[a].desc);
@@ -16577,7 +16609,8 @@ function renderDescPetros(){
       '<div class="dc-item"><span class="dc-lbl">Desconto total</span><span class="dc-val">R$ ' + fmtBR(totDesc, 2) + '</span></div>' +
       '<div class="dc-item"><span class="dc-lbl">🤝 Negociado no balcão</span><span class="dc-val">R$ ' + fmtBR(somaM, 2) + '</span></div>' +
       '<div class="dc-item"><span class="dc-lbl">📄 Acordo do cliente</span><span class="dc-val">R$ ' + fmtBR(somaA, 2) + '</span></div>' +
-      '<div class="dc-item"><span class="dc-lbl">🟢 Conferidos</span><span class="dc-val">' + nOk + ' de ' + conferiveis.length + '</span></div>' +
+      '<div class="dc-item"><span class="dc-lbl">🟢 Conferidos</span><span class="dc-val">' +
+        (cobraveis.length ? (nOk + ' de ' + cobraveis.length) : '<span class="dc-vazio">🗄️ histórico</span>') + '</span></div>' +
       '<div class="dc-item"><span class="dc-lbl">Desconto médio / litro' + (medFora ? ' <b title="O recorte da média">*</b>' : '') + '</span><span class="dc-val">' + (medVol > 0 ? 'R$ ' + fmtBR(medL, 4) : '—') + '</span></div>' +
       '<div class="dc-item"><span class="dc-lbl">Volume total</span><span class="dc-val">' + fmtLitros(totVol) + ' L</span></div>' +
     '</div>' + porPostoHtml +
@@ -16611,6 +16644,10 @@ function renderDescPetros(){
 
   let avisos = "";
   if (nPend)       avisos += '<p class="nota-dash">🔴 <b>' + nPend + '</b> desconto(s) de balcão esperando o motivo há ' + DESC_PET_DIAS_PEND + ' dias ou mais.</p>';
+  /* v287 - o historico se ANUNCIA em vez de sumir: some da cobranca, nao da tela. */
+  if (nHist)       avisos += '<p class="nota-dash">🗄️ <b>' + nHist + '</b> linha(s) anteriores a ' + fmtData(DESC_PET_COBRA_DE) +
+                             ' — <b>histórico</b>: aparecem e somam nos totais, mas não entram na cobrança do motivo.' +
+                             (nOkHist ? ' <b>' + nOkHist + '</b> delas já têm motivo.' : '') + '</p>';
   if (nAbsurdo)    avisos += '<p class="nota-dash">⚠️ <b>' + nAbsurdo + '</b> linha(s) com desconto acima da metade do valor da venda — conferir no ERP antes de considerar.</p>';
   if (nGenerico)   avisos += '<p class="nota-dash">👤 <b>' + nGenerico + '</b> linha(s) em que o ERP não sabe o cliente — ao conferir, a tela pede o nome.</p>';
   if (nSemUsuario) avisos += '<p class="nota-dash">🔓 <b>' + nSemUsuario + '</b> desconto(s) de balcão sem registro de quem autorizou.</p>';
@@ -16625,7 +16662,8 @@ function renderDescPetros(){
          (nNao ? ' · ' + nNao + ' marcada(s) como não-desconto' : '') + '</span></div>' +
          (semTipo.length ? '<p class="nota-dash">ℹ️ Este mês foi coletado antes da separação entre balcão e acordo — as linhas aparecem juntas.</p>' : '') +
          (podeConferirDescontos()
-           ? '<p class="dp-conf-dica">Clique em <b>Dizer o motivo</b> na linha para explicar por que o desconto foi dado. O que já foi explicado mostra o motivo em verde — clique de novo para trocar.</p>'
+           ? '<p class="dp-conf-dica">Clique em <b>Dizer o motivo</b> na linha para explicar por que o desconto foi dado. O que já foi explicado mostra o motivo em verde — clique de novo para trocar.' +
+             (nHist ? ' As linhas marcadas <b>🗄️ Histórico</b> são de antes de ' + fmtData(DESC_PET_COBRA_DE) + ' e não estão sendo cobradas — se quiser, dá para explicar uma delas do mesmo jeito.' : '') + '</p>'
            : '<p class="dp-conf-dica">Você vê os descontos, mas não pode dizer o motivo. Quem libera essa permissão é o administrador, no Painel Administrativo.</p>') +
          descPetTabela(conferiveis, true);
   }
@@ -17011,12 +17049,15 @@ function renderDescontosMes(){
     return;
   }
   let totDesc = 0, totVol = 0, somaM = 0, somaA = 0, nConf = 0, nConferivel = 0;
+  let nHistPer = 0, nOkHistPer = 0;
   let medDesc = 0, medVol = 0, medFora = 0;
   const porPosto = {}, porCliente = {};
   linhas.forEach(l => {
     totDesc += l.desc; totVol += l.qtd;
     if (l.tipo === "A") somaA += l.desc; else somaM += l.desc;
-    if (l.tipo !== "A"){ nConferivel++; if (descPetConfPeriodo(l.chave)) nConf++; }
+    /* v287 - o periodo conta o mesmo que o dia: so' o que esta sob cobranca. */
+    if (l.tipo !== "A" && descPetCobravel(l)){ nConferivel++; if (descPetConfPeriodo(l.chave)) nConf++; }
+    else if (l.tipo !== "A"){ nHistPer++; if (descPetConfPeriodo(l.chave)) nOkHistPer++; }
     if (!l.porUnidade && !l.absurdo){ medDesc += l.desc; medVol += l.qtd; } else medFora++;
     const p = l.posto; if (!porPosto[p]) porPosto[p] = { desc:0, vol:0, n:0 };
     porPosto[p].desc += l.desc; porPosto[p].vol += l.qtd; porPosto[p].n++;
@@ -17044,11 +17085,15 @@ function renderDescontosMes(){
     '<div class="dc-item"><span class="dc-lbl">Desconto total</span><span class="dc-val">R$ ' + fmtBR(totDesc, 2) + '</span></div>' +
     '<div class="dc-item"><span class="dc-lbl">🤝 Negociado no balcão</span><span class="dc-val">R$ ' + fmtBR(somaM, 2) + '</span></div>' +
     '<div class="dc-item"><span class="dc-lbl">📄 Acordo do cliente</span><span class="dc-val">R$ ' + fmtBR(somaA, 2) + '</span></div>' +
-    '<div class="dc-item"><span class="dc-lbl">🟢 Conferidos</span><span class="dc-val">' + nConf + ' de ' + nConferivel + '</span></div>' +
+    '<div class="dc-item"><span class="dc-lbl">🟢 Conferidos</span><span class="dc-val">' +
+      (nConferivel ? (nConf + ' de ' + nConferivel) : '<span class="dc-vazio">🗄️ histórico</span>') + '</span></div>' +
     '<div class="dc-item"><span class="dc-lbl">Desconto médio / litro' + (medFora ? ' <b title="O recorte da média">*</b>' : "") + '</span><span class="dc-val">' + (medVol > 0 ? 'R$ ' + fmtBR(medL, 4) : "—") + '</span></div>' +
     '<div class="dc-item"><span class="dc-lbl">Volume total</span><span class="dc-val">' + fmtLitros(totVol) + ' L</span></div>' +
     '<div class="dc-item"><span class="dc-lbl">Linhas</span><span class="dc-val">' + linhas.length + '</span></div>' +
     '</div>' + bloco("Por unidade", porPosto, 0) + (cliente ? "" : bloco("Por cliente", porCliente, 12)) +
+    (nHistPer ? '<div class="dc-nota">🗄️ ' + nHistPer + ' linha(s) do período são anteriores a ' +
+      fmtData(DESC_PET_COBRA_DE) + ' — entram nos totais, não na cobrança do motivo.' +
+      (nOkHistPer ? ' ' + nOkHistPer + ' delas já têm motivo.' : '') + '</div>' : '') +
     (medFora ? '<div class="dc-nota">* a média por litro deixa de fora ' + medFora +
       (medFora === 1 ? ' linha' : ' linhas') + ' — produto vendido por unidade e/ou desconto fora da curva. O <b>desconto total</b> acima inclui tudo.</div>' : "") +
     '</div>';
