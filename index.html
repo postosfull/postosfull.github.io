@@ -2049,6 +2049,11 @@
   .sino-pe{border-top:1px solid var(--borda);padding:9px 12px;display:flex;gap:8px;align-items:center}
   .sino-pe button{flex:1 1 auto;justify-content:center}
   .sino-mais{font-size:.7rem;color:var(--cinza);padding:6px 14px 2px;text-align:center}
+  /* v288 - o cartao do sino passou a ter duas secoes */
+  .sino-sec{font-size:.63rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+            color:var(--cinza);padding:9px 14px 5px;background:var(--superficie-2)}
+  .sino-it.caixa{border-left-color:var(--verde)}
+  .sino-it.caixa .sino-q{color:var(--verde)}
 
   /* no celular a barra lateral e' gaveta e vive aberta: o bloco tem de aparecer */
   @media (max-width:640px){
@@ -2977,7 +2982,8 @@
     <div class="sino-cab"><b>🔔 Notificações</b><span class="sino-cnt" id="sinoCnt"></span></div>
     <div class="sino-corpo" id="sinoCorpo"></div>
     <div class="sino-pe">
-      <button class="btn-claro" onclick="abrirCaixaDoSino()">Abrir a Caixa de entrada</button>
+      <button class="btn-claro" onclick="abrirCaixaDoSino()">📥 Caixa de entrada</button>
+      <button class="btn-claro" onclick="abrirAvisosDoSino()">📅 Avisos</button>
     </div>
   </div>
 
@@ -3533,21 +3539,6 @@
       <div id="dcvIfdBox"></div>
     </div>
 
-    <div class="grupo" id="dashGrpPrecos">
-      <h2>Evolução de preços e margens</h2>
-      <p class="nota-dash">Os filtros abaixo valem só para os gráficos deste bloco.</p>
-      <div id="filtrosSlotDash"></div>
-      <div class="dash-toggles">
-        <span class="dash-toggles-rot">Mostrar:</span>
-        <label class="dash-check"><input type="checkbox" id="chkVerCusto" onchange="dashSalvarChecks(); renderDashboard()"> Evolução do preço de compra</label>
-        <label class="dash-check"><input type="checkbox" id="chkVerMargem" onchange="dashSalvarChecks(); renderDashboard()"> Evolução da margem - valor</label>
-        <label class="dash-check"><input type="checkbox" id="chkVerMargemPct" onchange="dashSalvarChecks(); renderDashboard()"> Evolução da margem - percentual</label>
-      </div>
-      <div class="dash-fonte" id="dashFonte"></div>
-      <div id="conteudoDash"></div>
-      <p class="nota-dash">Para cada combustível, gráficos lado a lado: <b>Evolução do preço de compra</b>, <b>Evolução da margem - valor</b> (em R$) e <b>Evolução da margem - percentual</b> (em %). A margem usa preço de compra, custo do frete e preço de venda — que vêm das notas de compra do Petros, coletadas todo dia (e dos lançamentos manuais, se a coleta não tiver rodado). Cada ponto é a média na data, respeitando os filtros de Data, Posto e Forma. No preço de compra, vermelho = subiu (ruim); nas margens, verde = subiu (bom). Use as caixas "Mostrar" para exibir só os gráficos que quiser.</p>
-    </div>
-
     <div class="grupo" id="dashGrpFrota">
       <h2>🚚 Frota agora</h2>
       <p class="nota-dash">Onde cada caminhão está neste momento, segundo o rastreador do Infleet. Quem está há 6 horas ou mais sem mandar posição aparece marcado — quase sempre é o rastreador, não o caminhão. O odômetro e o abastecimento por abastecimento ficam no menu APP Infleet.</p>
@@ -3883,31 +3874,36 @@
     <div id="confBox"></div>
   </div>
 
-  <details class="grupo" id="grupoLancAntigos">
-    <summary class="lanc-sum">📋 Lançamentos antigos (digitados à mão)</summary>
-    <p class="nota-dash">Ficam aqui os lançamentos que a equipe fazia à mão antes de <b>06/08/2026</b>, quando o app passou a buscar custo e preço direto do Petros. Continuam editáveis para corrigir alguma exceção — mas <b>não é mais preciso lançar quando chega carga nova</b>.</p>
-  <div class="tabela-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Data</th><th>Posto</th><th>Forma</th><th>Combustível</th>
-          <th>Preço de Custo</th><th>Preço Frete</th><th>Preço de Venda</th>
-          <th>Margem R$ S/Frete</th><th>Margem % S/Frete</th>
-          <th>Margem R$ C/Frete</th><th>Margem % C/Frete</th>
-          <th>Distribuidora</th><th></th>
-        </tr>
-      </thead>
-      <tbody id="corpo"></tbody>
-      <tfoot id="rodapeTabela"></tfoot>
-    </table>
+  <!-- ===== v288 - OS GRAFICOS DESCERAM PARA CA' =====
+       Eles moravam no fim do Dashboard, no card "Evolucao de precos e margens". O Tiago pediu
+       um menu so': o assunto e' o mesmo desta tela - quanto custa, por quanto vende, quanto
+       sobra. 🔑 DUAS TELAS QUE LEEM O MESMO ASSUNTO NAO PRECISAM SER DUAS.
+       Os ids continuam os MESMOS (chkVer*, dashFonte, conteudoDash) de proposito: eles sao
+       lidos em varios lugares do arquivo e renomear seria trocar de assunto no meio da mudanca.
+       ⚠️ E a barra de filtros do topo, que desde a v178 se escondia dentro daquele card, volta a
+       ser UMA SO' e a valer para a tela inteira - os mesmos ids ja' eram lidos pelos dois lados. -->
+  <div class="grupo" id="grpPrecosMargens">
+    <h2>Evolução de preços e margens</h2>
+    <p class="nota-dash">Como o preço de compra e a margem andaram ao longo do tempo. Os gráficos respondem aos filtros de <b>Data</b>, <b>Posto</b>, <b>Forma</b> e <b>Combustível</b> lá de cima.</p>
+    <div class="dash-toggles">
+      <span class="dash-toggles-rot">Mostrar:</span>
+      <label class="dash-check"><input type="checkbox" id="chkVerCusto" onchange="dashSalvarChecks(); renderPrecosMargens()"> Evolução do preço de compra</label>
+      <label class="dash-check"><input type="checkbox" id="chkVerMargem" onchange="dashSalvarChecks(); renderPrecosMargens()"> Evolução da margem - valor</label>
+      <label class="dash-check"><input type="checkbox" id="chkVerMargemPct" onchange="dashSalvarChecks(); renderPrecosMargens()"> Evolução da margem - percentual</label>
+      <button class="btn-claro pt-btn" id="btnPdfPrecos" onclick="exportarPDFPrecos()" title="Gera um PDF só destes gráficos">📄 PDF dos gráficos</button>
+    </div>
+    <div class="dash-fonte" id="dashFonte"></div>
+    <div id="conteudoDash"></div>
+    <p class="nota-dash">Para cada combustível, gráficos lado a lado: <b>Evolução do preço de compra</b>, <b>Evolução da margem - valor</b> (em R$) e <b>Evolução da margem - percentual</b> (em %). A margem usa preço de compra, custo do frete e preço de venda — que vêm das notas de compra do Petros, coletadas todo dia (e dos lançamentos manuais, se a coleta não tiver rodado). Cada ponto é a média na data. No preço de compra, vermelho = subiu (ruim); nas margens, verde = subiu (bom). Use as caixas "Mostrar" para exibir só os gráficos que quiser.</p>
   </div>
-  <div class="pgn" id="pgnRegistros"></div>   <!-- v248 -->
 
-  <div class="rodape">
-    <span class="dica">Edite qualquer célula diretamente — tudo é salvo na nuvem e sincronizado automaticamente entre os aparelhos conectados. <span id="infoUltimaSync"></span> Em ⚙ Configurações você gerencia postos, distribuidoras e o frete padrão.</span>
-    <button class="btn-verde" onclick="novaLinha()">+ Adicionar registro</button>
-  </div>
-  </details>
+  <!-- 🔴 v288 - AQUI MORAVA A GAVETA "Lançamentos antigos (digitados à mão)".
+       Ela saiu a pedido do Tiago: o coletor traz tudo do Petros, inclusive retroativo, e a
+       gaveta so' oferecia um caminho que ninguem deve mais tomar.
+       ⚠️ NADA FOI APAGADO: a colecao `lancamentos` continua na nuvem, o array `registros`
+       continua carregado e continua sendo o PLANO B dos graficos acima (`fonteDoDash()`).
+       O que saiu foi a TELA — e, com ela, o filtro Distribuidora, o "+ Adicionar registro"
+       e o Exportar PDF que era o PDF daquela tabela. -->
   </div>
 
 </div>
@@ -4717,9 +4713,10 @@ function aoMudarLogin(usuario){
     iniciarPresenca();
     render();
     aplicarVisibilidadeMenus();
-    abrirPainelInicial();
+    pedirPainelInicial();   /* v288 - so' abre depois que as permissoes chegarem */
     setTimeout(() => { registrarTokenSePermitido(); talvezPerguntarPush(); }, 1500);
   } else {
+    cancelarPainelInicial();   /* v288 */
     if (escutaLancamentos){ escutaLancamentos(); escutaLancamentos = null; }
     if (escutaConfig){ escutaConfig(); escutaConfig = null; }
     if (escutaPerfis){ escutaPerfis(); escutaPerfis = null; }
@@ -4961,6 +4958,8 @@ function atualizarBadgeCaixa(){
   const n = recadosVisiveis().filter(r => !r.concluida).length;
   const b = document.getElementById("badgeCaixa");
   if (b){ b.textContent = n; b.style.display = n ? "" : "none"; }
+  /* v288 - o sino do cabecalho passou a contar isto tambem */
+  if (typeof atualizarBadgeSino === "function") atualizarBadgeSino();
 }
 function alternarCaixa(){
   const aberto = abrirPainelExclusivo("painelCaixa");
@@ -6166,6 +6165,14 @@ function persistirListas(){
    anterior, e o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v288", data:"08/08/2026", tit:"O app volta a abrir no Dashboard", itens:[
+    {t:"c", h:"Entrar no app caía sempre na Caixa de entrada", d:"Mesmo sem nada nela. O app escolhia a primeira tela <b>antes</b> de saber quais menus você pode ver, e nesse instante a Caixa era a única liberada. Agora ele espera essa resposta e abre no <b>Dashboard da última empresa</b> em que você esteve."},
+    {t:"m", h:"O sino agora conta a Caixa de entrada também", d:"A bolinha vermelha do \ud83d\udd14 no canto de cima somava só os avisos de vencimento. Agora ela soma <b>avisos + tarefas e recados pendentes</b>, e o cartão do sino mostra as duas listas separadas."},
+    {t:"c", h:"O botão do sino ia para o lugar errado", d:"Ele se chamava “Abrir a Caixa de entrada” e abria a tela de Avisos. Agora são <b>dois botões</b>: \ud83d\udce5 Caixa de entrada e \ud83d\udcc5 Avisos."},
+    {t:"m", h:"Evolução de preços e margens desceu para Custos e preços", d:"O bloco de gráficos saiu do fim do Dashboard e agora fica <b>dentro do menu Custos e preços</b>, logo abaixo do quadro de hoje — é o mesmo assunto: quanto custa, por quanto vende, quanto sobra. Os gráficos e as contas são exatamente os mesmos, e agora eles obedecem <b>aos filtros do topo da própria tela</b>, junto com o resto dela."},
+    {t:"m", h:"A gaveta “Lançamentos antigos” saiu da tela", d:"O sistema já traz tudo do Petros sozinho, inclusive o retroativo — a gaveta só oferecia um caminho que ninguém deve mais tomar. <b>Nada foi apagado</b>: os lançamentos continuam guardados na nuvem e continuam sendo o plano B dos gráficos enquanto a coleta do dia não chega. Com ela saíram o filtro <b>Distribuidora</b> (que só servia àquela tabela) e o botão + Adicionar registro."},
+    {t:"m", h:"Um botão só para o PDF dos gráficos", d:"O PDF em traço (não é foto da tela) que existia no Dashboard virou o botão <b>\ud83d\udcc4 PDF dos gráficos</b>, ali no bloco. O <b>Exportar PDF</b> do topo passou a ser o desta tela inteira — antes ele era o PDF da tabela que saiu."}
+  ]},
   {v:"v287", data:"08/08/2026", tit:"Descontos: o hist\u00f3rico entrou, e ele n\u00e3o cobra nada", itens:[
     {t:"n", h:"Janeiro a julho est\u00e3o no app", d:"O coletor puxou os descontos de <b>2026 inteiro</b> at\u00e9 aqui. O filtro de per\u00edodo do quadro <b>No per\u00edodo</b> j\u00e1 enxerga tudo: s\u00e3o mais de <b>1.900 linhas</b> que a tela n\u00e3o via."},
     {t:"m", h:"A cobran\u00e7a do motivo come\u00e7a em 08/08", d:"Linha de <b>antes de hoje</b> aparece marcada como <b>\ud83d\uddc4\ufe0f Hist\u00f3rico</b>: ela conta nos totais, mas <b>n\u00e3o entra na conta do que est\u00e1 devendo motivo</b>. Um contador com mil e quatrocentas pend\u00eancias antigas s\u00f3 ensinaria a ignorar o contador."},
@@ -7242,6 +7249,7 @@ function iniciarSync(){
     vistoPermissoes = true;                       // v221
     aplicarVisibilidadeMenus();
     garantirPainelPermitido();
+    talvezAbrirPainelInicial(false);              // v288
     refrescarAvisosCalendario();
     // Não re-desenha a lista de usuários aqui: o clique já atualiza a caixa e re-desenhar
     // fecharia o editor aberto. (A lista é montada ao abrir o painel, já com o estado atual.)
@@ -7254,6 +7262,7 @@ function iniciarSync(){
     vistoPerfisAcesso = true;                     // v221
     aplicarVisibilidadeMenus();
     garantirPainelPermitido();
+    talvezAbrirPainelInicial(false);              // v288
     const pa = document.getElementById("painelAdmin");
     if (pa && pa.classList.contains("aberto")) renderAbaAdm();
     refrescarAvisosCalendario();
@@ -7339,6 +7348,9 @@ function iniciarSync(){
     snap.forEach(doc => { novo[doc.id] = doc.data() || {}; });
     custosDiarios = novo;
     linhasBancoCache = null;                       // o cache morre quando o dado muda
+    /* v288 - esta serie alimenta os graficos, que agora moram no menu Custos e preços */
+    const pr = document.getElementById("painelRegistros");
+    if (pr && pr.classList.contains("aberto")) renderPrecosMargens();
     const pd = document.getElementById("painelDash");
     if (pd && pd.classList.contains("aberto")) renderDashboard();
   }, ()=>{});
@@ -7588,7 +7600,16 @@ function render(){
   montarFiltros();
   const dash = document.getElementById("painelDash");
   if (dash && dash.classList.contains("aberto")) renderDashboard();
+  /* v288 - a mesma barra de filtros manda na tabela E nos graficos */
+  const preg = document.getElementById("painelRegistros");
+  if (preg && preg.classList.contains("aberto")) renderPrecosMargens();
+  /* 🔴 v288 - DAQUI PARA BAIXO E' A TABELA DOS LANÇAMENTOS ANTIGOS, QUE SAIU DA TELA.
+     O `#corpo` nao existe mais no HTML, entao este `return` desliga o desenho inteiro dela
+     — sem tocar em `registros`, que continua carregado e alimentando os graficos quando o
+     coletor ainda nao gravou (`fonteDoDash()`). 🔑 O dado ficou; o que saiu foi a tela.
+     💡 O bloco abaixo fica de pe' de proposito: se um dia a tabela voltar, ela volta inteira. */
   const corpo = document.getElementById("corpo");
+  if (!corpo) return;
   const visiveis = registros.map((r,i)=>({r,i}))
     .filter(({r})=>filtrar(r))
     .sort((a,b)=>(a.r.data || "9999-99-99").localeCompare(b.r.data || "9999-99-99"));
@@ -7809,6 +7830,7 @@ function fecharMenuLateral(){
   // e' clicando neles que o Tiago entra e sai do modo, sem perder a tela de vista.
   if (m) m.addEventListener("click", e => {
     if (!e.target.closest("button")) return;
+    cancelarPainelInicial();   /* v288 - quem escolheu a tela foi a pessoa */
     if (e.target.closest("#btnOrdenarMenus")) return;
     if (e.target.closest(".menu-grp-tit")) return;   // v243 - abrir um grupo nao fecha a barra
     fecharMenuLateral();
@@ -8633,6 +8655,37 @@ function abrirPrimeiroPermitido(){
   fecharTodosPaineis();
   return false;
 }
+/* ===================== v288 - O PAINEL INICIAL ESPERA AS PERMISSOES =====================
+   🔴 O DEFEITO: entrar no app pelo link caia SEMPRE na Caixa de entrada, mesmo vazia.
+   Nao era preferencia nem cache: `aoMudarLogin()` escolhia o painel inicial ANTES de o
+   snapshot de `config/permissoes` voltar do Firestore. Naquele instante `permissoesTodos`
+   esta vazio e `ehAdminEmail()` responde FALSO ate' para o dono (desde a v269 o admin vem
+   da ficha, nao do codigo). Com isso `menuPermitido("dash")` dava falso, o app caia no
+   `abrirPrimeiroPermitido()` e o primeiro menu que e' "de todos" na ordem de MENUS_APP e'
+   justamente a Caixa de entrada. Depois, quando a permissao chegava, `garantirPainelPermitido()`
+   nao corrigia nada - porque a Caixa E' permitida.
+   🔑 Decisao que o app toma com dado que ainda nao chegou e' decisao tomada no escuro.
+   Agora o pedido fica PENDENTE e so' e' atendido quando as duas escutas responderem; um
+   fallback de 6 segundos garante que ninguem fique com a tela vazia se a rede falhar. */
+let painelInicialPendente = false;
+let painelInicialTimer = null;
+function pedirPainelInicial(){
+  painelInicialPendente = true;
+  if (painelInicialTimer) clearTimeout(painelInicialTimer);
+  painelInicialTimer = setTimeout(() => { painelInicialTimer = null; talvezAbrirPainelInicial(true); }, 6000);
+  talvezAbrirPainelInicial(false);   // permissao ja' em maos (troca de aba, por exemplo): abre agora
+}
+function cancelarPainelInicial(){
+  painelInicialPendente = false;
+  if (painelInicialTimer){ clearTimeout(painelInicialTimer); painelInicialTimer = null; }
+}
+function talvezAbrirPainelInicial(forcar){
+  if (!painelInicialPendente) return false;
+  if (!forcar && !(vistoPermissoes && vistoPerfisAcesso)) return false;
+  cancelarPainelInicial();
+  abrirPainelInicial();
+  return true;
+}
 function abrirPainelInicial(){
   const s = siglaEmpresa(empresa);
   // v203 - a Transportadora tambem abre no Dashboard (antes abria no APP Infleet)
@@ -8735,23 +8788,27 @@ function abrirPainelExclusivo(id){
    🔑 MENUS_APP ja sabe o nome do painel de cada menu. Duas listas com a mesma informacao
       sempre se desencontram; aqui a segunda passa a se completar a partir da primeira. */
 MENUS_APP.forEach(m => { if (m.pan && PAINEIS.indexOf(m.pan) < 0) PAINEIS.push(m.pan); });
-const PAINEIS_COM_FILTROS = ["painelRegistros","painelDash"];
+const PAINEIS_COM_FILTROS = ["painelRegistros"];   /* v288 - saiu o painelDash */
 function atualizarFiltrosVisiveis(){
   agendarTrocaDeTela();   // v243 - roda depois de o painel novo receber a classe "aberto"
   const barra = document.querySelector(".filtros");
   if (!barra) return;
   const abertoP = pid => { const p = document.getElementById(pid); return !!(p && p.classList.contains("aberto")); };
   const usa = PAINEIS_COM_FILTROS.some(abertoP);
-  const noDash = abertoP("painelDash");
-  // v178: no Dashboard esses filtros só mexem no card "Evolução de preços e margens",
-  // então a barra vai morar dentro dele. Nos Lançamentos volta para o topo da página.
-  const casa = document.getElementById(noDash ? "filtrosSlotDash" : "filtrosSlotTopo");
+  /* v178: a barra ia morar dentro do card "Evolução de preços e margens", no Dashboard.
+     🆕 v288: o card desceu para dentro do proprio menu Custos e preços, entao a barra
+     VOLTOU A SER UMA SO', no topo, valendo para a tela inteira — a tabela e os graficos.
+     🔑 Barra que muda de endereco existia para servir duas telas; com uma tela so', o
+        endereco tambem passa a ser um so'. */
+  const casa = document.getElementById("filtrosSlotTopo");
   if (casa && barra.parentElement !== casa) casa.appendChild(barra);
-  barra.classList.toggle("filtros-no-card", noDash);
+  barra.classList.remove("filtros-no-card");
   barra.style.display = usa ? "" : "none";
-  // No Dashboard o filtro de Distribuidora não tem função — fica escondido só lá
+  /* v288 - o filtro Distribuidora servia SO' a tabela dos lançamentos antigos, que saiu da
+     tela: os graficos nao olham para distribuidora. Filtro que nao filtra nada e' pior que
+     filtro que falta — some. (As distribuidoras continuam sendo geridas em ⚙ Configurações.) */
   const fd = document.getElementById("filtroDist");
-  if (fd) fd.style.display = noDash ? "none" : "";
+  if (fd) fd.style.display = "none";
 }
 
 /* ===================== v263 - A TELA DE CONFERENCIA =====================
@@ -8811,13 +8868,14 @@ function renderConferencia(){
   box.innerHTML = h
     ? '<p class="conf-topo">📡 Direto do Petros' + (quando ? ' — atualizado em <b>' + fmtQuandoLocal(quando) + '</b>' : '') +
       '. A margem já desconta o frete.</p>' + h
-    : '<div class="conf-vazio">A coleta automática ainda não gravou nada. Enquanto isso, os números vêm dos lançamentos antigos, aqui embaixo.</div>';
+    : '<div class="conf-vazio">A coleta automática ainda não gravou nada hoje. Ela roda todo dia de manhã; para atualizar na hora, peça ao Claude: "atualiza os custos".</div>';
 }
 
 function alternarRegistros(){
   abrirPainelExclusivo("painelRegistros");
   atualizarBotaoRegistros();
   renderConferencia();                       /* v263 */
+  renderPrecosMargens();                     /* v288 - os graficos moram aqui agora */
 }
 function atualizarBotaoRegistros(){
   const aberto = document.getElementById("painelRegistros").classList.contains("aberto");
@@ -14293,6 +14351,20 @@ let sinoCardAberto = false;
 function sinoPendentes(){
   try { return avisosVisiveis().filter(e => !avisoConcluido(e)); } catch(e){ return []; }
 }
+/* ===================== v288 - O SINO PASSOU A ENXERGAR A CAIXA DE ENTRADA =====================
+   Ate' aqui a bolinha vermelha do cabecalho contava SO' os avisos de vencimento. Tarefa nova
+   na Caixa acendia apenas o numerinho do menu lateral - que, no celular, mora atras do botao
+   da barra e ninguem ve'. 🔑 Aviso que so' aparece em tela fechada nao e' aviso. */
+function sinoPendentesCaixa(){
+  try { return recadosVisiveis().filter(r => !r.concluida); } catch(e){ return []; }
+}
+function sinoTotalPendentes(){ return sinoPendentes().length + sinoPendentesCaixa().length; }
+function atualizarBadgeSino(){
+  const n = sinoTotalPendentes();
+  const sh = document.getElementById("badgeSinoHeader");
+  if (sh){ sh.textContent = n; sh.style.display = n ? "" : "none"; }
+  if (typeof sinoCardAberto !== "undefined" && sinoCardAberto) renderSinoCard();   // v250b
+}
 function sinoRotuloData(e){
   const dd = diasAte(e.data), ddmm = fmtDataCurta(e.data).slice(0,5);
   if (dd < 0)  return { cls:"vencido", rot:"VENCIDO " + ddmm };
@@ -14304,27 +14376,46 @@ function sinoRotuloData(e){
 function renderSinoCard(){
   const corpo = document.getElementById("sinoCorpo"), cnt = document.getElementById("sinoCnt");
   if (!corpo) return;
-  const pend = sinoPendentes();
-  if (cnt) cnt.textContent = pend.length ? (pend.length + (pend.length === 1 ? " pendente" : " pendentes")) : "em dia";
-  if (!pend.length){
+  const pend = sinoPendentes();          // avisos de vencimento (documentos e eventos)
+  const cxs  = sinoPendentesCaixa();     // v288 - tarefas e avisos da Caixa de entrada
+  const tot  = pend.length + cxs.length;
+  if (cnt) cnt.textContent = tot ? (tot + (tot === 1 ? " pendente" : " pendentes")) : "em dia";
+  if (!tot){
     /* 🔴 SEM emoji por escape aqui: `\U` MAIUSCULO nao e' escape valido em JavaScript e
        vaza na tela como "U0001f389" — foi o que a foto pegou. Emoji em string ou vira
        PAR SUBSTITUTO (\ud83c\udf89) ou nao entra. Aqui nao precisa. */
-    corpo.innerHTML = '<div class="sino-vazio">Nenhum aviso pendente.</div>';
+    corpo.innerHTML = '<div class="sino-vazio">Nada pendente por aqui.</div>';
     return;
   }
   let h = "";
-  pend.slice(0, SINO_TOPO).forEach(e => {
-    const d = sinoRotuloData(e);
-    h += '<div class="sino-it ' + d.cls + '">' +
-         '<span class="sino-q">' + escAttr(d.rot) + '</span>' +
-         '<span class="sino-t" title="' + escAttr(e.titulo || "") + '">' + escAttr(e.titulo || "") + '</span>' +
-         (e.origem ? '<span class="sino-o">' + escAttr(e.origem) + '</span>' : '') +
-         '</div>';
-  });
-  /* v241 - resumo que conta N e lista que mostra menos TEM de dizer isso */
-  if (pend.length > SINO_TOPO)
-    h += '<div class="sino-mais">e mais ' + (pend.length - SINO_TOPO) + ' na Caixa de entrada</div>';
+  /* v288 - a Caixa vem primeiro: e' o que tem alguem esperando do outro lado */
+  if (cxs.length){
+    h += '<div class="sino-sec">\ud83d\udce5 Caixa de entrada</div>';
+    cxs.slice(0, SINO_TOPO).forEach(r => {
+      const quando = fmtHaTempo(r.criadoEm);
+      h += '<div class="sino-it caixa">' +
+           '<span class="sino-q">' + (r.tipo === "aviso" ? "AVISO" : "TAREFA") + '</span>' +
+           '<span class="sino-t" title="' + escAttr(r.titulo || "") + '">' + escAttr(r.titulo || "") + '</span>' +
+           (quando ? '<span class="sino-o">' + escAttr(quando) + '</span>' : '') +
+           '</div>';
+    });
+    /* v241 - resumo que conta N e lista que mostra menos TEM de dizer isso */
+    if (cxs.length > SINO_TOPO)
+      h += '<div class="sino-mais">e mais ' + (cxs.length - SINO_TOPO) + ' na Caixa de entrada</div>';
+  }
+  if (pend.length){
+    h += '<div class="sino-sec">\ud83d\udcc5 Avisos de vencimento</div>';
+    pend.slice(0, SINO_TOPO).forEach(e => {
+      const d = sinoRotuloData(e);
+      h += '<div class="sino-it ' + d.cls + '">' +
+           '<span class="sino-q">' + escAttr(d.rot) + '</span>' +
+           '<span class="sino-t" title="' + escAttr(e.titulo || "") + '">' + escAttr(e.titulo || "") + '</span>' +
+           (e.origem ? '<span class="sino-o">' + escAttr(e.origem) + '</span>' : '') +
+           '</div>';
+    });
+    if (pend.length > SINO_TOPO)
+      h += '<div class="sino-mais">e mais ' + (pend.length - SINO_TOPO) + ' na tela de Avisos</div>';
+  }
   corpo.innerHTML = h;
 }
 /* ===================== v252 - O SELO DE FRESCOR DO DADO =====================
@@ -14866,8 +14957,17 @@ function fecharSinoCard(){
   if (b) b.classList.toggle("ativo", !!(p && p.classList.contains("aberto")));
 }
 function alternarSinoCard(){ sinoCardAberto ? fecharSinoCard() : abrirSinoCard(); }
-/* 🔴 `alternarAvisos()` ALTERNA: com o painel ja' aberto ele fecharia. Regra da v247. */
+/* 🔴 `alternarAvisos()` ALTERNA: com o painel ja' aberto ele fecharia. Regra da v247.
+   🆕 v288 - O BOTAO CHAMADO "Abrir a Caixa de entrada" ABRIA A TELA DE AVISOS.
+   O nome dizia uma coisa e o destino era outro. Agora sao dois botoes, cada um no lugar
+   que o nome promete. 🔑 Rotulo que mente e' defeito, mesmo quando a tela funciona. */
 function abrirCaixaDoSino(){
+  fecharSinoCard();
+  const p = document.getElementById("painelCaixa");
+  if (p && p.classList.contains("aberto")){ renderCaixa(); return; }
+  alternarCaixa();
+}
+function abrirAvisosDoSino(){
   fecharSinoCard();
   const p = document.getElementById("painelAvisos");
   if (p && p.classList.contains("aberto")){ renderAvisos(); return; }
@@ -14936,12 +15036,10 @@ function chaveAviso(e){
 }
 function avisoConcluido(e){ return !!(avisosStatus && avisosStatus.concluidos && avisosStatus.concluidos[chaveAviso(e)]); }
 function atualizarBadgeAvisos(){
-  if (typeof sinoCardAberto !== "undefined" && sinoCardAberto) renderSinoCard();   // v250b
   const n = avisosVisiveis().filter(e => !avisoConcluido(e)).length;  // pendentes: vencidos + os que já entraram na janela de antecedência de cada evento
   const b = document.getElementById("badgeAvisos");
   if (b){ b.textContent = n; b.style.display = n ? "" : "none"; }
-  const sh = document.getElementById("badgeSinoHeader");
-  if (sh){ sh.textContent = n; sh.style.display = n ? "" : "none"; }
+  atualizarBadgeSino();   /* v288 - a bolinha do sino e' Avisos + Caixa de entrada */
 }
 function concluirAvisoIdx(i){
   const e = (window.__aviPend||[])[i]; if(!e) return;
@@ -19193,7 +19291,6 @@ const CARDS_DASH = [
   { k:"categorias", id:"dashGrpCategorias", n:"🍫 Onde está o lucro da loja",      emp:"conv" },
   { k:"comparar",   id:"dashGrpComparar",   n:"⚖️ As três lojas na mesma categoria",        emp:"conv" },
   { k:"ifood",      id:"dashGrpIfood",      n:"🛵 iFood",                          emp:"conv" },
-  { k:"precos",     id:"dashGrpPrecos",     n:"📉 Evolução de preços e margens",   emp:"postos" },
   // v203 - Full Transportadora
   { k:"frota",      id:"dashGrpFrota",      n:"🚚 Frota agora",                  emp:"transp" },
   { k:"puxadasMes", id:"dashGrpPuxadasMes", n:"📦 Puxadas do mês",               emp:"transp" },
@@ -19973,7 +20070,6 @@ function dashRestaurarChecks(){
 }
 
 function renderDashboard(){
-  dashRestaurarChecks();                     // v262
   ajustarBlocosDash();                       // v198
   if (dashEhTransp()){ renderDashTransp(); return; }   // v203 - nao tem Petros nem Caixas
   // Vendas do dia (Petros) - primeira coisa do Dashboard, nas duas empresas
@@ -19982,7 +20078,19 @@ function renderDashboard(){
   renderCaixas();                            // v198 - os caixas viraram bloco daqui
   if (dashEhConv()){ renderDashConv(); return; }
   renderDashPostosResultado();               // v200
+  /* 🔴 v288 - AQUI TERMINAVA O DASHBOARD E COMECAVAM OS GRAFICOS DE PRECO.
+     Eles desceram para o menu Custos e preços; quem os desenha agora e' renderPrecosMargens(). */
+}
+
+/* ===================== v288 - OS GRAFICOS DE PREÇO E MARGEM =====================
+   É o antigo card do Dashboard, inteiro, sem uma linha de conta mudada: as mesmas
+   dadosDashboard()/dadosDashboardMargem(), os mesmos filtros (que agora sao os do topo
+   da propria tela) e a mesma fonte (custosDiarios do coletor; sem ela, os lançamentos).
+   🔑 Mudanca de endereco nao e' hora de mexer no numero. */
+function renderPrecosMargens(){
+  dashRestaurarChecks();                     // v262
   const alvo = document.getElementById("conteudoDash");
+  if (!alvo) return;
   const chkC = document.getElementById("chkVerCusto");
   const chkM = document.getElementById("chkVerMargem");
   const chkMP = document.getElementById("chkVerMargemPct");
@@ -20006,7 +20114,7 @@ function renderDashboard(){
         (quando ? ' — atualizado em ' + fmtQuandoLocal(quando) : '') + '.';
     } else {
       boxFonte.innerHTML = '📋 Custo, frete e preço de venda vêm dos <b>lançamentos digitados</b> ' +
-        'no menu Lançamentos (a coleta automática ainda não gravou nada).';
+        'digitados pela equipe antes de 06/08/2026 (a coleta automática ainda não gravou nada).';
     }
   }
 
@@ -20081,7 +20189,7 @@ function instalarFerramentasPaineis(){
 }
 function painelVisivelInfo(){
   const mapa = [
-    ["painelRegistros", "Lançamentos", "lancamentos"],
+    ["painelRegistros", "Custos e preços", "custos_e_precos"],   /* v288 - o nome "Lançamentos" morreu com a tabela */
     ["painelDash",      "Dashboard",   "dashboard"],
     ["painelSimular",   "Simular Margens", "simulacao"],
     ["painelDescontos", "Descontos",   "descontos"],
@@ -20496,6 +20604,28 @@ function podeVetorizarPDF(){
     return !!(window.jspdf && window.jspdf.jsPDF && typeof (new window.jspdf.jsPDF()).svg === "function");
   } catch(_){ return false; }
 }
+/* 🔴 v288 - O PDF VETORIAL DOS GRAFICOS NAO PODE SUMIR JUNTO COM O CARD.
+   Ele era o ramo `info.id === "painelDash"` do exportarPDF(): texto de verdade + grafico
+   vetorial, em vez de foto da tela. Com os graficos dentro do menu Custos e preços, o botao
+   geral daquela tela continua sendo o PDF da TABELA (autoTable) — entao os graficos ganharam
+   botao proprio, dentro do proprio bloco. 🔑 Capacidade que se perde numa mudanca de endereco
+   e' capacidade que ninguem reclama e ninguem repoe. */
+async function exportarPDFPrecos(){
+  const el = document.getElementById("grpPrecosMargens");
+  if (!el) return;
+  const info = { id:"grpPrecosMargens", el, nome:"Evolução de preços e margens", slug:"precos_margens" };
+  const nome = pedirNomeArquivo(nomeArquivoPadrao(info));
+  if (nome === null) return;
+  try {
+    document.body.style.cursor = "progress";
+    await carregarBibliotecasPDF();
+    if (el.querySelectorAll(".bloco-comb").length && podeVetorizarPDF())
+      await exportarPDFDashboardVetorial(info, nome);
+    else
+      await exportarPDFTexto(info, nome);
+  } catch(e){ alert("Não foi possível gerar o PDF. Verifique a conexão e tente novamente."); }
+  finally { document.body.style.cursor = ""; }
+}
 async function exportarPDF(){
   const info = painelVisivelInfo();
   const nome = pedirNomeArquivo(nomeArquivoPadrao(info));
@@ -20503,11 +20633,7 @@ async function exportarPDF(){
   try {
     document.body.style.cursor = "progress";
     await carregarBibliotecasPDF();
-    if (info.id === "painelRegistros"){
-      exportarPDFTabela(nome);                              // tabela (autoTable, texto real)
-    } else if (info.id === "painelDash" && document.querySelectorAll("#painelDash .bloco-comb").length && podeVetorizarPDF()){
-      await exportarPDFDashboardVetorial(info, nome);       // dashboard vetorial (texto real + gráficos vetoriais)
-    } else if (info.id === "painelCalendario"){
+    if (info.id === "painelCalendario"){
       await exportarPDFPainel(info, nome);                  // calendário: imagem (é uma grade visual de dias)
     } else {
       await exportarPDFTexto(info, nome);                   // demais painéis: texto real (selecionável)
@@ -20525,6 +20651,10 @@ async function imprimir(){
   finally { document.body.style.cursor = ""; }
 }
 
+/* 🔴 v288 - ADORMECIDA. Esta funcao desenhava o PDF da TABELA dos lançamentos antigos, que
+   saiu da tela. Ninguem mais a chama; ela fica de pe' porque le' o array `registros` (que
+   continua na nuvem) e nao o DOM — ou seja, volta a funcionar no dia em que a tabela voltar.
+   🔑 Codigo dormente E' divida: se daqui a algumas versoes a tabela nao tiver voltado, apagar. */
 function exportarPDFTabela(nomeArquivo){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
