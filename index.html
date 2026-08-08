@@ -3281,10 +3281,10 @@
     </div>
     <div class="grupo">
       <h2>🚛 Frota agora</h2>
-      <p class="nota-dash">Onde estava cada veículo na última vez que o app conversou com o Infleet, com motorista, se estava ligado, o local e o odômetro.</p>
       <div id="infMapaBox" class="inf-mapa-box"></div>
       <p class="nota-dash" id="infMapaNota" style="display:none"></p>
       <div id="infleetFrotaBox"></div>
+      <p class="nota-dash">Onde estava cada veículo na última vez que o app conversou com o Infleet, com motorista, se estava ligado, o local e o odômetro.</p>
     </div>
     <div class="grupo">
       <h2>⛽ Abastecimentos — <span id="infMesRotulo"></span></h2>
@@ -3584,10 +3584,10 @@
 
     <div class="grupo" id="dashGrpFrota">
       <h2>🚚 Frota agora</h2>
-      <p class="nota-dash">Onde cada veículo está neste momento, segundo o rastreador do Infleet. Quem parou de mandar posição andando aparece marcado — quase sempre é trecho sem cobertura de internet, não problema no veículo. Quem se despediu parado continua valendo como desligado. O odômetro e o abastecimento por abastecimento ficam no menu APP Infleet.</p>
       <div id="dtrMapaBox" class="inf-mapa-box"></div>
       <p class="nota-dash" id="dtrMapaNota" style="display:none"></p>
       <div id="dtrFrotaBox"></div>
+      <p class="nota-dash">Onde cada veículo está neste momento, segundo o rastreador do Infleet. Quem parou de mandar posição andando aparece marcado — quase sempre é trecho sem cobertura de internet, não problema no veículo. Quem se despediu parado continua valendo como desligado. O odômetro e o abastecimento por abastecimento ficam no menu APP Infleet.</p>
     </div>
 
     <div class="grupo" id="dashGrpPuxadasMes">
@@ -6219,6 +6219,10 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v299", data:"08/08/2026", tit:"A frota lista os caminhões primeiro, e a explicação desceu para o fim do card", itens:[
+    {t:"m", h:"Caminhões primeiro, carro por último", d:"Em <b>Frota agora</b> — no Dashboard da Transportadora e no menu <b>🚚 APP Infleet</b> — a lista passou a começar pelos <b>caminhões</b>, deixando os outros veículos no fim. Quem é caminhão e quem não é sai do próprio cadastro de <b>Configurações → Caminhões e tanques</b>: cadastrou a placa lá, o veículo já sobe na lista, sem precisar de versão nova. Entre iguais, a ordem é pelo nome, de A a Z."},
+    {t:"m", h:"A explicação saiu de cima do mapa", d:"O parágrafo que explica o card estava <b>entre o título e o mapa</b>, empurrando o mapa para baixo. Ele foi para o <b>fim do card</b>, depois da tabela, junto com as outras explicações que já nasciam ali. Vale para as duas telas."}
+  ]},
   {v:"v298", data:"08/08/2026", tit:"O mapa da frota abre junto com o Dashboard \u2014 e \"caminh\u00e3o\" virou \"ve\u00edculo\"", itens:[
     {t:"n", h:"O mapa entrou no primeiro card do Dashboard", d:"O card <b>\ud83d\ude9a Frota agora</b>, que j\u00e1 \u00e9 o primeiro do Dashboard da <b>Full Transportadora</b>, ganhou o mesmo mapa que at\u00e9 ontem existia s\u00f3 dentro do menu <b>\ud83d\ude9a APP Infleet</b>. Abrindo o app na Transportadora, a posi\u00e7\u00e3o dos ve\u00edculos aparece de cara, sem entrar em menu nenhum. O menu APP Infleet continua com o dele, mais o od\u00f4metro e os abastecimentos."},
     {t:"m", h:"\"Caminh\u00e3o\" virou \"Ve\u00edculo\" onde a lista \u00e9 a frota inteira", d:"A Oroch \u00e9 carro, e a coluna dizia <b>Caminh\u00e3o</b>. A troca foi feita em <b>Frota agora</b> (nas duas telas), nas tabelas de <b>Abastecimentos</b> e no card que agora se chama <b>\ud83d\udcc9 Efici\u00eancia por ve\u00edculo</b>. Em <b>Puxadas</b>, nos CT-e, no <b>Pedido de carregamento</b> e no cadastro continua <b>caminh\u00e3o</b> \u2014 ali \u00e9 caminh\u00e3o mesmo."},
@@ -14637,11 +14641,34 @@ function renderInfMapa(idBox, idNota){
     if (nota){ nota.style.display = ""; nota.textContent = "Não deu para carregar o mapa agora. A lista abaixo continua valendo."; }
   });
 }
+/* 🔴 v299 — A ORDEM DA FROTA, E ELA NÃO TEM NOME DE VEÍCULO DENTRO.
+   Pedido do Tiago: os dois FH primeiro, a Oroch por último. Escrever isso como
+   lista de nomes funcionaria hoje e morreria no dia do quarto veículo — "condição
+   escrita como nome próprio não sobrevive ao segundo caso" (v246).
+   🔑 A separação que ele pediu JÁ EXISTE no app, cadastrada por ele: quem está em
+   Configurações → Caminhões e tanques é caminhão; quem não está é o resto.
+   MEDIDO em 08/08 no app no ar: `caminhoes` = [RSR4I66, SNF1J22]; a Oroch (RON5H26)
+   não está lá. O `modelo` do Infleet ("VOLVO FH 460 6X2T" × "RENAULT OROCH
+   OUTSIDE13C") diria a mesma coisa, mas é texto de FORNECEDOR: muda sem avisar.
+   👉 E isto dá a ele o botão em vez da mudança: veículo novo entra no lugar certo
+   no dia em que a placa é cadastrada, sem versao nova.
+   ⚠️ Cadastro vazio (ou ainda não carregado) não quebra nada: cai tudo no mesmo
+   grupo e a ordem vira o desempate, que é o nome de A a Z. */
+function ehCaminhaoInf(v){ return !!caminhaoPorPlaca(v && v.placa); }
+function ordenarFrotaInf(lista){
+  const arr = Array.isArray(lista) ? lista.slice() : [];
+  return arr.sort(function(a, b){
+    const ca = ehCaminhaoInf(a) ? 0 : 1, cb = ehCaminhaoInf(b) ? 0 : 1;
+    if (ca !== cb) return ca - cb;
+    const na = String((a && (a.nome || a.placa)) || ""), nb = String((b && (b.nome || b.placa)) || "");
+    return na.localeCompare(nb, "pt-BR");
+  });
+}
 function renderInfFrota(){
   const box = document.getElementById("infleetFrotaBox");
   if (!box) return;
   const f = infleetFrota;
-  const lista = (f && Array.isArray(f.veiculos)) ? f.veiculos : [];
+  const lista = ordenarFrotaInf(f && f.veiculos);   /* v299 - caminhoes primeiro */
   if (!lista.length){
     box.innerHTML = '<p class="nota-dash">Ainda não recebemos os dados do Infleet. Eles chegam junto com a sincronização automática.</p>';
     return;
@@ -20282,7 +20309,7 @@ function renderDtrFrota(){
   /* v298 — o mesmo mapa do menu APP Infleet, no card que abre primeiro. */
   renderInfMapa("dtrMapaBox", "dtrMapaNota");
   const f = infleetFrota;
-  const lista = (f && Array.isArray(f.veiculos)) ? f.veiculos : [];
+  const lista = ordenarFrotaInf(f && f.veiculos);   /* v299 - caminhoes primeiro */
   if (!lista.length){
     box.innerHTML = '<p class="nota-dash">Ainda n\u00e3o recebemos os dados do Infleet. Eles chegam junto com a sincroniza\u00e7\u00e3o autom\u00e1tica.</p>';
     return;
