@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v300 — Postos Full (não é o app)</title>
+<title>PRÉVIA v301 — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -2412,6 +2412,44 @@
   .tqv-fbt b{color:#e5484d;font-weight:800}
   .tqv-fbt.aceso b{color:#e5484d}
   .tqv-aviso-fora{border-color:rgba(127,127,127,.5);background:rgba(127,127,127,.10)}
+  /* ===================== v301 - LUCRO POR COMBUSTIVEL (o card do Dashboard) =====================
+     Os TRES postos lado a lado - escolha do Tiago. Em tela estreita eles viram uma coluna so'.
+     🔑 A cor de cada combustivel e' a MESMA do Nivel dos tanques (tqvCorProduto): o etanol e'
+        verde na pista, no tanque e aqui. Cor que muda de tela em tela vira legenda obrigatoria. */
+  .cbd-postos{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:start}
+  .cbd-posto{border:1px solid var(--borda);border-radius:12px;padding:12px 12px 6px;
+             background-image:linear-gradient(var(--superficie),var(--superficie))}
+  .cbd-titulo{margin:0 0 10px;font-size:.95rem;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .cbd-titulo small{font-weight:400;opacity:.7;font-size:.78rem}
+  /* 🔴 TRES CARTOES DE ALTURA, E O RESTO ROLA DENTRO DO CARD — pedido dele depois de ver a
+     previa. Teresina vende CINCO combustiveis (com a Podium); Caxias e Dutra, tres ou quatro.
+     Sem teto, a coluna de Teresina fica com o dobro da altura das outras duas e o card inteiro
+     cresce por causa de um posto so'.
+     🔑 A altura NAO e' redonda de proposito: 3 cartoes (115) + 2 vaos (9) = 363, mais 18 para o
+        QUARTO APARECER PELA METADE. E' a metade do quarto que diz "tem mais aqui embaixo" —
+        barra de rolagem em card curto, no celular, e' invisivel ate' alguem tentar rolar. */
+  .cbd-grade{display:grid;gap:9px;max-height:381px;overflow-y:auto;
+             scrollbar-width:thin;overscroll-behavior:contain}
+  .cbd-grade::-webkit-scrollbar{width:7px}
+  .cbd-grade::-webkit-scrollbar-thumb{border-radius:99px;
+             background-image:linear-gradient(rgba(127,127,127,.45),rgba(127,127,127,.45))}
+  .cbd-comb{border:1px solid var(--borda);border-left:4px solid var(--borda);border-radius:10px;
+            padding:9px 11px;background-image:linear-gradient(var(--fundo),var(--fundo))}
+  .cbd-nome{display:flex;align-items:center;gap:7px;font-weight:700;font-size:.82rem;
+            letter-spacing:.01em;margin-bottom:2px}
+  .cbd-ponto{width:9px;height:9px;border-radius:50%;flex:0 0 auto;
+             background-image:linear-gradient(#999,#999)}
+  .cbd-rsl{font-size:1.45rem;font-weight:800;line-height:1.15;color:#18a558}
+  .cbd-rsl.ruim{color:var(--vermelho)}
+  .cbd-sem{opacity:.62}
+  .cbd-rsl.cbd-nada{color:var(--txt);opacity:.55}
+  .cbd-rsl small{font-size:.72rem;font-weight:600;opacity:.65;margin-left:2px}
+  .cbd-l{display:flex;justify-content:space-between;gap:10px;font-size:.79rem;margin-top:5px;
+         opacity:.92}
+  .cbd-l b{font-weight:700}
+  .cbd-aviso{border:1px solid #e0a106;border-left-width:4px;border-radius:10px;padding:10px 13px;
+             background:rgba(224,161,6,.10);font-size:.87rem;line-height:1.45;margin:0 0 12px}
+  @media (max-width:900px){ .cbd-postos{grid-template-columns:1fr} }
   .tqv-regua{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 14px;font-size:.8rem}
   .tqv-rg{border-radius:999px;padding:3px 11px;border:1px solid var(--borda)}
   .tqv-rg.tqv-c{background:rgba(229,72,77,.12);border-color:rgba(229,72,77,.45)}
@@ -3519,6 +3557,12 @@
       <div id="dpsResBox"></div>
     </div>
 
+    <div class="grupo" id="dashGrpCombDia">
+      <h2>⛽ Lucro por combustível</h2>
+      <p class="nota-dash">Quanto cada combustível deixou <b>por litro</b> hoje, em cada posto: os litros que saíram das bombas, o lucro bruto que sobrou e o R$ por litro. Vem do Petros, coletado de 10 em 10 minutos — é o mesmo número da tabela <b>Venda de Combustíveis</b> do painel de lá.</p>
+      <div id="cbdBox"></div>
+    </div>
+
     <div class="grupo" id="dashGrpResultado">
       <h2>💵 Resultado do mês</h2>
       <p class="nota-dash">O que cada conveniência faturou no mês, quanto custou a mercadoria e quanto sobrou. Vem dos relatórios do Petros — os mesmos números do menu Relatórios.</p>
@@ -4022,6 +4066,7 @@ const docCustosCompra = db.collection("config").doc("custosCompra");
    Formato: { postos: { "Teresina": { unidade, idEmpresa, tanques:[{n,produto,cap,litros,pct,
    mediaDia,acabaEm,qualidade,medido,medidoEm,...}] } }, atualizadoEm, por }.
    ⚠️ E' FOTO DE AGORA, sem historico - por isso mora em `config`, nao num documento de mes. */
+const docCombDia = db.collection("config").doc("combustivelDia");   /* v301 - o lucro por combustivel de HOJE (coletor combdia.mjs) */
 const docTanquesNivel = db.collection("config").doc("tanquesNivel");
 /* v278 - o que o ADMIN personaliza nesta tela: cor de cada combustivel, ordem dos
    postos e ordem dos tanques dentro de cada posto. Documento AUSENTE = tudo no padrao. */
@@ -4243,8 +4288,14 @@ let escutaConvFornec = null, escutaConvProdutos = null;
 let precosVenda = { porPosto: {}, porPostoPrazo: {}, atualizadoEm: "", por: "", atualizadoPrazoEm: "", porPrazo: "" };  // à vista (Petros) + a prazo (manual)
 let escutaPrecosVenda = null;
 let escutaCustosCompra = null;                                              /* v261 */
+let escutaCombDia = null;                                                   /* v301 */
 let escutaTanquesNivel = null;                                              /* v278 */
 /* null = ainda nao chegou (esqueleto). Objeto sem `postos` = documento ausente (vazio). */
+/* v301 - o lucro por combustivel de hoje. 🔴 SAO TRES ESTADOS, NAO DOIS: `null` = a nuvem
+   ainda nao respondeu (esqueleto), `{}`/sem documento = o coletor nunca gravou (bloco vazio com
+   explicacao), e documento com dia sem linha = houve coleta e nao houve venda. Confundir os tres
+   e' o que faz coleta quebrada passar por "nao teve movimento". */
+let combDia = null, vistoCombDia = false;                                   /* v301 */
 let tanquesNivel = null;                                                    /* v278 */
 let escutaTanquesAjustes = null;                                            /* v278 */
 let tanquesAjustes = {};        /* {cores:{PRODUTO:hex}, ordemPostos:[], ordemTanques:{}} */
@@ -4793,6 +4844,7 @@ function aoMudarLogin(usuario){
     if (escutaPrecosVenda){ escutaPrecosVenda(); escutaPrecosVenda = null; }
     if (escutaCustosCompra){ escutaCustosCompra(); escutaCustosCompra = null; }   /* v261 */
     if (escutaTanquesNivel){ escutaTanquesNivel(); escutaTanquesNivel = null; tanquesNivel = null; }   /* v278 */
+    if (escutaCombDia){ escutaCombDia(); escutaCombDia = null; combDia = null; vistoCombDia = false; }   /* v301 */
     if (escutaTanquesAjustes){ escutaTanquesAjustes(); escutaTanquesAjustes = null; tanquesAjustes = {}; tqvEdit = null; }   /* v278 */
     if (escutaCustosDiarios){ escutaCustosDiarios(); escutaCustosDiarios = null; }   /* v262 */
     if (escutaClientes){ escutaClientes(); escutaClientes = null; }
@@ -6219,6 +6271,13 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v301", data:"08/08/2026", tit:"Card novo: ⛽ Lucro por combustível, do dia de hoje", itens:[
+    {t:"n", h:"Quanto cada combustível deixa por litro, hoje", d:"No <b>Dashboard dos Postos</b> entrou o card <b>⛽ Lucro por combustível</b>, com os <b>três postos lado a lado</b>. Em cada um, um cartão por combustível com o <b>R$ por litro</b>, os <b>litros vendidos</b> e o <b>lucro bruto</b> do dia. As cores são as mesmas do <b>Nível dos tanques</b>."},
+    {t:"m", h:"Cores novas nos combustíveis, iguais nas duas telas", d:"O <b>diesel</b> ficou azul (o S-500 num azul mais escuro), a <b>gasolina comum</b> laranja e o <b>etanol</b> verde — parecido com o que o GASview usa. A <b>aditivada</b> virou roxo e a <b>Podium</b>, rosa. As cores são as mesmas no card e no <b>Nível dos tanques</b>, de propósito: cor que muda de tela em tela vira legenda obrigatória. Quem já escolheu uma cor à mão em <b>Personalizar</b>, nos tanques, continua com a dela."},
+    {t:"n", h:"A mesma ordem nos três postos, para dar para comparar", d:"Os combustíveis aparecem sempre na mesma ordem em Teresina, Caxias e Pres. Dutra: <b>diesel S-10, gasolina comum e etanol</b> primeiro — que são os três que os três postos vendem —, depois a <b>Grid</b> de Teresina ao lado da <b>Aditivada</b> dos outros dois, e na última linha a <b>Podium</b> ao lado do <b>S-500</b>. E o combustível que o posto vende mas <b>ainda não vendeu hoje</b> aparece no lugar dele, marcado com um travessão, em vez de sumir e empurrar os outros para cima."},
+    {t:"n", h:"Três combustíveis à vista, o resto rola no próprio card", d:"Cada posto mostra <b>três combustíveis</b> e o quarto aparece pela metade — é só rolar dentro do bloco para ver os outros. O título diz <b>quantos combustíveis aquele posto vendeu hoje</b>, para o que está embaixo da dobra não passar despercebido. Sem isso, Teresina (que vende cinco, com a Podium) deixava o card com o dobro da altura dos outros dois."},
+    {t:"n", h:"O número anda o dia inteiro, e o card diz de quando ele é", d:"O rodapé mostra o <b>dia</b> e a <b>hora da última leitura</b>. Se os números ainda forem do dia anterior, ou se a coleta ficar mais de 40 minutos sem trazer nada durante o expediente, aparece um aviso em cima — em vez de um número velho com cara de agora."}
+  ]},
   {v:"v300", data:"08/08/2026", tit:"O \"Atualizado em\" passou a fechar a frase que explica o card", itens:[
     {t:"m", h:"A hora da última leitura terminou de virar bula", d:"Em <b>Frota agora</b> — nas duas telas — o <b>Atualizado em</b> deixou de ser uma linha solta embaixo da tabela e passou a <b>terminar o parágrafo que explica o card</b>. Junto do texto que diz de onde vem a informação, fica claro que aquela hora é a da <b>última conversa com o Infleet</b>, não a hora de agora."}
   ]},
@@ -7740,6 +7799,16 @@ function iniciarSync(){
     const pd = document.getElementById("painelDash");
     if (pd && pd.classList.contains("aberto")) renderDashboard();
   }, ()=>{});
+
+  /* v301 - o lucro por combustivel de hoje (coletor combdia.mjs do VPS, de 10 em 10 min).
+     🔑 O `vistoCombDia` vira true ATE quando o documento nao existe: e' isso que separa
+        "a nuvem nao respondeu" de "o coletor nunca gravou". */
+  escutaCombDia = docCombDia.onSnapshot(snap => {
+    combDia = snap.exists ? (snap.data() || null) : null;
+    vistoCombDia = true;
+    const pd = document.getElementById("painelDash");
+    if (pd && pd.classList.contains("aberto") && !dashEhConv() && !dashEhTransp()) renderCombDia();
+  }, ()=>{ vistoCombDia = true; });
 
   /* v278 - o nivel de agora dos tanques (coletor do VPS, de hora em hora) */
   escutaTanquesNivel = docTanquesNivel.onSnapshot(snap => {
@@ -12423,12 +12492,23 @@ const TQV_ICO = { "tqv-c":"\u26a0", "tqv-a":"\u25d4", "tqv-t":"\u2713", "tqv-nd"
    porque vende muito - pintar o liquido de vermelho ali diria "esta' vazio" sobre um tanque cheio.
    ⚠️ A ORDEM DAS LINHAS IMPORTA: "OLEO DIESEL S10 ADITIVADO" tem de cair em DIESEL, nao em
       ADITIVADA - por isso a familia do diesel e' testada primeiro. */
+/* 🎨 v301 - AS CORES FICARAM PARECIDAS COM AS DO GASview, a pedido dele: diesel AZUL, gasolina
+   comum LARANJA, etanol VERDE. Antes a gasolina comum era vermelha e o S-500 era cinza.
+   🔴 ESTA LISTA E' COMPARTILHADA COM O NIVEL DOS TANQUES, de proposito (v278): o etanol e' verde
+      na pista, no tanque e no card. Mexer aqui muda as duas telas — e e' isso que se quer.
+   🔑 DUAS ESCOLHAS QUE O GASview NAO PRECISOU FAZER, porque ele so' mostra quatro produtos:
+      • o S-500 ficou AZUL ESCURO e o S-10 AZUL, em vez dos dois azuis iguais do GASview — aqui
+        sao 16 tanques na mesma tela, e dois azuis identicos viram um borrao;
+      • a ADITIVADA saiu do ambar e virou ROXO, e a PODIUM ROSA, porque o ambar antigo passou a
+        brigar com o laranja novo da gasolina comum.
+   ⚠️ A cor escolhida a mao em Personalizar (tanquesAjustes.cores) continua ganhando desta lista. */
 const TQV_COR = [
-  [/S\s*-?\s*500/i,            "#8b93a7"],
+  [/S\s*-?\s*500/i,            "#1e40af"],
   [/DIESEL|S\s*-?\s*10/i,      "#3b82f6"],
-  [/ETANOL|\u00c1LCOOL|ALCOOL/i, "#2fa46c"],
-  [/PODIUM|GRID|ADITIVAD/i,     "#e8a317"],
-  [/GASOLINA/i,                 "#e5484d"],
+  [/ETANOL|\u00c1LCOOL|ALCOOL/i, "#22c55e"],
+  [/PODIUM/i,                   "#ec4899"],
+  [/GRID|ADITIVAD/i,            "#a855f7"],
+  [/GASOLINA/i,                 "#f59e0b"],
   [/GNV|GAS NATURAL/i,          "#00a0b0"]
 ];
 /* 🔑 O rascunho do admin ganha do que esta' salvo, e o salvo ganha do padrao. Assim a caixa
@@ -20022,6 +20102,7 @@ function dashEhConv(){ return siglaEmpresa(empresa) === "conv"; }
 const CARDS_DASH = [
   { k:"vendasDia",  id:"dashGrpVendasDia",  n:"🏁 Vendas do dia",                  emp:"postos|conv" },
   { k:"resultadoP", id:"dashGrpResultadoP", n:"💵 Resultado do mês",               emp:"postos" },
+  { k:"combDia",    id:"dashGrpCombDia",    n:"⛽ Lucro por combustível",          emp:"postos" },
   { k:"resultado",  id:"dashGrpResultado",  n:"💵 Resultado do mês",               emp:"conv" },
   { k:"despesas",   id:"dashGrpDespesas",   n:"💸 Despesas do mês contra a média", emp:"conv" },
   { k:"evolucao",   id:"dashGrpEvolucao",   n:"📈 Evolução das vendas",            emp:"postos|conv" },
@@ -20211,6 +20292,209 @@ function renderDashPostosResultado(){
 function atualizarDashPostos(){
   const p = document.getElementById("painelDash");
   if (p && p.classList.contains("aberto") && !dashEhConv()) renderDashPostosResultado();
+}
+
+/* ===================== v301 - LUCRO POR COMBUSTIVEL (o card do Dashboard dos Postos) =========
+   Pedido do Tiago, com a foto do painel do GASview na mao. Ele escolheu, antes de eu escrever
+   uma linha: **o dia de HOJE** (nao o mes), **os tres postos lado a lado** (sem filtro) e
+   **os tres numeros da foto** - R$/L, litros vendidos e lucro bruto.
+
+   🔑 A FONTE JA' EXISTIU AQUI DENTRO. Este era o conteudo da aba "Combustiveis" do menu
+      Relatorios, viva da v168 ate a v207, alimentada pelo mesmo componente do Adaptive. O que
+      mudou: la' era o MES e vinha do Chrome; aqui e' o DIA e vem do coletor `combdia.mjs`.
+      👉 Por isso o numero e' comparavel com o que ja esta gravado em relatoriosPosto.comb.
+
+   🔴 E o motivo de a hora aparecer sempre: este card mostra um numero que ANDA o dia inteiro.
+      Numero com carimbo de hora tem de ser lido junto com a IDADE dele - a regra que a frota
+      escreveu em 08/08. Sem a hora, "R$ 0,42/L" as 18h pode ser a venda das 7h.                */
+
+const CBD_POSTOS = [["Teresina", "Teresina"], ["Caxias", "Caxias"], ["Dutra", "Pres. Dutra"]];
+/* Depois de 40 minutos sem numero novo o coletor perdeu QUATRO rodadas seguidas - ai' e' aviso.
+   🔑 Fora da janela de coleta (5h as 23h) o silencio e' o comportamento CERTO e nao vira aviso:
+      vermelho no que e' rotina ensina a equipe a ignorar vermelho (licao da v296). */
+const CBD_IDADE_AVISO = 40, CBD_HORA_INI = 5, CBD_HORA_FIM = 23;
+/* Quantos cartoes cabem sem rolar — o mesmo numero que o `max-height` do `.cbd-grade` desenha.
+   🔴 Se um mudar, o outro tem de mudar junto: sao a MESMA decisao escrita em dois lugares
+   (um em CSS, porque quem rola e' o navegador; outro em JS, porque quem CONTA e' a tela). */
+const CBD_VISIVEIS = 3;
+
+/* 🔴 A ORDEM E' FIXA, E E' A MESMA NOS TRES POSTOS — pedido dele, e a razao esta' na medicao
+   de julho: os TRES combustiveis que os tres postos vendem sao Diesel S-10, Gasolina Comum e
+   Etanol. Sao tres, que e' quanto cabe sem rolar. O que difere (Podium e Grid em Teresina;
+   Aditivada e S-500 nos outros) desce para a rolagem.
+   ⚠️ A ORDEM DOS TESTES IMPORTA, e e' a mesma armadilha das cores dos tanques: "OLEO DIESEL S10
+      ADITIVADO" tem de cair em DIESEL S-10, nao em "aditivada" — por isso as familias do diesel
+      sao testadas ANTES da gasolina aditivada.
+   🔑 Produto que nao casa com nenhuma familia vai para o FIM, em ordem alfabetica — nunca some,
+      e nunca se embaralha de um dia para o outro. */
+/* 🔴 A LINHA DE CADA COMBUSTIVEL, ESCRITA POR ELE, olhando as tres colunas como uma tabela:
+     1 diesel S-10   ·   2 gasolina comum   ·   3 etanol
+     4 GASOLINA GRID (Teresina)  ao lado da  GASOLINA ADITIVADA (Caxias e Dutra)
+     5 GASOLINA PODIUM (Teresina) ao lado do OLEO DIESEL S-500 (Caxias e Dutra)
+   🔑 A quinta linha nao junta produtos parecidos: junta o QUE SOBRA depois de as quatro de cima
+      casarem. Por isso Podium e S-500 dividem o mesmo posto na fila, apesar de nao terem nada em
+      comum — e nenhum posto vende os dois, entao eles nunca disputam a linha.
+   ⚠️ A ORDEM DOS TESTES IMPORTA: "OLEO DIESEL S10 ADITIVADO" tem de cair na LINHA 1, nao na 4.
+      Por isso o teste do S-10 vem primeiro, e o da aditivada exige que NAO haja "DIESEL" no nome.
+   🔴 E o numero da linha e' explicito, nao a posicao no array: dois produtos podem dividir a
+      mesma linha, e posicao de array nao sabe dizer isso. */
+const CBD_ORDEM = [
+  [/S\s*-?\s*10|S10/i,                     "Diesel S-10",        1],
+  [/GASOLINA(?!.*(ADITIV|PODIUM|GRID))/i,   "Gasolina comum",     2],
+  [/ETANOL|\u00c1LCOOL|ALCOOL/i,             "Etanol",             3],
+  [/^(?!.*DIESEL).*(GRID|ADITIV)/i,         "Gasolina aditivada", 4],
+  [/PODIUM/i,                               "Gasolina Podium",    5],
+  [/S\s*-?\s*500|S500/i,                    "Diesel S-500",       5],
+  [/GNV|GAS NATURAL/i,                      "GNV",                6],
+  [/DIESEL/i,                               "Diesel",             6]
+];
+function cbdFamilia(nome){
+  const s = String(nome || "");
+  for (let i = 0; i < CBD_ORDEM.length; i++) if (CBD_ORDEM[i][0].test(s)) return CBD_ORDEM[i][2];
+  return 9;                                  /* o que ninguem reconhece vai para o fim, sempre */
+}
+function cbdChaveProd(nome){ return String(nome || "").trim().toUpperCase(); }
+
+/* O que o posto VENDE, e nao so' o que ele vendeu hoje: a lista sai dos tanques
+   (config/tanquesNivel, do coletor que ja roda de hora em hora).
+   🔴 O cruzamento e' por NOME, e isso foi MEDIDO antes de ser escrito: nos tres postos os cinco
+      nomes do tanque sao identicos aos cinco nomes da venda. Sem essa medicao, um "GASOLINA C"
+      no tanque viraria um cartao fantasma ao lado do "GASOLINA COMUM" da venda. */
+function cbdProdutosDoTanque(chave){
+  const p = (tanquesNivel && tanquesNivel.postos) ? tanquesNivel.postos[chave] : null;
+  const ts = (p && Array.isArray(p.tanques)) ? p.tanques : [];
+  const vistos = {}, saida = [];
+  ts.forEach(t => { const nome = String(t && t.produto || "").trim();
+    if (!nome) return; const k = cbdChaveProd(nome);
+    if (!vistos[k]){ vistos[k] = 1; saida.push(nome); } });
+  return saida;
+}
+
+function cbdLinhas(chave){
+  const p = combDia && combDia.postos ? combDia.postos[chave] : null;
+  const vend = Array.isArray(p) ? p.slice() : [];
+  const tem = {};
+  vend.forEach(l => tem[cbdChaveProd(l.prod)] = 1);
+  /* 🔑 O QUE ELE VENDE E AINDA NAO VENDEU HOJE FICA NO LUGAR DELE, marcado - em vez de sumir e
+     empurrar os de baixo para cima. Assim a coluna nao dança durante o dia, e as tres continuam
+     comparaveis as 6h da manha, quando quase nada foi vendido ainda.
+     🔴 `semVenda` NAO e' zero: e' "ainda nao houve venda". A tela imprime travessao, nao R$ 0,00. */
+  cbdProdutosDoTanque(chave).forEach(nome => {
+    if (!tem[cbdChaveProd(nome)]) vend.push({ prod: nome, litros: 0, lb: 0, rsL: null, semVenda: true });
+  });
+  return vend.sort((a, b) => {
+    const fa = cbdFamilia(a.prod), fb = cbdFamilia(b.prod);
+    if (fa !== fb) return fa - fb;
+    const la = +a.litros || 0, lb2 = +b.litros || 0;      /* dentro da familia, o maior primeiro */
+    if (la !== lb2) return lb2 - la;
+    return String(a.prod).localeCompare(String(b.prod));  /* e o desempate nunca e' o acaso */
+  });
+}
+
+/* Minutos desde a ultima coleta. Devolve null quando nao da' para saber - e "nao da' para
+   saber" nunca pode virar zero. */
+function cbdIdadeMin(){
+  const ms = combDia ? msDeQuando(combDia.atualizadoEm) : null;
+  if (!ms) return null;
+  const min = (Date.now() - ms) / 60000;
+  return isFinite(min) ? min : null;
+}
+
+function cbdCartao(l){
+  const nome = String(l && l.prod || "").trim();
+  const cor = tqvCorProduto(nome);
+  const rsL = (l && l.rsL != null) ? +l.rsL : null;
+  const ruim = rsL != null && rsL < 0;
+  /* 🔴 O QUE AINDA NAO VENDEU HOJE NAO MOSTRA ZERO: mostra travessao e diz o que e'.
+     Zero e' o unico numero que mente - R$ 0,000/L parece margem zerada, e nao e': e' bomba que
+     ainda nao foi acionada. */
+  if (l && l.semVenda)
+    return '<div class="cbd-comb cbd-sem" style="border-left-color:' + cor + '">' +
+      '<div class="cbd-nome"><span class="cbd-ponto" style="background-image:linear-gradient(' +
+        cor + ',' + cor + ')"></span>' + escAttr(nome) + '</div>' +
+      '<div class="cbd-rsl cbd-nada">\u2014<small>/L</small></div>' +
+      '<div class="cbd-l"><span>Sem venda hoje ainda</span><b></b></div>' +
+      /* 🔴 A LINHA VAZIA NAO E' ENFEITE: sem ela o cartao fica uma linha mais baixo que os
+         outros, e a foto mostrou o efeito - a coluna daquele posto sai do lugar e as linhas
+         de baixo deixam de casar com as dos vizinhos. 🔑 Em tres colunas feitas para comparar,
+         a ALTURA do cartao e' parte do dado. */
+      '<div class="cbd-l cbd-vazia"><span>&nbsp;</span><b></b></div>' +
+      '</div>';
+  return '<div class="cbd-comb" style="border-left-color:' + cor + '">' +
+    '<div class="cbd-nome"><span class="cbd-ponto" style="background-image:linear-gradient(' +
+      cor + ',' + cor + ')"></span>' + escAttr(nome) + '</div>' +
+    '<div class="cbd-rsl' + (ruim ? ' ruim' : '') + '">' +
+      (rsL == null ? "\u2014" : ('R$ ' + fmtBR(rsL, 3))) + '<small>/L</small></div>' +
+    '<div class="cbd-l"><span>Litros vendidos</span><b>' + fmtLitros(+l.litros || 0) + ' L</b></div>' +
+    '<div class="cbd-l"><span>Lucro bruto</span><b>' + fmtR$0(+l.lb || 0) + '</b></div>' +
+    '</div>';
+}
+
+function renderCombDia(){
+  const box = document.getElementById("cbdBox");
+  if (!box) return;
+
+  /* 1º estado: a nuvem ainda nao respondeu. Esqueleto - nunca "nenhuma venda". */
+  if (!vistoCombDia){ box.innerHTML = esqueletoCaixa(3); return; }
+
+  /* 2º estado: o coletor nunca gravou. O bloco diz o que falta, sem botao (o botao e' opcional). */
+  if (!combDia || !combDia.postos){
+    box.innerHTML = vazioHtml("Ainda não temos o lucro por combustível de hoje",
+      "Ele é montado pelo servidor a partir do painel do Petros, de 10 em 10 minutos. " +
+      "Enquanto essa coleta não roda, este card fica vazio de propósito — número velho aqui " +
+      "seria pior que número nenhum.");
+    return;
+  }
+
+  let h = "";
+
+  /* 🔴 O AVISO VEM ANTES DOS NUMEROS, e ele nomeia o DIA. Mostrar a venda de ontem com cara de
+     hoje e' o defeito classico desta tela: ninguem estranha um numero plausivel. */
+  const hoje = hojeISO();
+  const idade = cbdIdadeMin();
+  const horaAgora = new Date().getHours();
+  const naJanela = horaAgora >= CBD_HORA_INI && horaAgora < CBD_HORA_FIM;
+  if (combDia.dia !== hoje){
+    h += '<div class="cbd-aviso">⚠️ Estes números são do dia <b>' +
+         escAttr(fmtDataCurta(combDia.dia)) + '</b>, não de hoje. A primeira coleta de hoje ' +
+         'ainda não rodou.</div>';
+  } else if (idade != null && idade > CBD_IDADE_AVISO && naJanela){
+    h += '<div class="cbd-aviso">⚠️ O último número chegou há <b>' + Math.round(idade) +
+         ' minutos</b>. A coleta é de 10 em 10 minutos, então o que está na tela pode estar ' +
+         'atrasado.</div>';
+  }
+
+  h += '<div class="cbd-postos">';
+  let total = 0;
+  CBD_POSTOS.forEach(function(p){
+    const linhas = cbdLinhas(p[0]);
+    total += linhas.length;
+    /* 🔑 A CONTAGEM VAI NO TITULO, E ELA E' O QUE IMPEDE A ROLAGEM DE ESCONDER.
+       Com teto de altura, o quarto e o quinto combustivel ficam abaixo da dobra do card. Quem
+       olha rapido veria tres e acharia que sao tres. O numero no titulo diz quantos existem;
+       a metade do quarto cartao diz como chegar neles. */
+    const cab = linhas.length
+      ? (' <small>' + linhas.length + (linhas.length === 1 ? ' combustível' : ' combustíveis') +
+         (linhas.length > CBD_VISIVEIS ? ' · role para ver todos' : '') + '</small>')
+      : '';
+    h += '<div class="cbd-posto"><h3 class="cbd-titulo">' + escAttr(p[1]) + cab + '</h3>';
+    h += '<div class="cbd-grade">';
+    /* 3º estado: houve coleta e este posto nao vendeu nada ainda. Diferente dos dois de cima. */
+    h += linhas.length ? linhas.map(cbdCartao).join("")
+                       : '<div class="ana-vazio">Sem venda de combustível registrada ainda.</div>';
+    h += '</div></div>';
+  });
+  h += '</div>';
+
+  const quando = combDia.atualizadoEm ? fmtQuandoLocal(combDia.atualizadoEm) : "";
+  h += '<p class="ana-rodape">Vendas de <b>' + escAttr(fmtDataCurta(combDia.dia)) +
+       '</b>, do começo do dia até a última leitura' + (quando ? ' (' + escAttr(quando) + ')' : '') +
+       '. Os combustíveis aparecem <b>na mesma ordem nos três postos</b> — diesel S-10, gasolina ' +
+       'comum e etanol primeiro, que são os três que todos vendem — para dar para comparar as ' +
+       'colunas lado a lado. O <b>R$ por litro</b> é o lucro bruto daquele combustível dividido ' +
+       'pelos litros que ele vendeu. Fonte: painel do Petros — a mesma do menu Relatórios.' +
+       (total ? '' : ' Nenhum dos três postos vendeu combustível neste dia até agora.') + '</p>';
+  box.innerHTML = h;
 }
 
 /* ===================== v203 - DASHBOARD DA FULL TRANSPORTADORA =====================
@@ -20828,6 +21112,7 @@ function renderDashboard(){
   renderCaixas();                            // v198 - os caixas viraram bloco daqui
   if (dashEhConv()){ renderDashConv(); return; }
   renderDashPostosResultado();               // v200
+  renderCombDia();                           // v301 - lucro por combustivel de hoje
   /* 🔴 v288 - AQUI TERMINAVA O DASHBOARD E COMECAVAM OS GRAFICOS DE PRECO.
      Eles desceram para o menu Custos e preços; quem os desenha agora e' renderPrecosMargens(). */
 }
