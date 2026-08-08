@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v292 — Postos Full (não é o app)</title>
+<title>PRÉVIA v293 — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -939,7 +939,13 @@
     font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;
     background:var(--superficie-2);border:1px solid var(--borda);border-radius:8px;padding:12px 14px;margin:6px 0 0;
   }
-  .inf-sumido{color:var(--vermelho);font-size:.78rem;font-weight:600}
+  .inf-mapa-box{height:320px;border-radius:10px;overflow:hidden;margin-bottom:12px;background:#eef1f4;display:none}
+.inf-mapa-box.tem-mapa{display:block}
+.inf-mapa-box .leaflet-container{height:100%;width:100%;font:inherit}
+.inf-mapa-pop b{font-size:1.05em}
+.inf-mapa-pop .nota-dash{margin:2px 0 0}
+@media (max-width:700px){.inf-mapa-box{height:260px}}
+.inf-sumido{color:var(--vermelho);font-size:.78rem;font-weight:600}
   .inf-linha-sumida td:first-child{border-left:3px solid var(--vermelho)}
   /* iFood (Full Conveniencia) */
   .ifd-tab{min-width:0}
@@ -3276,6 +3282,8 @@
     <div class="grupo">
       <h2>🚛 Frota agora</h2>
       <p class="nota-dash">Onde estava cada caminhão na última vez que o app conversou com o Infleet, com motorista, se estava ligado, o local e o odômetro.</p>
+      <div id="infMapaBox" class="inf-mapa-box"></div>
+      <p class="nota-dash" id="infMapaNota" style="display:none"></p>
       <div id="infleetFrotaBox"></div>
     </div>
     <div class="grupo">
@@ -14269,7 +14277,7 @@ function abrirBsoft(){ abrirSiteExterno(URL_BSOFT, "Bsoft CT-e", "bsoftMsg"); }
 function copiarLinkBsoft(){ copiarEnderecoExterno(URL_BSOFT, "bsoftMsg"); }
 function abrirInfleet(){ abrirSiteExterno(URL_INFLEET, "Infleet", "infMsg"); }
 function copiarLinkInfleet(){ copiarEnderecoExterno(URL_INFLEET, "infMsg"); }
-function renderInfleet(){ renderInfFrota(); renderInfAbast(); }
+function renderInfleet(){ renderInfFrota(); renderInfMapa(); renderInfAbast(); }
 
 // "2026-07-26T02:23" -> "26/07 às 02:23"
 function fmtQuandoInf(iso){
@@ -14293,6 +14301,171 @@ function textoTempoInf(horas){
 }
 function ehArlaInf(c){ return /ARLA/i.test(String(c||"")); }
 function ehCombInf(c){ return /DIESEL|GASOLINA|ETANOL|GNV/i.test(String(c||"")); }
+
+/* ─────────────────────────── O MAPA DA FROTA (Leaflet + OpenStreetMap) ─────
+   Nasceu em 08/08/2026, no mesmo dia em que a posição dos caminhões passou a
+   vir do coletor do VPS ("frota v3") em vez do Chrome.
+   👉 Coletor: claude/coletor-frota-CODIGO.md · Decisões: claude/proxima-tarefa-mapa-nativo-infleet.md
+
+   🔑 Leaflet + OSM foi escolha do Tiago em 08/08, e por um motivo concreto: o
+   Google Maps exigiria CHAVE DE API dentro de um repositório PÚBLICO. Aqui não
+   há chave nenhuma para vazar.
+   🔴 A biblioteca é carregada SÓ quando o painel do Infleet abre — a mesma
+   receita do carregarBibliotecasPDF. O app não pode ficar mais lento para
+   quem nunca abre esta tela.                                                */
+
+let _promessaLeaflet = null;
+function carregarLeaflet(){
+  if (_promessaLeaflet) return _promessaLeaflet;
+  const CSS = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";
+  const JS  = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
+  _promessaLeaflet = new Promise((ok, err) => {
+    if (window.L && window.L.map) return ok();
+    const l = document.createElement("link");
+    l.rel = "stylesheet"; l.href = CSS;
+    document.head.appendChild(l);
+    const s = document.createElement("script");
+    s.src = JS; s.async = true;
+    s.onload = () => ok();
+    s.onerror = () => err(new Error("falha ao carregar o Leaflet"));
+    document.head.appendChild(s);
+  }).catch(e => { _promessaLeaflet = null; throw e; });   // offline: deixa tentar de novo
+  return _promessaLeaflet;
+}
+
+let _mapaInf = null, _marcasInf = [];
+
+/* 🔴 A COR DIZ UMA COISA SÓ, e ela segue exatamente o que a tabela já diz —
+   se as duas discordarem, a pessoa acredita na que estiver mais perto do olho.
+   ⚠️ E "var(--verde)" NÃO serve para "bom": ele é o LARANJA da marca (#FE7030).
+   O verde de "bom" no projeto é o #18a558. */
+function _corInf(v){
+  const hs = horasSemSinalInf(v.quando);
+  if (hs !== null && hs >= INF_HORAS_SEM_SINAL) return "#c0392b";   // sem sinal
+  return v.ligado ? "#18a558" : "#7a7a7a";                           // ligado / desligado
+}
+
+/* 🔴 Os rótulos são PERMANENTES de propósito: num mapa de três caminhões, ter de
+   tocar na bolinha para saber qual é ela derrota o objetivo da tela. O preço é
+   que dois rótulos se sobrepõem quando dois caminhões estão perto — e Teresina e
+   Caxias estão a 200 km, o que numa tela do Maranhão inteiro é "perto".
+   👉 Conserto: quando dois rótulos se cruzam, o de baixo vai para BAIXO da
+   bolinha. É deterministico e roda de novo a cada zoom/arraste.
+   🔑 Não é enfeite: rótulo sobreposto é dois nomes ilegíveis, o que é pior que
+   nenhum nome. */
+function _desempilharRotulosInf(){
+  if (!_mapaInf || _marcasInf.length < 2) return;
+  const pts = _marcasInf.map(m => ({ m, p: _mapaInf.latLngToContainerPoint(m.getLatLng()) }));
+  pts.sort((a,b) => a.p.y - b.p.y);
+  const postos = [];
+  for (const it of pts){
+    const colide = postos.some(o => Math.abs(o.y - it.p.y) < 26 && Math.abs(o.x - it.p.x) < 110);
+    const dir = colide ? "bottom" : "top";
+    const t = it.m.getTooltip();
+    if (t && t.options.direction !== dir){
+      const txt = t.getContent();
+      it.m.unbindTooltip();
+      it.m.bindTooltip(txt, { permanent:true, direction:dir, offset:[0, dir === "top" ? -8 : 8] });
+    }
+    postos.push({ x: it.p.x, y: it.p.y + (dir === "bottom" ? 26 : 0) });
+  }
+}
+
+function renderInfMapa(){
+  const box = document.getElementById("infMapaBox");
+  const nota = document.getElementById("infMapaNota");
+  if (!box) return;
+  const f = infleetFrota;
+  const lista = (f && Array.isArray(f.veiculos)) ? f.veiculos : [];
+
+  /* 🔴 Coordenada é OPCIONAL, e ausência continua ausência: o coletor grava
+     "null" quando o rastreador não tem fix. Number(null) seria 0, e 0,0 é um
+     ponto REAL no golfo da Guiné — o caminhão apareceria no meio do Atlântico.
+     🔑 Aqui o zero não erra o valor: erra o LUGAR. */
+  const comPos = lista.filter(v => typeof v.lat === "number" && typeof v.lon === "number" &&
+                                   isFinite(v.lat) && isFinite(v.lon) && !(v.lat === 0 && v.lon === 0));
+  const semPos = lista.length - comPos.length;
+
+  /* 🔑 Documento gravado pela v2 do coletor (ou pelo plano B do Chrome) não tem
+     lat/lon. Nesse caso NÃO se mostra mapa vazio nem erro: some o bloco e a
+     tabela continua contando a história inteira, como contava antes.
+     👉 Bloco ausente é melhor que bloco zerado — zero é o único que mente. */
+  if (!comPos.length){
+    box.classList.remove("tem-mapa");
+    if (nota){
+      if (lista.length && semPos === lista.length){
+        nota.style.display = "";
+        nota.textContent = "O mapa aparece quando chegar a próxima posição com coordenada" +
+          (semPos > 1 ? " dos caminhões." : " do caminhão.");
+      } else { nota.style.display = "none"; }
+    }
+    return;
+  }
+
+  carregarLeaflet().then(() => {
+    box.classList.add("tem-mapa");
+    if (!_mapaInf){
+      _mapaInf = L.map(box, { scrollWheelZoom:false, attributionControl:true });
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 18, attribution: "© OpenStreetMap"
+      }).addTo(_mapaInf);
+    }
+    _marcasInf.forEach(m => _mapaInf.removeLayer(m));
+    _marcasInf = [];
+
+    comPos.forEach(v => {
+      const cor = _corInf(v);
+      const hs = horasSemSinalInf(v.quando);
+      const sumido = (hs !== null && hs >= INF_HORAS_SEM_SINAL);
+      const vel = (+v.velocidade > 1) ? (fmtBR(+v.velocidade,0) + " km/h") : "parado";
+      const sit = sumido ? ("⚠️ sem sinal há " + textoTempoInf(hs))
+                         : (v.ligado ? ("🟢 Ligado · " + vel) : "⚪ Desligado");
+      const m = L.circleMarker([v.lat, v.lon], {
+        radius: 9, color: "#fff", weight: 2, fillColor: cor, fillOpacity: 1
+      }).addTo(_mapaInf);
+      m.bindTooltip(String(v.nome || v.placa || "—"), { permanent: true, direction: "top", offset: [0,-8] });
+      m.bindPopup(
+        '<div class="inf-mapa-pop"><b>' + escAttr(v.nome || v.placa || "—") + '</b>' +
+        '<p class="nota-dash">' + escAttr(v.placa || "") + " · " + escAttr(v.motorista || "sem motorista") + '</p>' +
+        '<p class="nota-dash">' + sit + '</p>' +
+        '<p class="nota-dash">' + escAttr(v.onde || "—") + '</p>' +
+        '<p class="nota-dash">Posição de ' + fmtQuandoInf(v.quando) + '</p></div>'
+      );
+      _marcasInf.push(m);
+    });
+
+    /* 🔑 "fitBounds" com um ponto só devolve um zoom absurdo (rua inteira na
+       tela); com dois caminhões a 500 km, devolve o Brasil. Os dois casos são
+       normais aqui, então cada um tem o seu tratamento. */
+    if (comPos.length === 1) _mapaInf.setView([comPos[0].lat, comPos[0].lon], 12);
+    else _mapaInf.fitBounds(comPos.map(v => [v.lat, v.lon]), {
+      /* 🔑 A folga de cima é MAIOR que as outras de propósito: o rótulo do
+         caminhão fica ACIMA da bolinha, e com folga igual em todos os lados ele
+         encostava no topo no celular (medido: bolinha em y=30, rótulo em y≈10). */
+      paddingTopLeft: [26, 44], paddingBottomRight: [26, 26], maxZoom: 13
+    });
+
+    /* 🔴 O painel nasce escondido ("display:none"), e o Leaflet mede o tamanho
+       do container quando o mapa é criado. Sem este "invalidateSize" o mapa fica
+       cinza com um pedacinho de tile no canto — o defeito clássico de mapa
+       dentro de aba que abre depois. */
+    setTimeout(() => { try { _mapaInf.invalidateSize(); _desempilharRotulosInf(); } catch(e){} }, 60);
+    _mapaInf.off("zoomend moveend", _desempilharRotulosInf).on("zoomend moveend", _desempilharRotulosInf);
+
+    if (nota){
+      if (semPos > 0){
+        nota.style.display = "";
+        nota.textContent = semPos === 1
+          ? "1 veículo está sem coordenada nesta leitura e não aparece no mapa (ele continua na tabela)."
+          : semPos + " veículos estão sem coordenada nesta leitura e não aparecem no mapa (eles continuam na tabela).";
+      } else { nota.style.display = "none"; }
+    }
+  }).catch(() => {
+    /* 🔑 Sem internet para o CDN, o certo é dizer isso e deixar a tabela em paz. */
+    box.classList.remove("tem-mapa");
+    if (nota){ nota.style.display = ""; nota.textContent = "Não deu para carregar o mapa agora. A lista abaixo continua valendo."; }
+  });
+}
 function renderInfFrota(){
   const box = document.getElementById("infleetFrotaBox");
   if (!box) return;
