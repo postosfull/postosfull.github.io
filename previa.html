@@ -257,8 +257,19 @@
   .nvd-lupa{opacity:.7;font-size:.9rem}
   .nvd-busca input{flex:1;min-width:0;border:none;background:transparent;color:inherit;
     font:inherit;font-size:.9rem;outline:none}
-  .nvd-mes{font-size:.7rem;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;
-    opacity:.55;margin:12px 0 -4px 4px}
+  .nvd-mesbloco{display:flex;flex-direction:column;gap:12px;margin-top:6px}
+  /* 🔴 background:transparent ANTES do background-image - o atalho apaga a imagem se vier
+     depois, e sem ele o botao herda o fundo CLARO da folha e a faixa do mes sai bege. */
+  .nvd-mes-cab{display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;
+    border:1px solid var(--borda);border-radius:12px;background:transparent;
+    background-image:linear-gradient(rgba(var(--verde-rgb),.14),rgba(var(--verde-rgb),.06));
+    color:inherit;font:inherit;text-align:left;cursor:pointer}
+  .nvd-mes-cab:hover{border-color:var(--verde)}
+  .nvd-mes-tit{font-weight:800;font-size:.82rem;letter-spacing:1.2px;text-transform:uppercase}
+  .nvd-mes-cnt{font-size:.76rem;opacity:.62;margin-left:auto;white-space:nowrap}
+  .nvd-mes-corpo{display:flex;flex-direction:column;gap:12px;padding-left:14px;
+    border-left:2px solid var(--borda);margin-left:6px}
+  .nvd-mesbloco.aberto > .nvd-mes-cab .nvd-seta{transform:rotate(90deg)}
   .nvd-dia{border:1px solid var(--borda);border-radius:12px;overflow:hidden}
   .nvd-dia-cab{display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;border:none;
     background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
@@ -6195,7 +6206,7 @@ function persistirListas(){
 const NOVIDADES_APP = [
   {v:"v292", data:"08/08/2026", tit:"O menu Novidades ganhou o histórico inteiro do app", itens:[
     {t:"n", h:"176 versões, da v115 até hoje", d:"Faltavam <b>113 versões</b> aqui dentro: tudo o que mudou entre 23 de julho e 3 de agosto nunca tinha sido contado nesta tela. Entrou tudo, uma entrada por versão. Antes da v115 não há registro — o app já existia pronto quando o histórico começou a ser guardado."},
-    {t:"n", h:"A lista agora abre por dia", d:"As versões vêm agrupadas pelo dia em que subiram (<b>26 de julho de 2026 · 22 versões</b>) e você clica no dia para abrir. Os dias mais recentes já vêm abertos, e <b>nenhum dia com versão que você ainda não leu nasce fechado</b>."},
+    {t:"n", h:"A lista agora abre por mês e por dia", d:"No fim da tela ficam os meses fechados (<b>Julho de 2026 · 98 versões em 9 dias</b>). Você clica no mês e ele mostra os dias; clica no dia e ele mostra as versões daquele dia. Os dias mais recentes já vêm abertos, e <b>nada que você ainda não leu nasce fechado</b>."},
     {t:"n", h:"Campo de busca", d:"Procure por palavra — <i>tanque</i>, <i>desconto</i>, <i>iFood</i>, <i>WhatsApp</i> — ou pelo número da versão (<i>v250</i>), e a tela mostra só as versões que falam daquilo. A busca não liga para acento."}
   ]},
   {v:"v291", data:"08/08/2026", tit:"O aviso de versão nova aparecia duas vezes — agora aparece uma", itens:[
@@ -6549,19 +6560,23 @@ function alternarNovidades(){
   if (aberto) renderNovidades();
   agendarTrocaDeTela();
 }
-/* ===== v292 - a lista por DIA, dobravel, com busca ==================================
-   O menu passou de 62 para 175 versoes (a catalogacao da v115 a v227 entrou aqui). O
+/* ===== v292 - a lista por MES e por DIA, dobravel, com busca ======================
+   O menu passou de 62 para 176 versoes (a catalogacao da v115 a v227 entrou aqui). O
    botao "ver versoes anteriores" da v273 nao servia mais: ele so' empurrava 165 versoes
    de uma vez para dentro da tela.
-   🔑 Agrupar por MES nao ajudaria: o app inteiro cabe em dois meses (julho tem 98
-   versoes e agosto 77). Por DIA da' 17 blocos de 3 a 22 - e "26 de julho" e' uma coisa
-   que a pessoa procura; "pagina 3" nao e'.
+   🔑 So' o MES nao bastaria: o app inteiro cabe em dois meses (julho tem 98 versoes e
+   agosto 78) - clicar em "julho" jogaria 98 na tela, que e' o mesmo problema. E so' o DIA
+   deixava 17 cabecalhos soltos no pe da tela. Entao sao DOIS degraus:
+   mes fechado -> clicou, aparecem os DIAS fechados -> clicou no dia, aparecem as versoes.
    Regras que ficam:
-   - dia FECHADO nao e' desenhado, so' o cabecalho. O HTML das 175 so' nasce se pedirem.
-   - os dias mais recentes ja' vem abertos ate' cobrir NVD_ABERTAS_MIN versoes;
-   - 🔴 nenhum dia com versao que a pessoa ainda NAO leu nasce fechado - a mesma regra da
-     v273, agora aplicada ao grupo;
-   - a busca varre numero, titulo e texto, sem acento e sem as marcas de HTML. */
+   - 🔴 o que esta' fechado NAO e' desenhado, so' o cabecalho. Mes fechado nao tem nem os
+     dias dentro. O HTML das 176 versoes so' nasce se pedirem;
+   - os dias mais recentes ja' vem abertos ate' cobrir NVD_ABERTAS_MIN versoes, e o mes que
+     tem dia aberto nasce aberto junto;
+   - 🔴 nada que a pessoa ainda NAO leu nasce fechado - nem o dia, nem o mes. E a regra da
+     v273 aplicada aos dois degraus;
+   - a busca varre numero, titulo e texto, sem acento e sem as marcas de HTML, e desliga o
+     agrupamento enquanto durar. */
 const NVD_MESES = ["janeiro","fevereiro","mar\u00e7o","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
 const NVD_ABERTAS_MIN = 10;
 let nvdBusca = "";
@@ -6577,8 +6592,10 @@ function nvdRotuloMes(d){
   const m = NVD_MESES[(+p[1]) - 1] || "";
   return m.charAt(0).toUpperCase() + m.slice(1) + " de " + p[2];
 }
+function nvdPlural(n, um, muitos){ return n + (n === 1 ? um : muitos); }
 /* Os grupos sao feitos por data SEGUIDA - a lista ja' vem da mais nova para a mais
-   velha, entao data igual e' sempre vizinha. */
+   velha, entao data igual e' sempre vizinha. O indice do dia nesta lista e' o numero
+   que os botoes carregam (nvdAlternarDia). */
 function nvdGrupos(){
   const gs = [];
   NOVIDADES_APP.forEach((ver, i) => {
@@ -6587,6 +6604,27 @@ function nvdGrupos(){
     else gs.push({ data: ver.data, mes: String(ver.data || "").slice(3), idx: [i] });
   });
   return gs;
+}
+/* Os meses, com os dias dentro. Mesma ideia: mes igual e' sempre vizinho. */
+function nvdMeses(){
+  const gs = nvdGrupos(), ms = [];
+  gs.forEach((g, gi) => {
+    g.gi = gi;
+    const ult = ms[ms.length - 1];
+    if (ult && ult.mes === g.mes){ ult.dias.push(g); ult.total += g.idx.length; }
+    else ms.push({ mes: g.mes, data: g.data, dias: [g], total: g.idx.length });
+  });
+  return ms;
+}
+/* Quais dias nascem abertos - a conta e' UMA so', e o mes herda dela. */
+function nvdAberturaInicial(gs){
+  let abertas = 0;
+  return gs.map(g => {
+    const nova = g.idx[0] < nvdNovas;
+    const ab = nova || abertas < NVD_ABERTAS_MIN;
+    if (ab) abertas += g.idx.length;
+    return ab;
+  });
 }
 function nvdTextoBusca(ver){
   if (!ver._bt){
@@ -6615,6 +6653,20 @@ function nvdDesenhaVer(ver, i){
          (i < nvdNovas ? '<span class="nvd-selo">novo para voc\u00ea</span>' : '') + '</div>' +
          '<div class="nvd-cols">' + cols + '</div></div>';
 }
+function nvdDesenhaDia(g, aberto){
+  const temNova = g.idx[0] < nvdNovas;
+  return '<div class="nvd-dia' + (aberto ? " aberto" : "") + '" id="nvdDia' + g.gi + '">' +
+      '<button type="button" class="nvd-dia-cab" onclick="nvdAlternarDia(' + g.gi + ')">' +
+        '<span class="nvd-seta">\u25b8</span>' +
+        '<span class="nvd-dia-tit">' + nvdRotuloDia(g.data) + '</span>' +
+        (temNova ? '<span class="nvd-selo">novo para voc\u00ea</span>' : '') +
+        '<span class="nvd-dia-cnt">' + nvdPlural(g.idx.length, " vers\u00e3o", " vers\u00f5es") + '</span>' +
+      '</button>' +
+      '<div class="nvd-dia-corpo" id="nvdCorpo' + g.gi + '"' + (aberto ? "" : ' style="display:none"') + '>' +
+        (aberto ? g.idx.map(i => nvdDesenhaVer(NOVIDADES_APP[i], i)).join("") : "") +
+      '</div>' +
+    '</div>';
+}
 function nvdRedesenhar(){
   const alvo = document.getElementById("nvdLista");
   if (!alvo) return;
@@ -6627,33 +6679,44 @@ function nvdRedesenhar(){
     });
     alvo.innerHTML =
       '<div class="nvd-achou"><span>' +
-        (achou.length ? achou.length + (achou.length === 1 ? " vers\u00e3o encontrada" : " vers\u00f5es encontradas")
+        (achou.length ? nvdPlural(achou.length, " vers\u00e3o encontrada", " vers\u00f5es encontradas")
                       : "Nenhuma vers\u00e3o fala nisso") +
       '</span><button type="button" class="nvd-limpar" onclick="nvdLimparBusca()">limpar a busca</button></div>' +
       achou.map(i => nvdDesenhaVer(NOVIDADES_APP[i], i)).join("");
     return;
   }
-  const gs = nvdGrupos();
-  let abertas = 0, mesNaTela = "";
-  alvo.innerHTML = gs.map((g, gi) => {
-    const temNova = g.idx[0] < nvdNovas;
-    const aberto = temNova || abertas < NVD_ABERTAS_MIN;
-    if (aberto) abertas += g.idx.length;
-    let mes = "";
-    if (g.mes !== mesNaTela){ mesNaTela = g.mes; mes = '<div class="nvd-mes">' + nvdRotuloMes(g.data) + '</div>'; }
-    return mes +
-      '<div class="nvd-dia' + (aberto ? " aberto" : "") + '" id="nvdDia' + gi + '">' +
-        '<button type="button" class="nvd-dia-cab" onclick="nvdAlternarDia(' + gi + ')">' +
+  const ms = nvdMeses();
+  const abre = nvdAberturaInicial(nvdGrupos());
+  alvo.innerHTML = ms.map((m, mi) => {
+    const aberto = m.dias.some(g => abre[g.gi]);
+    const temNova = m.dias[0].idx[0] < nvdNovas;
+    return '<div class="nvd-mesbloco' + (aberto ? " aberto" : "") + '" id="nvdMes' + mi + '">' +
+        '<button type="button" class="nvd-mes-cab" onclick="nvdAlternarMes(' + mi + ')">' +
           '<span class="nvd-seta">\u25b8</span>' +
-          '<span class="nvd-dia-tit">' + nvdRotuloDia(g.data) + '</span>' +
+          '<span class="nvd-mes-tit">' + nvdRotuloMes(m.data) + '</span>' +
           (temNova ? '<span class="nvd-selo">novo para voc\u00ea</span>' : '') +
-          '<span class="nvd-dia-cnt">' + g.idx.length + (g.idx.length === 1 ? " vers\u00e3o" : " vers\u00f5es") + '</span>' +
+          '<span class="nvd-mes-cnt">' + nvdPlural(m.total, " vers\u00e3o", " vers\u00f5es") +
+            " \u00b7 " + nvdPlural(m.dias.length, " dia", " dias") + '</span>' +
         '</button>' +
-        '<div class="nvd-dia-corpo" id="nvdCorpo' + gi + '"' + (aberto ? "" : ' style="display:none"') + '>' +
-          (aberto ? g.idx.map(i => nvdDesenhaVer(NOVIDADES_APP[i], i)).join("") : "") +
+        '<div class="nvd-mes-corpo" id="nvdCorpoMes' + mi + '"' + (aberto ? "" : ' style="display:none"') + '>' +
+          (aberto ? m.dias.map(g => nvdDesenhaDia(g, abre[g.gi])).join("") : "") +
         '</div>' +
       '</div>';
   }).join("");
+}
+/* Mes fechado nasce sem os dias dentro: eles sao desenhados na primeira vez que se abre.
+   Dia dentro de mes que estava fechado nasce FECHADO - se algum devesse estar aberto, o
+   mes nao estaria fechado. */
+function nvdAlternarMes(mi){
+  const cx = document.getElementById("nvdMes" + mi), corpo = document.getElementById("nvdCorpoMes" + mi);
+  if (!cx || !corpo) return;
+  const abrir = !cx.classList.contains("aberto");
+  if (abrir && !corpo.innerHTML){
+    const m = nvdMeses()[mi];
+    if (m) corpo.innerHTML = m.dias.map(g => nvdDesenhaDia(g, false)).join("");
+  }
+  cx.classList.toggle("aberto", abrir);
+  corpo.style.display = abrir ? "" : "none";
 }
 function nvdAlternarDia(gi){
   const cx = document.getElementById("nvdDia" + gi), corpo = document.getElementById("nvdCorpo" + gi);
@@ -6677,6 +6740,9 @@ function nvdLimparBusca(){
   nvdRedesenhar();
   if (c) c.focus();
 }
+/* 🔴 renderNovidades GRAVA a versao lida. Quem redesenha (busca, abrir e fechar) chama
+   nvdRedesenhar, que NAO toca no localStorage - senao nvdNovas viraria 0 na segunda tecla
+   digitada e o destaque verde sumiria no meio do uso. */
 function renderNovidades(){
   const alvo = document.getElementById("nvdLista");
   if (!alvo) return;
