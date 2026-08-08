@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v296 — Postos Full (não é o app)</title>
+<title>PRÉVIA v297 — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -6217,6 +6217,14 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v297", data:"08/08/2026", tit:"O mapa, a tabela e o Dashboard passaram a dizer a MESMA coisa", itens:[
+    {t:"c", h:"A bolinha do mapa discordava do próprio balãozinho", d:"A Oroch aparecia <b>verde (ligado)</b> no mapa e, clicando nela, o balãozinho dizia <b>📡 sem posição nova</b> — as duas afirmações na mesma tela, a um clique de distância. A cor era decidida por um pedaço de código separado, que tinha ficado com a regra antiga das 6 horas."},
+    {t:"c", h:"O contador \"Na estrada\" contava caminhão que não estava na estrada", d:"No topo do <b>Dashboard da Transportadora</b>, a Oroch parada na garagem do subsolo entrava em <b>Na estrada</b>, porque o último aviso dela veio a 6 km/h (a manobra da rampa). Número errado é pior que texto errado: ninguém desconfia de um número."},
+    {t:"c", h:"E o texto dizia \"há 0h\"", d:"Quando o caminhão calava havia poucos minutos, a tela escrevia <b>sem posição nova há 0h</b>. O relógio da tela só sabia falar em horas e dias, de quando a menor medida que importava era uma hora. Agora ele fala em <b>minutos</b> quando é caso de minutos."},
+    {t:"m", h:"Quem calou andando ficou com a bolinha vazada", d:"No mapa, o caminhão que parou de mandar posição <b>com o carro andando</b> agora aparece como um círculo <b>vazado, de traço cinza</b> — nem verde nem cinza cheio, porque a tela não sabe se ele está ligado ou desligado. É a única coisa que uma bolinha consegue dizer sem inventar."},
+    {t:"n", h:"\"Sem contato\" virou um aviso separado de \"sem posição nova\"", d:"O rastreador manda um sinal de vida a cada <b>10 minutos</b> mesmo com o caminhão parado e desligado. Se ele calou parado e passaram horas, o caminhão <b>continua onde está</b> (a posição vale), mas alguém precisa saber que o aparelho não fala: pode ser garagem sem cobertura, pode ser defeito. São duas perguntas diferentes, e agora têm dois avisos diferentes."},
+    {t:"m", h:"Por que isso voltou a acontecer, dito sem enfeite", d:"A versão v296 prometeu, com estas palavras, que <i>\"o Dashboard, a tabela e o mapa usam a mesma regra, em um lugar só do código\"</i>. Não era verdade: eram <b>seis</b> pedaços de tela medindo o tempo cada um por conta própria, e eu contei de cabeça em vez de procurar. Agora sobraram <b>dois</b> — e o script que publica esta versão <b>confere esse número</b> antes de escrever qualquer coisa, em vez de confiar na minha contagem."}
+  ]},
   {v:"v296", data:"08/08/2026", tit:"A tela deixou de confundir \"parado\" com \"perdido\"", itens:[
     {t:"n", h:"Nasceu de um teste no seu prédio", d:"Você ligou a Oroch, estacionou na rua, deu uma volta no quarteirão e desligou — e a API mostrou minuto a minuto como o rastreador funciona: <b>movimento acorda ele</b> (5 minutos com o motor ligado e parado: nenhuma posição), ele <b>se despede ao parar</b> e <b>avisa quando a chave sai</b>, em 72 segundos."},
     {t:"n", h:"Agora o último aviso do rastreador decide", d:"Se a última posição veio com <b>velocidade zero</b>, ele se despediu — o veículo <b>está parado ali</b>, e isso continua valendo por horas. Se veio <b>andando</b>, ele emudeceu no caminho: vale por minutos, e depois a tela diz <b>📡 sem posição nova</b>, porque ela não sabe mais onde ele está."},
@@ -14318,7 +14326,14 @@ function nomeCombInf(c){
               GASOLINA:"Gasolina", GASOLINA_COMUM:"Gasolina", ETANOL:"Etanol" };
   return m[c] || String(c||"").replace(/_/g," ");
 }
-// Quantas horas sem posição nova até o caminhão ser marcado como "sem sinal"
+/* 🔴 ESTA RÉGUA NÃO DIZ MAIS "sem sinal" — ela diz "não falo com o rastreador".
+   Até a v296 ela era usada por QUATRO pedaços de tela para decidir situação, cada
+   um por conta própria, e era isso que fazia a bolinha do mapa discordar do
+   balãozinho dela mesma. Quem decide situação agora é só o `infSituacao`, e lá
+   dentro esta régua responde outra pergunta: o aparelho manda sinal de vida a
+   cada ~10 min mesmo PARADO e DESLIGADO (medido em 08/08), então seis horas de
+   silêncio com o veículo parado não é "não sei onde ele está" — é subsolo sem
+   cobertura, ou rastreador com problema. */
 const INF_HORAS_SEM_SINAL = 6;
 function horasSemSinalInf(quando){
   const t = Date.parse(String(quando||""));
@@ -14326,6 +14341,12 @@ function horasSemSinalInf(quando){
   return (Date.now() - t) / 3600000;
 }
 function textoTempoInf(horas){
+  /* 🔴 Ela só sabia horas e dias, porque nasceu quando a menor unidade que
+     importava era HORA (sem sinal há 6h, 14h, 2 dias). A régua de 15 MINUTOS da
+     v296 deixou o relógio uma medida atrás: 0,3 h saía como "0h", que não
+     informa nada. 🔑 Mudou a régua, muda o relógio — as duas coisas são a mesma
+     decisão vista de dois lados. */
+  if (horas < 1) return fmtBR(Math.max(1, Math.round(horas*60)),0)+" min";
   if (horas < 48) return fmtBR(Math.floor(horas),0)+"h";
   return fmtBR(Math.floor(horas/24),0)+" dias";
 }
@@ -14395,7 +14416,13 @@ const INF_MIN_CALOU_ANDANDO = 15;
 
 function infSituacao(v){
   const hs = horasSemSinalInf(v.quando);
-  const sumido = (hs !== null && hs >= INF_HORAS_SEM_SINAL);
+  /* 🔴 DUAS PERGUNTAS DIFERENTES, DOIS CAMPOS DIFERENTES.
+     `sumido` = "não sei o que ele está fazendo agora" (calou ANDANDO, régua de
+     15 min, logo abaixo). `semContato` = "faz tempo que este rastreador não dá
+     sinal de vida" (régua de 6 h). Na v296 esta linha calculava um `sumido` que
+     ninguém usava aqui dentro — e três telas mediam as 6 h sozinhas, chegando a
+     respostas diferentes na MESMA tela. */
+  const semContato = (hs !== null && hs >= INF_HORAS_SEM_SINAL);
   /* 🔑 A régua de 6 h NÃO se aplica a quem se despediu parado — quem mandou
      `vel=0` está parado ali, e isso continua verdade por horas. O FH Prata dorme
      no posto de Caxias e aparecia como se estivesse perdido.
@@ -14425,20 +14452,38 @@ function infSituacao(v){
 
   /* calou ANDANDO e já estava calado quando o servidor olhou */
   if (!paradoQuandoCalou && min !== null && min >= INF_MIN_CALOU_ANDANDO){
-    return { sumido:true, andando:true, horas:hs,
+    return { sumido:true, andando:true, semContato:semContato, horas:hs,
              texto:"📡 sem posição nova",
+             nota:"há " + textoTempoInf(hs),
              curto:"📡 sem posição nova há " + textoTempoInf(hs) };
   }
 
   const vel = (+v.velocidade > 1) ? (fmtBR(+v.velocidade,0) + " km/h") : null;
-  if (v.ligado) return { sumido:false, andando:false, horas:hs, texto:"🟢 Ligado" + (vel ? " · " + vel : ""), curto:"🟢 Ligado" + (vel ? " · " + vel : "") };
-  return { sumido:false, andando:false, horas:hs, texto:"⚪ Desligado", curto:"⚪ Desligado" };
+  /* 🔑 A LINHA CINZA DE AVISO SAI DAQUI, não de cada tela. Era exatamente assim
+     que a tabela escrevia "⚠️ sem sinal há 14h" (régua velha) embaixo de um
+     "📡 sem posição nova" (régua nova), na mesma célula. Uma decisão, um texto. */
+  const nota = semContato ? ("sem contato há " + textoTempoInf(hs)) : "";
+  if (v.ligado) return { sumido:false, andando:false, semContato:semContato, horas:hs, nota:nota,
+                         texto:"🟢 Ligado" + (vel ? " · " + vel : ""),
+                         curto:"🟢 Ligado" + (vel ? " · " + vel : "") + (nota ? " · " + nota : "") };
+  return { sumido:false, andando:false, semContato:semContato, horas:hs, nota:nota,
+           texto:"⚪ Desligado", curto:"⚪ Desligado" + (nota ? " · " + nota : "") };
 }
 
-function _corInf(v){
-  const hs = horasSemSinalInf(v.quando);
-  if (hs !== null && hs >= INF_HORAS_SEM_SINAL) return "#c0392b";   // sem sinal
-  return v.ligado ? "#18a558" : "#7a7a7a";                           // ligado / desligado
+/* v297 */
+/* 🔴 ESTA FUNÇÃO ERA O CONSUMIDOR ESCONDIDO DA DECISÃO, e o pior tipo: ela
+   pintava a bolinha VERDE enquanto o balãozinho DELA MESMA, a um clique de
+   distância, dizia "📡 sem posição nova" — porque tinha a própria régua de 6 h e
+   o dado gravado é `ligado=true`. Duas afirmações contrárias na mesma tela.
+   👉 Agora ela não decide: pergunta ao `infSituacao` e só escolhe a aparência. */
+function _estiloInf(v){
+  const st = infSituacao(v);
+  /* 🔑 SEM POSIÇÃO NOVA = BOLINHA VAZADA. Verde ou cinza cheios afirmariam
+     "ligado" ou "desligado", e é justamente isso que não se sabe. Vermelho seria
+     alarme para o que é rotina (21 silêncios em 2 semanas, quase todos em trecho
+     sem cobertura). Vazado é o que um ponto consegue dizer sem mentir. */
+  if (st.sumido) return { color:"#7a7a7a", weight:3, dashArray:"3,3", fillColor:"#fff", fillOpacity:1 };
+  return { color:"#fff", weight:2, fillColor: (v.ligado ? "#18a558" : "#7a7a7a"), fillOpacity:1 };
 }
 
 /* 🔴 Os rótulos são PERMANENTES de propósito: num mapa de três caminhões, ter de
@@ -14510,13 +14555,11 @@ function renderInfMapa(){
     _marcasInf = [];
 
     comPos.forEach(v => {
-      const cor = _corInf(v);
-      const hs = horasSemSinalInf(v.quando);
-      const sumido = (hs !== null && hs >= INF_HORAS_SEM_SINAL);
+      /* 🔴 As duas linhas que mediam as 6 h aqui eram SOBRA da v295: o `sumido`
+         não era usado por ninguém depois, e o `hs` só alimentava ele. Sobra que
+         calcula uma regra é a semente da próxima discordância. */
       const sit = infSituacao(v).curto;
-      const m = L.circleMarker([v.lat, v.lon], {
-        radius: 9, color: "#fff", weight: 2, fillColor: cor, fillOpacity: 1
-      }).addTo(_mapaInf);
+      const m = L.circleMarker([v.lat, v.lon], Object.assign({ radius: 9 }, _estiloInf(v))).addTo(_mapaInf);
       m.bindTooltip(String(v.nome || v.placa || "—"), { permanent: true, direction: "top", offset: [0,-8] });
       m.bindPopup(
         '<div class="inf-mapa-pop"><b>' + escAttr(v.nome || v.placa || "—") + '</b>' +
@@ -14573,9 +14616,8 @@ function renderInfFrota(){
   lista.forEach(v => {
     const st = infSituacao(v);
     const sit = st.texto;
-    const hs = horasSemSinalInf(v.quando);
-    const sumido = (hs !== null && hs >= INF_HORAS_SEM_SINAL);
-    const alerta = sumido ? ('<br><span class="inf-sumido">⚠️ sem sinal há '+textoTempoInf(hs)+'</span>') : '';
+    const sumido = st.sumido;
+    const alerta = st.nota ? ('<br><span class="inf-sumido">'+st.nota+'</span>') : '';
     h += '<tr'+(sumido?' class="inf-linha-sumida"':'')+'>'+
       '<td data-lbl="Caminhão"><b>'+escAttr(v.nome||v.placa||"—")+'</b><br><span class="nota-dash">'+escAttr(v.placa||"")+'</span></td>'+
       '<td data-lbl="Motorista">'+escAttr(v.motorista||"—")+'</td>'+
@@ -14587,6 +14629,7 @@ function renderInfFrota(){
   });
   h += '</tbody></table></div>';
   if (lista.some(v => infSituacao(v).sumido)) h += '<p class="nota-dash">📡 <b>Sem posição nova</b> quer dizer que o rastreador parou de falar <b>com o caminhão andando</b> — quase sempre trecho sem cobertura de internet. A tela não sabe onde ele está agora, e a hora da última posição está na coluna ao lado. Quem <b>se despediu parado</b> continua aparecendo como desligado, porque isso continua sendo verdade.</p>';
+  if (lista.some(v => { const s = infSituacao(v); return s.semContato && !s.sumido; })) h += '<p class="nota-dash">⚪ <b>Sem contato</b> é outra coisa: o rastreador manda um sinal de vida a cada 10 minutos mesmo com o caminhão parado e desligado. Se ele calou parado e passaram horas, ou o caminhão está onde não há cobertura (garagem, subsolo) ou o aparelho precisa de atenção. A posição continua valendo — ele não saiu de lá.</p>';
   if (f && f.atualizadoEm) h += '<p class="nota-dash">Atualizado em '+fmtQuandoInf(f.atualizadoEm)+'.</p>';
   box.innerHTML = h;
 }
@@ -20210,23 +20253,30 @@ function renderDtrFrota(){
   }
   let rodando = 0, parados = 0, sumidos = 0;
   lista.forEach(v => {
-    const hs = horasSemSinalInf(v.quando);
-    // "rodando" e' ligado E andando: ligado parado no p\u00e1tio conta como parado
-    if (hs !== null && hs >= INF_HORAS_SEM_SINAL) sumidos += 1;
+    /* 🔴 ERA AQUI O PIOR DOS SEIS. Estes contadores mediam as 6 h por conta
+       própria, então a Oroch congelada na rampa do subsolo (ligado=true,
+       6 km/h, 18 min de silêncio) entrava em "Na estrada" — o número do topo
+       do Dashboard contradizendo a tabela logo abaixo, que já dizia
+       "📡 sem posição nova". Número errado é pior que texto errado: ninguém
+       confere um número.
+       🔑 "rodando" continua sendo ligado E andando: ligado parado no patio conta
+       como parado. */
+    const st = infSituacao(v);
+    if (st.sumido) sumidos += 1;
     else if (v.ligado && (+v.velocidade > 1)) rodando += 1;
     else parados += 1;
   });
   let h = '<div class="resumo-dash">' +
     '<div class="cartao-kpi"><span>Na estrada</span><b>' + rodando + '</b></div>' +
     '<div class="cartao-kpi"><span>Parados</span><b>' + parados + '</b></div>' +
-    '<div class="cartao-kpi"><span>Sem sinal</span><b class="' + (sumidos ? "rpz-neg" : "") + '">' + sumidos + '</b></div>' +
+    '<div class="cartao-kpi"><span>Sem posi\u00e7\u00e3o</span><b class="' + (sumidos ? "rpz-neg" : "") + '">' + sumidos + '</b></div>' +
   '</div>';
   h += '<div class="tabela-wrap"><table class="pux-tab pux-lista"><thead><tr><th>Caminh\u00e3o</th><th>Motorista</th><th>Situa\u00e7\u00e3o</th><th>Onde est\u00e1</th><th>\u00daltima posi\u00e7\u00e3o</th></tr></thead><tbody>';
   lista.forEach(v => {
     const st = infSituacao(v);
     const sumido = st.sumido;
     const sit = sumido ? ('<span class="inf-sumido">' + st.texto + '</span>') : st.texto;
-    const alerta = sumido ? ('<br><span class="inf-sumido">h\u00e1 ' + textoTempoInf(st.horas) + '</span>') : "";
+    const alerta = st.nota ? ('<br><span class="inf-sumido">' + st.nota + '</span>') : "";
     h += '<tr' + (sumido ? ' class="inf-linha-sumida"' : '') + '>' +
       '<td data-lbl="Caminh\u00e3o"><b>' + escAttr(v.nome || v.placa || "\u2014") + '</b><br><span class="nota-dash">' + escAttr(v.placa || "") + '</span></td>' +
       '<td data-lbl="Motorista">' + escAttr(v.motorista || "\u2014") + '</td>' +
