@@ -1389,7 +1389,14 @@
      e um quarto de tela não cabe um número com rótulo do lado.
      ⚠️ A margem de baixo do `.grupo` é ZERADA aqui dentro: com `gap` na grade, ela viraria vão
      dobrado entre as linhas. Fora do Dashboard o `.grupo` continua igual. */
-  #painelDash{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;align-items:start}
+  /* 🔴 v303 - `.aberto` NO SELETOR, E ISSO NAO E' DETALHE: `#painelDash` (id) VENCE
+     `.config{display:none}` (classe), entao a grade mantinha o Dashboard visivel MESMO FECHADO —
+     e todo painel aberto depois dele (Novidades, Relatorios, Configuracoes...) nascia EMBAIXO do
+     Dashboard, parecendo que "nao abria".
+     🔑 REGRA POR ID VENCE REGRA POR CLASSE (v243) — o mapa do projeto ja avisava, e eu escrevi a
+     regra da grade com id assim mesmo. 👉 Quem trocar o `display` de um painel pelo ID tem de
+     carregar o `.aberto` junto, senao esta reescrevendo a regra que ABRE e FECHA a tela. */
+  #painelDash.aberto{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;align-items:start}
   #painelDash > *{grid-column:span 6;min-width:0}
   #painelDash > .grupo{margin-bottom:0}
   #painelDash > .grupo.dsp-m{grid-column:span 3}
@@ -6315,6 +6322,9 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v303", data:"09/08/2026", tit:"Conserto: o Dashboard ficava por cima dos outros menus", itens:[
+    {t:"c", h:"Os menus voltaram a abrir sozinhos", d:"Depois da v302, o <b>Dashboard não sumia da tela</b> ao abrir outro menu — quem clicava em <b>🎁 Novidades</b> (ou em qualquer outro) via o painel novo nascer <b>embaixo</b> do Dashboard, e parecia que não abria. Era a grade nova dos cards, escrita de um jeito que passava por cima da regra que esconde os painéis fechados. Uma palavra a mais no lugar certo e cada menu voltou a abrir sozinho."}
+  ]},
   {v:"v302", data:"09/08/2026", tit:"✏️ Personalizar: o Dashboard do jeito que você quiser", itens:[
     {t:"n", h:"Arrastar, redimensionar e esconder", d:"O botão <b>⚙️ Ordenar cards</b> virou <b>✏️ Personalizar</b>. Dentro dele, cada card ganha uma alça <b>⠿ arraste</b> (no computador), os botões de tamanho <b>Inteiro · Metade · Um terço</b> e um <b>✕ esconder</b>. No celular, as setas ▲▼ — arrastar em tela pequena briga com a rolagem. Em tela estreita todo card volta a ocupar a largura inteira sozinho."},
     {t:"n", h:"O que você esconde não some: fica na lista de volta", d:"O card escondido aparece em <b>Escondidos</b>, no topo da caixa, e volta com um clique. Esconder não é apagar."},
