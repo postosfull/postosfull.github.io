@@ -2466,35 +2466,49 @@
      Os TRES postos lado a lado - escolha do Tiago. Em tela estreita eles viram uma coluna so'.
      🔑 A cor de cada combustivel e' a MESMA do Nivel dos tanques (tqvCorProduto): o etanol e'
         verde na pista, no tanque e aqui. Cor que muda de tela em tela vira legenda obrigatoria. */
-  /* ===================== v304 - UMA FILEIRA, SO' O R$/L =====================
-     🔴 O VALOR SOBE PARA A LINHA DO NOME e a barra fica embaixo, com a largura toda do bloco.
-     E' isso que faz os seis combustiveis caberem lado a lado: com o valor AO LADO da barra,
-     em 1/6 da tela sobrariam ~50px de barra, e barra de 50px nao compara nada. */
-  .cbd-fx{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin:12px 0 4px;align-items:start}
-  .cbd-fam{display:grid;gap:8px;align-content:start;min-width:0}
-  .cbd-tit{display:flex;align-items:center;gap:6px;font-size:.76rem;font-weight:700;opacity:.92;
-           padding-bottom:6px;border-bottom:1px solid var(--borda);white-space:nowrap;
-           overflow:hidden;text-overflow:ellipsis}
-  .cbd-tit small{font-weight:400;opacity:.6;font-size:.68rem}
-  .cbd-ponto{width:8px;height:8px;border-radius:50%;flex:0 0 auto;
-             background-image:linear-gradient(#999,#999)}
-  .cbd-l{display:grid;gap:3px}
-  .cbd-topo{display:flex;align-items:baseline;justify-content:space-between;gap:6px}
-  .cbd-n{font-size:.72rem;opacity:.72;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .cbd-v{font-size:.86rem;font-weight:800;white-space:nowrap}
-  .cbd-v small{font-size:.6rem;font-weight:600;opacity:.55}
+  /* ===================== v305 - UM POSTO DE CADA VEZ, BARRAS EM PE' =====================
+     🔴 A ALTURA DA BARRA E' FIXA EM 132px E A LARGURA E' 1/N DA TELA. Com um posto so', N e'
+     cinco — cada barra fica com ~240px, cabe o nome inteiro embaixo e o numero grande em cima.
+     Era exatamente isso que NAO cabia na v304, quando os tres postos dividiam a fileira e
+     sobravam 55px por barra.
+     🔴 O NUMERO DE COLUNAS VEM DE `--n`, E NAO DE UM `style=` NA TAG: `style` inline vence
+        `@media`, e a tela estreita ficaria com cinco tiras. Variavel entra como VALOR; quem
+        manda na regra continua sendo a folha. */
+  .cbd-pe{display:grid;grid-template-columns:repeat(var(--n,5),minmax(0,1fr));
+          gap:16px;align-items:end;margin:14px 0 4px}
+  /* 158 = 132px de barra (83,5% da caixa) + 26px de folga para o rotulo da barra mais alta.
+     \U0001f534 A ALTURA VEM DAQUI, E A PROPORCAO VEM DO JS. Trocar este numero no `@media` encolhe
+        barra, teto e rotulo juntos — porque nenhum dos tres esta' escrito em pixel. */
+  .cbd-col{display:grid;grid-template-rows:158px 14px auto;min-width:0}
+  .cbd-v{position:absolute;left:0;right:0;text-align:center;font-size:.92rem;font-weight:800;
+         white-space:nowrap;line-height:20px}
   .cbd-v.melhor{color:#22c55e}
   .cbd-v.ruim{color:var(--vermelho)}
-  .cbd-v.cbd-nada{opacity:.5;font-weight:700}
-  .cbd-tr{height:8px;border-radius:99px;overflow:hidden;display:block;
-          background-image:linear-gradient(rgba(127,127,127,.16),rgba(127,127,127,.16))}
-  .cbd-b{display:block;height:100%;border-radius:99px}
+  .cbd-v.cbd-nada{opacity:.45;font-weight:700}
+  .cbd-cx{position:relative;border-bottom:1px solid rgba(155,163,170,.35)}
+  /* O TETO DA REGUA: onde chegaria a barra do maior R$/L do dia. \U0001f534 E' ele que da' sentido ao
+     espaco vazio das telas em que ninguem chegou perto do melhor. */
+  .cbd-cx::before{content:"";position:absolute;left:0;right:0;bottom:83.5%;
+                  border-top:1px dashed rgba(155,163,170,.28)}
+  .cbd-b{position:absolute;left:18%;right:18%;bottom:0;border-radius:6px 6px 2px 2px}
+  /* faixa do prejuizo: fica SEMPRE reservada, mesmo quando ninguem deu prejuizo, senao a linha
+     do zero subiria e desceria conforme o dia — e linha de base que anda nao e' linha de base. */
+  .cbd-ng{position:relative}
+  .cbd-ng i{position:absolute;left:18%;right:18%;top:0;border-radius:2px 2px 6px 6px;
+            background-image:linear-gradient(var(--vermelho),var(--vermelho))}
+  .cbd-n{font-size:.76rem;opacity:.74;text-align:center;line-height:1.3;padding-top:6px;
+         display:flex;align-items:flex-start;justify-content:center;gap:6px}
+  .cbd-ponto{width:8px;height:8px;border-radius:50%;flex:0 0 auto;margin-top:4px;
+             background-image:linear-gradient(#999,#999)}
   .cbd-aviso{border:1px solid #e0a106;border-left-width:4px;border-radius:10px;padding:10px 13px;
              background:rgba(224,161,6,.10);font-size:.87rem;line-height:1.45;margin:0 0 12px}
-  /* 🔴 Seis blocos so' cabem em tela larga. As quebras ficam no FIM da folha porque `@media`
+  /* 🔴 Cinco barras so' cabem em tela larga. As quebras ficam no FIM da folha porque `@media`
      nao ganha especificidade — regra antiga escrita depois venceria a nova. */
-  @media (max-width:1200px){ .cbd-fx{grid-template-columns:repeat(3,1fr)} }
-  @media (max-width:700px){ .cbd-fx{grid-template-columns:repeat(2,1fr)} }
+  @media (max-width:900px){ .cbd-pe{grid-template-columns:repeat(3,minmax(0,1fr));row-gap:20px} }
+  /* \U0001f534 No celular a fileira vira DUAS colunas — ou seja, TRES fileiras de barras. Mantendo os
+     158px, o card passaria de 600px so' de grafico. A caixa cai para 118px e tudo encolhe junto. */
+  @media (max-width:560px){ .cbd-pe{grid-template-columns:repeat(2,minmax(0,1fr))}
+                            .cbd-col{grid-template-rows:118px 12px auto} }
   .tqv-regua{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 14px;font-size:.8rem}
   .tqv-rg{border-radius:999px;padding:3px 11px;border:1px solid var(--borda)}
   .tqv-rg.tqv-c{background:rgba(229,72,77,.12);border-color:rgba(229,72,77,.45)}
@@ -3604,7 +3618,7 @@
 
     <div class="grupo" id="dashGrpCombDia">
       <h2>⛽ Lucro por combustível</h2>
-      <p class="nota-dash">Quanto cada combustível deixou <b>por litro</b> hoje, em cada posto — e só isso: quem quer litros e lucro bruto tem a aba <b>Resultado</b> do menu Relatórios. Vem do Petros, coletado de 10 em 10 minutos — é o mesmo número da tabela <b>Venda de Combustíveis</b> do painel de lá.</p>
+      <p class="nota-dash">Quanto cada combustível deixou <b>por litro</b> hoje, num posto de cada vez — e só isso: quem quer litros e lucro bruto tem a aba <b>Resultado</b> do menu Relatórios. Vem do Petros, coletado de 10 em 10 minutos — é o mesmo número da tabela <b>Venda de Combustíveis</b> do painel de lá.</p>
       <div id="cbdBox"></div>
     </div>
 
@@ -6322,6 +6336,12 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v305", data:"09/08/2026", tit:"⛽ Lucro por combustível: um posto de cada vez, barras em pé", itens:[
+    {t:"m", h:"Agora você escolhe o posto, e o card fica igual sempre", d:"Tem um botão para <b>Teresina</b>, <b>Caxias</b> e <b>Pres. Dutra</b> no topo do card, e ele lembra o último que você abriu <b>neste aparelho</b> — cada pessoa tem o seu, sem mexer no de ninguém. A razão do desenho é esta: <b>combustível não é uniforme, posto é</b>. A Podium só existe em Teresina, então um bloco por combustível nascia torto — um com três barras, outro com uma. Os três postos vendem exatamente <b>cinco</b> combustíveis, então com um posto escolhido o card é sempre o mesmo retângulo."},
+    {t:"n", h:"As barras ficaram em pé — e grandes", d:"Cada barra passou de 55px para cerca de <b>240px</b> de largura, que é o que faz caber o nome inteiro do combustível embaixo e o valor grande em cima. Em <b>verde</b>, o combustível que mais deixou <b>naquele posto</b>; quem fica <b>abaixo da linha</b> deu prejuízo."},
+    {t:"c", h:"A régua continua a mesma nos três postos", d:"A barra é medida pelo <b>maior R$/L do dia entre os três</b>, e não pelo maior do posto que está na tela — e o rodapé diz qual é esse valor. É o que faz <b>trocar de posto ser comparação de verdade</b>: barra maior é ganho maior em qualquer um deles. O preço, que é real: no dia em que um produto dispara, os outros postos ficam com a tela mais achatada."},
+    {t:"c", h:"A ordem e as cores continuam sendo suas", d:"Em <b>✏️ Personalizar → 🎨 Combustíveis: cor e ordem</b>, a ordem que você salvou passou a valer para a ordem das <b>barras</b>, e a cor de cada produto continua valendo no card, no <b>Nível dos tanques</b> e nos gráficos de <b>preço e margem</b>."}
+  ]},
   {v:"v304", data:"09/08/2026", tit:"⛽ Lucro por combustível: um card só, em uma linha, com o R$/L", itens:[
     {t:"m", h:"Saíram os litros e o lucro bruto; ficou o que decide", d:"O card agora responde <b>uma pergunta só</b>: quanto cada combustível deixa <b>por litro</b>, em cada posto. Sem litros vendidos, sem lucro bruto — e, com uma pergunta só, os três blocos viraram <b>um card em uma fileira</b>, sem barra de rolagem e com cerca de um quarto da altura de antes."},
     {t:"n", h:"As barras têm a mesma régua, e o melhor fica em verde", d:"Dá para comparar os postos dentro de cada combustível <b>e</b> os combustíveis entre si, porque a régua é a mesma nos seis blocos. Em cada produto, o posto que mais ganhou aparece em <b>verde</b>. Produto que o posto não vende não aparece; o que ele vende e ainda não vendeu hoje aparece com travessão."},
@@ -20876,6 +20896,64 @@ function cbdIdadeMin(){
    Bloco que nao estiver na lista salva vai para o FIM na ordem de fabrica — nunca some.
    🔑 Mesma regra da ordem dos menus (v188) e dos cards (v200): lista salva SOBREPOE, nao MANDA. */
 function cbdChaveBloco(rotulo){ return String(rotulo || "").toUpperCase(); }
+
+/* ===== v305 - O FILTRO DE POSTO =====
+   🔑 Mora no APARELHO, como o filtro do Nivel dos tanques (v280): e' preferencia de quem esta'
+   olhando, nao configuracao da empresa. O admin ja tem a caixa Personalizar para o que vale
+   para todos.
+   🔴 E ele nasce no PRIMEIRO posto, nunca em "todos": este card passou a ser de um posto de
+      cada vez por pedido dele, e um padrao "todos" traria de volta o desenho torto. */
+const CBD_CHAVE_POSTO = "pf_cbd_posto";
+let cbdPostoSel = "";
+try { cbdPostoSel = localStorage.getItem(CBD_CHAVE_POSTO) || ""; } catch(e){ cbdPostoSel = ""; }
+function cbdPostoAtual(){
+  const chaves = CBD_POSTOS.map(function(p){ return p[0]; });
+  return chaves.indexOf(cbdPostoSel) >= 0 ? cbdPostoSel : chaves[0];
+}
+function cbdFiltrarPosto(k){
+  cbdPostoSel = k || "";
+  try { localStorage.setItem(CBD_CHAVE_POSTO, cbdPostoSel); } catch(e){}
+  renderCombDia();
+}
+
+/* 🔴 A REGUA E' A MAIOR DO DIA ENTRE OS TRES POSTOS, E NAO A DO POSTO ESCOLHIDO. Escolha dele,
+   feita de olhos abertos depois de eu mostrar o preco em foto: com regua por posto, a barra
+   cheia da Caxias (R$ 0,583) ficaria do mesmo tamanho da barra cheia de Teresina (R$ 1,099), e
+   ALTERNAR ENTRE POSTOS — que e' justamente como ele vai comparar — viraria ilusao de otica.
+   ⚠️ O preco: nos dias em que um produto dispara, os outros postos ficam com a tela achatada. */
+function cbdMaiorDoDia(){
+  let maior = 0;
+  CBD_POSTOS.forEach(function(p){
+    cbdLinhas(p[0]).forEach(function(l){ if (l.rsL != null && +l.rsL > maior) maior = +l.rsL; });
+  });
+  return maior;
+}
+
+/* O rotulo da barra e' o da FAMILIA ("Diesel S-10"), nao o nome cru do ERP ("OLEO DIESEL B S10
+   COMUM") — e' o mesmo nome que ele reordena em Personalizar.
+   🔴 MENOS quando o posto vende DOIS produtos da mesma familia: ai' os dois rotulos seriam
+      iguais e a tela mostraria duas barras com o mesmo nome. Nesse caso vale o nome do ERP, que
+      e' o unico que distingue. 🔑 Rotulo curto so' pode encurtar o que continua unico. */
+function cbdRotuloBarra(chave, prod){
+  const fam = cbdRotuloFamilia(prod);
+  let quantos = 0;
+  cbdLinhas(chave).forEach(function(l){ if (cbdRotuloFamilia(l.prod) === fam) quantos++; });
+  return quantos > 1 ? String(prod || "") : fam;
+}
+
+/* As barras de UM posto, na ordem que ele salvou em Personalizar. */
+function cbdBarras(chave){
+  const ordem = cbdOrdemBlocos();
+  const pos = {}; ordem.forEach(function(k, i){ pos[cbdChaveBloco(k)] = i; });
+  return cbdLinhas(chave).map(function(l, i){
+    const rot = cbdRotuloBarra(chave, l.prod);
+    const salva = pos[cbdChaveBloco(cbdRotuloFamilia(l.prod))];
+    /* 🔴 Quem nao esta' na ordem salva vai para o FIM, na ordem de fabrica — nunca some.
+       Mesma regra da barra de menus (v244) e dos cards (v200). */
+    return { prod: l.prod, rotulo: rot, rsL: (l.rsL == null ? null : +l.rsL),
+             semVenda: !!l.semVenda, chave: (salva === undefined ? 1000 + cbdFamilia(l.prod) : salva), i: i };
+  }).sort(function(a, b){ return a.chave - b.chave || a.i - b.i; });
+}
 /* 🔴 UMA FUNCAO SO' PARA A COR DO PRODUTO NESTE CARD: o RASCUNHO (a cor que ele acabou de
    escolher na caixa, ainda nao salva) ganha do gravado. Duas leituras diferentes da mesma cor
    fariam o pontinho do titulo atrasar em relacao a barra. */
@@ -20888,73 +20966,6 @@ function cbdOrdemBlocos(){
   return Array.isArray(a) ? a : [];
 }
 /* Um bloco por familia, com as linhas dos postos que VENDEM aquele produto. */
-function cbdBlocos(){
-  const saida = [];
-  const vistos = {};
-  CBD_ORDEM.forEach(function(f){
-    const rotulo = f[1];
-    if (vistos[rotulo]) return;
-    vistos[rotulo] = 1;
-    const linhas = [];
-    CBD_POSTOS.forEach(function(p){
-      cbdLinhas(p[0]).forEach(function(l){
-        if (cbdFamilia(l.prod) !== f[2] || !f[0].test(String(l.prod || ""))) return;
-        linhas.push({ posto: p[1], prod: l.prod, rsL: (l.rsL == null ? null : +l.rsL), semVenda: !!l.semVenda });
-      });
-    });
-    if (linhas.length) saida.push({ rotulo: rotulo, linhas: linhas });
-  });
-  /* 🔴 E O QUE NAO CASOU COM FAMILIA NENHUMA (familia 9) VAI PARA O FIM, um bloco por
-     produto. Sem isto, produto novo do ERP nao apareceria em lugar nenhum — e sumir calado e'
-     pior que aparecer no lugar errado. */
-  const soltos = {};
-  CBD_POSTOS.forEach(function(p){
-    cbdLinhas(p[0]).forEach(function(l){
-      if (cbdFamilia(l.prod) !== 9) return;
-      const r = cbdRotuloFamilia(l.prod);
-      (soltos[r] = soltos[r] || []).push({ posto: p[1], prod: l.prod,
-        rsL: (l.rsL == null ? null : +l.rsL), semVenda: !!l.semVenda });
-    });
-  });
-  Object.keys(soltos).sort().forEach(function(r){ saida.push({ rotulo: r, linhas: soltos[r] }); });
-  const ordem = cbdOrdemBlocos();
-  const pos = {}; ordem.forEach(function(k, i){ pos[cbdChaveBloco(k)] = i; });
-  return saida.map(function(b, i){ return [b, (pos[cbdChaveBloco(b.rotulo)] === undefined
-                                               ? 1000 + i : pos[cbdChaveBloco(b.rotulo)]), i]; })
-              .sort(function(a, b){ return a[1] - b[1] || a[2] - b[2]; })
-              .map(function(x){ return x[0]; });
-}
-
-function cbdBlocoHtml(b, maior){
-  const somUm = b.linhas.length === 1;
-  const comValor = b.linhas.filter(function(l){ return l.rsL != null; });
-  const melhor = comValor.length ? Math.max.apply(null, comValor.map(function(l){ return l.rsL; })) : null;
-  const corTit = cbdCor(b.linhas[0].prod);
-  let h = '<div class="cbd-fam"><div class="cbd-tit"><span class="cbd-ponto" style="background-image:linear-gradient(' +
-          corTit + ',' + corTit + ')"></span>' + escAttr(b.rotulo) +
-          (somUm ? ' <small>s\u00f3 ' + escAttr(b.linhas[0].posto) + '</small>' : '') + '</div>';
-  b.linhas.forEach(function(l){
-    /* 🔴 CADA BARRA USA A COR DO PROPRIO PRODUTO, nao a do bloco: no bloco das aditivadas,
-       Teresina vende GRID e os outros ADITIVADA — sao produtos diferentes, e a cor de cada um
-       e' escolha DELE. */
-    const cor = cbdCor(l.prod);
-    const temValor = l.rsL != null;
-    const ruim = temValor && l.rsL < 0;
-    const top = temValor && !somUm && melhor != null && l.rsL === melhor;
-    h += '<div class="cbd-l"><div class="cbd-topo"><span class="cbd-n" title="' + escAttr(l.prod) + '">' +
-         escAttr(l.posto) + '</span><b class="cbd-v' + (top ? ' melhor' : '') + (ruim ? ' ruim' : '') +
-         (temValor ? '' : ' cbd-nada') + '">' +
-         (temValor ? ('R$ ' + fmtBR(l.rsL, 3)) : "\u2014") + '<small>/L</small></b></div>' +
-         '<span class="cbd-tr">' +
-         (temValor && l.rsL > 0 && maior > 0
-            ? '<span class="cbd-b" style="width:' + Math.max(2, l.rsL / maior * 100).toFixed(1) +
-              '%;background-image:linear-gradient(' + cor + ',' + cor + ')"></span>'
-            : '') +
-         '</span></div>';
-  });
-  return h + '</div>';
-}
-
 function renderCombDia(){
   const box = document.getElementById("cbdBox");
   if (!box) return;
@@ -20964,10 +20975,10 @@ function renderCombDia(){
 
   /* 2º estado: o coletor nunca gravou. */
   if (!combDia || !combDia.postos){
-    box.innerHTML = vazioHtml("Ainda não temos o lucro por combustível de hoje",
-      "Ele é montado pelo servidor a partir do painel do Petros, de 10 em 10 minutos. " +
-      "Enquanto essa coleta não roda, este card fica vazio de propósito — número velho aqui " +
-      "seria pior que número nenhum.");
+    box.innerHTML = vazioHtml("Ainda n\u00e3o temos o lucro por combust\u00edvel de hoje",
+      "Ele \u00e9 montado pelo servidor a partir do painel do Petros, de 10 em 10 minutos. " +
+      "Enquanto essa coleta n\u00e3o roda, este card fica vazio de prop\u00f3sito \u2014 n\u00famero velho aqui " +
+      "seria pior que n\u00famero nenhum.");
     return;
   }
 
@@ -20977,34 +20988,78 @@ function renderCombDia(){
   const horaAgora = new Date().getHours();
   const naJanela = horaAgora >= CBD_HORA_INI && horaAgora < CBD_HORA_FIM;
   if (combDia.dia !== hoje){
-    h += '<div class="cbd-aviso">⚠️ Estes números são do dia <b>' +
-         escAttr(fmtDataCurta(combDia.dia)) + '</b>, não de hoje. A primeira coleta de hoje ' +
-         'ainda não rodou.</div>';
+    h += '<div class="cbd-aviso">\u26a0\ufe0f Estes n\u00fameros s\u00e3o do dia <b>' +
+         escAttr(fmtDataCurta(combDia.dia)) + '</b>, n\u00e3o de hoje. A primeira coleta de hoje ' +
+         'ainda n\u00e3o rodou.</div>';
   } else if (idade != null && idade > CBD_IDADE_AVISO && naJanela){
-    h += '<div class="cbd-aviso">⚠️ O último número chegou há <b>' + Math.round(idade) +
-         ' minutos</b>. A coleta é de 10 em 10 minutos, então o que está na tela pode estar ' +
+    h += '<div class="cbd-aviso">\u26a0\ufe0f O \u00faltimo n\u00famero chegou h\u00e1 <b>' + Math.round(idade) +
+         ' minutos</b>. A coleta \u00e9 de 10 em 10 minutos, ent\u00e3o o que est\u00e1 na tela pode estar ' +
          'atrasado.</div>';
   }
 
-  const blocos = cbdBlocos();
-  /* 🔴 UMA REGUA SO' PARA OS SEIS BLOCOS. Regua por bloco faria a diferenca de dois centavos
-     parecer a mesma coisa que a de um real — e este card existe para comparar. */
-  let maior = 0;
-  blocos.forEach(function(b){ b.linhas.forEach(function(l){ if (l.rsL != null && l.rsL > maior) maior = l.rsL; }); });
+  /* --- o filtro. Reaproveita as classes do filtro do Nivel dos tanques de proposito:
+         \ud83d\udd11 dois filtros com a mesma cara sao UM filtro aprendido uma vez. --- */
+  const atual = cbdPostoAtual();
+  h += '<div class="tqv-filtro"><span class="tqv-filtro-rot">Posto:</span>' +
+       CBD_POSTOS.map(function(p){
+         return '<button class="tqv-fbt' + (p[0] === atual ? ' aceso' : '') + '" onclick="cbdFiltrarPosto(' +
+                JSON.stringify(p[0]).replace(/"/g, "&quot;") + ')">' + escAttr(p[1]) + '</button>';
+       }).join("") + '</div>';
 
-  if (!blocos.length){
-    h += '<div class="ana-vazio">Nenhum posto vendeu combustível neste dia até agora.</div>';
+  const barras = cbdBarras(atual);
+  const maior = cbdMaiorDoDia();
+  const comValor = barras.filter(function(b){ return b.rsL != null; });
+  /* \ud83d\udd34 O VERDE MUDOU DE PERGUNTA na v305: antes era "qual posto ganhou mais NESTE produto";
+     agora \u00e9 "qual produto deste posto deixa mais por litro". S\u00e3o os dois \u00fateis, mas a tela
+     mostra UM posto — e verde comparando postos numa tela de um posto s\u00f3 n\u00e3o quer dizer nada.
+     O rodap\u00e9 diz qual das duas perguntas est\u00e1 sendo respondida. */
+  const melhor = comValor.length > 1 ? Math.max.apply(null, comValor.map(function(b){ return b.rsL; })) : null;
+  const ALT = 83.5, ALTNEG = 14;   /* 83,5% da caixa = o teto da regua; 14px = a faixa do prejuizo */
+
+  if (!barras.length){
+    h += '<div class="ana-vazio">Este posto ainda n\u00e3o vendeu combust\u00edvel neste dia.</div>';
   } else {
-    h += '<div class="cbd-fx">' + blocos.map(function(b){ return cbdBlocoHtml(b, maior); }).join("") + '</div>';
+    h += '<div class="cbd-pe" style="--n:' + barras.length + '">' + barras.map(function(b){
+      const cor = cbdCor(b.prod);
+      const temValor = b.rsL != null;
+      const ruim = temValor && b.rsL < 0;
+      const top = temValor && melhor != null && b.rsL === melhor;
+      /* \ud83d\udd34 EM PORCENTAGEM DA CAIXA, e nao em pixel: e' o que deixa o `@media` encolher a
+         caixa no celular sem a barra estourar para fora dela. `ALT` e' 83.5 — a fatia da caixa
+         que vai ate' o teto da regua (132 de 158). */
+      const hPos = (temValor && b.rsL > 0 && maior > 0) ? Math.max(2.5, b.rsL / maior * ALT) : 0;
+      /* A faixa do prejuizo continua em PIXEL (ela e' uma tira fixa de 14px, nao uma fatia da
+         caixa), entao a conta usa o teto em pixel equivalente. */
+      const hNeg = (temValor && b.rsL < 0 && maior > 0)
+                 ? Math.min(ALTNEG, Math.max(4, Math.abs(b.rsL) / maior * 132)) : 0;
+      /* \ud83d\udd34 O ROTULO SOBE E DESCE COM A BARRA (v305c): fica 5px acima da ponta dela, e nao no
+         topo da caixa. Com a regua fixa, barra de 60px numa caixa de 132px deixava o numero
+         boiando a 100px de distancia — e numero solto no vazio nao parece rotulo de ninguem.
+         Quem nao tem barra (ainda nao vendeu) fica rente a' linha do zero, onde a barra
+         nasceria. */
+      return '<div class="cbd-col">' +
+        '<div class="cbd-cx">' +
+        '<span class="cbd-v' + (top ? ' melhor' : '') + (ruim ? ' ruim' : '') +
+          (temValor ? '' : ' cbd-nada') + '" style="bottom:calc(' + hPos.toFixed(2) + '% + 5px)">' +
+          (temValor ? ('R$ ' + fmtBR(b.rsL, 3)) : "\u2014") + '</span>' + (hPos
+          ? '<span class="cbd-b" style="height:' + hPos.toFixed(2) + '%;background-image:linear-gradient(' +
+            cor + ',' + cor + ')"></span>' : '') + '</div>' +
+        '<div class="cbd-ng">' + (hNeg ? '<i style="height:' + hNeg.toFixed(1) + 'px"></i>' : '') + '</div>' +
+        '<span class="cbd-n" title="' + escAttr(b.prod) + '">' +
+          '<span class="cbd-ponto" style="background-image:linear-gradient(' + cor + ',' + cor + ')"></span>' +
+          escAttr(b.rotulo) + '</span></div>';
+    }).join("") + '</div>';
   }
 
   const quando = combDia.atualizadoEm ? fmtQuandoLocal(combDia.atualizadoEm) : "";
   h += '<p class="ana-rodape">Vendas de <b>' + escAttr(fmtDataCurta(combDia.dia)) +
-       '</b>, do começo do dia até a última leitura' + (quando ? ' (' + escAttr(quando) + ')' : '') +
-       '. As barras têm a <b>mesma régua</b> nos seis blocos, então dá para comparar entre ' +
-       'combustíveis também; em <b>verde</b>, o posto que mais ganhou naquele produto. O ' +
-       '<b>R$ por litro</b> é o lucro bruto daquele combustível dividido pelos litros que ele ' +
-       'vendeu. Fonte: painel do Petros — a mesma do menu Relatórios.</p>';
+       '</b>, do come\u00e7o do dia at\u00e9 a \u00faltima leitura' + (quando ? ' (' + escAttr(quando) + ')' : '') +
+       '. A r\u00e9gua \u00e9 a <b>mesma nos tr\u00eas postos</b> (a maior do dia \u00e9 ' +
+       (maior > 0 ? '<b>R$ ' + fmtBR(maior, 3) + '/L</b>' : 'zero') +
+       '), ent\u00e3o trocar de posto compara de verdade \u2014 barra maior \u00e9 ganho maior em qualquer um ' +
+       'deles. Em <b>verde</b>, o combust\u00edvel que mais deixou <b>neste posto</b>; quem fica abaixo ' +
+       'da linha deu preju\u00edzo. O <b>R$ por litro</b> \u00e9 o lucro bruto daquele combust\u00edvel dividido ' +
+       'pelos litros que ele vendeu. Fonte: painel do Petros \u2014 a mesma do menu Relat\u00f3rios.</p>';
   box.innerHTML = h;
 }
 
