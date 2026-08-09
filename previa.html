@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v312 — Postos Full (não é o app)</title>
+<title>PRÉVIA v313 — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -1157,7 +1157,7 @@
   .cot-quem{font-size:.68rem;color:var(--cinza);margin-top:7px}
   .cot-controles{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:4px 0 16px}
   .cot-data-lbl{display:flex;align-items:center;gap:8px;font-weight:600;font-size:.9rem}
-  .cot-data-lbl input{padding:8px 10px;border:1px solid var(--borda);border-radius:8px;background:var(--superficie);color:var(--texto);font-size:.95rem}
+  .cot-data-lbl input{padding:8px 10px;border:1px solid var(--borda);border-radius:8px;background:var(--superficie);color:var(--txt);font-size:.95rem}
   .cot-status{font-size:.82rem;font-weight:600}
   .cot-status.ok{color:var(--verde)}
   .cot-status.pend{color:var(--vermelho)}
@@ -1268,12 +1268,12 @@
   .prc-caixa-l{margin:6px 0 0;padding-left:18px}
   .prc-caixa-l li{margin:2px 0}
   .prc-mais{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0 2px}
-  .prc-btn{color:var(--txt);border-color:var(--laranja)}
+  .prc-btn{color:var(--txt);border-color:var(--verde)}
   .prc-btn:hover{background:var(--superficie-2)}
   .prc-mais-n{font-size:.78rem;color:var(--cinza)}
   .prc-alerta{background:var(--superficie-2);border:1px solid var(--borda);border-left:3px solid var(--vermelho);
     border-radius:0 10px 10px 0;padding:10px 12px;font-size:.84rem;line-height:1.5;margin:8px 0 4px}
-  .prc-alerta.neutro{border-left-color:var(--laranja)}
+  .prc-alerta.neutro{border-left-color:var(--verde)}
   .prc-sobe2{background-image:linear-gradient(rgba(211,47,47,.10),rgba(211,47,47,.10))}
   .prc-sobe2 b{color:var(--vermelho)}
   .prc-susp{color:var(--amarelo,#c9a227);font-weight:600}
@@ -2554,7 +2554,7 @@
   /* v261 - o selo que diz que o numero veio do ERP, nao da mao de ninguem */
   /* ===================== v263 - a tela de conferencia ===================== */
   .conf-posto{margin:14px 0 6px;font-size:.82rem;font-weight:700;letter-spacing:.04em;
-    text-transform:uppercase;color:var(--laranja)}
+    text-transform:uppercase;color:var(--verde)}
   .conf-tab{width:100%;border-collapse:collapse;font-size:.86rem}
   .conf-tab th{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.03em;
     color:var(--cinza);text-align:right;padding:6px 8px;border-bottom:1px solid var(--borda)}
@@ -2570,7 +2570,7 @@
   .conf-topo b{color:var(--txt)}
   .conf-vazio{padding:16px;text-align:center;color:var(--cinza);font-style:italic}
   .lanc-sum{cursor:pointer;font-weight:700;font-size:.95rem;padding:2px 0;color:var(--txt)}
-  .lanc-sum:hover{color:var(--laranja)}
+  .lanc-sum:hover{color:var(--verde)}
   /* v262 - a linha que diz de onde vieram os graficos do Dashboard */
   .dash-fonte{margin:6px 0 2px;font-size:.8rem;color:var(--cinza)}
   .dash-fonte b{color:var(--txt);font-weight:600}
@@ -3098,7 +3098,7 @@
     background-image:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,0))}
   .dp-teto-item i{font-style:normal;color:var(--cinza);font-size:.7rem}
   /* 🔴 O teto alto nao e' erro — e' informacao. Chama a atencao sem gritar. */
-  .dp-teto-alto{outline:1px solid var(--laranja);outline-offset:-1px}
+  .dp-teto-alto{outline:1px solid var(--verde);outline-offset:-1px}
 
   /* v284 - a conferência: selo por linha e o bloco de edição */
   .dp-selo{background:none;border:0;cursor:pointer;font-size:1.05rem;line-height:1;padding:2px 4px}
@@ -6482,6 +6482,10 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v313", data:"09/08/2026", tit:"\ud83c\udfa8 Seis cores que o app pedia e nunca apareciam", itens:[
+    {t:"m", h:"O posto com <b>teto de desconto de 100%</b> volta a ser marcado", d:"Em <b>\ud83c\udff7\ufe0f Descontos</b>, o quadro <b>Teto de desconto configurado no PDV</b> deveria <b>contornar</b> o posto cujo teto est\u00e1 em 100% ou mais \u2014 que na pr\u00e1tica \u00e9 <b>sem teto</b>. Esse contorno estava escrito no c\u00f3digo e <b>nunca desenhou nada</b>: ele pedia uma cor que n\u00e3o existe, e CSS com cor inexistente <b>some sem dar erro</b>. Agora aparece."},
+    {t:"m", h:"E mais cinco marcas que estavam apagadas", d:"Em <b>\ud83c\udf6b Produtos e categorias</b>, a nota <i>\u201cvendidos em uma loja s\u00f3\u201d</i> volta a ter a tarja <b>laranja</b> (ela \u00e9 informativa, e ficava igual ao aviso de verdade logo acima) e o bot\u00e3o <b>Ver todos os N produtos</b> volta a ter borda. Em <b>\u2699 Configura\u00e7\u00f5es</b> o nome do posto volta ao laranja, em <b>\u26fd Custos e pre\u00e7os</b> o resumo reage ao passar o mouse, e o campo de data dos <b>Descontos</b> usa a cor certa. <b>Nenhum n\u00famero mudou</b> \u2014 s\u00f3 voltaram a aparecer marcas que j\u00e1 deviam estar l\u00e1."}
+  ]},
   {v:"v312", data:"09/08/2026", tit:"📏 Aferições: o teste do bico virou menu, com período livre", itens:[
     {t:"n", h:"Menu novo <b>📏 Aferições</b>, dentro de 📊 Análise", d:"Escolha o período por atalho (<b>este mês, mês passado, últimos 90 dias, este ano</b>) ou por <b>De/Até</b> na mão — e o período pode atravessar meses, coisa que a aba antiga não fazia. Dá para filtrar por posto e por combustível, e a lista mostra aferição por aferição: data, hora, posto, combustível, quanto a bomba marcou e quem fez."},
     {t:"n", h:"A prova de <b>20 litros</b>, que ninguém estava olhando", d:"Toda aferição é uma prova de 20 litros, e o número gravado é o que a <b>bomba marcou</b>. Marcar <b>menos</b> de 20 quer dizer que o posto entregou e não cobrou; marcar <b>mais</b> quer dizer que o cliente pagou e não levou. O INMETRO aceita até <b>0,5%</b> do primeiro lado e só <b>0,3%</b> do segundo — a tela usa as duas réguas, cada uma no seu lado. Em julho, 18 aferições ficaram fora."},
