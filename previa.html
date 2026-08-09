@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v309 — Postos Full (não é o app)</title>
+<title>PRÉVIA v310 — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -1332,6 +1332,9 @@
   .cpr-cmp input{width:100%;padding:8px 10px;border-radius:10px;border:1px solid var(--bd);
     background:var(--cx);color:var(--tx);font-size:.95rem;font-variant-numeric:tabular-nums}
   .cpr-cmp .cpr-un{font-size:.7rem;opacity:.6}
+  .cpr-postos{margin:0 0 12px}
+  .cpr-postos .cpr-chip{font-weight:600}
+  .cpr-doposto label{color:var(--mar)}
   .cpr-cob{border-top:1px dashed var(--bd);padding-top:10px}
   .cpr-cob-tit label{font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;opacity:.72}
   .cpr-cob .cpr-cmp{min-width:132px}
@@ -6446,6 +6449,12 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v310", data:"09/08/2026", tit:"\ud83d\uded2 O que comprar: um posto de cada vez, e cada caminh\u00e3o com o posto dele", itens:[
+    {t:"m", h:"A tela abre <b>um posto por vez</b>", d:"Em cima ficam as pastilhas <b>\u26fd Teresina · Caxias · Dutra</b>, e a tela inteira passa a falar daquele posto \u2014 os n\u00fameros do topo, o aviso vermelho, a tabela e a carga. <b>O n\u00famero ao lado do nome do posto</b> continua dizendo quantos combust\u00edveis dele est\u00e3o cr\u00edticos ou urgentes, ent\u00e3o d\u00e1 para ver onde est\u00e1 o aperto sem entrar em cada um."},
+    {t:"m", h:"E o topo desencavou", d:"Com um posto escolhido, <b>lote, prazo de entrega, cobertura e reserva m\u00ednima ficam na mesma fileira</b> \u2014 antes eram tr\u00eas, porque a cobertura e a reserva precisavam de um campo para cada posto. Embaixo da cobertura continua escrito <b>quantos dias cabem naquele posto e qual produto aperta</b>."},
+    {t:"n", h:"Cada caminh\u00e3o passa a ter <b>o posto que ele atende</b>", d:"Em <b>Configura\u00e7\u00f5es \u2192 Caminh\u00f5es e tanques</b> entrou a coluna <b>Atende o posto</b>. J\u00e1 vem preenchida do jeito de sempre \u2014 <b>FH Prata em Caxias</b> e <b>FH Branco em Pres. Dutra</b> \u2014 e a tela O que comprar j\u00e1 abre com o caminh\u00e3o certo. <b>Precisou trocar num dia?</b> \u00c9 s\u00f3 clicar no outro caminh\u00e3o: vale s\u00f3 para aquele posto, neste aparelho, e o \u21ba devolve o padr\u00e3o."},
+    {t:"n", h:"Teresina ganhou o <b>pedido para copiar</b>", d:"Como o posto de Teresina recebe por <b>outra transportadora</b>, no lugar da carga nos compartimentos aparece a lista de litros por combust\u00edvel e o bot\u00e3o <b>\ud83d\udccb Copiar o pedido</b>, pronto para colar no site deles. <b>A conta \u00e9 a mesma dos outros postos</b> \u2014 s\u00f3 quem carrega \u00e9 que muda. E se um dia precisar de caminh\u00e3o nosso l\u00e1, \u00e9 s\u00f3 escolher."}
+  ]},
   {v:"v309", data:"09/08/2026", tit:"\u26fd Nomes mais curtos no Lucro por combust\u00edvel", itens:[
     {t:"m", h:"\u201cG.\u201d no lugar de \u201cGasolina\u201d", d:"No card <b>\u26fd Lucro por combust\u00edvel</b>, <b>Gasolina comum</b> virou <b>G. Comum</b>, <b>Gasolina aditivada</b> virou <b>G. Aditivada</b> e <b>Gasolina Podium</b> virou <b>G. Podium</b>. Pedido seu: com o nome inteiro, essas linhas ocupavam <b>duas linhas</b> ao lado do n\u00famero quando o card est\u00e1 em <b>Metade</b> ou no celular. Nenhum n\u00famero mudou."},
     {t:"m", h:"Em Teresina a Grid aparece com o nome dela", d:"A <b>Gasolina Grid</b> deixou de aparecer como \u201cGasolina aditivada\u201d e agora se chama <b>G. Grid</b>. Ela s\u00f3 existe em Teresina, e a aditivada s\u00f3 existe em Caxias e Pres. Dutra \u2014 s\u00e3o produtos diferentes, e agora cada posto mostra o nome do que ele vende."},
@@ -14034,9 +14043,13 @@ const CPR_LIMITES = { lote:[1000,15000], cobertura:[0,30], entrega:[0,15], reser
 const CPR_CHAVE   = "pf_comprar_regua";
 const CPR_CH_POSTO = "pf_comprar_posto";
 const CPR_CH_CAM   = "pf_comprar_caminhao";
-let cprRegua = null, cprCamSel = "", cprPostoSel = "";
+let cprRegua = null, cprCamSel = {}, cprPostoSel = "";
 try { cprPostoSel = localStorage.getItem(CPR_CH_POSTO) || ""; } catch(e){ cprPostoSel = ""; }
-try { cprCamSel   = localStorage.getItem(CPR_CH_CAM)   || ""; } catch(e){ cprCamSel = ""; }
+/* \U0001f534 v310 - A ESCOLHA DO CAMINHAO E' POR POSTO, e nao uma so' para a tela.
+   Escolher o FH Prata para Caxias nao pode mudar quem carrega para Dutra — sao duas decisoes
+   diferentes que moravam na mesma variavel. */
+try { cprCamSel = JSON.parse(localStorage.getItem(CPR_CH_CAM) || "{}") || {}; } catch(e){ cprCamSel = {}; }
+if (!cprCamSel || typeof cprCamSel !== "object") cprCamSel = {};
 
 /* 🔑 A REGUA E PREFERENCIA DE QUEM ESTA OLHANDO, e por isso mora no aparelho (localStorage) e nao
    no Firestore - a mesma regra do filtro de posto da v280. Se um dia a cobertura virar politica
@@ -14165,10 +14178,33 @@ function cprFiltrarPosto(nm){
   try { localStorage.setItem(CPR_CH_POSTO, cprPostoSel); } catch(e){}
   renderComprar();
 }
-function cprEscolherCaminhao(placa){
-  cprCamSel = normPlaca(placa || "");
-  try { localStorage.setItem(CPR_CH_CAM, cprCamSel); } catch(e){}
+/* placa vazia = "nao e' caminhao nosso que carrega", e isso e' uma escolha valida (o posto
+   atendido por outra transportadora). Por isso o valor guardado distingue "" de ausente:
+   ausente = usa o cadastro; "" = ele mandou tirar o caminhao. */
+function cprEscolherCaminhao(posto, placa){
+  cprCamSel[String(posto || "")] = normPlaca(placa || "");
+  try { localStorage.setItem(CPR_CH_CAM, JSON.stringify(cprCamSel)); } catch(e){}
   renderComprar();
+}
+function cprEsquecerCaminhao(posto){
+  delete cprCamSel[String(posto || "")];
+  try { localStorage.setItem(CPR_CH_CAM, JSON.stringify(cprCamSel)); } catch(e){}
+  renderComprar();
+}
+/* \U0001f534 v310 - O POSTO DA TELA. Um de cada vez, a pedido dele.
+   \u26a0 Filtro que aponta para posto que nao existe mais volta para o PRIMEIRO, nunca deixa a
+   tela vazia — a mesma regra da v280. */
+function cprPostoAtual(nomes){
+  const l = (Array.isArray(nomes) && nomes.length) ? nomes
+          : Object.keys(((tanquesNivel || {}).postos) || {});
+  if (!l.length) return "";
+  return (cprPostoSel && l.indexOf(cprPostoSel) >= 0) ? cprPostoSel : l[0];
+}
+/* o apelido que a equipe usa ("FH Prata"), lido da frota do Infleet. Sem frota, a placa. */
+function cprApelido(placa){
+  const p = normPlaca(placa);
+  const v = (((infleetFrota || {}).veiculos) || []).find(x => normPlaca(x && x.placa) === p);
+  return (v && v.nome) ? String(v.nome) : p;
 }
 
 /* 🔴 O DE-PARA, NUM LUGAR SO. O tanque vem com o nome do Petros ("OLEO DIESEL B S10 COMUM"), a
@@ -14284,23 +14320,43 @@ function cprOrdenar(lista){
 function cprCaminhoesLista(){
   return (caminhoes || []).map(c => {
     const tq = c.tanquePadrao ? normPlaca(c.tanquePadrao) : "";
-    return { placa: normPlaca(c.placa), tanque: tq, comps: compsDoTanque(tq) };
+    /* \U0001f534 v310 - `posto` e' o posto que aquele caminhao atende, e ele mora no CADASTRO
+       (Configuracoes -> Caminhoes e tanques). Nao ha' mapa de placas escrito aqui: o dia em que
+       um caminhao trocar de posto e' um clique dele, nao uma versao minha. */
+    return { placa: normPlaca(c.placa), tanque: tq, comps: compsDoTanque(tq),
+             posto: String(c.posto || "") };
   }).filter(c => c.placa && c.comps.length);
 }
-function cprCamAtual(){
+function cprCamDoPosto(posto){
+  const q = String(posto || "");
+  return q ? cprCaminhoesLista().filter(c => c.posto === q) : [];
+}
+/* \U0001f534 QUEM CARREGA PARA ESTE POSTO, em tres degraus:
+   1. o que ELE escolheu na tela agora (inclusive "nenhum", que e' escolha valida);
+   2. o que o CADASTRO diz;
+   3. nenhum — e ai a tela nao inventa caminhao: ela diz que o pedido e' feito fora do app.
+   \U0001f511 O terceiro degrau e' o Posto Full - Teresina, que recebe por outra transportadora.
+      E ele NAO tem nome escrito no codigo: e' simplesmente o posto que nenhum caminhao atende. */
+function cprCamAtual(posto){
   const lista = cprCaminhoesLista();
-  if (!lista.length) return null;
-  return lista.find(c => c.placa === cprCamSel) || lista[0];
+  const esc = cprCamSel[String(posto || "")];
+  if (esc !== undefined){
+    if (esc === "") return null;
+    const c = lista.find(x => x.placa === esc);
+    if (c) return c;
+  }
+  const doPosto = cprCamDoPosto(posto);
+  return doPosto.length ? doPosto[0] : null;
 }
 /* 🔴 O COMPARTIMENTO VAI PARA O MAIS URGENTE QUE O ENCHE. Encher primeiro e o certo aqui: meio
    compartimento de gasolina e meio de diesel na mesma viagem e o que a operacao evita.
    Quem sobra no fim vira carga parcial, e o que nao coube sai escrito - nunca sumindo. */
-function cprCarga(){
-  const cam = cprCamAtual();
+function cprCarga(posto){
+  const cam = cprCamAtual(posto);
   if (!cam) return null;
   const comps = cam.comps.map((cap, i) => ({ i, cap: Number(cap) || 0 }))
                          .sort((a, b) => (b.cap - a.cap) || (a.i - b.i));
-  const nec = cprOrdenar(cprLinhas().filter(l => l.litrosComprar > 0 && (!cprPostoSel || l.posto === cprPostoSel)))
+  const nec = cprOrdenar(cprLinhas().filter(l => l.litrosComprar > 0 && l.posto === posto))
                 .map(l => ({ l, resta: l.litrosComprar }));
   const usados = [];
   comps.forEach(c => {
@@ -14376,7 +14432,7 @@ function cprClienteDoPosto(posto){
   return c || { nome: "Posto Full " + posto, cnpj: "" };
 }
 function cprLevarParaPedido(){
-  const carga = cprCarga();
+  const carga = cprCarga(cprPostoAtual());
   if (!carga || !carga.usados){ cprAviso("N\u00e3o h\u00e1 carga montada para levar."); return; }
   const cheios = carga.comps.filter(u => u.litros > 0 && u.linha);
   const semNome = cheios.filter(u => !u.linha.prodPedido)
@@ -14447,59 +14503,64 @@ function renderComprar(){
   const r = cprLerRegua();
   const todas = cprLinhas();
   const nomes = Object.keys(postos);
-  const vis = todas.filter(l => !cprPostoSel || l.posto === cprPostoSel);
+  /* \U0001f534 v310 - UM POSTO DE CADA VEZ, a pedido dele. A tela inteira (os numeros do topo, o
+     aviso vermelho, a tabela e a carga) fala de UM posto.
+     \U0001f511 E as pastilhas continuam denunciando o que esta' pegando fogo nos OUTROS, com o
+        numero de criticos ao lado do nome: filtro que ESCONDE urgencia e' armadilha; filtro que a
+        RESUME e' o que faz caber. */
+  const posto = cprPostoAtual(nomes);
+  const vis = todas.filter(l => l.posto === posto);
 
   let h = '<div id="cprMsg" class="msg-admin" style="display:block;min-height:0"></div>';
 
-  /* 1) os campos que valem para a rede inteira */
+  /* 1) o seletor de posto vem PRIMEIRO: e' ele que decide o resto da tela */
+  h += '<div class="cpr-chips cpr-postos">';
+  nomes.forEach(p => {
+    const crit = todas.filter(l => l.posto === p && (l.sit === "critico" || l.sit === "urgente")).length;
+    h += '<button class="cpr-chip' + (p === posto ? ' on' : '') + '" onclick="cprFiltrarPosto(\'' + escAttr(p) + '\')">' +
+         '\u26fd ' + escAttr(p) + (crit ? ' \u00b7 ' + crit + ' \u26a0' : '') + '</button>';
+  });
+  h += '</div>';
+
+  /* 2) A REGUA, NUMA FILEIRA SO'.
+     \U0001f534 Ate' a v309 eram TRES fileiras — uma da rede e duas com um campo por posto — e ele
+     disse, olhando: "o topo dessa pagina ficou estranho o layout". Estava certo: aquele desenho
+     nasceu de mostrar os tres postos de uma vez. Com um posto escolhido, a cobertura e a reserva
+     DELE cabem na mesma linha do lote e do prazo, que e' o desenho do GASview que ele aprovou.
+     \U0001f511 O layout nao estava feio por acaso: ele estava carregando uma decisao que a tela
+        tinha acabado de deixar de tomar. */
   h += '<div class="cpr-regua">';
   [["lote","Lote de compra","litros"],
-   ["entrega","Prazo de entrega","dias"],["reserva","Reserva m\u00ednima","dias de venda"]].forEach(c => {
+   ["entrega","Prazo de entrega","dias"]].forEach(c => {
     h += '<div class="cpr-cmp"><label for="cpr_' + c[0] + '">' + c[1] + ' ' + bul("cpr" + c[0]) + '</label>' +
          '<input id="cpr_' + c[0] + '" type="number" inputmode="numeric" value="' + r[c[0]] + '" ' +
          'min="' + CPR_LIMITES[c[0]][0] + '" max="' + CPR_LIMITES[c[0]][1] + '" ' +
          'onchange="cprSetRegua(\'' + c[0] + '\', this.value)">' +
          '<span class="cpr-un">' + c[2] + '</span></div>';
   });
-  h += '<div class="cpr-cmp"><label>&nbsp;</label><button class="btn-claro" onclick="cprVoltarPadrao()">\u21ba Voltar ao padr\u00e3o</button></div>';
-  h += '</div>';
-
-  /* 🔴 A COBERTURA, UM CAMPO POR POSTO — escolha dele em 09/08.
-     Embaixo de cada um, a MEDICAO: quantos dias o tanque mais apertado daquele posto comporta,
-     com o nome do produto que aperta. E o botão só aparece quando ele muda alguma coisa. */
+  /* os dois campos DO POSTO, na mesma fileira. O pontinho diz que o numero foi escolhido por
+     ele; sem pontinho, e' o automatico (o que cabe naquele posto, medido na hora). */
   [["cob", "Cobertura", "cprcobertura"], ["res", "Reserva m\u00ednima", "cprreserva"]].forEach(par => {
-    h += '<div class="cpr-regua cpr-cob"><div class="cpr-cmp cpr-cob-tit"><label>' + par[1] + ' ' + bul(par[2]) +
-         '</label><span class="cpr-un">um por posto</span></div>';
-    nomes.forEach(pp => {
-      const proprio = cprPP(pp)[par[0]] !== undefined;
-      const valor = par[0] === "cob" ? cprCoberturaDe(pp) : cprReservaDe(pp);
-      const lim = par[0] === "res" ? CPR_LIMITES.reserva : CPR_LIMITES.cobertura;
-      let pe;
-      if (par[0] === "cob"){
-        const cab = cprCabeDias(pp);
-        /* 🔑 a MEDICAO fica embaixo do campo: quantos dias cabem ali e QUAL produto aperta.
-           E' o que faz o numero automatico ser conferivel em vez de magico. */
-        pe = cab ? ('cabem ' + cab.dias + ' \u00b7 aperta em ' +
-                    escAttr(cab.produto.length > 18 ? cab.produto.slice(0, 17) + '\u2026' : cab.produto))
-                 : 'dias';
-      } else pe = 'dias de venda';
-      h += '<div class="cpr-cmp"><label for="cpr_' + par[0] + '_' + escAttr(pp) + '">' + escAttr(pp) +
-           (proprio ? ' <span class="cpr-mao" title="voc\u00ea escolheu este n\u00famero">\u2022</span>' : '') + '</label>' +
-           '<input id="cpr_' + par[0] + '_' + escAttr(pp) + '" type="number" inputmode="numeric" value="' + valor + '" ' +
-           'min="' + lim[0] + '" max="' + lim[1] + '" ' +
-           'onchange="cprSetPosto(\'' + escAttr(pp) + '\', \'' + par[0] + '\', this.value)">' +
-           '<span class="cpr-un">' + pe + '</span></div>';
-    });
-    h += '</div>';
+    const proprio = cprPP(posto)[par[0]] !== undefined;
+    const valor = par[0] === "cob" ? cprCoberturaDe(posto) : cprReservaDe(posto);
+    const lim = par[0] === "res" ? CPR_LIMITES.reserva : CPR_LIMITES.cobertura;
+    let pe = "dias de venda";
+    if (par[0] === "cob"){
+      const cab = cprCabeDias(posto);
+      /* 🔑 a MEDICAO fica embaixo do campo: quantos dias cabem ali e QUAL produto aperta.
+         E' o que faz o numero automatico ser conferivel em vez de magico. */
+      pe = cab ? ('cabem ' + cab.dias + ' \u00b7 aperta em ' +
+                  escAttr(cab.produto.length > 18 ? cab.produto.slice(0, 17) + '\u2026' : cab.produto))
+               : 'dias';
+    }
+    h += '<div class="cpr-cmp cpr-doposto"><label for="cpr_' + par[0] + '">' + par[1] + ' ' + bul(par[2]) +
+         (proprio ? ' <span class="cpr-mao" title="voc\u00ea escolheu este n\u00famero">\u2022</span>' : '') + '</label>' +
+         '<input id="cpr_' + par[0] + '" type="number" inputmode="numeric" value="' + valor + '" ' +
+         'min="' + lim[0] + '" max="' + lim[1] + '" ' +
+         'onchange="cprSetPosto(\'' + escAttr(posto) + '\', \'' + par[0] + '\', this.value)">' +
+         '<span class="cpr-un">' + pe + '</span></div>';
   });
-
-  /* 2) o filtro de posto */
-  h += '<div class="cpr-chips"><button class="cpr-chip' + (cprPostoSel ? '' : ' on') + '" onclick="cprFiltrarPosto(\'\')">Todos os postos</button>';
-  nomes.forEach(p => {
-    const crit = todas.filter(l => l.posto === p && (l.sit === "critico" || l.sit === "urgente")).length;
-    h += '<button class="cpr-chip' + (cprPostoSel === p ? ' on' : '') + '" onclick="cprFiltrarPosto(\'' + escAttr(p) + '\')">' +
-         escAttr(p) + (crit ? ' \u00b7 ' + crit + ' \u26a0' : '') + '</button>';
-  });
+  h += '<div class="cpr-cmp"><label>&nbsp;</label><button class="btn-claro" onclick="cprVoltarPadrao()">\u21ba Voltar ao padr\u00e3o</button></div>';
   h += '</div>';
 
   /* 3) os numeros do topo */
@@ -14556,8 +14617,7 @@ function renderComprar(){
          ' horas</b>. Ela deveria chegar de hora em hora \u2014 os n\u00fameros abaixo est\u00e3o velhos.</div>';
 
   /* 6) a tabela, um bloco por posto */
-  nomes.forEach(p => {
-    if (cprPostoSel && p !== cprPostoSel) return;
+  [posto].forEach(p => {
     const linhas = cprOrdenar(todas.filter(l => l.posto === p));
     if (!linhas.length) return;
     const lt = linhas.reduce((a, l) => a + l.litrosComprar, 0);
@@ -14605,7 +14665,7 @@ function renderComprar(){
   });
 
   /* 7) a carga - o que o GASview nao tem, porque ele nao tem caminhao */
-  h += cprHtmlCarga();
+  h += cprHtmlCarga(posto);
 
   /* 8) 🔴 O METODO EMBAIXO */
   h += '<div class="cpr-metodo"><h4>\ud83d\udcd0 Como esta sugest\u00e3o \u00e9 calculada</h4>' +
@@ -14614,6 +14674,8 @@ function renderComprar(){
     nomes.map(pp => escAttr(pp) + ' ' + cprCoberturaDe(pp)).join(' \u00b7 ') +
     ') e ainda deixa o m\u00ednimo no tanque. O resultado \u00e9 arredondado para cima em lotes de <b>' +
     fmtBR(r.lote, 0) + ' L</b>, e cortado quando n\u00e3o cabe no tanque.</p>' +
+    '<p><b>Esta tela mostra um posto de cada vez.</b> As pastilhas l\u00e1 em cima trocam de posto, e o n\u00famero ao lado do nome diz quantos combust\u00edveis daquele posto est\u00e3o cr\u00edticos ou urgentes \u2014 assim d\u00e1 para ver onde est\u00e1 o aperto sem entrar em cada um.</p>' +
+    '<p><b>Quem carrega para cada posto</b> vem do cadastro em <b>Configura\u00e7\u00f5es \u2192 Caminh\u00f5es e tanques</b>. O posto que nenhum caminh\u00e3o nosso atende \u00e9 tratado como <b>outra transportadora</b>: a conta continua inteira, e no lugar da carga sai o pedido pronto para copiar. Trocar o caminh\u00e3o na tela vale s\u00f3 para aquele posto, neste aparelho.</p>' +
     '<p><b>Por que a cobertura e a reserva s\u00e3o um n\u00famero por posto:</b> o tanque de cada posto comporta um tanto de dias, e s\u00f3 isso. Embaixo do campo de cobertura est\u00e1 escrito quantos dias cabem ali e <b>qual produto aperta</b>. Quem n\u00e3o tem n\u00famero escolhido usa <b>o que cabe</b>, medido na hora, com teto de ' + r.cobertura + ' dias \u2014 e o pontinho ao lado do nome do posto diz que aquele n\u00famero foi voc\u00ea que p\u00f4s.</p>' +
     '<p>\u26a0 <b>O outro lado da cobertura curta:</b> ela vale para o posto inteiro, ent\u00e3o o produto que TEM folga no tanque (o etanol, por exemplo) passa a ser comprado s\u00f3 quando aperta, e n\u00e3o cheio. Se preferir encher os folgados, suba a cobertura daquele posto \u2014 o \u201cn\u00e3o cabe tudo\u201d continua cuidando dos apertados, linha por linha.</p>' +
     '<p><b>M\u00ednimo:</b> o Petros n\u00e3o manda estoque de seguran\u00e7a por tanque, ent\u00e3o o m\u00ednimo aqui \u00e9 <b>' + r.reserva +
@@ -14627,26 +14689,99 @@ function renderComprar(){
 }
 
 /* ---- os dois blocos de baixo: a carga e onde comprar ---- */
-function cprHtmlCarga(){
+/* \U0001f534 v310 - AS PASTILHAS DE QUEM CARREGA. O caminhao do cadastro vem marcado como
+   "padrao"; clicar noutro vale so' para este posto e fica guardado no aparelho. E o posto que
+   nenhum caminhao atende tem a pastilha "outra transportadora" — que e' o padrao DELE. */
+function cprChipsCaminhao(posto, atual){
+  const lista = cprCaminhoesLista();
+  const padrao = cprCamDoPosto(posto);
+  const semNosso = !atual;
+  let h = '<div class="cpr-chips">';
+  if (!padrao.length || semNosso)
+    h += '<button class="cpr-chip' + (semNosso ? ' on' : '') + '" onclick="cprEscolherCaminhao(\'' + escAttr(posto) + '\', \'\')">' +
+         '\ud83c\udfe2 Outra transportadora' + (padrao.length ? '' : ' \u00b7 padr\u00e3o') + '</button>';
+  lista.forEach(c => {
+    const ehPadrao = c.posto === posto;
+    h += '<button class="cpr-chip' + (atual && c.placa === atual.placa ? ' on' : '') +
+         '" onclick="cprEscolherCaminhao(\'' + escAttr(posto) + '\', \'' + escAttr(c.placa) + '\')">' +
+         '\ud83d\ude9b ' + escAttr(cprApelido(c.placa)) + ' \u00b7 ' +
+         fmtBR(c.comps.reduce((a, v) => a + (Number(v) || 0), 0), 0) + ' L' +
+         (ehPadrao ? ' \u00b7 padr\u00e3o' : '') + '</button>';
+  });
+  if (cprCamSel[String(posto)] !== undefined)
+    h += '<button class="cpr-chip" onclick="cprEsquecerCaminhao(\'' + escAttr(posto) + '\')">\u21ba Voltar ao padr\u00e3o</button>';
+  return h + '</div>';
+}
+
+/* \U0001f534 v310 - O POSTO QUE OUTRA TRANSPORTADORA ATENDE.
+   Pedido dele: *"o posto de Teresina recebe produtos atraves de outra transportadora, entao
+   fazemos o pedido dele em um site separado mas voce pode nos ajudar a calcular o pedido como ja
+   faz"*. \U0001f511 Entao a CONTA continua inteira e o que sai e' a CARGA — porque montar
+   compartimento de caminhao que nao vai carregar seria desenhar uma viagem que nao existe.
+   No lugar dela, os litros por produto e um botao que copia o texto para colar no site deles.
+   \u26a0 E o "onde compensa comprar" tambem nao aparece: a compra desse posto nao e' nossa. */
+function cprTextoPedidoFora(posto){
+  const linhas = cprOrdenar(cprLinhas().filter(l => l.posto === posto && l.litrosComprar > 0));
+  if (!linhas.length) return "";
+  return "Pedido - Posto Full - " + posto + "\n" +
+    linhas.map(l => "- " + l.produto + ": " + fmtBR(Math.round(l.litrosComprar), 0) + " L (" +
+                    l.lotes + (l.lotes > 1 ? " lotes" : " lote") + ")").join("\n") +
+    "\nTotal: " + fmtBR(linhas.reduce((a, l) => a + l.litrosComprar, 0), 0) + " L";
+}
+function cprCopiarPedidoFora(posto){
+  const txt = cprTextoPedidoFora(posto);
+  if (!txt){ cprAviso("N\u00e3o h\u00e1 litros a pedir neste posto agora."); return; }
+  const fim = () => cprAviso("Pedido copiado \u2014 \u00e9 s\u00f3 colar no site da transportadora.");
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(fim, fim); return; }
+  } catch(e) {}
+  const ta = document.createElement("textarea");
+  ta.value = txt; document.body.appendChild(ta); ta.select();
+  try { document.execCommand("copy"); } catch(e) {}
+  document.body.removeChild(ta); fim();
+}
+function cprHtmlPedidoFora(posto){
+  const linhas = cprOrdenar(cprLinhas().filter(l => l.posto === posto && l.litrosComprar > 0));
+  let h = '<div class="cpr-posto"><h3>\ud83c\udfe2 O pedido deste posto <small>ele n\u00e3o \u00e9 carregado por caminh\u00e3o nosso</small></h3>';
+  h += '<div class="cpr-aviso">O <b>Posto Full - ' + escAttr(posto) + '</b> recebe por <b>outra transportadora</b>, ' +
+       'ent\u00e3o o pedido dele \u00e9 feito fora do app. <b>A conta acima continua valendo</b> \u2014 \u00e9 ela que diz quantos litros pedir.</div>';
+  if (!linhas.length){
+    h += '<p class="nota-dash">Nada a pedir agora: nenhum produto precisa de compra com a r\u00e9gua deste posto.</p>';
+  } else {
+    h += '<div class="cpr-carga">';
+    linhas.forEach(l => {
+      h += '<div class="cpr-comp" style="border-left-color:' + tqvCorProduto(l.produto) + '">' +
+        '<div class="cn">' + l.lotes + (l.lotes > 1 ? ' lotes' : ' lote') + '</div>' +
+        '<div class="cl">' + fmtBR(Math.round(l.litrosComprar), 0) + ' L</div>' +
+        '<div class="cp">' + escAttr(l.produto) + '</div>' +
+        (l.naoCabe ? '<div class="parcial">cortado pelo que cabe no tanque</div>' : '') +
+      '</div>';
+    });
+    h += '</div>';
+    h += '<div class="cpr-acoes"><button class="btn-verde" onclick="cprCopiarPedidoFora(\'' + escAttr(posto) + '\')">' +
+         '\ud83d\udccb Copiar o pedido</button></div>';
+  }
+  h += '<p class="nota-dash">Precisou de um caminh\u00e3o nosso nesta viagem? \u00c9 s\u00f3 escolher aqui \u2014 vale s\u00f3 para este posto.</p>';
+  h += cprChipsCaminhao(posto, null);
+  h += '</div>';
+  return h;
+}
+
+function cprHtmlCarga(posto){
   const lista = cprCaminhoesLista();
   if (!lista.length)
     return '<div class="cpr-posto"><h3>\ud83d\ude9b Montar a carga</h3>' +
       '<p class="nota-dash">Nenhum caminh\u00e3o com compartimenta\u00e7\u00e3o cadastrada. Cadastre em <b>Configura\u00e7\u00f5es \u2192 Caminh\u00f5es e tanques</b>.</p></div>';
-  const carga = cprCarga();
-  if (!carga) return "";
+  const carga = cprCarga(posto);
+  if (!carga) return cprHtmlPedidoFora(posto);
   let h = '<div class="cpr-posto"><h3>\ud83d\ude9b Montar a carga <small>os litros sugeridos caindo nos compartimentos de verdade</small></h3>';
-  h += '<div class="cpr-chips">';
-  lista.forEach(c => {
-    h += '<button class="cpr-chip' + (c.placa === carga.cam.placa ? ' on' : '') + '" onclick="cprEscolherCaminhao(\'' + escAttr(c.placa) + '\')">' +
-         escAttr(c.placa) + ' \u00b7 ' + c.comps.length + ' comp. \u00b7 ' + fmtBR(c.comps.reduce((a, v) => a + (Number(v) || 0), 0), 0) + ' L</button>';
-  });
-  h += '</div>';
+  h += cprChipsCaminhao(posto, carga.cam);
   if (!carga.usados){
-    h += '<p class="nota-dash">Nada a carregar' + (cprPostoSel ? ' em <b>' + escAttr(cprPostoSel) + '</b>' : '') +
-         ': nenhum produto precisa de compra com a r\u00e9gua de agora.</p></div>';
+    h += '<p class="nota-dash">Nada a carregar em <b>' + escAttr(posto) +
+         '</b>: nenhum produto precisa de compra com a r\u00e9gua de agora.</p></div>';
     return h;
   }
-  h += '<p class="nota-dash">Tanque <b>' + escAttr(carga.cam.tanque) + '</b> \u00b7 <b>' + carga.usados + ' de ' + carga.total +
+  h += '<p class="nota-dash">' + escAttr(cprApelido(carga.cam.placa)) + ' \u00b7 tanque <b>' + escAttr(carga.cam.tanque) + '</b> \u00b7 <b>' + carga.usados + ' de ' + carga.total +
        '</b> compartimentos \u00b7 <b>' + cprL(carga.litros) + '</b> de ' + cprL(carga.capacidade) +
        ' \u00b7 destino' + (carga.postos.length > 1 ? 's' : '') + ': <b>' + carga.postos.map(escAttr).join(", ") + '</b></p>';
   h += '<div class="cpr-carga">';
@@ -18097,6 +18232,9 @@ function cancelarEdicaoFrota(){ editandoCaminhao = null; editandoTanque = null; 
 function confirmarEdicaoCaminhao(p){
   const c = caminhaoPorPlaca(p); if (!c) return;
   c.tanquePadrao = normPlaca((document.getElementById("camE_tanque") || {}).value);
+  /* v310 - o posto que este caminhao atende. Vazio e' valido: caminhao sem posto nao vira
+     padrao de ninguem, e o posto sem caminhao passa a ser "outra transportadora". */
+  c.posto = String((document.getElementById("camE_posto") || {}).value || "");
   editandoCaminhao = null; salvarFrota(); renderFrota();
   avisoAdmin("msgCaminhao", "Caminhão " + c.placa + " atualizado.", "ok");
 }
@@ -18117,6 +18255,13 @@ function removerTanque(p){
   caminhoes.forEach(c => { if (normPlaca(c.tanquePadrao) === normPlaca(p)) c.tanquePadrao = ""; });
   editandoTanque = null; salvarFrota(); renderFrota();
 }
+/* v310 - as opcoes de posto do cadastro de caminhoes. A lista sai de `opcoesDe("posto")`, a
+   mesma que o resto do app usa — nao ha' nome de posto escrito aqui. */
+function opcoesPostoCamHtml(sel){
+  return '<option value="">\u2014 nenhum \u2014</option>' +
+    (opcoesDe("posto") || []).map(p => '<option value="' + escAttr(p) + '"' +
+      (String(p) === String(sel || "") ? ' selected' : '') + '>' + escAttr(p) + '</option>').join("");
+}
 function opcoesTanqueHtml(sel, comVazio){
   return (comVazio ? '<option value="">— sem tanque padrão —</option>' : '') +
     tanques.map(x => '<option value="' + escAttr(x.placa) + '"' + (normPlaca(x.placa) === normPlaca(sel) ? ' selected' : '') + '>' +
@@ -18130,7 +18275,7 @@ function renderFrota(){
   if (lc){
     lc.innerHTML = !caminhoes.length
       ? '<p class="nota-dash">Nenhum caminhão cadastrado ainda.</p>'
-      : ('<div class="usr-item usr-head"><span class="mot-campo">Caminhão</span><span class="mot-campo">Tanque de sempre</span><span class="usr-head-btn"></span></div>' +
+      : ('<div class="usr-item usr-head"><span class="mot-campo">Caminhão</span><span class="mot-campo">Tanque de sempre</span><span class="mot-campo">Atende o posto</span><span class="usr-head-btn"></span></div>' +
         caminhoes.map(c => {
           const tq = tanquePorPlaca(c.tanquePadrao);
           const rot = tq ? (tq.placa + " (" + somaComps(tq.comps).toLocaleString("pt-BR") + " L)") : "—";
@@ -18138,6 +18283,7 @@ function renderFrota(){
             return '<div class="usr-item editando">' +
               '<label class="mot-campo" data-lbl="Caminhão"><input value="' + escAttr(c.placa) + '" readonly></label>' +
               '<label class="mot-campo" data-lbl="Tanque de sempre"><select id="camE_tanque">' + opcoesTanqueHtml(c.tanquePadrao, true) + '</select></label>' +
+              '<label class="mot-campo" data-lbl="Atende o posto"><select id="camE_posto">' + opcoesPostoCamHtml(c.posto) + '</select></label>' +
               '<button class="btn-verde" onclick="confirmarEdicaoCaminhao(\'' + escAspas(c.placa) + '\')">✓ Confirmar</button>' +
               '<button class="btn-claro" onclick="cancelarEdicaoFrota()">Cancelar</button>' +
               '<button class="btn-claro" onclick="removerCaminhao(\'' + escAspas(c.placa) + '\')">🗑 Remover</button>' +
@@ -18146,6 +18292,7 @@ function renderFrota(){
           return '<div class="usr-item">' +
             '<label class="mot-campo" data-lbl="Caminhão"><input value="' + escAttr(c.placa) + '" readonly></label>' +
             '<label class="mot-campo" data-lbl="Tanque de sempre"><input value="' + escAttr(rot) + '" readonly></label>' +
+            '<label class="mot-campo" data-lbl="Atende o posto"><input value="' + escAttr(c.posto || "—") + '" readonly></label>' +
             '<button class="btn-claro" onclick="editarCaminhao(\'' + escAspas(c.placa) + '\')">✏️ Editar</button>' +
             '</div>';
         }).join(""));
