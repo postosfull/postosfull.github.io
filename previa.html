@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v305 — Postos Full (não é o app)</title>
+<title>PRÉVIA v306 — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -1320,7 +1320,31 @@
   .pe-nao{color:var(--cinza)}
   @media (max-width:640px){ .pe-item{align-items:flex-start} .pe-sel{width:100%;justify-content:space-between} }
   /* v185 - menus Caixas e Despesas */
-  .cxi-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0 6px}
+  /* ===================== v306 - A FAIXA QUE ROLA DE LADO =====================
+     🔴 A TROCA DE DECISAO: `auto-fit` fazia o conteudo mandar na ALTURA do card, e a altura
+     do card mandava na linha inteira do Dashboard — foi assim que a Dutra caiu sozinha para
+     baixo e empurrou tudo. Agora sao tres cartoes lado a lado SEMPRE, e o que nao cabe ROLA.
+     ⚠️ O preco, dito antes de escrever: o terceiro posto fica fora da vista ate' alguem
+     arrastar. Por isso as setas existem — faixa que rola sem afordancia e' dado escondido.
+     🔑 `flex:1 1 210px` (nao `0 0`): quando os tres CABEM, eles crescem e ocupam a largura
+     toda, exatamente como antes. A rolagem so' aparece quando de fato nao cabe. */
+  .cxi-faixa{position:relative;margin:12px 0 6px}
+  .cxi-cards{display:flex;flex-wrap:nowrap;gap:10px;overflow-x:auto;scroll-behavior:smooth;
+             scroll-snap-type:x proximity;scrollbar-width:thin;padding-bottom:2px}
+  .cxi-cards > .cxi-card{flex:1 1 210px;min-width:210px;scroll-snap-align:start}
+  .cxi-cards::-webkit-scrollbar{height:7px}
+  .cxi-cards::-webkit-scrollbar-thumb{border-radius:99px;
+    background-image:linear-gradient(rgba(254,112,48,.55),rgba(254,112,48,.55))}
+  .cxi-seta{position:absolute;top:50%;transform:translateY(-50%);z-index:2;
+    width:30px;height:30px;border-radius:50%;border:1px solid var(--borda);cursor:pointer;
+    display:none;align-items:center;justify-content:center;font-size:.9rem;line-height:1;
+    color:var(--txt);font-family:inherit;
+    background-image:linear-gradient(var(--superficie-2),var(--superficie-2));
+    box-shadow:0 2px 10px rgba(0,0,0,.35)}
+  .cxi-seta.mostra{display:flex}
+  .cxi-seta:hover{border-color:rgba(254,112,48,.6);color:#FE7030}
+  .cxi-seta.cxi-esq{left:-6px}
+  .cxi-seta.cxi-dir{right:-6px}
   .cxi-card{background:var(--superficie-2);border:1px solid var(--borda);border-radius:10px;padding:12px 14px}
   .cxi-nome{font-size:.8rem;color:var(--cinza);font-weight:600;margin-bottom:6px}
   .cxi-hero{font-size:1.5rem;font-weight:700;line-height:1.1}
@@ -1405,9 +1429,42 @@
   #painelDash > .grupo{margin-bottom:0}
   #painelDash > .grupo.dsp-m{grid-column:span 3}
   #painelDash > .grupo.dsp-p{grid-column:span 2}
+  /* ===================== v306 - O PLACAR (1 espaço de 6) =====================
+     🔴 Este é o único tamanho que TROCA o desenho do card em vez de espremê-lo: em 1 espaço
+     o gráfico sai e fica um número só — o que pede ação. Por isso ele é também o único que
+     foi DESENHADO para ser estreito, e o único que continua estreito no celular. */
+  #painelDash > .grupo.dsp-u{grid-column:span 1}
+  #painelDash > .grupo.dsp-u > h2{font-size:.84rem;letter-spacing:.02em}
+  /* 🔑 A bula longa é útil embaixo de um gráfico e é ruído embaixo de um número. Nos dois
+     cards desta versão ela virou o `i` do título e nem existe mais como parágrafo; a regra
+     fica de pé para o PRÓXIMO card que ganhar placar sem ter passado por essa mudança. */
+  #painelDash > .grupo.dsp-u > .nota-dash{display:none}
+  .plc{display:flex;flex-direction:column;gap:3px;padding:2px 0 4px}
+  .plc-rot{font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+           color:var(--cinza);line-height:1.3}
+  .plc-v{font-size:1.62rem;font-weight:800;line-height:1.14;overflow-wrap:anywhere}
+  .plc-v.plc-ruim{color:var(--vermelho)}
+  .plc-v.plc-ok{color:#18a558}
+  .plc-sub{font-size:.79rem;color:var(--cinza);line-height:1.4}
+  .plc-selo{align-self:flex-start;margin-top:5px;padding:3px 9px;border-radius:999px;
+            font-size:.73rem;font-weight:700;line-height:1.35}
+  .plc-selo.plc-ruim{color:var(--vermelho);border:1px solid rgba(192,57,43,.42);
+                     background-image:linear-gradient(rgba(192,57,43,.12),rgba(192,57,43,.12))}
+  .plc-selo.plc-ok{color:#18a558;border:1px solid rgba(24,165,88,.38);
+                   background-image:linear-gradient(rgba(24,165,88,.12),rgba(24,165,88,.12))}
   /* 🔴 EM TELA ESTREITA TODO CARD É INTEIRO. Um terço de 390px é 130px — não é card, é tira.
-     Esta regra fica DEPOIS das de cima de propósito: `@media` não ganha especificidade. */
-  @media (max-width:900px){ #painelDash > .grupo.dsp-m, #painelDash > .grupo.dsp-p{grid-column:span 6} }
+     Esta regra fica DEPOIS das de cima de propósito: `@media` não ganha especificidade.
+     ⚠️ v306 - E O PLACAR É A EXCEÇÃO, de propósito: ele não é um gráfico encolhido, é um
+     número. 1 espaço de uma tela de 1000px daria 140px, então ele vai ganhando largura
+     conforme a tela aperta — 1 no monitor, 2 na tela média, 3 no celular (dois por linha). */
+  @media (max-width:1200px){ #painelDash > .grupo.dsp-u{grid-column:span 2} }
+  @media (max-width:900px){ #painelDash > .grupo.dsp-m, #painelDash > .grupo.dsp-p{grid-column:span 6}
+                            #painelDash > .grupo.dsp-u{grid-column:span 3} }
+  /* 🛑 v306b - A REGRA DO "UM TERCO EM UMA COLUNA" MORREU AQUI, E ISSO E' BOM.
+     Ela existia para consertar a quebra em 2+1 num tamanho so'. A faixa que rola resolve a
+     MESMA coisa em TODOS os tamanhos — e ele apontou que o problema tambem aparecia na
+     Metade, que a regra por tamanho nunca ia cobrir.
+     🔑 Conserto que vale para um tamanho so' e' conserto que envelhece no tamanho seguinte. */
   /* o modo de edição */
   #painelDash.dsp-on > .grupo{position:relative;outline:1px dashed rgba(254,112,48,.5);outline-offset:3px}
   #painelDash.dsp-on > .grupo.dsp-arrastando{opacity:.45}
@@ -3617,8 +3674,7 @@
     </div>
 
     <div class="grupo" id="dashGrpCombDia">
-      <h2>⛽ Lucro por combustível</h2>
-      <p class="nota-dash">Quanto cada combustível deixou <b>por litro</b> hoje, num posto de cada vez — e só isso: quem quer litros e lucro bruto tem a aba <b>Resultado</b> do menu Relatórios. Vem do Petros, coletado de 10 em 10 minutos — é o mesmo número da tabela <b>Venda de Combustíveis</b> do painel de lá.</p>
+      <h2 id="cbdTitulo">⛽ Lucro por combustível</h2>
       <div id="cbdBox"></div>
     </div>
 
@@ -3656,7 +3712,6 @@
 
     <div class="grupo" id="dashGrpCaixas">
       <h2 id="cxiTitulo">🧾 Caixas dos postos</h2>
-      <p class="nota-dash">Quanto tempo o caixa leva para ser confirmado, e quanto sobra ou falta. Vem do Petros. Em mês ainda em andamento o percentual de confirmados é naturalmente menor — os últimos dias ainda não foram conferidos.</p>
       <div class="evo-filtros">
         <div class="desc-campo"><label>Mês</label><select id="cxiMes" onchange="cxiSel=this.value;renderCaixas()"></select></div>
       </div>
@@ -6336,6 +6391,12 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v306", data:"09/08/2026", tit:"\ud83d\udcd0 Cada card no tamanho certo \u2014 e com o desenho certo para aquele tamanho", itens:[
+    {t:"n", h:"Um quarto tamanho: <b>S\u00f3 o n\u00famero</b>", d:"Em <b>\u270f\ufe0f Personalizar</b>, al\u00e9m de <b>Inteiro</b>, <b>Metade</b> e <b>Um ter\u00e7o</b>, agora existe <b>S\u00f3 o n\u00famero</b> \u2014 1 espa\u00e7o de 6, o que cabe <b>seis lado a lado</b> na mesma linha. E ele n\u00e3o \u00e9 o mesmo card espremido: o gr\u00e1fico sai e fica um <b>placar</b>."},
+    {t:"n", h:"E o placar mostra o n\u00famero que <b>pede a\u00e7\u00e3o</b>", d:"No <b>\u26fd Lucro por combust\u00edvel</b>, o <b>menor R$/L do dia entre os tr\u00eas postos</b> \u2014 e quem estiver no preju\u00edzo ganha a frente, em vermelho. No <b>\ud83e\uddfe Caixas</b>, o <b>posto mais acima da meta</b>, com quantos dias ele passou. Quando est\u00e1 tudo dentro da meta, o placar continua l\u00e1, em verde: ele n\u00e3o some, e n\u00e3o fica vermelho \u00e0 toa."},
+    {t:"m", h:"O Caixas parou de quebrar a linha", d:"Os tr\u00eas postos agora ficam numa <b>faixa que rola de lado</b>, com setas \u25c0\u25b6 que s\u00f3 aparecem quando h\u00e1 o que rolar. Antes, num card estreito, o terceiro posto ca\u00eda sozinho para baixo e <b>esticava a linha inteira</b> do Dashboard."},
+    {t:"m", h:"A explica\u00e7\u00e3o do card virou um <b>i</b> ao lado do t\u00edtulo", d:"O par\u00e1grafo comprido que ficava embaixo do t\u00edtulo do <b>Lucro por combust\u00edvel</b> e do <b>Caixas</b> virou o mesmo botãozinho <b>i</b> que j\u00e1 existe no Nível dos tanques. O texto \u00e9 o mesmo \u2014 s\u00f3 mudou de lugar, e agora s\u00f3 aparece quando voc\u00ea pede."}
+  ]},
   {v:"v305", data:"09/08/2026", tit:"⛽ Lucro por combustível: um posto de cada vez, barras em pé", itens:[
     {t:"m", h:"Agora você escolhe o posto, e o card fica igual sempre", d:"Tem um botão para <b>Teresina</b>, <b>Caxias</b> e <b>Pres. Dutra</b> no topo do card, e ele lembra o último que você abriu <b>neste aparelho</b> — cada pessoa tem o seu, sem mexer no de ninguém. A razão do desenho é esta: <b>combustível não é uniforme, posto é</b>. A Podium só existe em Teresina, então um bloco por combustível nascia torto — um com três barras, outro com uma. Os três postos vendem exatamente <b>cinco</b> combustíveis, então com um posto escolhido o card é sempre o mesmo retângulo."},
     {t:"n", h:"As barras ficaram em pé — e grandes", d:"Cada barra passou de 55px para cerca de <b>240px</b> de largura, que é o que faz caber o nome inteiro do combustível embaixo e o valor grande em cima. Em <b>verde</b>, o combustível que mais deixou <b>naquele posto</b>; quem fica <b>abaixo da linha</b> deu prejuízo."},
@@ -9586,6 +9647,40 @@ function cxiMesNome(id){
 }
 function cxiNum(v){ const n = numBR(v); return n === null ? 0 : n; }   // v222 - antes Number("1.234,56") dava NaN e o app mostrava R$ 0,00
 function cxiDin(v){ return cxiNum(v).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+/* 🔴 AS SETAS SO' APARECEM QUANDO HA' O QUE ROLAR, e cada uma some quando chega na ponta.
+   Seta que nao leva a lugar nenhum e' irma da caixinha que nao decide nada (v246): ensina a
+   pessoa a ignorar o controle. */
+function cxiSetas(){
+  const f = document.querySelector("#cxiBox .cxi-cards");
+  if (!f) return;
+  const sobra = f.scrollWidth - f.clientWidth;
+  const e = f.parentNode.querySelector(".cxi-esq"), d = f.parentNode.querySelector(".cxi-dir");
+  /* 🔴 AQUI HAVIA UM `const tem = sobra > 4` QUE NAO DECIDIA NADA, e quem mostrou isso foi a
+     prova por mutacao: trocar ele por `true` nao quebrou assercao nenhuma. Sem sobra,
+     `scrollLeft < sobra - 4` ja' e' falso sozinho — a guarda extra era so' um segundo lugar
+     onde a mesma regra podia divergir. 🔑 Variavel de decisao que ninguem usa e' a semente da
+     proxima discordancia (v297). ✅ Mutacao que escapa nem sempre e' furo do teste: as vezes
+     e' codigo sobrando. */
+  if (e) e.classList.toggle("mostra", f.scrollLeft > 4);
+  if (d) d.classList.toggle("mostra", f.scrollLeft < sobra - 4);
+}
+function cxiRolar(dir){
+  const f = document.querySelector("#cxiBox .cxi-cards");
+  if (!f) return;
+  const um = f.querySelector(".cxi-card");
+  const passo = um ? (um.getBoundingClientRect().width + 10) : Math.round(f.clientWidth * 0.8);
+  f.scrollLeft += dir * passo;
+  setTimeout(cxiSetas, 320);          /* o scroll e' suave; a seta so' decide quando ele para */
+}
+/* 🔑 A LARGURA DO CARD MUDA SEM NINGUEM ROLAR NADA: trocar o tamanho no Personalizar, virar o
+   celular, arrastar a janela. Por isso as setas se recalculam no `resize` tambem — senao a
+   seta ficaria acesa num card que voltou a caber. */
+if (typeof window !== "undefined" && !window.__cxiOuvindo){
+  window.__cxiOuvindo = 1;
+  let tCxi = null;
+  window.addEventListener("resize", () => { clearTimeout(tCxi); tCxi = setTimeout(cxiSetas, 120); });
+}
+
 function renderCaixas(){
   const box = document.getElementById("cxiBox");
   if (!box) return;
@@ -9604,12 +9699,51 @@ function renderCaixas(){
 
   const ramo = cxiRamo();
   const tit = document.getElementById("cxiTitulo");
-  if (tit) tit.textContent = (ramo === "conveniencias") ? "\ud83e\uddfe Caixas das conveni\u00eancias" : "\ud83e\uddfe Caixas dos postos";
+  /* 🔴 AQUI O TITULO E' REESCRITO A CADA RENDER (ele muda com a empresa), entao o `i` tem de
+     ser reposto junto — `textContent` apagaria o botao toda vez. Foi por isso que virou
+     `innerHTML` com o nome ESCAPADO: o nome e' texto, o botao e' marcacao. */
+  if (tit) tit.innerHTML = escAttr((ramo === "conveniencias") ? "\ud83e\uddfe Caixas das conveni\u00eancias"
+                                                             : "\ud83e\uddfe Caixas dos postos") + bul("cardCaixas");
   const d = caixaInd[cxiSel] || {};
   const P = d[ramo] || {};
   const idxAnt = meses.indexOf(cxiSel) + 1;
   const ant = (idxAnt < meses.length) ? (caixaInd[meses[idxAnt]] || {}) : null;
   const Pa = ant ? (ant[ramo] || {}) : {};
+
+  /* 🔴 v306 - EM 1 ESPACO O CAIXAS VIRA PLACAR: o posto MAIS ACIMA DA META, com quantos dias
+     ele esta' acima. E' o numero que pede acao — a media dos tres esconderia justamente o
+     posto que precisa de telefonema.
+     🔴 E o filtro de mes some junto: em 1 espaco o placar e' o mes que esta' selecionado, e um
+     `select` de 210px dentro de um card de 226px empurraria o numero para fora da tela.
+     🔑 Quando todos estao dentro da meta, o placar NAO fica vermelho nem some: ele diz o mais
+     lento com selo verde. Placar que so' aparece quando esta ruim treina a equipe a ler
+     ausencia como "sem dado" (irmao da licao da v248). */
+  if (cardDashTam("caixas") === "u"){
+    if (linha) linha.style.display = "none";
+    const lim = mcLimiteCorrido();
+    let alvo = null;
+    CXI_POSTOS.forEach(k => {
+      const dias = cxiNum((P[k]||{}).tempoDias);
+      if (dias <= 0) return;                       /* sem medicao nao disputa o placar */
+      if (!alvo || dias > alvo.dias) alvo = { k: k, dias: dias, o: (P[k]||{}) };
+    });
+    if (!alvo){
+      box.innerHTML = '<div class="ana-vazio">Ainda n\u00e3o h\u00e1 tempo de caixa medido em ' +
+        escAttr(cxiMesNome(cxiSel)) + '.</div>';
+      return;
+    }
+    const fora = alvo.dias > lim + 0.001;
+    box.innerHTML = plcHtml(
+      fora ? "Caixa mais atrasado" : "Caixa mais lento",
+      String(alvo.o.tempoTexto || "\u2014"),
+      fora ? "ruim" : "ok",
+      escAttr(cxiRotulo(alvo.k)) + " \u00b7 " + escAttr(cxiMesNome(cxiSel)),
+      fora ? ("\u25b2 " + fmtBR(alvo.dias - lim, 1) + " dia" + ((alvo.dias - lim) >= 2 ? "s" : "") +
+              " acima da meta")
+           : "\u2713 os tr\u00eas dentro da meta",
+      fora ? "ruim" : "ok");
+    return;
+  }
 
   let maxDias = 0;
   CXI_POSTOS.forEach(k => { maxDias = Math.max(maxDias, cxiNum((P[k]||{}).tempoDias), cxiNum((Pa[k]||{}).tempoDias)); });
@@ -9618,7 +9752,12 @@ function renderCaixas(){
   let h = '';
   if (d.parcial) h += '<p class="nota-dash cxi-aviso">\u26a0\ufe0f ' + escAttr(cxiMesNome(cxiSel)) + ' ainda está em andamento — os caixas dos últimos dias naturalmente ainda não foram confirmados. Para comparar de verdade, olhe o <b>tempo médio</b>.</p>';
 
-  h += '<div class="cxi-cards">';
+  h += '<div class="cxi-faixa">' +
+       '<button type="button" class="cxi-seta cxi-esq" aria-label="Ver o posto anterior" ' +
+       'onclick="cxiRolar(-1)">\u25c0</button>' +
+       '<button type="button" class="cxi-seta cxi-dir" aria-label="Ver o pr\u00f3ximo posto" ' +
+       'onclick="cxiRolar(1)">\u25b6</button>' +
+       '<div class="cxi-cards" onscroll="cxiSetas()">';
   CXI_POSTOS.forEach(k => {
     const o = P[k] || {};
     h += '<div class="cxi-card"><div class="cxi-nome">' + escAttr(cxiRotulo(k)) + '</div>' +
@@ -9632,7 +9771,7 @@ function renderCaixas(){
          '<div class="cxi-lin cxi-liq"><span>Falta menos sobra</span><b>R$ ' + cxiDin(cxiNum(o.falta) - cxiNum(o.sobra)) + '</b></div>' +
          '</div>';
   });
-  h += '</div>';
+  h += '</div></div>';
 
   h += '<h3 class="cxi-sub">Tempo até o caixa ser confirmado</h3><div class="cxi-graf">';
   CXI_POSTOS.forEach(k => {
@@ -9655,6 +9794,7 @@ function renderCaixas(){
   h += '<p class="ana-rodape">' + mcRodape() + '</p>';
   h += '<p class="ana-rodape">Atualizado ' + escAttr(d.atualizadoEm ? String(d.atualizadoEm).slice(0,10).split("-").reverse().join("/") : "—") + '. Fonte: Painel Operacional do Petros.</p>';
   box.innerHTML = h;
+  cxiSetas();                          /* decidir as setas so' DEPOIS de a faixa existir */
 }
 
 /* ===================== v192 - MENU UNICO "RELATORIOS" ===================== */
@@ -15690,6 +15830,15 @@ function alternarFrcCard(){ frcCardAberto ? fecharFrcCard() : abrirFrcCard(); }
    Por isso a chave vai escrita no lugar da chamada, uma a uma.
    ------------------------------------------------------------------------ */
 const BULAS = {
+  /* 🆕 v306 - as descricoes que moravam embaixo do titulo dos dois cards do Dashboard.
+     🔑 O TEXTO NAO FOI APAGADO, FOI MUDADO DE LUGAR: bula que some e' promessa quebrada, e
+     quem abre o card pela primeira vez continua precisando saber de onde vem o numero.
+     ⚠️ `abrirBula` escreve com `textContent`, entao aqui NAO cabe HTML — o `<b>` que existia
+     no paragrafo virou enfase por palavra, nao por tag. */
+  cardCombDia: { t:"Lucro por combust\u00edvel",
+    d:"Quanto cada combust\u00edvel deixou POR LITRO hoje, num posto de cada vez — e s\u00f3 isso: quem quer litros e lucro bruto tem a aba Resultado do menu Relat\u00f3rios. Vem do Petros, coletado de 10 em 10 minutos — \u00e9 o mesmo n\u00famero da tabela Venda de Combust\u00edveis do painel de l\u00e1." },
+  cardCaixas: { t:"Caixas",
+    d:"Quanto tempo o caixa leva para ser confirmado, e quanto sobra ou falta. Vem do Petros. Em m\u00eas ainda em andamento o percentual de confirmados \u00e9 naturalmente menor — os \u00faltimos dias ainda n\u00e3o foram conferidos." },
   tqNivel: { t:"Quanto tem no tanque",
     d:"O saldo em litros que o Petros tem para aquele tanque neste momento, e o mesmo número em porcentagem da capacidade. Nos postos com sonda ligada ele é leitura de equipamento; onde a sonda não está chegando, é conta a partir da última medição física — e aí a etiqueta ao lado do tanque diz isso." },
   tqDura: { t:"Quantos dias o estoque dura",
@@ -20203,11 +20352,11 @@ function dashEhConv(){ return siglaEmpresa(empresa) === "conv"; }
 const CARDS_DASH = [
   { k:"vendasDia",  id:"dashGrpVendasDia",  n:"🏁 Vendas do dia",                  emp:"postos|conv" },
   { k:"resultadoP", id:"dashGrpResultadoP", n:"💵 Resultado do mês",               emp:"postos" },
-  { k:"combDia",    id:"dashGrpCombDia",    n:"⛽ Lucro por combustível",          emp:"postos" },
+  { k:"combDia",    id:"dashGrpCombDia",    n:"⛽ Lucro por combustível",          emp:"postos", plc:1 },
   { k:"resultado",  id:"dashGrpResultado",  n:"💵 Resultado do mês",               emp:"conv" },
   { k:"despesas",   id:"dashGrpDespesas",   n:"💸 Despesas do mês contra a média", emp:"conv" },
   { k:"evolucao",   id:"dashGrpEvolucao",   n:"📈 Evolução das vendas",            emp:"postos|conv" },
-  { k:"caixas",     id:"dashGrpCaixas",     n:"🧾 Caixas",                         emp:"postos|conv" },
+  { k:"caixas",     id:"dashGrpCaixas",     n:"🧾 Caixas",                         emp:"postos|conv", plc:1 },
   { k:"categorias", id:"dashGrpCategorias", n:"🍫 Onde está o lucro da loja",      emp:"conv" },
   { k:"comparar",   id:"dashGrpComparar",   n:"⚖️ As três lojas na mesma categoria",        emp:"conv" },
   { k:"ifood",      id:"dashGrpIfood",      n:"🛵 iFood",                          emp:"conv" },
@@ -20225,7 +20374,13 @@ const CARDS_DASH = [
       caixa Personalizar estiver aberta — assim Cancelar volta tudo sem tocar em nada gravado.
    🔴 A ORDEM continua vindo de `ordemCardsDash` (v200). Tamanho e ocultos sao campos IRMAOS.
       Copiar a ordem para um segundo lugar seria criar a divergencia de mao beijada. */
-const DASH_TAMS = [["g", "Inteiro"], ["m", "Metade"], ["p", "Um ter\u00e7o"]];
+/* 🔴 v306 - O QUARTO TAMANHO NAO E' UMA FRACAO A MAIS: e' o unico que troca o DESENHO do
+   card. Por isso o rotulo dele diz o que ACONTECE ("So' o numero") e nao a fracao ("Um
+   sexto") — quem le "um sexto" espera o mesmo grafico menor, que e' justamente o que ele
+   nao e'. O `title` conta a largura, para ninguem precisar adivinhar. */
+const DASH_TAMS = [["g", "Inteiro", "6 espa\u00e7os de 6"], ["m", "Metade", "3 espa\u00e7os de 6"],
+                   ["p", "Um ter\u00e7o", "2 espa\u00e7os de 6 \u2014 vers\u00e3o enxuta"],
+                   ["u", "S\u00f3 o n\u00famero", "1 espa\u00e7o de 6 \u2014 o card vira um placar, sem gr\u00e1fico"]];
 function dashChaveMeu(s){ return "pf_dash_layout_" + s; }
 function dashLerMeu(s){
   try {
@@ -20261,7 +20416,28 @@ function dashFonteLayout(s){
   const e = dashLayoutEmpresa(s);
   return (e.ordem.length || Object.keys(e.tam).length || e.ocultos.length) ? "empresa" : "fabrica";
 }
-function cardDashTam(k, s){ const t = (dashLayout(s).tam || {})[k]; return (t === "m" || t === "p") ? t : "g"; }
+/* 🔴 A LISTA DE TAMANHOS VALIDOS SE LE DE `DASH_TAMS`, e nao se escreve a mao aqui. Foi
+   assim que a v306 quase nasceu com o placar salvo e ignorado: um `t === "m" || t === "p"`
+   escrito a mao nao cresce junto com a lista, e um tamanho novo vira "Inteiro" calado. */
+/* 🔴 v306 - "SO' O NUMERO" SO' EXISTE PARA O CARD QUE TEM PLACAR, e esta e' a trava mais
+   importante da versao. Sem ela, escolher 1 espaco num card sem placar nao daria erro
+   nenhum: ele apenas espremeria o grafico em 229px e ficaria ilegivel — defeito que nao
+   avisa, que e' o mais caro de achar.
+   🔑 Tamanho aqui nao e' uma medida, e' um DESENHO que o card precisa TER. E quem tem mora
+   no proprio CARDS_DASH (`plc:1`), ao lado do card — nunca numa lista paralela, que
+   envelhece calada assim que alguem cria um card novo. */
+function cardTemPlacar(k){
+  for (let i = 0; i < CARDS_DASH.length; i++) if (CARDS_DASH[i].k === k) return !!CARDS_DASH[i].plc;
+  return false;
+}
+function cardDashTam(k, s){
+  const t = (dashLayout(s).tam || {})[k];
+  /* Layout salvo com "u" num card que (ainda) nao tem placar vira UM TERCO, e nao Inteiro:
+     quem escolheu pequeno queria pequeno. O que nao se faz e' desenhar grafico em 229px. */
+  if (t === "u" && !cardTemPlacar(k)) return "p";
+  for (let i = 1; i < DASH_TAMS.length; i++) if (DASH_TAMS[i][0] === t) return t;
+  return "g";
+}
 function cardDashOculto(k, s){ return (dashLayout(s).ocultos || []).indexOf(k) >= 0; }
 
 function cardsDashDaEmpresa(s){
@@ -20434,7 +20610,9 @@ function dspPintarBarras(){
         '\',-1)" title="Subir">\u25b2</button>' +
       '<button class="dsp-bt" ' + (i === lista.length - 1 ? 'disabled ' : '') + 'onclick="dspMover(\'' +
         escAspas(c.k) + '\',1)" title="Descer">\u25bc</button>' +
-      DASH_TAMS.map(t => '<button class="dsp-bt' + (tam === t[0] ? ' aceso' : '') + '" onclick="dspTam(\'' +
+      DASH_TAMS.filter(t => t[0] !== "u" || cardTemPlacar(c.k))
+        .map(t => '<button class="dsp-bt' + (tam === t[0] ? ' aceso' : '') + '" title="' +
+        escAttr(t[2] || "") + '" onclick="dspTam(\'' +
         escAspas(c.k) + '\',\'' + t[0] + '\')">' + t[1] + '</button>').join("") +
       '<button class="dsp-bt dsp-x" onclick="dspOcultar(\'' + escAspas(c.k) +
         '\')" title="Esconder este card">\u2715 esconder</button>';
@@ -20461,8 +20639,13 @@ function dspRascunho(){ return dashEdit; }
    cards (ordem, tamanho, ocultos) e passou a mexer no CONTEUDO de um deles — a cor e a ordem dos
    combustiveis. Sem esta linha, `Cancelar` limpava o rascunho e deixava o desenho cancelado na
    tela. 🔑 Funcao chamada "redesenhar tudo" tem de crescer quando o "tudo" cresce. */
+/* 🔴 v306 - O CAIXAS ENTROU AQUI. Desde a v304 esta funcao repinta o Lucro por combustivel
+   porque o Personalizar passou a mexer no CONTEUDO dele. Agora o tamanho troca o desenho de
+   DOIS cards, entao os dois tem de ser repintados na hora em que o tamanho muda — senao
+   escolher "So' o numero" so' encolheria a coluna e o grafico continuaria la, espremido.
+   🔑 Funcao chamada "redesenha tudo" e' promessa: quando o "tudo" cresce, ela cresce junto. */
 function dspRedesenhar(){ aplicarOrdemCardsDash(); ajustarBlocosDash(); renderOrdemCardsDash();
-                          renderCombDia(); }
+                          renderCombDia(); renderCaixas(); }
 
 function alternarOrdemCardsDash(){
   ordCardsAberto = !ordCardsAberto;
@@ -20906,6 +21089,56 @@ function cbdChaveBloco(rotulo){ return String(rotulo || "").toUpperCase(); }
 const CBD_CHAVE_POSTO = "pf_cbd_posto";
 let cbdPostoSel = "";
 try { cbdPostoSel = localStorage.getItem(CBD_CHAVE_POSTO) || ""; } catch(e){ cbdPostoSel = ""; }
+/* ===================== v306 - A PECA DO PLACAR =====================
+   Uma peca so' para os dois cards, pelo mesmo motivo que o filtro do Lucro por combustivel
+   reaproveitou as classes do Nivel dos tanques: 🔑 dois placares com a mesma cara sao UM
+   placar aprendido uma vez. Assinatura: rotulo (o que e'), valor (o numero), tom, sub (de
+   quem/quando) e selo (a distancia para a meta, quando existir).
+   🔴 O TOM NAO E' ENFEITE, E POR ISSO NAO E' SEMPRE VERMELHO: vermelho no que e' rotina
+   ensina a equipe a ignorar vermelho (licao da v296). Vermelho so' quando esta' fora da
+   regua; verde so' quando esta' dentro dela; sem cor quando nao ha' regua para comparar. */
+function plcHtml(rotulo, valor, tom, sub, selo, seloTom){
+  const t = (tom === "ruim" || tom === "ok") ? (" plc-" + tom) : "";
+  return '<div class="plc"><span class="plc-rot">' + escAttr(rotulo) + '</span>' +
+    '<span class="plc-v' + t + '">' + escAttr(valor) + '</span>' +
+    (sub ? '<span class="plc-sub">' + sub + '</span>' : '') +
+    (selo ? '<span class="plc-selo plc-' + (seloTom === "ok" ? "ok" : "ruim") + '">' +
+            escAttr(selo) + '</span>' : '') + '</div>';
+}
+
+/* 🔴 O PLACAR DO LUCRO POR COMBUSTIVEL NAO USA O FILTRO DE POSTO — E ISSO E' DE PROPOSITO.
+   Em 1 espaco nao cabem tres botoes, e trocar os botoes por um `select` seria inventar uma
+   TERCEIRA cara de filtro num app que ja' tem duas iguais de proposito (v305).
+   🔑 Entao a pergunta do card muda junto com o tamanho: de "como esta ESTE posto" para
+   "onde esta' o pior numero AGORA, entre os tres". A comparacao entre postos e' legitima
+   porque a regua ja' e' a mesma nos tres desde a v305 — se ela fosse por posto, este placar
+   estaria comparando coisas de tamanhos diferentes.
+   🔴 E o prejuizo GANHA de qualquer menor lucro: quem esta' perdendo dinheiro por litro nao
+   disputa lugar com quem esta' ganhando pouco. */
+function cbdPiorDoDia(){
+  let pior = null;
+  CBD_POSTOS.forEach(function(p){
+    cbdLinhas(p[0]).forEach(function(l){
+      if (l.rsL == null) return;                 /* quem ainda nao vendeu nao entra na conta */
+      const v = +l.rsL;
+      if (!pior || v < pior.rsL) pior = { rsL: v, prod: l.prod,
+                                          rotulo: cbdRotuloBarra(p[0], l.prod), posto: p[1] };
+    });
+  });
+  return pior;
+}
+function cbdPlacarHtml(){
+  const pior = cbdPiorDoDia();
+  if (!pior) return '<div class="ana-vazio">Nenhum combust\u00edvel vendido ainda hoje.</div>';
+  const ruim = pior.rsL < 0;
+  return plcHtml(
+    ruim ? "No preju\u00edzo hoje" : "Menor lucro por litro hoje",
+    "R$ " + fmtBR(pior.rsL, 3) + "/L",
+    ruim ? "ruim" : "",
+    escAttr(pior.rotulo) + " \u00b7 " + escAttr(pior.posto) + " \u00b7 entre os tr\u00eas postos",
+    "", "");
+}
+
 function cbdPostoAtual(){
   const chaves = CBD_POSTOS.map(function(p){ return p[0]; });
   return chaves.indexOf(cbdPostoSel) >= 0 ? cbdPostoSel : chaves[0];
@@ -20969,6 +21202,11 @@ function cbdOrdemBlocos(){
 function renderCombDia(){
   const box = document.getElementById("cbdBox");
   if (!box) return;
+  /* 🆕 v306 - o `i` entra pelo JS, e nao escrito no HTML, porque `bul()` se recusa a desenhar
+     botao para uma chave que nao existe em BULAS. Botao escrito a mao no HTML sobreviveria a
+     alguem apagar a bula, e abriria uma caixinha vazia. */
+  const tit = document.getElementById("cbdTitulo");
+  if (tit && !tit.querySelector(".bul-i")) tit.insertAdjacentHTML("beforeend", bul("cardCombDia"));
 
   /* 1º estado: a nuvem ainda nao respondeu. Esqueleto - nunca "nenhuma venda". */
   if (!vistoCombDia){ box.innerHTML = esqueletoCaixa(3); return; }
@@ -20981,6 +21219,11 @@ function renderCombDia(){
       "seria pior que n\u00famero nenhum.");
     return;
   }
+
+  /* 🔴 3º estado, v306: EM 1 ESPACO O CARD TROCA DE DESENHO. Este `return` vem ANTES de
+     qualquer coisa que dependa de largura — filtro, regua, barras — porque o placar nao e'
+     um grafico encolhido: e' outro desenho, com outra pergunta. */
+  if (cardDashTam("combDia") === "u"){ box.innerHTML = cbdPlacarHtml(); return; }
 
   let h = "";
   const hoje = hojeISO();
@@ -21383,7 +21626,8 @@ function ajustarBlocosDash(){
        existe aqui; card ESCONDIDO existe, esta na caixa Personalizar e volta com um clique.
        🔑 Por isso o escondido continua no `CARDS_DASH` e no catalogo — esconder nao e' apagar. */
     e.style.display = (daEmpresa && !cardDashOculto(c.k, sig)) ? "" : "none";
-    e.classList.remove("dsp-m", "dsp-p");
+    /* v306 - tira TODAS as classes de tamanho da lista, nunca uma lista escrita a mao */
+    DASH_TAMS.forEach(x => { if (x[0] !== "g") e.classList.remove("dsp-" + x[0]); });
     const t = cardDashTam(c.k, sig);
     if (t !== "g") e.classList.add("dsp-" + t);
   });
