@@ -1383,6 +1383,45 @@
   #dashOrdBarra{margin:0 0 4px}                      /* v200 - reserva; desde a v209 o botao mora na .painel-tools */
   #dashOrdBarra:empty{display:none}
   #painelDash .ord-cards-box:empty{display:none}
+  /* ===================== v302 - PERSONALIZAR O DASHBOARD =====================
+     🔴 O PAINEL VIRA GRADE DE SEIS COLUNAS, e cada card ocupa 6 (inteiro), 3 (metade) ou
+     2 (um terço). Seis é o menor número que divide por 1, 2 e 3 — com 12 daria para um quarto,
+     e um quarto de tela não cabe um número com rótulo do lado.
+     ⚠️ A margem de baixo do `.grupo` é ZERADA aqui dentro: com `gap` na grade, ela viraria vão
+     dobrado entre as linhas. Fora do Dashboard o `.grupo` continua igual. */
+  #painelDash{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;align-items:start}
+  #painelDash > *{grid-column:span 6;min-width:0}
+  #painelDash > .grupo{margin-bottom:0}
+  #painelDash > .grupo.dsp-m{grid-column:span 3}
+  #painelDash > .grupo.dsp-p{grid-column:span 2}
+  /* 🔴 EM TELA ESTREITA TODO CARD É INTEIRO. Um terço de 390px é 130px — não é card, é tira.
+     Esta regra fica DEPOIS das de cima de propósito: `@media` não ganha especificidade. */
+  @media (max-width:900px){ #painelDash > .grupo.dsp-m, #painelDash > .grupo.dsp-p{grid-column:span 6} }
+  /* o modo de edição */
+  #painelDash.dsp-on > .grupo{position:relative;outline:1px dashed rgba(254,112,48,.5);outline-offset:3px}
+  #painelDash.dsp-on > .grupo.dsp-arrastando{opacity:.45}
+  #painelDash.dsp-on > .grupo.dsp-alvo{outline:2px solid #FE7030;outline-offset:3px}
+  .dsp-bar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:-4px 0 10px}
+  .dsp-grab{cursor:grab;font-size:.78rem;opacity:.75;border:1px solid var(--borda);border-radius:999px;
+            padding:3px 10px;user-select:none;background-image:linear-gradient(var(--superficie-2),var(--superficie-2))}
+  .dsp-grab:active{cursor:grabbing}
+  .dsp-bt{border:1px solid var(--borda);border-radius:999px;padding:3px 9px;font-size:.76rem;cursor:pointer;
+          color:var(--txt);font-family:inherit;line-height:1.35;
+          background-image:linear-gradient(var(--superficie-2),var(--superficie-2))}
+  .dsp-bt:hover{border-color:rgba(254,112,48,.55)}
+  .dsp-bt.aceso{border-color:#FE7030;color:#FE7030;font-weight:700;
+                background-image:linear-gradient(rgba(254,112,48,.14),rgba(254,112,48,.14))}
+  .dsp-bt[disabled]{opacity:.35;cursor:default}
+  .dsp-x{margin-left:auto}
+  .dsp-x.dsp-bt{border-color:rgba(192,57,43,.5);color:var(--vermelho)}
+  .dsp-caixa{border:1px solid var(--borda);border-radius:10px;padding:12px;margin:8px 0;
+             background-image:linear-gradient(var(--superficie-2),var(--superficie-2))}
+  .dsp-acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .dsp-somem{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+  .dsp-cores{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+  .dsp-cor{display:flex;align-items:center;gap:6px;font-size:.78rem;border:1px solid var(--borda);
+           border-radius:999px;padding:3px 10px 3px 4px}
+  .dsp-cor input[type=color]{width:26px;height:24px;border:none;background:none;padding:0;cursor:pointer}
   /* v191 - Relatorios Petros */
   .rpz-cards{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
   .rpz-card{flex:1 1 130px;min-width:130px;border:1px solid var(--borda);border-radius:10px;padding:8px 10px;background:var(--superficie);background-image:linear-gradient(var(--superficie),var(--superficie))}
@@ -4168,6 +4207,11 @@ let caixaInd = {}, cxiSel = "";                 // v185 - {"2026-07": {...}}
 let dcvMesSel = "", dcvLojaSel = "teresina";     // v198 - filtros do Dashboard da Conveniencia
 let dpsMesSel = "";                              // v200 - mes do Resultado do mes dos Postos
 let ordemCardsDash = {}, ordCardsAberto = false; // v200 - ordem dos cards do Dashboard
+/* v302 - tamanho e escondidos vivem ao lado da ordem, no MESMO documento, em campos proprios */
+let tamCardsDash = {}, ocultosCardsDash = {};
+let dashEdit = null;        /* o rascunho enquanto se personaliza — Cancelar joga ele fora */
+let dashCoresEdit = null;   /* o rascunho das cores dos combustiveis (so' admin) */
+let dspArrastando = "";
 let metaCaixa = {}, mcMsg = "";                  // v213 - config/metaCaixa (mcMsg sobrevive ao redesenho)
 let despesasAno = {}, dspAnoSel = "", dspPostoSel = "todos", dspComRet = true;  // v185
 /* v249 - COLECAO VAZIA E COLECAO QUE AINDA NAO CHEGOU SAO A MESMA COISA no relPetros:
@@ -6271,6 +6315,12 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v302", data:"09/08/2026", tit:"✏️ Personalizar: o Dashboard do jeito que você quiser", itens:[
+    {t:"n", h:"Arrastar, redimensionar e esconder", d:"O botão <b>⚙️ Ordenar cards</b> virou <b>✏️ Personalizar</b>. Dentro dele, cada card ganha uma alça <b>⠿ arraste</b> (no computador), os botões de tamanho <b>Inteiro · Metade · Um terço</b> e um <b>✕ esconder</b>. No celular, as setas ▲▼ — arrastar em tela pequena briga com a rolagem. Em tela estreita todo card volta a ocupar a largura inteira sozinho."},
+    {t:"n", h:"O que você esconde não some: fica na lista de volta", d:"O card escondido aparece em <b>Escondidos</b>, no topo da caixa, e volta com um clique. Esconder não é apagar."},
+    {t:"n", h:"Um padrão para a equipe e um ajuste para cada um", d:"Quem é administrador tem <b>✓ Salvar para todo mundo</b>, que troca o padrão da empresa. Qualquer pessoa tem <b>✓ Salvar só para mim</b>, que fica <b>guardado no aparelho</b> e não muda o que os outros veem. E o rodapé da caixa diz sempre <b>qual dos dois</b> você está vendo agora. Os botões <b>↩ Voltar ao padrão</b> e <b>✕ Cancelar</b> desfazem sem gravar nada."},
+    {t:"n", h:"E a cor de cada combustível, na mesma caixa", d:"Em <b>🎨 Cores dos combustíveis</b> (só administrador) dá para escolher a cor de cada produto e ver o card mudar na hora. Elas valem também para o <b>Nível dos tanques</b> — a mesma cor nas duas telas, de propósito — e cada uma tem o ↩ para voltar à de fábrica."}
+  ]},
   {v:"v301", data:"08/08/2026", tit:"Card novo: ⛽ Lucro por combustível, do dia de hoje", itens:[
     {t:"n", h:"Quanto cada combustível deixa por litro, hoje", d:"No <b>Dashboard dos Postos</b> entrou o card <b>⛽ Lucro por combustível</b>, com os <b>três postos lado a lado</b>. Em cada um, um cartão por combustível com o <b>R$ por litro</b>, os <b>litros vendidos</b> e o <b>lucro bruto</b> do dia. As cores são as mesmas do <b>Nível dos tanques</b>."},
     {t:"m", h:"Cores novas nos combustíveis, iguais nas duas telas", d:"O <b>diesel</b> ficou azul (o S-500 num azul mais escuro), a <b>gasolina comum</b> laranja e o <b>etanol</b> verde — parecido com o que o GASview usa. A <b>aditivada</b> virou roxo e a <b>Podium</b>, rosa. As cores são as mesmas no card e no <b>Nível dos tanques</b>, de propósito: cor que muda de tela em tela vira legenda obrigatória. Quem já escolheu uma cor à mão em <b>Personalizar</b>, nos tanques, continua com a dela."},
@@ -7604,6 +7654,9 @@ function iniciarSync(){
   docOrdemCardsDash.onSnapshot(d => {
     const v = d && d.exists ? d.data() : null;
     ordemCardsDash = (v && v.porEmpresa) ? v.porEmpresa : {};
+    /* v302 - IRMAOS da ordem, nunca copia dela: a ordem continua so' em `porEmpresa`. */
+    tamCardsDash = (v && v.tamanhos) ? v.tamanhos : {};
+    ocultosCardsDash = (v && v.ocultos) ? v.ocultos : {};
     const pd = document.getElementById("painelDash");
     if (pd && pd.classList.contains("aberto")){ aplicarOrdemCardsDash(); renderOrdemCardsDash(); }
   }, ()=>{});
@@ -20118,10 +20171,55 @@ const CARDS_DASH = [
   { k:"eficiencia", id:"dashGrpEficiencia", n:"📉 Eficiência por veículo",       emp:"transp" },
   { k:"docsVencer", id:"dashGrpDocsVencer", n:"📄 Documentos a vencer",          emp:"transp" }
 ];
+/* ===================== v302 - AS TRES CAMADAS DO LAYOUT =====================
+   fabrica (CARDS_DASH) → empresa (Firestore, so' admin) → EU (localStorage, este aparelho).
+   🔑 Quem esta mais perto da pessoa ganha. E o rascunho (dashEdit) ganha de todos enquanto a
+      caixa Personalizar estiver aberta — assim Cancelar volta tudo sem tocar em nada gravado.
+   🔴 A ORDEM continua vindo de `ordemCardsDash` (v200). Tamanho e ocultos sao campos IRMAOS.
+      Copiar a ordem para um segundo lugar seria criar a divergencia de mao beijada. */
+const DASH_TAMS = [["g", "Inteiro"], ["m", "Metade"], ["p", "Um ter\u00e7o"]];
+function dashChaveMeu(s){ return "pf_dash_layout_" + s; }
+function dashLerMeu(s){
+  try {
+    const t = localStorage.getItem(dashChaveMeu(s));
+    const o = t ? JSON.parse(t) : null;
+    /* 🔴 layout salvo torto e' layout ignorado, nao tela quebrada. */
+    if (!o || !Array.isArray(o.ordem)) return null;
+    return { ordem: o.ordem.slice(), tam: Object.assign({}, o.tam || {}),
+             ocultos: Array.isArray(o.ocultos) ? o.ocultos.slice() : [] };
+  } catch (e){ return null; }
+}
+function dashGravarMeu(s, l){ try { localStorage.setItem(dashChaveMeu(s), JSON.stringify(l)); } catch (e){} }
+function dashApagarMeu(s){ try { localStorage.removeItem(dashChaveMeu(s)); } catch (e){} }
+function dashLayoutFabrica(s){
+  return { ordem: CARDS_DASH.filter(c => String(c.emp).split("|").indexOf(s) >= 0).map(c => c.k),
+           tam: {}, ocultos: [] };
+}
+function dashLayoutEmpresa(s){
+  return { ordem: ((ordemCardsDash || {})[s] || []).slice(),
+           tam: Object.assign({}, (tamCardsDash || {})[s] || {}),
+           ocultos: (((ocultosCardsDash || {})[s]) || []).slice() };
+}
+function dashLayout(s){
+  s = s || siglaEmpresa(empresa);
+  if (dashEdit) return dashEdit;
+  return dashLerMeu(s) || dashLayoutEmpresa(s);
+}
+/* De onde veio o que esta na tela — e' o que o rodape da caixa escreve, para ninguem
+   personalizar achando que esta mexendo no que a equipe ve. */
+function dashFonteLayout(s){
+  s = s || siglaEmpresa(empresa);
+  if (dashLerMeu(s)) return "meu";
+  const e = dashLayoutEmpresa(s);
+  return (e.ordem.length || Object.keys(e.tam).length || e.ocultos.length) ? "empresa" : "fabrica";
+}
+function cardDashTam(k, s){ const t = (dashLayout(s).tam || {})[k]; return (t === "m" || t === "p") ? t : "g"; }
+function cardDashOculto(k, s){ return (dashLayout(s).ocultos || []).indexOf(k) >= 0; }
+
 function cardsDashDaEmpresa(s){
   s = s || siglaEmpresa(empresa);
   const base = CARDS_DASH.filter(c => String(c.emp).split("|").indexOf(s) >= 0);
-  const ordem = (ordemCardsDash && ordemCardsDash[s]) ? ordemCardsDash[s] : [];
+  const ordem = dashLayout(s).ordem || [];
   const mapa = {}; base.forEach(c => mapa[c.k] = c);
   const saida = [];
   ordem.forEach(k => { if (mapa[k]){ saida.push(mapa[k]); delete mapa[k]; } });
@@ -20162,9 +20260,11 @@ function resetarOrdemCardsDash(){
 }
 function alternarOrdemCardsDash(){ ordCardsAberto = !ordCardsAberto; renderBarraOrdenarCards(); renderOrdemCardsDash(); }
 function renderBarraOrdenarCards(){
+  /* 🔴 v302 - O BOTAO DEIXOU DE SER SO' DO ADMIN. Todo mundo pode arrumar o PROPRIO Dashboard;
+     o que continua sendo so' do admin e' salvar PARA TODO MUNDO (e mexer nas cores). */
   const adm = ehAdminAtual();
-  const bt = adm ? ('<button class="doc-chip rel-ord-bt' + (ordCardsAberto ? ' ativo' : '') +
-    '" onclick="alternarOrdemCardsDash()" title="Mudar a ordem dos cards desta tela">⚙️ Ordenar cards</button>') : "";
+  const bt = '<button class="doc-chip rel-ord-bt' + (ordCardsAberto ? ' ativo' : '') +
+    '" onclick="alternarOrdemCardsDash()" title="Arrastar, redimensionar, esconder e voltar ao padr\u00e3o">\u270f\ufe0f Personalizar</button>';
   const b = document.getElementById("dashOrdBarra");
   // v209 - se o painel tem a barra "Exportar PDF / Imprimir", o botao vai para DENTRO dela,
   // na mesma linha. A barra propria (#dashOrdBarra) so e' usada se aquela nao existir.
@@ -20181,29 +20281,307 @@ function renderBarraOrdenarCards(){
     return;
   }
   if (!b) return;
-  b.style.display = adm ? "" : "none";
+  b.style.display = "";
   b.innerHTML = bt;
 }
+/* ===================== v302 - A CAIXA PERSONALIZAR =====================
+   Ela mora onde a de "Ordenar cards" morava (`.ord-cards-box`, no topo do painel), e o botao
+   que a abre e' o mesmo. O que mudou e' o que ela faz.
+
+   🔴 CANCELAR TEM DE VOLTAR TUDO, e e' por isso que existe um RASCUNHO (`dashEdit`) em vez de
+      mexer direto no que esta salvo. E' a mesma receita da caixa Personalizar dos tanques
+      (v278): o rascunho ganha do salvo enquanto a caixa esta aberta, e so' morre depois de o
+      banco aceitar. 🔑 Quem mexe direto no salvo nao tem como oferecer Cancelar sem inventar um
+      "desfazer" — e desfazer inventado e' onde nasce o proximo defeito. */
+
 function renderOrdemCardsDash(){
   const caixa = document.querySelector("#painelDash .ord-cards-box");
   if (!caixa) return;
-  if (!ordCardsAberto || !ehAdminAtual()){ caixa.innerHTML = ""; return; }
+  if (!ordCardsAberto){ caixa.innerHTML = ""; return; }
   const s = siglaEmpresa(empresa);
+  const adm = ehAdminAtual();
   const lista = cardsDashDaEmpresa(s);
-  const ondeVale = (s === "conv") ? "a Full Conveniência" : (s === "transp" ? "a Full Transportadora" : "os Postos Full");
-  let h = '<div class="ord-abas"><p class="nota-dash">Arrume os cards na ordem que você preferir. Vale para ' +
-    ondeVale + ' e todo mundo passa a ver assim.</p><div class="ord-lista">';
-  lista.forEach((c, i) => {
-    h += '<div class="ord-item"><span class="ord-pos">' + (i+1) + '</span>' +
-         '<span class="ord-nome">' + c.n + '</span>' +
-         '<span class="ord-bts">' +
-         '<button class="btn-claro" ' + (i === 0 ? 'disabled ' : '') + 'onclick="moverCardDash(\'' + c.k + '\',-1)" title="Subir">\u25b2</button>' +
-         '<button class="btn-claro" ' + (i === lista.length-1 ? 'disabled ' : '') + 'onclick="moverCardDash(\'' + c.k + '\',1)" title="Descer">\u25bc</button>' +
-         '</span></div>';
-  });
-  h += '</div><div class="ord-acoes"><button class="btn-claro" onclick="resetarOrdemCardsDash()">\u21a9 Voltar à ordem original</button>' +
-       '<button class="btn-claro" onclick="alternarOrdemCardsDash()">\u2713 Pronto</button></div></div>';
+  const ondeVale = (s === "conv") ? "a Full Conveni\u00eancia"
+                 : (s === "transp" ? "a Full Transportadora" : "os Postos Full");
+  const fonte = dashFonteLayout(s);
+  const escondidos = lista.filter(c => cardDashOculto(c.k, s));
+
+  let h = '<div class="ord-abas"><p class="nota-dash">' +
+    'Arraste os cards pela al\u00e7a <b>\u283f arraste</b>, escolha o <b>tamanho</b> de cada um e ' +
+    'esconda o que voc\u00ea n\u00e3o usa. No celular, use as setas \u25b2\u25bc \u2014 arrastar em tela ' +
+    'pequena briga com a rolagem da p\u00e1gina.</p>';
+
+  /* 🔴 O CATALOGO DO QUE ESTA ESCONDIDO FICA SEMPRE VISIVEL — nao dentro de um menu.
+     Card escondido que nao aparece em lugar nenhum vira card perdido, e a pessoa conclui que o
+     app "sumiu com" a tela dela. */
+  h += '<div class="dsp-somem"><span class="nota-dash" style="margin:0 4px 0 0">Escondidos:</span>';
+  h += escondidos.length
+     ? escondidos.map(c => '<button class="dsp-bt" onclick="dspMostrar(\'' + escAspas(c.k) +
+         '\')" title="Trazer de volta">\u2795 ' + escAttr(c.n) + '</button>').join("")
+     : '<span class="nota-dash" style="margin:0">nenhum \u2014 todos os cards est\u00e3o na tela.</span>';
+  h += '</div>';
+
+  if (adm) h += dspCaixaCores(s);
+
+  /* 🔴 QUANDO OS DOIS BOTOES FAZEM A MESMA COISA, SOBRA UM — e a FOTO foi quem mostrou.
+     Enquanto a empresa nao tem padrao proprio, "voltar ao padrao da empresa" E "voltar ao de
+     fabrica" levam ao mesmo lugar, e a tela mostrava os dois, lado a lado, com nomes quase
+     iguais. 🔑 E' a licao da v289 (duas fileiras de periodo no DRE) numa tela nova: quando dois
+     controles mudam a mesma coisa AOS OLHOS DE QUEM OLHA, o defeito nao e' de rotulo, e' de
+     haver dois. */
+  const temEmpresa = (function(){ const e = dashLayoutEmpresa(s);
+    return !!(e.ordem.length || Object.keys(e.tam).length || e.ocultos.length); })();
+  h += '<div class="dsp-acoes">' +
+    (temEmpresa
+      ? ('<button class="btn-claro" onclick="dspPadrao(\'empresa\')">\u21a9 Voltar ao padr\u00e3o da empresa</button>' +
+         (adm ? '<button class="btn-claro" onclick="dspPadrao(\'fabrica\')">\u21a9 Voltar ao de f\u00e1brica</button>' : ''))
+      : '<button class="btn-claro" onclick="dspPadrao(\'fabrica\')">\u21a9 Voltar ao de f\u00e1brica</button>') +
+    '<button class="btn-claro" onclick="dspCancelar()">\u2715 Cancelar</button>' +
+    '<button class="btn-claro" onclick="dspSalvar(\'meu\')">\u2713 Salvar s\u00f3 para mim</button>' +
+    (adm ? '<button class="btn-claro" onclick="dspSalvar(\'empresa\')">\u2713 Salvar para todo mundo</button>' : '') +
+    '</div>';
+
+  /* 🔑 O RODAPE DIZ DE QUEM E' O QUE ESTA NA TELA. Sem isso, o admin arruma o Dashboard achando
+     que arrumou o da equipe — e a equipe continua vendo outra coisa. */
+  h += '<p class="nota-dash" style="margin-top:8px">' +
+    (fonte === "meu"
+      ? '\u26a0\ufe0f Voc\u00ea est\u00e1 vendo <b>o seu ajuste</b>, guardado neste aparelho. O padr\u00e3o que vale para ' +
+        ondeVale + ' pode ser outro.'
+      : (fonte === "empresa"
+          ? 'Voc\u00ea est\u00e1 vendo <b>o padr\u00e3o que vale para ' + ondeVale + '</b>.'
+          : 'Voc\u00ea est\u00e1 vendo <b>o padr\u00e3o de f\u00e1brica</b> \u2014 ningu\u00e9m personalizou ' +
+            ondeVale + ' ainda.')) +
+    (adm ? ' <b>Salvar para todo mundo</b> troca o padr\u00e3o para ' + ondeVale + '.' :
+           ' O que voc\u00ea salvar aqui vale <b>s\u00f3 neste aparelho</b>.') + '</p></div>';
   caixa.innerHTML = h;
+}
+
+/* ----- a barra que aparece dentro de cada card durante a edicao ----------------------- */
+function dspPintarBarras(){
+  const painel = document.getElementById("painelDash");
+  if (!painel) return;
+  /* limpa sempre: barra velha em card que saiu do modo de edicao e' botao fantasma */
+  [].slice.call(painel.querySelectorAll(".dsp-bar")).forEach(b => b.remove());
+  [].slice.call(painel.querySelectorAll(".grupo")).forEach(g => {
+    g.removeAttribute("draggable");
+    g.classList.remove("dsp-arrastando", "dsp-alvo");
+    g.ondragstart = g.ondragover = g.ondragleave = g.ondrop = g.ondragend = null;
+  });
+  if (!dashEdit) return;
+
+  const s = siglaEmpresa(empresa);
+  const lista = cardsDashDaEmpresa(s).filter(c => !cardDashOculto(c.k, s));
+  /* 🔴 Arrastar so' no computador — escolha dele. `matchMedia` decide na hora de desenhar. */
+  const podeArrastar = (typeof matchMedia === "function") && matchMedia("(min-width:901px)").matches;
+
+  lista.forEach((c, i) => {
+    const el = document.getElementById(c.id);
+    if (!el) return;
+    const tam = cardDashTam(c.k, s);
+    const bar = document.createElement("div");
+    bar.className = "dsp-bar";
+    bar.innerHTML =
+      (podeArrastar ? '<span class="dsp-grab" title="Arraste para mudar de lugar">\u283f arraste</span>' : '') +
+      '<button class="dsp-bt" ' + (i === 0 ? 'disabled ' : '') + 'onclick="dspMover(\'' + escAspas(c.k) +
+        '\',-1)" title="Subir">\u25b2</button>' +
+      '<button class="dsp-bt" ' + (i === lista.length - 1 ? 'disabled ' : '') + 'onclick="dspMover(\'' +
+        escAspas(c.k) + '\',1)" title="Descer">\u25bc</button>' +
+      DASH_TAMS.map(t => '<button class="dsp-bt' + (tam === t[0] ? ' aceso' : '') + '" onclick="dspTam(\'' +
+        escAspas(c.k) + '\',\'' + t[0] + '\')">' + t[1] + '</button>').join("") +
+      '<button class="dsp-bt dsp-x" onclick="dspOcultar(\'' + escAspas(c.k) +
+        '\')" title="Esconder este card">\u2715 esconder</button>';
+    el.insertBefore(bar, el.firstChild);
+
+    if (podeArrastar){
+      el.setAttribute("draggable", "true");
+      el.ondragstart = ev => { dspArrastando = c.k; el.classList.add("dsp-arrastando");
+                               try { ev.dataTransfer.setData("text/plain", c.k); } catch (e){}
+                               try { ev.dataTransfer.effectAllowed = "move"; } catch (e){} };
+      el.ondragover  = ev => { if (!dspArrastando || dspArrastando === c.k) return;
+                               ev.preventDefault(); el.classList.add("dsp-alvo"); };
+      el.ondragleave = () => el.classList.remove("dsp-alvo");
+      el.ondrop      = ev => { ev.preventDefault(); el.classList.remove("dsp-alvo");
+                               dspSoltarEm(c.k); };
+      el.ondragend   = () => { dspArrastando = ""; dspPintarBarras(); };
+    }
+  });
+}
+
+/* ----- as acoes do rascunho ----------------------------------------------------------- */
+function dspRascunho(){ return dashEdit; }
+function dspRedesenhar(){ aplicarOrdemCardsDash(); ajustarBlocosDash(); renderOrdemCardsDash(); }
+
+function alternarOrdemCardsDash(){
+  ordCardsAberto = !ordCardsAberto;
+  if (ordCardsAberto){
+    const s = siglaEmpresa(empresa);
+    const base = dashLerMeu(s) || dashLayoutEmpresa(s);
+    /* o rascunho nasce com a ORDEM COMPLETA (a que a tela mostra), nao com a lista salva pela
+       metade — senao arrastar um card faria os que nunca foram salvos pularem de lugar. */
+    dashEdit = { ordem: cardsDashDaEmpresa(s).map(c => c.k),
+                 tam: Object.assign({}, base.tam || {}),
+                 ocultos: (base.ocultos || []).slice() };
+  } else {
+    dashEdit = null; dashCoresEdit = null;
+  }
+  renderBarraOrdenarCards();
+  dspRedesenhar();
+}
+function dspCancelar(){ ordCardsAberto = false; dashEdit = null; dashCoresEdit = null;
+                        renderBarraOrdenarCards(); dspRedesenhar(); }
+
+function dspMover(k, dir){
+  if (!dashEdit) return;
+  const s = siglaEmpresa(empresa);
+  const vis = cardsDashDaEmpresa(s).filter(c => !cardDashOculto(c.k, s)).map(c => c.k);
+  const i = vis.indexOf(k), j = i + dir;
+  if (i < 0 || j < 0 || j >= vis.length) return;
+  dspTrocarNaOrdem(k, vis[j]);
+}
+function dspSoltarEm(kAlvo){
+  if (!dashEdit || !dspArrastando || dspArrastando === kAlvo) return;
+  const k = dspArrastando;
+  /* 🔑 ARRASTAR NAO E' TROCAR DE LUGAR: e' TIRAR e ENFIAR na frente do alvo. Trocar faria o card
+     arrastado por cima de tres posicoes empurrar o de destino para longe, e a ordem final nao
+     seria a que o olho viu. */
+  const ordem = dashEdit.ordem.slice();
+  const de = ordem.indexOf(k); if (de >= 0) ordem.splice(de, 1);
+  const para = ordem.indexOf(kAlvo);
+  ordem.splice(para < 0 ? ordem.length : para, 0, k);
+  dashEdit.ordem = ordem;
+  dspArrastando = "";
+  dspRedesenhar();
+}
+function dspTrocarNaOrdem(a, b){
+  const ordem = dashEdit.ordem.slice();
+  const ia = ordem.indexOf(a), ib = ordem.indexOf(b);
+  if (ia < 0 || ib < 0) return;
+  ordem[ia] = b; ordem[ib] = a;
+  dashEdit.ordem = ordem;
+  dspRedesenhar();
+}
+function dspTam(k, t){
+  if (!dashEdit) return;
+  if (t === "g") delete dashEdit.tam[k]; else dashEdit.tam[k] = t;
+  dspRedesenhar();
+}
+function dspOcultar(k){
+  if (!dashEdit) return;
+  if (dashEdit.ocultos.indexOf(k) < 0) dashEdit.ocultos.push(k);
+  dspRedesenhar();
+}
+function dspMostrar(k){
+  if (!dashEdit) return;
+  dashEdit.ocultos = dashEdit.ocultos.filter(x => x !== k);
+  dspRedesenhar();
+}
+function dspPadrao(qual){
+  if (!dashEdit) return;
+  const s = siglaEmpresa(empresa);
+  const base = (qual === "fabrica") ? dashLayoutFabrica(s) : dashLayoutEmpresa(s);
+  /* 🔴 Voltar ao padrao da EMPRESA quando a empresa nunca personalizou nada e' voltar ao de
+     fabrica — e o botao ja' diz isso no rotulo, para o clique nao parecer que nao fez nada. */
+  const ordem = (base.ordem && base.ordem.length) ? base.ordem.slice() : dashLayoutFabrica(s).ordem;
+  dashEdit = { ordem: ordem, tam: Object.assign({}, base.tam || {}), ocultos: (base.ocultos || []).slice() };
+  dspRedesenhar();
+}
+function dspSalvar(onde){
+  if (!dashEdit) return;
+  const s = siglaEmpresa(empresa);
+  const l = { ordem: dashEdit.ordem.slice(), tam: Object.assign({}, dashEdit.tam),
+              ocultos: dashEdit.ocultos.slice() };
+  if (onde === "meu"){
+    dashGravarMeu(s, l);
+    ordCardsAberto = false; dashEdit = null; dashCoresEdit = null;
+    renderBarraOrdenarCards(); dspRedesenhar();
+    avisar("Dashboard salvo neste aparelho.", "ok");
+    return;
+  }
+  if (!ehAdminAtual()) return;
+  if (!ordemCardsDash) ordemCardsDash = {};
+  if (!tamCardsDash) tamCardsDash = {};
+  if (!ocultosCardsDash) ocultosCardsDash = {};
+  ordemCardsDash[s] = l.ordem; tamCardsDash[s] = l.tam; ocultosCardsDash[s] = l.ocultos;
+  docOrdemCardsDash.set({ porEmpresa: ordemCardsDash, tamanhos: tamCardsDash, ocultos: ocultosCardsDash })
+    .then(() => {
+      /* 🔴 QUEM SALVA PARA TODO MUNDO PRECISA VER O QUE TODO MUNDO VE. Sem apagar o ajuste
+         pessoal deste aparelho, o admin salvaria o padrao e continuaria olhando o dele — e
+         concluiria que nao funcionou. */
+      dashApagarMeu(s);
+      ordCardsAberto = false; dashEdit = null; dashCoresEdit = null;
+      renderBarraOrdenarCards(); dspRedesenhar();
+      if (typeof logAtividade === "function") logAtividade("menus", "Personalizou o Dashboard", s);
+      avisar("Dashboard salvo para todo mundo.", "ok");
+    })
+    .catch(e => avisar("N\u00e3o deu para salvar: " + (e && e.message ? e.message : e), "erro"));
+}
+/* mantidos porque outras partes do app chamam pelo nome antigo */
+function moverCardDash(k, dir){ dspMover(k, dir); }
+function resetarOrdemCardsDash(){ dspPadrao("fabrica"); }
+
+/* ----- as cores dos combustiveis, dentro do Personalizar (so' admin) ------------------ */
+/* 🔴 ELAS NAO SAO DO DASHBOARD: moram em `config/tanquesAjustes`, as MESMAS do Nivel dos
+   tanques. Por isso tem botao de salvar proprio e a caixa diz, com todas as letras, que valem
+   para as duas telas e para todo mundo. 🔑 Guardar a mesma cor em dois lugares seria a
+   divergencia de sempre; o que este botao faz e' dar um segundo CAMINHO para o mesmo lugar. */
+function dspProdutosDeCor(s){
+  if (s !== "postos") return [];
+  const vistos = {}, saida = [];
+  const junta = nome => { const k = tqvChaveProd(nome); if (!k || vistos[k]) return; vistos[k] = 1; saida.push(nome); };
+  CBD_POSTOS.forEach(p => cbdLinhas(p[0]).forEach(l => junta(l.prod)));
+  Object.keys((tanquesNivel && tanquesNivel.postos) || {}).forEach(p => cbdProdutosDoTanque(p).forEach(junta));
+  return saida.sort((a, b) => cbdFamilia(a) - cbdFamilia(b) || String(a).localeCompare(String(b)));
+}
+function dspCaixaCores(s){
+  const prods = dspProdutosDeCor(s);
+  if (!prods.length) return "";
+  const ed = dashCoresEdit;
+  if (!ed) return '<div class="dsp-somem"><button class="dsp-bt" onclick="dspAbrirCores()">' +
+                  '\ud83c\udfa8 Cores dos combust\u00edveis</button></div>';
+  let h = '<div class="dsp-caixa"><b style="font-size:.86rem">\ud83c\udfa8 Cores dos combust\u00edveis</b>' +
+    '<p class="nota-dash" style="margin:6px 0 0">Valem para <b>todo mundo</b> e tamb\u00e9m para o ' +
+    '<b>N\u00edvel dos tanques</b> \u2014 a mesma cor nas duas telas, de prop\u00f3sito.</p><div class="dsp-cores">';
+  prods.forEach(p => {
+    const k = tqvChaveProd(p);
+    const cor = (ed[k] && /^#[0-9a-fA-F]{6}$/.test(ed[k])) ? ed[k] : tqvCorPadrao(p);
+    h += '<span class="dsp-cor"><input type="color" value="' + cor + '" oninput="dspCor(\'' +
+         escAspas(p) + '\', this.value)">' + escAttr(p) +
+         (ed[k] ? ' <button class="dsp-bt" onclick="dspCorPadrao(\'' + escAspas(p) +
+                  '\')" title="Voltar \u00e0 cor de f\u00e1brica">\u21a9</button>' : '') + '</span>';
+  });
+  h += '</div><div class="dsp-acoes">' +
+    '<button class="btn-claro" onclick="dspFecharCores()">\u2715 Fechar sem salvar</button>' +
+    '<button class="btn-claro" onclick="dspSalvarCores()">\u2713 Salvar as cores</button></div></div>';
+  return h;
+}
+function dspAbrirCores(){ dashCoresEdit = Object.assign({}, (tanquesAjustes || {}).cores || {}); renderOrdemCardsDash(); }
+function dspFecharCores(){ dashCoresEdit = null; dspRedesenhar(); }
+function dspCor(prod, hex){
+  if (!dashCoresEdit) return;
+  dashCoresEdit[tqvChaveProd(prod)] = hex;
+  renderOrdemCardsDash(); renderCombDia();
+}
+function dspCorPadrao(prod){
+  if (!dashCoresEdit) return;
+  delete dashCoresEdit[tqvChaveProd(prod)];
+  renderOrdemCardsDash(); renderCombDia();
+}
+function dspSalvarCores(){
+  if (!dashCoresEdit || !ehAdminAtual()) return;
+  /* 🔴 MERGE, sempre: este documento tem a ORDEM dos postos e dos tanques dentro dele, escrita
+     pela outra tela. Um `set` puro daqui apagaria o trabalho de la'. */
+  docTanquesAjustes.set({ cores: dashCoresEdit, atualizadoEm: new Date().toISOString(),
+                          por: usuarioAtual || "" }, { merge: true })
+    .then(() => { dashCoresEdit = null; avisar("Cores salvas \u2014 valem tamb\u00e9m no N\u00edvel dos tanques.", "ok");
+                  dspRedesenhar(); })
+    .catch(e => avisar("N\u00e3o deu para salvar as cores: " + (e && e.message ? e.message : e), "erro"));
+}
+/* 🔑 Enquanto a caixa de cores esta aberta, o rascunho GANHA do que esta salvo — e' o que faz o
+   card mudar de cor na hora, antes de qualquer gravacao. Mesma ideia do tqvAj() dos tanques. */
+function dspCorEscolhida(nome){
+  if (!dashCoresEdit) return null;
+  const c = dashCoresEdit[tqvChaveProd(nome)];
+  return (typeof c === "string" && /^#[0-9a-fA-F]{6}$/.test(c)) ? c : null;
 }
 
 /* ===================== v200 - RESULTADO DO MES DOS POSTOS =====================
@@ -20402,7 +20780,8 @@ function cbdIdadeMin(){
 
 function cbdCartao(l){
   const nome = String(l && l.prod || "").trim();
-  const cor = tqvCorProduto(nome);
+  /* v302 - o rascunho da caixa de cores ganha, para a cor mudar enquanto ele escolhe */
+  const cor = (typeof dspCorEscolhida === "function" && dspCorEscolhida(nome)) || tqvCorProduto(nome);
   const rsL = (l && l.rsL != null) ? +l.rsL : null;
   const ruim = rsL != null && rsL < 0;
   /* 🔴 O QUE AINDA NAO VENDEU HOJE NAO MOSTRA ZERO: mostra travessao e diz o que e'.
@@ -20811,8 +21190,19 @@ function ajustarBlocosDash(){
   const sig = siglaEmpresa(empresa);
   CARDS_DASH.forEach(c => {
     const e = document.getElementById(c.id);
-    if (e) e.style.display = (String(c.emp).split("|").indexOf(sig) >= 0) ? "" : "none";
+    if (!e) return;
+    const daEmpresa = String(c.emp).split("|").indexOf(sig) >= 0;
+    /* 🔴 DUAS RAZOES DIFERENTES PARA SUMIR, e elas nao se misturam: card de OUTRA empresa nunca
+       existe aqui; card ESCONDIDO existe, esta na caixa Personalizar e volta com um clique.
+       🔑 Por isso o escondido continua no `CARDS_DASH` e no catalogo — esconder nao e' apagar. */
+    e.style.display = (daEmpresa && !cardDashOculto(c.k, sig)) ? "" : "none";
+    e.classList.remove("dsp-m", "dsp-p");
+    const t = cardDashTam(c.k, sig);
+    if (t !== "g") e.classList.add("dsp-" + t);
   });
+  const painel = document.getElementById("painelDash");
+  if (painel) painel.classList.toggle("dsp-on", !!dashEdit);
+  dspPintarBarras();
   // v199 - a explicacao do card de evolucao muda com a empresa
   const ex = document.getElementById("evoExplica");
   if (ex) ex.innerHTML = conv
