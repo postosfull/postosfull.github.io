@@ -6446,6 +6446,11 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v309", data:"09/08/2026", tit:"\u26fd Nomes mais curtos no Lucro por combust\u00edvel", itens:[
+    {t:"m", h:"\u201cG.\u201d no lugar de \u201cGasolina\u201d", d:"No card <b>\u26fd Lucro por combust\u00edvel</b>, <b>Gasolina comum</b> virou <b>G. Comum</b>, <b>Gasolina aditivada</b> virou <b>G. Aditivada</b> e <b>Gasolina Podium</b> virou <b>G. Podium</b>. Pedido seu: com o nome inteiro, essas linhas ocupavam <b>duas linhas</b> ao lado do n\u00famero quando o card est\u00e1 em <b>Metade</b> ou no celular. Nenhum n\u00famero mudou."},
+    {t:"m", h:"Em Teresina a Grid aparece com o nome dela", d:"A <b>Gasolina Grid</b> deixou de aparecer como \u201cGasolina aditivada\u201d e agora se chama <b>G. Grid</b>. Ela s\u00f3 existe em Teresina, e a aditivada s\u00f3 existe em Caxias e Pres. Dutra \u2014 s\u00e3o produtos diferentes, e agora cada posto mostra o nome do que ele vende."},
+    {t:"n", h:"E ela ganhou lugar pr\u00f3prio em Personalizar", d:"Em <b>\u270f\ufe0f Personalizar \u2192 \u26fd Combust\u00edveis: ordem e cor</b>, a <b>G. Grid</b> virou uma linha separada da <b>G. Aditivada</b> na ordem dos combust\u00edveis. <b>A ordem que voc\u00ea j\u00e1 tinha salvo continua valendo</b> \u2014 s\u00f3 a Grid, que \u00e9 nova na lista, entra no fim at\u00e9 voc\u00ea coloc\u00e1-la onde quiser."}
+  ]},
   {v:"v308", data:"09/08/2026", tit:"\ud83d\uded2 O que comprar \u2014 a tela que decide o pedido, na Full Transportadora", itens:[
     {t:"n", h:"Quantos litros pedir de cada combust\u00edvel, em cada posto", d:"Um menu novo na <b>Full Transportadora</b>, logo antes do Pedido de carregamento. Ele l\u00ea o n\u00edvel dos tanques que j\u00e1 chega do Petros de hora em hora e responde a pergunta que interessa: <b>o que comprar hoje</b>. Quando o posto tem mais de um tanque do mesmo produto, <b>eles entram juntos</b> \u2014 \u00e9 assim que a compra \u00e9 feita."},
     {t:"n", h:"A <b>cobertura</b> e a <b>reserva</b> s\u00e3o um n\u00famero <b>para cada posto</b>", d:"O <b>lote de compra</b> e o <b>prazo de entrega</b> valem para a rede; a <b>cobertura</b> e a <b>reserva m\u00ednima</b> t\u00eam um campo para Teresina, um para Caxias e um para Dutra. Quem voc\u00ea n\u00e3o escolher usa <b>o que cabe naquele posto</b>, medido na hora \u2014 e embaixo do campo est\u00e1 escrito quantos dias cabem e <b>qual produto aperta</b>. O tanque de gasolina de Teresina, por exemplo, comporta menos de 5 dias de venda no total, e a\u00ed nem uma semana de cobertura caberia. Fica guardado <b>neste aparelho</b>, e o \u21ba volta ao autom\u00e1tico."},
@@ -21804,8 +21809,11 @@ const CBD_IDADE_AVISO = 40, CBD_HORA_INI = 5, CBD_HORA_FIM = 23;
       e nunca se embaralha de um dia para o outro. */
 /* 🔴 A LINHA DE CADA COMBUSTIVEL, ESCRITA POR ELE, olhando as tres colunas como uma tabela:
      1 diesel S-10   ·   2 gasolina comum   ·   3 etanol
-     4 GASOLINA GRID (Teresina)  ao lado da  GASOLINA ADITIVADA (Caxias e Dutra)
-     5 GASOLINA PODIUM (Teresina) ao lado do OLEO DIESEL S-500 (Caxias e Dutra)
+     4 GASOLINA GRID (Teresina)  e  GASOLINA ADITIVADA (Caxias e Dutra)
+     5 GASOLINA PODIUM (Teresina) e  OLEO DIESEL S-500 (Caxias e Dutra)
+   🔴 v308 - o "ao lado" desta tabela era LITERAL ate' a v306, quando as colunas eram os
+      postos DENTRO de um bloco. Desde a v307 cada posto e' uma caixa, e a tabela virou apenas
+      a ordem em que as linhas aparecem dentro de cada uma.
    🔴 v304 - PODIUM E S-500 NAO DIVIDEM MAIS A LINHA 5 (ver o comentario logo abaixo).
    ⚠️ A ORDEM DOS TESTES IMPORTA: "OLEO DIESEL S10 ADITIVADO" tem de cair na LINHA 1, nao na 4.
       Por isso o teste do S-10 vem primeiro, e o da aditivada exige que NAO haja "DIESEL" no nome.
@@ -21814,15 +21822,28 @@ const CBD_IDADE_AVISO = 40, CBD_HORA_INI = 5, CBD_HORA_FIM = 23;
       proposito — posicao de array nao sabe dizer isso. */
 const CBD_ORDEM = [
   [/S\s*-?\s*10|S10/i,                     "Diesel S-10",        1],
-  [/GASOLINA(?!.*(ADITIV|PODIUM|GRID))/i,   "Gasolina comum",     2],
+  /* 🔴 v308 - "G." NO LUGAR DE "GASOLINA", A PEDIDO DELE, olhando o card em Metade:
+     "Gasolina aditivada" ocupava DUAS linhas ao lado do numero e "Gasolina comum" tambem.
+     🔑 Rotulo que quebra em duas linhas nao esta' comprido: esta' competindo por largura com
+        o numero, que e' o que a pessoa veio ler. Encurtar o rotulo e' proteger o numero. */
+  [/GASOLINA(?!.*(ADITIV|PODIUM|GRID))/i,   "G. Comum",           2],
   [/ETANOL|\u00c1LCOOL|ALCOOL/i,             "Etanol",             3],
-  [/^(?!.*DIESEL).*(GRID|ADITIV)/i,         "Gasolina aditivada", 4],
+  /* 🔴 v308 - A GRID VIROU BLOCO PROPRIO, e o teste dela vem ANTES do da aditivada.
+     Ele pediu dois nomes: "G. Grid" em Teresina, "G. Aditivada" em Caxias e Dutra — e sao dois
+     PRODUTOS diferentes mesmo, que nunca aparecem no mesmo posto.
+     🔑 A v304 os juntou de proposito, e estava certa NAQUELE desenho: o bloco comparava os
+        tres postos lado a lado, e um bloco com nomes diferentes por coluna seria mentira. Desde
+        a v307 cada posto e' uma caixa fechada e o bloco so' decide a ORDEM das linhas — entao
+        separar voltou a ser inofensivo. 🔴 Agrupamento que vira AFIRMACAO quando o desenho
+        compara volta a ser arrumacao quando ele para de comparar. */
+  [/^(?!.*DIESEL).*GRID/i,                  "G. Grid",            4],
+  [/^(?!.*DIESEL).*ADITIV/i,                "G. Aditivada",       4],
   /* 🔴 v304 - PODIUM E S-500 DEIXARAM DE DIVIDIR A LINHA 5. Na v301 eles dividiam porque
      "sobravam", e cada coluna era de um posto — ninguem comparava nada. No desenho novo as
      barras COMPARAM postos dentro do bloco, e Podium contra S-500 diria "Teresina ganha mais
      que Caxias" em produtos diferentes. 🔑 Agrupamento que era so' arrumacao vira AFIRMACAO
      quando o desenho passa a comparar. */
-  [/PODIUM/i,                               "Gasolina Podium",    5],
+  [/PODIUM/i,                               "G. Podium",          5],
   [/S\s*-?\s*500|S500/i,                    "Diesel S-500",       6],
   [/GNV|GAS NATURAL/i,                      "GNV",                7],
   [/DIESEL/i,                               "Diesel",             8]
@@ -21893,7 +21914,21 @@ function cbdIdadeMin(){
    `CBD_ORDEM` continua sendo o padrao (medido em julho); `tanquesAjustes.ordemBlocos` sobrepoe.
    Bloco que nao estiver na lista salva vai para o FIM na ordem de fabrica — nunca some.
    🔑 Mesma regra da ordem dos menus (v188) e dos cards (v200): lista salva SOBREPOE, nao MANDA. */
-function cbdChaveBloco(rotulo){ return String(rotulo || "").toUpperCase(); }
+/* 🔴 v308 - O APELIDO EXISTE PARA A ORDEM QUE ELE JA' SALVOU NAO IR PARA O FIM.
+   `tanquesAjustes.ordemBlocos` guarda o NOME do bloco, e a v308 trocou quatro nomes. Sem esta
+   tabela, a lista salva deixaria de casar e os blocos renomeados cairiam no fim da fileira —
+   **calados**, que e' o pior jeito de perder uma escolha do dono.
+   🔑 Renomear coisa que virou CHAVE de dado salvo obriga a carregar o nome velho junto. O
+      apelido nao e' gentileza: e' a unica prova de que a v308 nao apagou a v304.
+   ⚠️ A GRID nao entra aqui: ela era parte do bloco "Gasolina aditivada" e agora e' bloco
+      novo. Bloco novo cai no fim pela regra de sempre — e isso esta' certo, porque ninguem
+      nunca escolheu lugar para ele. */
+const CBD_ALIAS = { "GASOLINA COMUM": "G. COMUM", "GASOLINA ADITIVADA": "G. ADITIVADA",
+                    "GASOLINA PODIUM": "G. PODIUM" };
+function cbdChaveBloco(rotulo){
+  const k = String(rotulo || "").toUpperCase();
+  return CBD_ALIAS[k] || k;
+}
 
 
 /* ===================== v307 - A ORDEM DOS POSTOS =====================
