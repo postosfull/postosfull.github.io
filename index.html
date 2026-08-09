@@ -1428,38 +1428,13 @@
   #painelDash > *{grid-column:span 6;min-width:0}
   #painelDash > .grupo{margin-bottom:0}
   #painelDash > .grupo.dsp-m{grid-column:span 3}
-  #painelDash > .grupo.dsp-p{grid-column:span 2}
-  /* ===================== v306 - O PLACAR (1 espaço de 6) =====================
-     🔴 Este é o único tamanho que TROCA o desenho do card em vez de espremê-lo: em 1 espaço
-     o gráfico sai e fica um número só — o que pede ação. Por isso ele é também o único que
-     foi DESENHADO para ser estreito, e o único que continua estreito no celular. */
-  #painelDash > .grupo.dsp-u{grid-column:span 1}
-  #painelDash > .grupo.dsp-u > h2{font-size:.84rem;letter-spacing:.02em}
-  /* 🔑 A bula longa é útil embaixo de um gráfico e é ruído embaixo de um número. Nos dois
-     cards desta versão ela virou o `i` do título e nem existe mais como parágrafo; a regra
-     fica de pé para o PRÓXIMO card que ganhar placar sem ter passado por essa mudança. */
-  #painelDash > .grupo.dsp-u > .nota-dash{display:none}
-  .plc{display:flex;flex-direction:column;gap:3px;padding:2px 0 4px}
-  .plc-rot{font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
-           color:var(--cinza);line-height:1.3}
-  .plc-v{font-size:1.62rem;font-weight:800;line-height:1.14;overflow-wrap:anywhere}
-  .plc-v.plc-ruim{color:var(--vermelho)}
-  .plc-v.plc-ok{color:#18a558}
-  .plc-sub{font-size:.79rem;color:var(--cinza);line-height:1.4}
-  .plc-selo{align-self:flex-start;margin-top:5px;padding:3px 9px;border-radius:999px;
-            font-size:.73rem;font-weight:700;line-height:1.35}
-  .plc-selo.plc-ruim{color:var(--vermelho);border:1px solid rgba(192,57,43,.42);
-                     background-image:linear-gradient(rgba(192,57,43,.12),rgba(192,57,43,.12))}
-  .plc-selo.plc-ok{color:#18a558;border:1px solid rgba(24,165,88,.38);
-                   background-image:linear-gradient(rgba(24,165,88,.12),rgba(24,165,88,.12))}
-  /* 🔴 EM TELA ESTREITA TODO CARD É INTEIRO. Um terço de 390px é 130px — não é card, é tira.
-     Esta regra fica DEPOIS das de cima de propósito: `@media` não ganha especificidade.
-     ⚠️ v306 - E O PLACAR É A EXCEÇÃO, de propósito: ele não é um gráfico encolhido, é um
-     número. 1 espaço de uma tela de 1000px daria 140px, então ele vai ganhando largura
-     conforme a tela aperta — 1 no monitor, 2 na tela média, 3 no celular (dois por linha). */
-  @media (max-width:1200px){ #painelDash > .grupo.dsp-u{grid-column:span 2} }
-  @media (max-width:900px){ #painelDash > .grupo.dsp-m, #painelDash > .grupo.dsp-p{grid-column:span 6}
-                            #painelDash > .grupo.dsp-u{grid-column:span 3} }
+  /* 🛑 v307b - SAIRAM DAQUI O "UM TERCO" (`.dsp-p`), O PLACAR (`.dsp-u`) E TODO O CSS `.plc-*`.
+     Pedido dele: o Dashboard fica com DOIS tamanhos, Inteiro e Metade.
+     🔑 O tamanho que ninguem pode escolher e' um desenho que ninguem ve — e desenho que
+        ninguem ve nao se guarda "por via das duvidas": ele so' confunde quem ler o arquivo. */
+  /* 🔴 EM TELA ESTREITA TODO CARD E' INTEIRO. Metade de 390px e' 195px — nao e' card, e' tira.
+     Esta regra fica DEPOIS das de cima de proposito: `@media` nao ganha especificidade. */
+  @media (max-width:900px){ #painelDash > .grupo.dsp-m{grid-column:span 6} }
   /* 🛑 v306b - A REGRA DO "UM TERCO EM UMA COLUNA" MORREU AQUI, E ISSO E' BOM.
      Ela existia para consertar a quebra em 2+1 num tamanho so'. A faixa que rola resolve a
      MESMA coisa em TODOS os tamanhos — e ele apontou que o problema tambem aparecia na
@@ -2523,49 +2498,22 @@
      Os TRES postos lado a lado - escolha do Tiago. Em tela estreita eles viram uma coluna so'.
      🔑 A cor de cada combustivel e' a MESMA do Nivel dos tanques (tqvCorProduto): o etanol e'
         verde na pista, no tanque e aqui. Cor que muda de tela em tela vira legenda obrigatoria. */
-  /* ===================== v305 - UM POSTO DE CADA VEZ, BARRAS EM PE' =====================
-     🔴 A ALTURA DA BARRA E' FIXA EM 132px E A LARGURA E' 1/N DA TELA. Com um posto so', N e'
-     cinco — cada barra fica com ~240px, cabe o nome inteiro embaixo e o numero grande em cima.
-     Era exatamente isso que NAO cabia na v304, quando os tres postos dividiam a fileira e
-     sobravam 55px por barra.
-     🔴 O NUMERO DE COLUNAS VEM DE `--n`, E NAO DE UM `style=` NA TAG: `style` inline vence
-        `@media`, e a tela estreita ficaria com cinco tiras. Variavel entra como VALOR; quem
-        manda na regra continua sendo a folha. */
-  .cbd-pe{display:grid;grid-template-columns:repeat(var(--n,5),minmax(0,1fr));
-          gap:16px;align-items:end;margin:14px 0 4px}
-  /* 158 = 132px de barra (83,5% da caixa) + 26px de folga para o rotulo da barra mais alta.
-     \U0001f534 A ALTURA VEM DAQUI, E A PROPORCAO VEM DO JS. Trocar este numero no `@media` encolhe
-        barra, teto e rotulo juntos — porque nenhum dos tres esta' escrito em pixel. */
-  .cbd-col{display:grid;grid-template-rows:158px 14px auto;min-width:0}
-  .cbd-v{position:absolute;left:0;right:0;text-align:center;font-size:.92rem;font-weight:800;
-         white-space:nowrap;line-height:20px}
-  .cbd-v.melhor{color:#22c55e}
-  .cbd-v.ruim{color:var(--vermelho)}
-  .cbd-v.cbd-nada{opacity:.45;font-weight:700}
-  .cbd-cx{position:relative;border-bottom:1px solid rgba(155,163,170,.35)}
-  /* O TETO DA REGUA: onde chegaria a barra do maior R$/L do dia. \U0001f534 E' ele que da' sentido ao
-     espaco vazio das telas em que ninguem chegou perto do melhor. */
-  .cbd-cx::before{content:"";position:absolute;left:0;right:0;bottom:83.5%;
-                  border-top:1px dashed rgba(155,163,170,.28)}
-  .cbd-b{position:absolute;left:18%;right:18%;bottom:0;border-radius:6px 6px 2px 2px}
-  /* faixa do prejuizo: fica SEMPRE reservada, mesmo quando ninguem deu prejuizo, senao a linha
-     do zero subiria e desceria conforme o dia — e linha de base que anda nao e' linha de base. */
-  .cbd-ng{position:relative}
-  .cbd-ng i{position:absolute;left:18%;right:18%;top:0;border-radius:2px 2px 6px 6px;
-            background-image:linear-gradient(var(--vermelho),var(--vermelho))}
-  .cbd-n{font-size:.76rem;opacity:.74;text-align:center;line-height:1.3;padding-top:6px;
-         display:flex;align-items:flex-start;justify-content:center;gap:6px}
-  .cbd-ponto{width:8px;height:8px;border-radius:50%;flex:0 0 auto;margin-top:4px;
-             background-image:linear-gradient(#999,#999)}
+  /* ===================== v307 - O CARD VIROU TEXTO =====================
+     🔴 NENHUMA PECA NOVA, E ISSO E' O PONTO. Ele pediu o card "igual ao Vendas do dia", e o
+     Vendas do dia ja' e' feito de `.pet-grid` > `.pet-card` > `.pet-linhas` > `.pet-l`. Escrever
+     um segundo conjunto de classes com a mesma cara seria criar a proxima divergencia: um dia
+     alguem ajusta o espacamento de um e esquece o outro.
+     🔑 Dois cards com a mesma cara sao UM card aprendido uma vez — a mesma razao que fez o
+        filtro da v305 reaproveitar as classes do Nivel dos tanques.
+     🔴 E SAIRAM daqui, junto com o grafico: `.cbd-pe`, `.cbd-col`, `.cbd-v`, `.cbd-cx`
+        (com o teto tracejado da regua), `.cbd-b`, `.cbd-ng`, `.cbd-n` e `.cbd-ponto`. Codigo
+        morto que descreve uma tela morta engana quem le. */
+  .cbd-grade{margin:14px 0 4px}
+  /* Quem VENDE aquele combustivel e ainda NAO vendeu hoje leva travessao, nunca R$ 0,000 —
+     zero e' o unico numero que mente. Ele nao e' verde nem vermelho: nao ha resultado ainda. */
+  .pet-l b.cbd-nada{color:var(--cinza);opacity:.75;font-weight:600}
   .cbd-aviso{border:1px solid #e0a106;border-left-width:4px;border-radius:10px;padding:10px 13px;
              background:rgba(224,161,6,.10);font-size:.87rem;line-height:1.45;margin:0 0 12px}
-  /* 🔴 Cinco barras so' cabem em tela larga. As quebras ficam no FIM da folha porque `@media`
-     nao ganha especificidade — regra antiga escrita depois venceria a nova. */
-  @media (max-width:900px){ .cbd-pe{grid-template-columns:repeat(3,minmax(0,1fr));row-gap:20px} }
-  /* \U0001f534 No celular a fileira vira DUAS colunas — ou seja, TRES fileiras de barras. Mantendo os
-     158px, o card passaria de 600px so' de grafico. A caixa cai para 118px e tudo encolhe junto. */
-  @media (max-width:560px){ .cbd-pe{grid-template-columns:repeat(2,minmax(0,1fr))}
-                            .cbd-col{grid-template-rows:118px 12px auto} }
   .tqv-regua{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 14px;font-size:.8rem}
   .tqv-rg{border-radius:999px;padding:3px 11px;border:1px solid var(--borda)}
   .tqv-rg.tqv-c{background:rgba(229,72,77,.12);border-color:rgba(229,72,77,.45)}
@@ -4287,6 +4235,7 @@ let tamCardsDash = {}, ocultosCardsDash = {};
 let dashEdit = null;        /* o rascunho enquanto se personaliza — Cancelar joga ele fora */
 let dashCoresEdit = null;   /* o rascunho das cores dos combustiveis (so' admin) */
 let dashOrdemEdit = null;   /* v304 - o rascunho da ORDEM dos blocos do card de combustivel */
+let dashPostosEdit = null;  /* v307 - o rascunho da ORDEM DOS POSTOS do mesmo card */
 let dspArrastando = "";
 let metaCaixa = {}, mcMsg = "";                  // v213 - config/metaCaixa (mcMsg sobrevive ao redesenho)
 let despesasAno = {}, dspAnoSel = "", dspPostoSel = "todos", dspComRet = true;  // v185
@@ -6391,6 +6340,15 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v307", data:"09/08/2026", tit:"\u26fd O Lucro por combust\u00edvel virou texto, igual ao Vendas do dia", itens:[
+    {t:"m", h:"Sem barras e sem cores: o nome do posto em cima, os combust\u00edveis embaixo", d:"O card <b>\u26fd Lucro por combust\u00edvel</b> passou a ter a mesma cara do card <b>\ud83c\udfc1 Vendas do dia</b>: uma caixa por posto, com o nome do posto no topo e, embaixo, uma linha para cada combust\u00edvel com o <b>lucro bruto por litro</b>. As barras coloridas sa\u00edram. O n\u00famero continua o mesmo, com as mesmas tr\u00eas casas."},
+    {t:"m", h:"Os tr\u00eas postos de uma vez \u2014 o filtro saiu", d:"Como o desenho virou texto, os tr\u00eas postos voltaram a caber lado a lado e os bot\u00f5es <b>Teresina \u00b7 Caxias \u00b7 Pres. Dutra</b> deixaram de ser necess\u00e1rios."},
+    {t:"m", h:"Verde quando deu lucro, vermelho quando deu preju\u00edzo", d:"\u00c9 a mesma cor das linhas de lucro do card Vendas do dia. Combust\u00edvel que o posto vende e ainda n\u00e3o vendeu hoje aparece com <b>travess\u00e3o</b>, nunca com R$ 0,000."},
+    {t:"n", h:"Em Personalizar d\u00e1 para escolher a ordem dos postos", d:"Em <b>\u270f\ufe0f Personalizar \u2192 \u26fd Combust\u00edveis: ordem e cor</b> (s\u00f3 administrador) entrou a <b>ordem dos postos</b>, ao lado da ordem dos combust\u00edveis que j\u00e1 existia. Ela \u00e9 a <b>mesma</b> do <b>N\u00edvel dos tanques</b>: mudar em um lugar muda no outro, de prop\u00f3sito."},
+    {t:"c", h:"Salvar a personaliza\u00e7\u00e3o dos tanques apagava a ordem dos combust\u00edveis", d:"Defeito que estava no ar desde a v304 e ningu\u00e9m tinha visto: a tela <b>N\u00edvel dos tanques</b> regrava o ajuste inteiro quando voc\u00ea salva, e ela n\u00e3o conhecia a <b>ordem dos combust\u00edveis</b> \u2014 que nasceu no Personalizar do Dashboard. Resultado: salvar os tanques zerava aquela ordem, sem avisar. Agora ela carrega junto o que n\u00e3o \u00e9 dela."},
+    {t:"m", h:"A cor dos combust\u00edveis continua, mas agora s\u00f3 fora deste card", d:"Como o card n\u00e3o identifica mais nada por cor, a lista de cores passou a valer apenas no <b>N\u00edvel dos tanques</b> e nos gr\u00e1ficos de <b>pre\u00e7o e margem</b>. Nada do que voc\u00ea j\u00e1 escolheu foi perdido."},
+    {t:"m", h:"O Dashboard fica com dois tamanhos de card: Inteiro e Metade", d:"Pedido seu, depois de usar os quatro. <b>Um ter\u00e7o</b> e <b>S\u00f3 o n\u00famero</b> sa\u00edram do <b>\u270f\ufe0f Personalizar</b>: sobraram <b>Inteiro</b> (a largura toda) e <b>Metade</b>. Card que voc\u00ea tinha deixado num dos tamanhos que sa\u00edram passa a aparecer em <b>Metade</b> \u2014 o menor que sobrou \u2014, e n\u00e3o em Inteiro: quem escolheu pequeno queria pequeno. Com isso o card <b>\ud83e\uddfe Caixas</b> deixou de ter a vers\u00e3o \u201cplacar\u201d, que s\u00f3 aparecia em um espa\u00e7o."}
+  ]},
   {v:"v306", data:"09/08/2026", tit:"\ud83d\udcd0 Cada card no tamanho certo \u2014 e com o desenho certo para aquele tamanho", itens:[
     {t:"n", h:"Um quarto tamanho: <b>S\u00f3 o n\u00famero</b>", d:"Em <b>\u270f\ufe0f Personalizar</b>, al\u00e9m de <b>Inteiro</b>, <b>Metade</b> e <b>Um ter\u00e7o</b>, agora existe <b>S\u00f3 o n\u00famero</b> \u2014 1 espa\u00e7o de 6, o que cabe <b>seis lado a lado</b> na mesma linha. E ele n\u00e3o \u00e9 o mesmo card espremido: o gr\u00e1fico sai e fica um <b>placar</b>."},
     {t:"n", h:"E o placar mostra o n\u00famero que <b>pede a\u00e7\u00e3o</b>", d:"No <b>\u26fd Lucro por combust\u00edvel</b>, o <b>menor R$/L do dia entre os tr\u00eas postos</b> \u2014 e quem estiver no preju\u00edzo ganha a frente, em vermelho. No <b>\ud83e\uddfe Caixas</b>, o <b>posto mais acima da meta</b>, com quantos dias ele passou. Quando est\u00e1 tudo dentro da meta, o placar continua l\u00e1, em verde: ele n\u00e3o some, e n\u00e3o fica vermelho \u00e0 toa."},
@@ -9718,32 +9676,9 @@ function renderCaixas(){
      🔑 Quando todos estao dentro da meta, o placar NAO fica vermelho nem some: ele diz o mais
      lento com selo verde. Placar que so' aparece quando esta ruim treina a equipe a ler
      ausencia como "sem dado" (irmao da licao da v248). */
-  if (cardDashTam("caixas") === "u"){
-    if (linha) linha.style.display = "none";
-    const lim = mcLimiteCorrido();
-    let alvo = null;
-    CXI_POSTOS.forEach(k => {
-      const dias = cxiNum((P[k]||{}).tempoDias);
-      if (dias <= 0) return;                       /* sem medicao nao disputa o placar */
-      if (!alvo || dias > alvo.dias) alvo = { k: k, dias: dias, o: (P[k]||{}) };
-    });
-    if (!alvo){
-      box.innerHTML = '<div class="ana-vazio">Ainda n\u00e3o h\u00e1 tempo de caixa medido em ' +
-        escAttr(cxiMesNome(cxiSel)) + '.</div>';
-      return;
-    }
-    const fora = alvo.dias > lim + 0.001;
-    box.innerHTML = plcHtml(
-      fora ? "Caixa mais atrasado" : "Caixa mais lento",
-      String(alvo.o.tempoTexto || "\u2014"),
-      fora ? "ruim" : "ok",
-      escAttr(cxiRotulo(alvo.k)) + " \u00b7 " + escAttr(cxiMesNome(cxiSel)),
-      fora ? ("\u25b2 " + fmtBR(alvo.dias - lim, 1) + " dia" + ((alvo.dias - lim) >= 2 ? "s" : "") +
-              " acima da meta")
-           : "\u2713 os tr\u00eas dentro da meta",
-      fora ? "ruim" : "ok");
-    return;
-  }
+  /* 🛑 v307b - A VERSAO PLACAR DO CAIXAS MORREU AQUI, junto com o tamanho "So' o numero".
+     Ela mostrava o posto mais acima da meta em 1 espaco de 6. Sem o tamanho, ninguem
+     conseguia chegar nela — e codigo que descreve uma tela inalcancavel engana quem le. */
 
   let maxDias = 0;
   CXI_POSTOS.forEach(k => { maxDias = Math.max(maxDias, cxiNum((P[k]||{}).tempoDias), cxiNum((Pa[k]||{}).tempoDias)); });
@@ -12840,9 +12775,17 @@ function tqvPadraoTudo(){
 }
 function tqvSalvarPers(){
   if (!tqvEdit) return;
-  const corpo = { cores: tqvEdit.cores, ordemPostos: tqvEdit.ordemPostos,
+  /* 🔴 v307 - ESTA GRAVACAO E' `merge:false` DE PROPOSITO (e' o unico jeito de uma cor
+     REMOVIDA sumir de verdade do mapa `cores`) — e por isso ela apagava tudo o que esta tela
+     nao conhece. Desde a v304 o documento tambem guarda a `ordemBlocos`, escrita no Personalizar
+     do Dashboard: salvar os tanques zerava a ordem dos combustiveis, calado.
+     🔑 TELA QUE REESCREVE O DOCUMENTO INTEIRO TEM DE CARREGAR O QUE ELA NAO CONHECE. O
+        `Object.assign` faz isso para os campos de hoje E para os de amanha; a lista escrita a
+        mao envelheceria no proximo campo novo, exatamente como envelheceu neste. */
+  const corpo = Object.assign({}, tanquesAjustes || {},
+                { cores: tqvEdit.cores, ordemPostos: tqvEdit.ordemPostos,
                   ordemTanques: tqvEdit.ordemTanques,
-                  atualizadoEm: new Date().toISOString(), por: usuarioAtual || "" };
+                  atualizadoEm: new Date().toISOString(), por: usuarioAtual || "" });
   docTanquesAjustes.set(corpo, { merge: false }).then(() => {
     /* 🔑 o `tqvEdit` so' morre DEPOIS de o banco aceitar: se a gravacao falhar, o rascunho
        continua na tela e ninguem perde o que arrumou. */
@@ -15836,7 +15779,7 @@ const BULAS = {
      ⚠️ `abrirBula` escreve com `textContent`, entao aqui NAO cabe HTML — o `<b>` que existia
      no paragrafo virou enfase por palavra, nao por tag. */
   cardCombDia: { t:"Lucro por combust\u00edvel",
-    d:"Quanto cada combust\u00edvel deixou POR LITRO hoje, num posto de cada vez — e s\u00f3 isso: quem quer litros e lucro bruto tem a aba Resultado do menu Relat\u00f3rios. Vem do Petros, coletado de 10 em 10 minutos — \u00e9 o mesmo n\u00famero da tabela Venda de Combust\u00edveis do painel de l\u00e1." },
+    d:"Quanto cada combust\u00edvel deixou POR LITRO hoje, nos tr\u00eas postos — e s\u00f3 isso: quem quer litros e lucro bruto tem a aba Resultado do menu Relat\u00f3rios. Vem do Petros, coletado de 10 em 10 minutos — \u00e9 o mesmo n\u00famero da tabela Venda de Combust\u00edveis do painel de l\u00e1." },
   cardCaixas: { t:"Caixas",
     d:"Quanto tempo o caixa leva para ser confirmado, e quanto sobra ou falta. Vem do Petros. Em m\u00eas ainda em andamento o percentual de confirmados \u00e9 naturalmente menor — os \u00faltimos dias ainda n\u00e3o foram conferidos." },
   tqNivel: { t:"Quanto tem no tanque",
@@ -20352,11 +20295,11 @@ function dashEhConv(){ return siglaEmpresa(empresa) === "conv"; }
 const CARDS_DASH = [
   { k:"vendasDia",  id:"dashGrpVendasDia",  n:"🏁 Vendas do dia",                  emp:"postos|conv" },
   { k:"resultadoP", id:"dashGrpResultadoP", n:"💵 Resultado do mês",               emp:"postos" },
-  { k:"combDia",    id:"dashGrpCombDia",    n:"⛽ Lucro por combustível",          emp:"postos", plc:1 },
+  { k:"combDia",    id:"dashGrpCombDia",    n:"⛽ Lucro por combustível",          emp:"postos" },
   { k:"resultado",  id:"dashGrpResultado",  n:"💵 Resultado do mês",               emp:"conv" },
   { k:"despesas",   id:"dashGrpDespesas",   n:"💸 Despesas do mês contra a média", emp:"conv" },
   { k:"evolucao",   id:"dashGrpEvolucao",   n:"📈 Evolução das vendas",            emp:"postos|conv" },
-  { k:"caixas",     id:"dashGrpCaixas",     n:"🧾 Caixas",                         emp:"postos|conv", plc:1 },
+  { k:"caixas",     id:"dashGrpCaixas",     n:"🧾 Caixas",                         emp:"postos|conv" },
   { k:"categorias", id:"dashGrpCategorias", n:"🍫 Onde está o lucro da loja",      emp:"conv" },
   { k:"comparar",   id:"dashGrpComparar",   n:"⚖️ As três lojas na mesma categoria",        emp:"conv" },
   { k:"ifood",      id:"dashGrpIfood",      n:"🛵 iFood",                          emp:"conv" },
@@ -20374,13 +20317,12 @@ const CARDS_DASH = [
       caixa Personalizar estiver aberta — assim Cancelar volta tudo sem tocar em nada gravado.
    🔴 A ORDEM continua vindo de `ordemCardsDash` (v200). Tamanho e ocultos sao campos IRMAOS.
       Copiar a ordem para um segundo lugar seria criar a divergencia de mao beijada. */
-/* 🔴 v306 - O QUARTO TAMANHO NAO E' UMA FRACAO A MAIS: e' o unico que troca o DESENHO do
-   card. Por isso o rotulo dele diz o que ACONTECE ("So' o numero") e nao a fracao ("Um
-   sexto") — quem le "um sexto" espera o mesmo grafico menor, que e' justamente o que ele
-   nao e'. O `title` conta a largura, para ninguem precisar adivinhar. */
-const DASH_TAMS = [["g", "Inteiro", "6 espa\u00e7os de 6"], ["m", "Metade", "3 espa\u00e7os de 6"],
-                   ["p", "Um ter\u00e7o", "2 espa\u00e7os de 6 \u2014 vers\u00e3o enxuta"],
-                   ["u", "S\u00f3 o n\u00famero", "1 espa\u00e7o de 6 \u2014 o card vira um placar, sem gr\u00e1fico"]];
+/* 🔴 v307b - SAO DOIS TAMANHOS, e so'. Escolha dele depois de usar os quatro: "deixa apenas
+   em tamanho cheio (os 6 espacos) ou metade (3 espacos), os outros tamanhos nao precisa mais".
+   🔑 Quatro tamanhos so' fazem sentido enquanto cada um tem um DESENHO que se sustenta. O
+      "Um terco" era o mesmo desenho espremido e o "So' o numero" era um card inteiro a manter
+      por escolha — custo que ele mediu usando, nao lendo. */
+const DASH_TAMS = [["g", "Inteiro", "6 espa\u00e7os de 6"], ["m", "Metade", "3 espa\u00e7os de 6"]];
 function dashChaveMeu(s){ return "pf_dash_layout_" + s; }
 function dashLerMeu(s){
   try {
@@ -20417,26 +20359,17 @@ function dashFonteLayout(s){
   return (e.ordem.length || Object.keys(e.tam).length || e.ocultos.length) ? "empresa" : "fabrica";
 }
 /* 🔴 A LISTA DE TAMANHOS VALIDOS SE LE DE `DASH_TAMS`, e nao se escreve a mao aqui. Foi
-   assim que a v306 quase nasceu com o placar salvo e ignorado: um `t === "m" || t === "p"`
-   escrito a mao nao cresce junto com a lista, e um tamanho novo vira "Inteiro" calado. */
-/* 🔴 v306 - "SO' O NUMERO" SO' EXISTE PARA O CARD QUE TEM PLACAR, e esta e' a trava mais
-   importante da versao. Sem ela, escolher 1 espaco num card sem placar nao daria erro
-   nenhum: ele apenas espremeria o grafico em 229px e ficaria ilegivel — defeito que nao
-   avisa, que e' o mais caro de achar.
-   🔑 Tamanho aqui nao e' uma medida, e' um DESENHO que o card precisa TER. E quem tem mora
-   no proprio CARDS_DASH (`plc:1`), ao lado do card — nunca numa lista paralela, que
-   envelhece calada assim que alguem cria um card novo. */
-function cardTemPlacar(k){
-  for (let i = 0; i < CARDS_DASH.length; i++) if (CARDS_DASH[i].k === k) return !!CARDS_DASH[i].plc;
-  return false;
-}
+   assim que a v306 quase nasceu com um tamanho salvo e ignorado: um `t === "m"` escrito a
+   mao nao cresce nem encolhe junto com a lista, e o tamanho de fora vira "Inteiro" calado. */
+/* 🔴 v307b - TAMANHO QUE DEIXOU DE EXISTIR CAI EM **METADE**, NAO EM INTEIRO. Quem tinha
+   escolhido "Um terco" ou "So' o numero" queria o card PEQUENO; jogar essas escolhas para a
+   largura inteira desmancharia o Dashboard de quem personalizou, e reversao que apaga a
+   personalizacao da equipe nao e' reversao, e' um segundo estrago (licao da v306).
+   🔑 Metade e' o menor tamanho que sobrou — e' ele o herdeiro natural. */
 function cardDashTam(k, s){
   const t = (dashLayout(s).tam || {})[k];
-  /* Layout salvo com "u" num card que (ainda) nao tem placar vira UM TERCO, e nao Inteiro:
-     quem escolheu pequeno queria pequeno. O que nao se faz e' desenhar grafico em 229px. */
-  if (t === "u" && !cardTemPlacar(k)) return "p";
   for (let i = 1; i < DASH_TAMS.length; i++) if (DASH_TAMS[i][0] === t) return t;
-  return "g";
+  return (t === "p" || t === "u") ? "m" : "g";
 }
 function cardDashOculto(k, s){ return (dashLayout(s).ocultos || []).indexOf(k) >= 0; }
 
@@ -20610,8 +20543,7 @@ function dspPintarBarras(){
         '\',-1)" title="Subir">\u25b2</button>' +
       '<button class="dsp-bt" ' + (i === lista.length - 1 ? 'disabled ' : '') + 'onclick="dspMover(\'' +
         escAspas(c.k) + '\',1)" title="Descer">\u25bc</button>' +
-      DASH_TAMS.filter(t => t[0] !== "u" || cardTemPlacar(c.k))
-        .map(t => '<button class="dsp-bt' + (tam === t[0] ? ' aceso' : '') + '" title="' +
+      DASH_TAMS.map(t => '<button class="dsp-bt' + (tam === t[0] ? ' aceso' : '') + '" title="' +
         escAttr(t[2] || "") + '" onclick="dspTam(\'' +
         escAspas(c.k) + '\',\'' + t[0] + '\')">' + t[1] + '</button>').join("") +
       '<button class="dsp-bt dsp-x" onclick="dspOcultar(\'' + escAspas(c.k) +
@@ -20658,13 +20590,14 @@ function alternarOrdemCardsDash(){
                  tam: Object.assign({}, base.tam || {}),
                  ocultos: (base.ocultos || []).slice() };
   } else {
-    dashEdit = null; dashCoresEdit = null; dashOrdemEdit = null;
+    dashEdit = null; dashCoresEdit = null; dashOrdemEdit = null; dashPostosEdit = null;
   }
   renderBarraOrdenarCards();
   dspRedesenhar();
 }
 function dspCancelar(){ ordCardsAberto = false; dashEdit = null; dashCoresEdit = null;
-                        dashOrdemEdit = null; renderBarraOrdenarCards(); dspRedesenhar(); }
+                        dashOrdemEdit = null; dashPostosEdit = null;
+                        renderBarraOrdenarCards(); dspRedesenhar(); }
 
 function dspMover(k, dir){
   if (!dashEdit) return;
@@ -20790,14 +20723,34 @@ function dspCaixaCores(s){
   if (!prods.length) return "";
   const ed = dashCoresEdit;
   if (!ed) return '<div class="dsp-somem"><button class="dsp-bt" onclick="dspAbrirCores()">' +
-                  '\ud83c\udfa8 Combust\u00edveis: cor e ordem</button></div>';
+                  '\u26fd Combust\u00edveis: ordem e cor</button></div>';
   const blocos = dspBlocosDoCard();
-  let h = '<div class="dsp-caixa"><b style="font-size:.86rem">\ud83c\udfa8 Combust\u00edveis: cor e ordem</b>' +
-    '<p class="nota-dash" style="margin:6px 0 0">Valem para <b>todo mundo</b>. A <b>cor</b> vale em ' +
-    '<b>todo lugar do app que mostra aquele produto</b> \u2014 este card, o <b>N\u00edvel dos tanques</b> e os ' +
-    'gr\u00e1ficos de <b>pre\u00e7o e margem</b>.</p>';
+  let h = '<div class="dsp-caixa"><b style="font-size:.86rem">\u26fd Combust\u00edveis: ordem e cor</b>' +
+    '<p class="nota-dash" style="margin:6px 0 0">Valem para <b>todo mundo</b>. A <b>cor</b> \u2014 que ' +
+    'este card deixou de usar \u2014 continua valendo no <b>N\u00edvel dos tanques</b> e nos gr\u00e1ficos de ' +
+    '<b>pre\u00e7o e margem</b>.</p>';
+  /* ---- \ud83d\udd34 v307 - A ORDEM DOS POSTOS. Ela entrou porque o card voltou a mostrar os tres de
+     uma vez; com o filtro da v305 nao havia ordem nenhuma para escolher.
+     \ud83d\udd11 E ELA NAO E' CAMPO NOVO: `ordemPostos` ja' era a ordem dos postos do Nivel dos tanques,
+        no mesmo documento e com as MESMAS chaves. Criar um `ordemPostosDoCard` ao lado seria a
+        segunda copia da mesma escolha — e copia diverge, e' questao de tempo. A caixa DIZ que
+        as duas telas andam juntas, porque ajuste que muda outra tela calado e' armadilha. ---- */
+  const postos = cbdPostosOrdenados();
+  h += '<p class="nota-dash" style="margin:10px 0 2px"><b>Ordem dos postos</b> \u2014 da esquerda para a ' +
+       'direita, e vale tamb\u00e9m no <b>N\u00edvel dos tanques</b>:</p>' +
+       '<div class="ord-lista">';
+  postos.forEach((p, i) => {
+    h += '<div class="ord-item"><span class="ord-pos">' + (i + 1) + '</span>' +
+         '<span class="ord-nome">' + escAttr(p[1]) + '</span><span class="ord-bts">' +
+         '<button class="btn-claro" ' + (i === 0 ? 'disabled ' : '') + 'onclick="dspMoverPosto(\'' +
+           escAspas(p[0]) + '\',-1)" title="Antes">\u25c0</button>' +
+         '<button class="btn-claro" ' + (i === postos.length - 1 ? 'disabled ' : '') + 'onclick="dspMoverPosto(\'' +
+           escAspas(p[0]) + '\',1)" title="Depois">\u25b6</button>' +
+         '</span></div>';
+  });
+  h += '</div>';
   /* ---- a ordem dos blocos ---- */
-  h += '<p class="nota-dash" style="margin:10px 0 2px"><b>Ordem no card</b> \u2014 da esquerda para a direita:</p>' +
+  h += '<p class="nota-dash" style="margin:12px 0 2px"><b>Ordem dos combust\u00edveis</b> \u2014 de cima para baixo, dentro de cada posto:</p>' +
        '<div class="ord-lista">';
   blocos.forEach((r, i) => {
     h += '<div class="ord-item"><span class="ord-pos">' + (i + 1) + '</span>' +
@@ -20821,8 +20774,21 @@ function dspCaixaCores(s){
   });
   h += '</div><div class="dsp-acoes">' +
     '<button class="btn-claro" onclick="dspFecharCores()">\u2715 Fechar sem salvar</button>' +
-    '<button class="btn-claro" onclick="dspSalvarCores()">\u2713 Salvar cor e ordem</button></div></div>';
+    '<button class="btn-claro" onclick="dspSalvarCores()">\u2713 Salvar ordem e cor</button></div></div>';
   return h;
+}
+/* \ud83d\udd34 v307 - Mover posto e mover bloco sao a MESMA receita, e de proposito nao viraram uma
+   funcao so': uma lista e' de POSTOS (chave interna) e a outra e' de BLOCOS (rotulo). Juntar as
+   duas exigiria um terceiro argumento dizendo qual e' qual — e a leitura ficaria pior que a
+   repeticao de seis linhas. */
+function dspMoverPosto(k, d){
+  if (!dashCoresEdit) return;
+  const lista = cbdPostosOrdenados().map(function(p){ return p[0]; });
+  const i = lista.indexOf(k), j = i + d;
+  if (i < 0 || j < 0 || j >= lista.length) return;
+  lista.splice(j, 0, lista.splice(i, 1)[0]);
+  dashPostosEdit = lista;
+  renderOrdemCardsDash(); renderCombDia();
 }
 function dspMoverBloco(r, d){
   if (!dashCoresEdit) return;
@@ -20836,28 +20802,35 @@ function dspMoverBloco(r, d){
 function dspAbrirCores(){
   dashCoresEdit = Object.assign({}, (tanquesAjustes || {}).cores || {});
   dashOrdemEdit = ((tanquesAjustes || {}).ordemBlocos || []).slice();
+  dashPostosEdit = ((tanquesAjustes || {}).ordemPostos || []).slice();
   renderOrdemCardsDash();
 }
-function dspFecharCores(){ dashCoresEdit = null; dashOrdemEdit = null; dspRedesenhar(); }
+function dspFecharCores(){ dashCoresEdit = null; dashOrdemEdit = null; dashPostosEdit = null;
+                           dspRedesenhar(); }
+/* \ud83d\udd34 v307 - ESCOLHER COR NAO REDESENHA MAIS O CARD, porque o card nao tem cor nenhuma. O
+   que muda na hora e' o quadradinho da propria lista (e o Nivel dos tanques, quando ele abrir
+   aquele menu). \ud83d\udd11 Chamada que nao muda nada na tela nao e' inofensiva: ela faz quem le o
+   codigo acreditar que o card depende da cor. */
 function dspCor(prod, hex){
   if (!dashCoresEdit) return;
   dashCoresEdit[tqvChaveProd(prod)] = hex;
-  renderOrdemCardsDash(); renderCombDia();
+  renderOrdemCardsDash();
 }
 function dspCorPadrao(prod){
   if (!dashCoresEdit) return;
   delete dashCoresEdit[tqvChaveProd(prod)];
-  renderOrdemCardsDash(); renderCombDia();
+  renderOrdemCardsDash();
 }
 function dspSalvarCores(){
   if (!dashCoresEdit || !ehAdminAtual()) return;
   /* 🔴 MERGE, sempre: este documento tem a ORDEM dos postos e dos tanques dentro dele, escrita
      pela outra tela. Um `set` puro daqui apagaria o trabalho de la'. */
   docTanquesAjustes.set({ cores: dashCoresEdit, ordemBlocos: (dashOrdemEdit || []),
+                          ordemPostos: (dashPostosEdit || []),
                           atualizadoEm: new Date().toISOString(),
                           por: usuarioAtual || "" }, { merge: true })
-    .then(() => { dashCoresEdit = null; dashOrdemEdit = null;
-                  avisar("Cor e ordem salvas \u2014 valem em todo o app.", "ok");
+    .then(() => { dashCoresEdit = null; dashOrdemEdit = null; dashPostosEdit = null;
+                  avisar("Ordem e cor salvas \u2014 valem em todo o app.", "ok");
                   dspRedesenhar(); })
     .catch(e => avisar("N\u00e3o deu para salvar as cores: " + (e && e.message ? e.message : e), "erro"));
 }
@@ -21080,106 +21053,49 @@ function cbdIdadeMin(){
    🔑 Mesma regra da ordem dos menus (v188) e dos cards (v200): lista salva SOBREPOE, nao MANDA. */
 function cbdChaveBloco(rotulo){ return String(rotulo || "").toUpperCase(); }
 
-/* ===== v305 - O FILTRO DE POSTO =====
-   🔑 Mora no APARELHO, como o filtro do Nivel dos tanques (v280): e' preferencia de quem esta'
-   olhando, nao configuracao da empresa. O admin ja tem a caixa Personalizar para o que vale
-   para todos.
-   🔴 E ele nasce no PRIMEIRO posto, nunca em "todos": este card passou a ser de um posto de
-      cada vez por pedido dele, e um padrao "todos" traria de volta o desenho torto. */
-const CBD_CHAVE_POSTO = "pf_cbd_posto";
-let cbdPostoSel = "";
-try { cbdPostoSel = localStorage.getItem(CBD_CHAVE_POSTO) || ""; } catch(e){ cbdPostoSel = ""; }
-/* ===================== v306 - A PECA DO PLACAR =====================
-   Uma peca so' para os dois cards, pelo mesmo motivo que o filtro do Lucro por combustivel
-   reaproveitou as classes do Nivel dos tanques: 🔑 dois placares com a mesma cara sao UM
-   placar aprendido uma vez. Assinatura: rotulo (o que e'), valor (o numero), tom, sub (de
-   quem/quando) e selo (a distancia para a meta, quando existir).
-   🔴 O TOM NAO E' ENFEITE, E POR ISSO NAO E' SEMPRE VERMELHO: vermelho no que e' rotina
-   ensina a equipe a ignorar vermelho (licao da v296). Vermelho so' quando esta' fora da
-   regua; verde so' quando esta' dentro dela; sem cor quando nao ha' regua para comparar. */
-function plcHtml(rotulo, valor, tom, sub, selo, seloTom){
-  const t = (tom === "ruim" || tom === "ok") ? (" plc-" + tom) : "";
-  return '<div class="plc"><span class="plc-rot">' + escAttr(rotulo) + '</span>' +
-    '<span class="plc-v' + t + '">' + escAttr(valor) + '</span>' +
-    (sub ? '<span class="plc-sub">' + sub + '</span>' : '') +
-    (selo ? '<span class="plc-selo plc-' + (seloTom === "ok" ? "ok" : "ruim") + '">' +
-            escAttr(selo) + '</span>' : '') + '</div>';
+
+/* ===================== v307 - A ORDEM DOS POSTOS =====================
+   🔴 ELA SO' PASSOU A EXISTIR PORQUE O FILTRO SAIU. Enquanto o card mostrava um posto de cada
+   vez (v305), "ordem dos postos" era a ordem de tres botoes — coisa que ninguem pede para
+   mudar. Com os tres na tela ao mesmo tempo, a ordem virou a leitura da esquerda para a
+   direita, e ele pediu para escolher.
+   🔑 Mesma regra da ordem dos blocos, dos menus (v188) e dos cards (v200): a lista de fabrica
+      MANDA, a lista salva SOBREPOE, e quem nao estiver na salva vai para o FIM — nunca some.
+   🔴 Mora em `config/tanquesAjustes`, ao lado de `ordemBlocos`, gravada com `merge` — e' o
+      mesmo documento e o mesmo botao. Segundo documento seria segunda copia da mesma escolha. */
+function cbdOrdemPostos(){
+  const a = (typeof dashPostosEdit !== "undefined" && dashPostosEdit) ? dashPostosEdit
+          : ((tanquesAjustes || {}).ordemPostos || []);
+  return Array.isArray(a) ? a : [];
+}
+function cbdChavePosto(k){ return String(k || "").trim().toUpperCase(); }
+function cbdPostosOrdenados(){
+  const ordem = cbdOrdemPostos();
+  const pos = {}; ordem.forEach(function(k, i){ pos[cbdChavePosto(k)] = i; });
+  return CBD_POSTOS.map(function(p, i){
+    const salva = pos[cbdChavePosto(p[0])];
+    return [p, (salva === undefined ? 1000 + i : salva), i];
+  }).sort(function(a, b){ return a[1] - b[1] || a[2] - b[2]; }).map(function(x){ return x[0]; });
 }
 
-/* 🔴 O PLACAR DO LUCRO POR COMBUSTIVEL NAO USA O FILTRO DE POSTO — E ISSO E' DE PROPOSITO.
-   Em 1 espaco nao cabem tres botoes, e trocar os botoes por um `select` seria inventar uma
-   TERCEIRA cara de filtro num app que ja' tem duas iguais de proposito (v305).
-   🔑 Entao a pergunta do card muda junto com o tamanho: de "como esta ESTE posto" para
-   "onde esta' o pior numero AGORA, entre os tres". A comparacao entre postos e' legitima
-   porque a regua ja' e' a mesma nos tres desde a v305 — se ela fosse por posto, este placar
-   estaria comparando coisas de tamanhos diferentes.
-   🔴 E o prejuizo GANHA de qualquer menor lucro: quem esta' perdendo dinheiro por litro nao
-   disputa lugar com quem esta' ganhando pouco. */
-function cbdPiorDoDia(){
-  let pior = null;
-  CBD_POSTOS.forEach(function(p){
-    cbdLinhas(p[0]).forEach(function(l){
-      if (l.rsL == null) return;                 /* quem ainda nao vendeu nao entra na conta */
-      const v = +l.rsL;
-      if (!pior || v < pior.rsL) pior = { rsL: v, prod: l.prod,
-                                          rotulo: cbdRotuloBarra(p[0], l.prod), posto: p[1] };
-    });
-  });
-  return pior;
-}
-function cbdPlacarHtml(){
-  const pior = cbdPiorDoDia();
-  if (!pior) return '<div class="ana-vazio">Nenhum combust\u00edvel vendido ainda hoje.</div>';
-  const ruim = pior.rsL < 0;
-  return plcHtml(
-    ruim ? "No preju\u00edzo hoje" : "Menor lucro por litro hoje",
-    "R$ " + fmtBR(pior.rsL, 3) + "/L",
-    ruim ? "ruim" : "",
-    escAttr(pior.rotulo) + " \u00b7 " + escAttr(pior.posto) + " \u00b7 entre os tr\u00eas postos",
-    "", "");
-}
-
-function cbdPostoAtual(){
-  const chaves = CBD_POSTOS.map(function(p){ return p[0]; });
-  return chaves.indexOf(cbdPostoSel) >= 0 ? cbdPostoSel : chaves[0];
-}
-function cbdFiltrarPosto(k){
-  cbdPostoSel = k || "";
-  try { localStorage.setItem(CBD_CHAVE_POSTO, cbdPostoSel); } catch(e){}
-  renderCombDia();
-}
-
-/* 🔴 A REGUA E' A MAIOR DO DIA ENTRE OS TRES POSTOS, E NAO A DO POSTO ESCOLHIDO. Escolha dele,
-   feita de olhos abertos depois de eu mostrar o preco em foto: com regua por posto, a barra
-   cheia da Caxias (R$ 0,583) ficaria do mesmo tamanho da barra cheia de Teresina (R$ 1,099), e
-   ALTERNAR ENTRE POSTOS — que e' justamente como ele vai comparar — viraria ilusao de otica.
-   ⚠️ O preco: nos dias em que um produto dispara, os outros postos ficam com a tela achatada. */
-function cbdMaiorDoDia(){
-  let maior = 0;
-  CBD_POSTOS.forEach(function(p){
-    cbdLinhas(p[0]).forEach(function(l){ if (l.rsL != null && +l.rsL > maior) maior = +l.rsL; });
-  });
-  return maior;
-}
-
-/* O rotulo da barra e' o da FAMILIA ("Diesel S-10"), nao o nome cru do ERP ("OLEO DIESEL B S10
+/* O rotulo da linha e' o da FAMILIA ("Diesel S-10"), nao o nome cru do ERP ("OLEO DIESEL B S10
    COMUM") — e' o mesmo nome que ele reordena em Personalizar.
    🔴 MENOS quando o posto vende DOIS produtos da mesma familia: ai' os dois rotulos seriam
-      iguais e a tela mostraria duas barras com o mesmo nome. Nesse caso vale o nome do ERP, que
+      iguais e a caixa mostraria duas linhas com o mesmo nome. Nesse caso vale o nome do ERP, que
       e' o unico que distingue. 🔑 Rotulo curto so' pode encurtar o que continua unico. */
-function cbdRotuloBarra(chave, prod){
+function cbdRotulo(chave, prod){
   const fam = cbdRotuloFamilia(prod);
   let quantos = 0;
   cbdLinhas(chave).forEach(function(l){ if (cbdRotuloFamilia(l.prod) === fam) quantos++; });
   return quantos > 1 ? String(prod || "") : fam;
 }
 
-/* As barras de UM posto, na ordem que ele salvou em Personalizar. */
-function cbdBarras(chave){
+/* As linhas de UM posto, na ordem de combustivel que ele salvou em Personalizar. */
+function cbdItens(chave){
   const ordem = cbdOrdemBlocos();
   const pos = {}; ordem.forEach(function(k, i){ pos[cbdChaveBloco(k)] = i; });
   return cbdLinhas(chave).map(function(l, i){
-    const rot = cbdRotuloBarra(chave, l.prod);
+    const rot = cbdRotulo(chave, l.prod);
     const salva = pos[cbdChaveBloco(cbdRotuloFamilia(l.prod))];
     /* 🔴 Quem nao esta' na ordem salva vai para o FIM, na ordem de fabrica — nunca some.
        Mesma regra da barra de menus (v244) e dos cards (v200). */
@@ -21187,18 +21103,19 @@ function cbdBarras(chave){
              semVenda: !!l.semVenda, chave: (salva === undefined ? 1000 + cbdFamilia(l.prod) : salva), i: i };
   }).sort(function(a, b){ return a.chave - b.chave || a.i - b.i; });
 }
-/* 🔴 UMA FUNCAO SO' PARA A COR DO PRODUTO NESTE CARD: o RASCUNHO (a cor que ele acabou de
-   escolher na caixa, ainda nao salva) ganha do gravado. Duas leituras diferentes da mesma cor
-   fariam o pontinho do titulo atrasar em relacao a barra. */
-function cbdCor(prod){
-  return (typeof dspCorEscolhida === "function" && dspCorEscolhida(prod)) || tqvCorProduto(prod);
-}
 function cbdOrdemBlocos(){
   const a = (typeof dashCoresEdit !== "undefined" && dashOrdemEdit) ? dashOrdemEdit
           : ((tanquesAjustes || {}).ordemBlocos || []);
   return Array.isArray(a) ? a : [];
 }
-/* Um bloco por familia, com as linhas dos postos que VENDEM aquele produto. */
+/* 🔴 v307 - UMA CAIXA POR POSTO, E DENTRO DELA UMA LINHA POR COMBUSTIVEL. Nem barra, nem
+   cor de produto, nem regua: o card e' o "Vendas do dia" com outro conteudo.
+   🔑 O QUE ELE RESOLVEU, na frase dele: "assim fica bem mais harmonico visualmente, facil de
+      ler e mais facil de adaptar em diferentes tamanhos". As tres coisas sao a mesma coisa —
+      texto nao tem altura minima para continuar legivel, e grafico tem.
+   🔴 A COR QUE SOBROU E' A DO RESULTADO, NAO A DA IDENTIDADE: verde quando o combustivel deu
+      lucro, vermelho quando deu prejuizo — exatamente como as linhas de lucro do Vendas do dia
+      desde a v257. Cor que identifica produto saiu; cor que responde "isso esta bom?" fica. */
 function renderCombDia(){
   const box = document.getElementById("cbdBox");
   if (!box) return;
@@ -21220,11 +21137,6 @@ function renderCombDia(){
     return;
   }
 
-  /* 🔴 3º estado, v306: EM 1 ESPACO O CARD TROCA DE DESENHO. Este `return` vem ANTES de
-     qualquer coisa que dependa de largura — filtro, regua, barras — porque o placar nao e'
-     um grafico encolhido: e' outro desenho, com outra pergunta. */
-  if (cardDashTam("combDia") === "u"){ box.innerHTML = cbdPlacarHtml(); return; }
-
   let h = "";
   const hoje = hojeISO();
   const idade = cbdIdadeMin();
@@ -21240,69 +21152,40 @@ function renderCombDia(){
          'atrasado.</div>';
   }
 
-  /* --- o filtro. Reaproveita as classes do filtro do Nivel dos tanques de proposito:
-         \ud83d\udd11 dois filtros com a mesma cara sao UM filtro aprendido uma vez. --- */
-  const atual = cbdPostoAtual();
-  h += '<div class="tqv-filtro"><span class="tqv-filtro-rot">Posto:</span>' +
-       CBD_POSTOS.map(function(p){
-         return '<button class="tqv-fbt' + (p[0] === atual ? ' aceso' : '') + '" onclick="cbdFiltrarPosto(' +
-                JSON.stringify(p[0]).replace(/"/g, "&quot;") + ')">' + escAttr(p[1]) + '</button>';
-       }).join("") + '</div>';
-
-  const barras = cbdBarras(atual);
-  const maior = cbdMaiorDoDia();
-  const comValor = barras.filter(function(b){ return b.rsL != null; });
-  /* \ud83d\udd34 O VERDE MUDOU DE PERGUNTA na v305: antes era "qual posto ganhou mais NESTE produto";
-     agora \u00e9 "qual produto deste posto deixa mais por litro". S\u00e3o os dois \u00fateis, mas a tela
-     mostra UM posto — e verde comparando postos numa tela de um posto s\u00f3 n\u00e3o quer dizer nada.
-     O rodap\u00e9 diz qual das duas perguntas est\u00e1 sendo respondida. */
-  const melhor = comValor.length > 1 ? Math.max.apply(null, comValor.map(function(b){ return b.rsL; })) : null;
-  const ALT = 83.5, ALTNEG = 14;   /* 83,5% da caixa = o teto da regua; 14px = a faixa do prejuizo */
-
-  if (!barras.length){
-    h += '<div class="ana-vazio">Este posto ainda n\u00e3o vendeu combust\u00edvel neste dia.</div>';
-  } else {
-    h += '<div class="cbd-pe" style="--n:' + barras.length + '">' + barras.map(function(b){
-      const cor = cbdCor(b.prod);
-      const temValor = b.rsL != null;
-      const ruim = temValor && b.rsL < 0;
-      const top = temValor && melhor != null && b.rsL === melhor;
-      /* \ud83d\udd34 EM PORCENTAGEM DA CAIXA, e nao em pixel: e' o que deixa o `@media` encolher a
-         caixa no celular sem a barra estourar para fora dela. `ALT` e' 83.5 — a fatia da caixa
-         que vai ate' o teto da regua (132 de 158). */
-      const hPos = (temValor && b.rsL > 0 && maior > 0) ? Math.max(2.5, b.rsL / maior * ALT) : 0;
-      /* A faixa do prejuizo continua em PIXEL (ela e' uma tira fixa de 14px, nao uma fatia da
-         caixa), entao a conta usa o teto em pixel equivalente. */
-      const hNeg = (temValor && b.rsL < 0 && maior > 0)
-                 ? Math.min(ALTNEG, Math.max(4, Math.abs(b.rsL) / maior * 132)) : 0;
-      /* \ud83d\udd34 O ROTULO SOBE E DESCE COM A BARRA (v305c): fica 5px acima da ponta dela, e nao no
-         topo da caixa. Com a regua fixa, barra de 60px numa caixa de 132px deixava o numero
-         boiando a 100px de distancia — e numero solto no vazio nao parece rotulo de ninguem.
-         Quem nao tem barra (ainda nao vendeu) fica rente a' linha do zero, onde a barra
-         nasceria. */
-      return '<div class="cbd-col">' +
-        '<div class="cbd-cx">' +
-        '<span class="cbd-v' + (top ? ' melhor' : '') + (ruim ? ' ruim' : '') +
-          (temValor ? '' : ' cbd-nada') + '" style="bottom:calc(' + hPos.toFixed(2) + '% + 5px)">' +
-          (temValor ? ('R$ ' + fmtBR(b.rsL, 3)) : "\u2014") + '</span>' + (hPos
-          ? '<span class="cbd-b" style="height:' + hPos.toFixed(2) + '%;background-image:linear-gradient(' +
-            cor + ',' + cor + ')"></span>' : '') + '</div>' +
-        '<div class="cbd-ng">' + (hNeg ? '<i style="height:' + hNeg.toFixed(1) + 'px"></i>' : '') + '</div>' +
-        '<span class="cbd-n" title="' + escAttr(b.prod) + '">' +
-          '<span class="cbd-ponto" style="background-image:linear-gradient(' + cor + ',' + cor + ')"></span>' +
-          escAttr(b.rotulo) + '</span></div>';
-    }).join("") + '</div>';
-  }
+  /* 🔴 OS TRES POSTOS DE UMA VEZ, e na ORDEM que ele escolheu. O filtro de posto da v305
+     saiu junto com as barras: ele existia porque grafico com cinco barras nao cabia em um
+     terco de tela repetido tres vezes. Texto cabe. 🔑 Peca que so' existia para segurar um
+     desenho morre com o desenho — senao vira botao que nao serve para nada. */
+  const postos = cbdPostosOrdenados();
+  h += '<div class="pet-grid cbd-grade">' + postos.map(function(p){
+    const itens = cbdItens(p[0]);
+    let dentro;
+    if (!itens.length){
+      /* 🔴 Posto sem nenhuma linha nao some da fileira: ele fica, dizendo que nao ha numero.
+         Caixa ausente faria as outras duas se esticarem e o card mudaria de forma sozinho. */
+      dentro = '<div class="pet-l"><span>Ainda sem venda hoje</span><b class="cbd-nada">\u2014</b></div>';
+    } else {
+      dentro = itens.map(function(b){
+        const temValor = b.rsL != null;
+        /* As MESMAS classes de cor do Vendas do dia (v198/v257): verde = deu lucro,
+           vermelho = deu prejuizo. Quem ainda nao vendeu nao entra nem em uma nem em outra. */
+        const cls = temValor ? (b.rsL < 0 ? "rpz-neg" : "rpz-pos") : "cbd-nada";
+        return '<div class="pet-l"><span title="' + escAttr(b.prod) + '">' + escAttr(b.rotulo) +
+               '</span><b class="' + cls + '">' +
+               (temValor ? ('R$ ' + fmtBR(b.rsL, 3)) : "\u2014") + '</b></div>';
+      }).join("");
+    }
+    return '<div class="pet-card"><h4>' + escAttr(p[1]) + '</h4><div class="pet-linhas">' +
+           dentro + '</div></div>';
+  }).join("") + '</div>';
 
   const quando = combDia.atualizadoEm ? fmtQuandoLocal(combDia.atualizadoEm) : "";
   h += '<p class="ana-rodape">Vendas de <b>' + escAttr(fmtDataCurta(combDia.dia)) +
        '</b>, do come\u00e7o do dia at\u00e9 a \u00faltima leitura' + (quando ? ' (' + escAttr(quando) + ')' : '') +
-       '. A r\u00e9gua \u00e9 a <b>mesma nos tr\u00eas postos</b> (a maior do dia \u00e9 ' +
-       (maior > 0 ? '<b>R$ ' + fmtBR(maior, 3) + '/L</b>' : 'zero') +
-       '), ent\u00e3o trocar de posto compara de verdade \u2014 barra maior \u00e9 ganho maior em qualquer um ' +
-       'deles. Em <b>verde</b>, o combust\u00edvel que mais deixou <b>neste posto</b>; quem fica abaixo ' +
-       'da linha deu preju\u00edzo. O <b>R$ por litro</b> \u00e9 o lucro bruto daquele combust\u00edvel dividido ' +
-       'pelos litros que ele vendeu. Fonte: painel do Petros \u2014 a mesma do menu Relat\u00f3rios.</p>';
+       '. O <b>R$ por litro</b> \u00e9 o lucro bruto daquele combust\u00edvel dividido pelos litros que ' +
+       'ele vendeu \u2014 em <b>verde</b> quando deu lucro e em <b>vermelho</b> quando deu preju\u00edzo. ' +
+       'O combust\u00edvel que o posto vende e <b>ainda n\u00e3o vendeu hoje</b> aparece com travess\u00e3o, ' +
+       'nunca com R$ 0,000. Fonte: painel do Petros \u2014 a mesma do menu Relat\u00f3rios.</p>';
   box.innerHTML = h;
 }
 
