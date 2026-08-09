@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v310 — Postos Full (não é o app)</title>
+<title>PRÉVIA v311 — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -1329,18 +1329,18 @@
   .cpr-regua{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin:0 0 14px}
   .cpr-cmp{display:flex;flex-direction:column;gap:4px;min-width:112px}
   .cpr-cmp label{font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;opacity:.72}
-  .cpr-cmp input{width:100%;padding:8px 10px;border-radius:10px;border:1px solid var(--bd);
-    background:var(--cx);color:var(--tx);font-size:.95rem;font-variant-numeric:tabular-nums}
+  .cpr-cmp input{width:100%;padding:8px 10px;border-radius:10px;border:1px solid var(--borda);
+    background:var(--superficie-2);color:var(--txt);font-size:.95rem;font-variant-numeric:tabular-nums}
   .cpr-cmp .cpr-un{font-size:.7rem;opacity:.6}
   .cpr-postos{margin:0 0 12px}
   .cpr-postos .cpr-chip{font-weight:600}
-  .cpr-doposto label{color:var(--mar)}
-  .cpr-cob{border-top:1px dashed var(--bd);padding-top:10px}
+  .cpr-doposto label{color:var(--verde)}
+  .cpr-cob{border-top:1px dashed var(--borda);padding-top:10px}
   .cpr-cob-tit label{font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;opacity:.72}
   .cpr-cob .cpr-cmp{min-width:132px}
-  .cpr-mao{color:var(--mar);font-weight:700}
+  .cpr-mao{color:var(--verde);font-weight:700}
   .cpr-kpis{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 14px}
-  .cpr-kpi{flex:1 1 130px;background:var(--cx);border:1px solid var(--bd);border-radius:12px;padding:10px 12px}
+  .cpr-kpi{flex:1 1 130px;background:var(--superficie-2);border:1px solid var(--borda);border-radius:12px;padding:10px 12px}
   .cpr-kpi .k{font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;opacity:.7}
   .cpr-kpi .v{font-size:1.32rem;font-weight:700;font-variant-numeric:tabular-nums}
   .cpr-kpi .u{font-size:.78rem;opacity:.7;margin-left:3px}
@@ -1358,17 +1358,28 @@
   .cpr-aviso{border:1px solid #f59e0b;border-left-width:4px;border-radius:12px;padding:10px 14px;margin:0 0 14px;
     background:rgba(245,158,11,.10);font-size:.88rem;line-height:1.45}
   .cpr-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
-  .cpr-chip{padding:6px 12px;border-radius:999px;border:1px solid var(--bd);background:var(--cx);
-    color:var(--tx);font-size:.85rem;cursor:pointer}
-  .cpr-chip.on{background:var(--mar);border-color:var(--mar);color:#fff}
+  /* 🔴 v311 - A PASTILHA TEM DE PARECER BOTAO ANTES DE SER CLICADA.
+     Pedido dele: "acrescentar um fundo por tras dos nomes dos postos para o usuario entender que
+     isso e um botao". 🔑 E' a licao da v286 outra vez, por outra porta: la' o botao era uma
+     bolinha branca e o dono do app nunca achou a conferencia; aqui o botao era um texto solto.
+     Controle que nao se anuncia nao e' usado — e nenhuma assercao ve isso. */
+  .cpr-chip{padding:7px 14px;border-radius:999px;border:1px solid var(--borda-forte);
+    background:var(--superficie);color:var(--txt);font-size:.85rem;cursor:pointer;
+    box-shadow:var(--sombra-1);transition:border-color .15s, background .15s, transform .1s}
+  .cpr-chip:hover{border-color:var(--verde);transform:translateY(-1px)}
+  /* 🔴 E A ESCOLHIDA TEM DE GRITAR: ate a v310 ela pedia `var(--mar)`, que nao existe — a tela
+     nao dizia qual posto estava aberto. Laranja cheio, texto branco e o halo da marca. */
+  .cpr-chip.on{background:var(--verde);border-color:var(--verde);color:#fff;font-weight:700;
+    box-shadow:var(--brilho-marca)}
+  .cpr-chip.on:hover{transform:none}
   .cpr-posto{margin:0 0 18px}
   .cpr-posto h3{margin:0 0 4px;font-size:1.02rem;display:flex;flex-wrap:wrap;gap:8px;align-items:baseline}
   .cpr-posto h3 small{font-weight:400;opacity:.7;font-size:.82rem}
   .cpr-tab{width:100%;border-collapse:collapse;font-size:.88rem}
   .cpr-tab th{text-align:right;font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;opacity:.7;
-    padding:6px 8px;border-bottom:1px solid var(--bd);white-space:nowrap}
+    padding:6px 8px;border-bottom:1px solid var(--borda);white-space:nowrap}
   .cpr-tab th:first-child,.cpr-tab td:first-child{text-align:left}
-  .cpr-tab td{text-align:right;padding:9px 8px;border-bottom:1px solid var(--bd);vertical-align:top;
+  .cpr-tab td{text-align:right;padding:9px 8px;border-bottom:1px solid var(--borda);vertical-align:top;
     font-variant-numeric:tabular-nums}
   .cpr-tab tr.crit td{background:rgba(239,68,68,.07)}
   .cpr-prod{display:flex;gap:8px;align-items:center}
@@ -1380,22 +1391,22 @@
   .cpr-u{background:rgba(245,158,11,.18);color:#f59e0b}
   .cpr-a{background:rgba(59,130,246,.16);color:#3b82f6}
   .cpr-t{background:rgba(34,197,94,.16);color:#22c55e}
-  .cpr-s{background:var(--cx2,rgba(127,127,127,.16));opacity:.8}
+  .cpr-s{background:var(--superficie-2);opacity:.8}
   .cpr-comprar{font-weight:700;color:#FE7030;white-space:nowrap}
   .cpr-nao{display:block;font-size:.72rem;color:#f59e0b}
   .cpr-vazio{opacity:.55}
   .cpr-carga{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px;margin:10px 0 0}
-  .cpr-comp{border:1px solid var(--bd);border-left-width:4px;border-radius:12px;padding:9px 11px;background:var(--cx)}
+  .cpr-comp{border:1px solid var(--borda);border-left-width:4px;border-radius:12px;padding:9px 11px;background:var(--superficie-2)}
   .cpr-comp .cn{font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;opacity:.65}
   .cpr-comp .cl{font-size:1.1rem;font-weight:700;font-variant-numeric:tabular-nums}
   .cpr-comp .cp{font-size:.84rem}
   .cpr-comp .cd{font-size:.76rem;opacity:.72}
-  .cpr-comp.livre{opacity:.5;border-left-color:var(--bd)!important;border-style:dashed}
+  .cpr-comp.livre{opacity:.5;border-left-color:var(--borda)!important;border-style:dashed}
   .cpr-comp .parcial{font-size:.7rem;color:#f59e0b}
   .cpr-rank{display:flex;flex-direction:column;gap:6px;margin:10px 0 0}
   .cpr-lin{display:grid;grid-template-columns:112px 1fr 108px;gap:8px;align-items:center;font-size:.85rem}
-  .cpr-bar{height:16px;border-radius:8px;background:var(--bd);overflow:hidden}
-  .cpr-bar i{display:block;height:100%;background:var(--mar);border-radius:8px}
+  .cpr-bar{height:16px;border-radius:8px;background:var(--borda);overflow:hidden}
+  .cpr-bar i{display:block;height:100%;background:var(--verde);border-radius:8px}
   .cpr-lin.melhor .cpr-bar i{background:#22c55e}
   .cpr-lin .vl{text-align:right;font-variant-numeric:tabular-nums}
   .cpr-melhor{border:1px solid #22c55e;border-radius:12px;padding:12px 14px;background:rgba(34,197,94,.08);margin:10px 0 0}
@@ -1404,7 +1415,7 @@
   .cpr-melhor .tt{font-size:1.3rem;font-weight:700;font-variant-numeric:tabular-nums}
   .cpr-melhor .ec{font-size:.85rem;opacity:.85}
   .cpr-acoes{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 0}
-  .cpr-metodo{margin:16px 0 0;padding:12px 14px;border:1px solid var(--bd);border-radius:12px;background:var(--cx)}
+  .cpr-metodo{margin:16px 0 0;padding:12px 14px;border:1px solid var(--borda);border-radius:12px;background:var(--superficie-2)}
   .cpr-metodo h4{margin:0 0 6px;font-size:.9rem}
   .cpr-metodo p{margin:0 0 6px;font-size:.8rem;line-height:1.5;opacity:.82}
   .cpr-metodo p:last-child{margin-bottom:0}
@@ -6449,6 +6460,10 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v311", data:"09/08/2026", tit:"\ud83d\uded2 O que comprar: as pastilhas de posto viram bot\u00e3o, e o pedido de Teresina abre a Vibra", itens:[
+    {t:"m", h:"Agora d\u00e1 para ver que os postos s\u00e3o <b>bot\u00f5es</b>", d:"As pastilhas <b>\u26fd Teresina \u00b7 Caxias \u00b7 Dutra</b> ganharam fundo, borda e sombra, e <b>a do posto aberto fica laranja</b>. Antes elas eram texto solto \u2014 e, pior, <b>nem a escolhida se destacava</b>: a cor que o c\u00f3digo pedia n\u00e3o existia, e CSS com cor inexistente <b>some sem dar erro</b>."},
+    {t:"n", h:"E o pedido de Teresina abre o portal da Vibra", d:"No bloco <b>\ud83c\udfe2 O pedido deste posto</b>, ao lado do \ud83d\udccb Copiar o pedido, entrou <b>\ud83d\udd17 Abrir o portal da Vibra</b> \u2014 copia os litros aqui, abre l\u00e1 e cola. Se o celular bloquear a janela, aparece um link para tocar."}
+  ]},
   {v:"v310", data:"09/08/2026", tit:"\ud83d\uded2 O que comprar: um posto de cada vez, e cada caminh\u00e3o com o posto dele", itens:[
     {t:"m", h:"A tela abre <b>um posto por vez</b>", d:"Em cima ficam as pastilhas <b>\u26fd Teresina · Caxias · Dutra</b>, e a tela inteira passa a falar daquele posto \u2014 os n\u00fameros do topo, o aviso vermelho, a tabela e a carga. <b>O n\u00famero ao lado do nome do posto</b> continua dizendo quantos combust\u00edveis dele est\u00e3o cr\u00edticos ou urgentes, ent\u00e3o d\u00e1 para ver onde est\u00e1 o aperto sem entrar em cada um."},
     {t:"m", h:"E o topo desencavou", d:"Com um posto escolhido, <b>lote, prazo de entrega, cobertura e reserva m\u00ednima ficam na mesma fileira</b> \u2014 antes eram tr\u00eas, porque a cobertura e a reserva precisavam de um campo para cada posto. Embaixo da cobertura continua escrito <b>quantos dias cabem naquele posto e qual produto aperta</b>."},
@@ -14740,6 +14755,10 @@ function cprCopiarPedidoFora(posto){
   try { document.execCommand("copy"); } catch(e) {}
   document.body.removeChild(ta); fim();
 }
+/* 🔑 Reaproveita o `abrirSiteExterno` que ja existe (iFood, Infleet, Bsoft): ele trata o caso do
+   aparelho BLOQUEAR a janela, escrevendo um link para a pessoa tocar. Um `window.open` cru aqui
+   falharia calado no celular. */
+function cprAbrirVibra(){ abrirSiteExterno(URL_VIBRA, "portal da Vibra", "cprMsg"); }
 function cprHtmlPedidoFora(posto){
   const linhas = cprOrdenar(cprLinhas().filter(l => l.posto === posto && l.litrosComprar > 0));
   let h = '<div class="cpr-posto"><h3>\ud83c\udfe2 O pedido deste posto <small>ele n\u00e3o \u00e9 carregado por caminh\u00e3o nosso</small></h3>';
@@ -14758,8 +14777,11 @@ function cprHtmlPedidoFora(posto){
       '</div>';
     });
     h += '</div>';
+    /* 🔑 A ORDEM DOS DOIS BOTOES E' A ORDEM DO TRABALHO: primeiro copia, depois abre o site para
+       colar. Trocar a ordem faria a pessoa abrir a aba e voltar. */
     h += '<div class="cpr-acoes"><button class="btn-verde" onclick="cprCopiarPedidoFora(\'' + escAttr(posto) + '\')">' +
-         '\ud83d\udccb Copiar o pedido</button></div>';
+         '\ud83d\udccb Copiar o pedido</button>' +
+         '<button class="btn-claro" onclick="cprAbrirVibra()">\ud83d\udd17 Abrir o portal da Vibra</button></div>';
   }
   h += '<p class="nota-dash">Precisou de um caminh\u00e3o nosso nesta viagem? \u00c9 s\u00f3 escolher aqui \u2014 vale s\u00f3 para este posto.</p>';
   h += cprChipsCaminhao(posto, null);
@@ -15519,6 +15541,15 @@ function renderIfdNota(){
 
 /* ================== APP Infleet (Full Transportadora) ================== */
 const URL_INFLEET = "https://app.infleet.com.br/dashboard";
+/* 🔴 v311 - O PORTAL DA VIBRA, onde o pedido do posto atendido por outra transportadora e' feito.
+   Endereco dado por ele em 09/08. Fica aqui junto dos outros tres enderecos externos do app
+   (iFood, Infleet, Bsoft), que e' o padrao que ja existia.
+   ⚠️ E FICA DECLARADO O LIMITE: este botao aparece no bloco do posto que NENHUM caminhao nosso
+      atende, e hoje esse posto e' um so' — o de Teresina, que compra da Vibra. Se um dia um
+      segundo posto passar a ser atendido por outra transportadora, **este endereco precisa virar
+      campo do cadastro**, ao lado do "Atende o posto". 🔑 Constante com nome de fornecedor
+      sobrevive enquanto ela for a unica; a hora de mover e' quando aparecer a segunda. */
+const URL_VIBRA = "https://cn.vibraenergia.com.br/home/";
 function alternarInfleet(){
   const aberto = abrirPainelExclusivo("painelInfleet");
   const b = document.getElementById("btnInfleet");
