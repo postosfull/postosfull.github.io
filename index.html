@@ -2580,6 +2580,54 @@
   /* ===== v278 - Nivel dos tanques =====
      🔴 Este bloco fica no FIM da folha de proposito: `@media` nao ganha especificidade, entao
         media query antiga venceria regra nova escrita antes dela. */
+  /* ===== v316 - 📥 Recebimento de combustivel =====
+     🔴 Fundo em background-image, nunca background-color (regra do projeto).
+     🔴 Prefixo proprio `rcb-` — antes de criar classe, grep no CSS. */
+  .rcb-pos{font-size:.86rem;opacity:.85;margin:2px 0 10px}
+  .rcb-velho{color:var(--vermelho);font-weight:600}
+  .rcb-filtro{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:10px 0}
+  .rcb-filtro-rot{font-size:.84rem;opacity:.75;margin-right:2px}
+  .rcb-fbt{border:1px solid var(--borda);background:transparent;color:inherit;border-radius:999px;
+           padding:5px 11px;font-size:.84rem;cursor:pointer}
+  .rcb-fbt.aceso{border-color:#18a558;box-shadow:inset 0 0 0 1px #18a558}
+  .rcb-dia{margin:20px 0 4px;display:flex;flex-wrap:wrap;gap:8px;align-items:baseline}
+  .rcb-dia b{font-size:1.02rem}
+  .rcb-cnt{font-size:.84rem;opacity:.75}
+  .rcb-posto{margin:10px 0 6px;font-size:.92rem;font-weight:600;opacity:.9}
+  .rcb-grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(302px,1fr));gap:12px}
+  .rcb-card{border:1px solid var(--borda);border-left-width:5px;border-radius:14px;
+            padding:13px 15px 12px;
+            background-image:linear-gradient(var(--superficie),var(--superficie))}
+  .rcb-card.rcb-ok{border-left-color:#18a558}
+  .rcb-card.rcb-fora{border-left-color:#e0a106}
+  .rcb-card.rcb-semnota{border-left-color:var(--vermelho)}
+  .rcb-card.rcb-aberta{border-left-color:var(--borda);border-left-style:dashed}
+  .rcb-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .rcb-prod{font-weight:700;line-height:1.25}
+  .rcb-hora{font-size:.8rem;opacity:.75;white-space:nowrap}
+  .rcb-litros{font-size:1.5rem;font-weight:700;margin:7px 0 0;line-height:1.15;
+              font-variant-numeric:tabular-nums}
+  .rcb-litros small{font-size:.82rem;font-weight:400;opacity:.75}
+  .rcb-vinte{font-size:.82rem;opacity:.8;margin:1px 0 9px}
+  .rcb-linha{display:flex;justify-content:space-between;gap:10px;font-size:.86rem;padding:4px 0;
+             border-top:1px solid var(--borda)}
+  .rcb-linha span:last-child{text-align:right;font-variant-numeric:tabular-nums}
+  .rcb-regua span:last-child{font-weight:700}
+  .rcb-dif-fora{color:#e0a106;font-weight:700}
+  .rcb-dif-ok{color:#18a558}
+  .rcb-selo{display:inline-block;font-size:.74rem;border:1px solid var(--borda);border-radius:999px;
+            padding:1px 9px;margin-top:9px}
+  .rcb-selo.s-ok{border-color:#18a558;color:#18a558}
+  .rcb-selo.s-fora{border-color:#e0a106;color:#e0a106}
+  .rcb-selo.s-sem{border-color:var(--vermelho);color:var(--vermelho)}
+  .rcb-comp{font-size:.79rem;opacity:.82;margin-top:8px;padding-top:7px;
+            border-top:1px dashed var(--borda);line-height:1.5}
+  .rcb-aviso{border:1px solid #e0a106;border-radius:12px;padding:10px 13px;margin:10px 0;
+             font-size:.88rem;
+             background-image:linear-gradient(rgba(224,161,6,.09),rgba(224,161,6,.09))}
+  .rcb-acoes{display:flex;flex-wrap:wrap;gap:8px;margin:9px 0 2px}
+  .rcb-msg{font-size:.84rem;opacity:.85;min-height:1.15em;margin:5px 0 0}
+  @media(max-width:520px){ .rcb-grade{grid-template-columns:1fr} }
   .tqv-pos{font-size:.86rem;opacity:.85;margin:2px 0 10px}
   .tqv-velho{color:#c0392b;font-weight:600}
   .tqv-aviso{border:1px solid #e0a106;border-left-width:4px;border-radius:10px;padding:10px 13px;
@@ -3201,6 +3249,8 @@
       <button class="btn-claro" id="btnDash" onclick="alternarDash()"><span class="mi">📈</span><span class="mt">Dashboard</span></button>
       <button class="btn-claro" id="btnResumoDia" onclick="alternarResumoDia()"><span class="mi">📊</span><span class="mt">Resumo do dia</span></button>
       <button class="btn-claro" id="btnTanquesNivel" onclick="alternarTanquesNivel()"><span class="mi">🛢️</span><span class="mt">Nível dos tanques</span></button>
+      <!-- v316 - o recebimento de combustivel, remontado da serie do Veeder Root -->
+      <button class="btn-claro" id="btnRecebimento" onclick="alternarRecebimento()"><span class="mi">📥</span><span class="mt">Recebimento de combustível</span></button>
       <button class="btn-claro" id="btnRegistros" onclick="alternarRegistros()"><span class="mi">📋</span><span class="mt">Custos e preços</span></button>
       <button class="btn-claro" id="btnDescontos" onclick="alternarDescontos()"><span class="mi">🏷️</span><span class="mt">Descontos</span></button>
       <button class="btn-claro" id="btnSimular" onclick="alternarSimular()"><span class="mi">💰</span><span class="mt">Simular Margens</span></button>
@@ -3692,6 +3742,18 @@
        🔴 A tela NAO calcula quantos dias faltam a partir de um numero gravado: ela subtrai a HORA
           em que o tanque zera do relogio de AGORA. Numero relativo gravado no banco envelhece
           sozinho - "1,3 dias" gravado as 6h esta' errado as 18h, e nada denuncia. -->
+  <!-- ===== v316 - 📥 RECEBIMENTO DE COMBUSTIVEL =====
+       Substitui a foto do relatorio do Veeder Root e o texto no WhatsApp. O dado e' a serie de
+       medicao que o Petros ja' guarda; a descarga e' REMONTADA dela pelo coletor do VPS.
+       Receita e provas: claude/recebimento-descarga-veeder-root.md -->
+  <div class="config" id="painelRecebimento">
+    <div class="grupo">
+      <h2>📥 Recebimento de combustível</h2>
+      <p class="nota-dash">Cada descarga de caminhão: a hora, a <b>altura no tanque</b> (a mesma que o funcionário confere na régua), os litros que entraram e a comparação com a nota lançada. Vem do Veeder Root, pelo Petros — <b>ninguém precisa mais fotografar o relatório</b>.</p>
+      <div id="rcbBox"></div>
+    </div>
+  </div>
+
   <div class="config" id="painelTanquesNivel">
     <div class="grupo">
       <h2>🛢️ Nível dos tanques</h2>
@@ -3933,6 +3995,11 @@
     </div>
 
     <div class="adm-pag" id="admPagRegras" style="display:none">
+      <div class="grupo" id="grupoAvisoReceb" style="display:none">
+        <h2>📥 Aviso de recebimento de combustível</h2>
+        <p class="nota-dash">Quando o Veeder Root registrar uma descarga e a nota ainda não estiver lançada, um aviso vai para a <b>Caixa de entrada</b> de quem estiver marcado aqui. Ele <b>some sozinho</b> quando a nota for lançada — não é preciso concluir à mão.</p>
+        <div id="avisoRecebBox"></div>
+      </div>
       <div class="grupo" id="grupoMetaCaixa" style="display:none">
         <h2>🧾 Conferência dos caixas</h2>
         <p class="nota-dash">Em quanto tempo os caixas devem ser confirmados, e quem acompanha. O card <b>🧾 Caixas</b> do Dashboard passa a mostrar verde ou vermelho conforme esta meta.</p>
@@ -4304,6 +4371,7 @@ const docOrdemMenus = db.collection("config").doc("ordemMenus");   // v188 - ord
 const docOrdemAbasRel = db.collection("config").doc("ordemAbasRel"); // v192 - ordem das abas dentro do menu Relatorios
 const docOrdemCardsDash = db.collection("config").doc("ordemCardsDash"); // v200 - ordem dos cards do Dashboard
 const docMetaCaixa      = db.collection("config").doc("metaCaixa");      // v213 - meta de confirmacao dos caixas
+const docAvisoReceb     = db.collection("config").doc("avisoRecebimento"); // v316 - quem recebe o aviso de recebimento
 const docFdcConferidos = db.collection("config").doc("fdcConferidos"); // v211 - lancamentos fora do padrao ja conferidos
 const colCaixaInd = db.collection("caixaIndicadores");    // v185 - "2026-07" indicadores de caixa por posto
 const colDespesasAno = db.collection("despesasAno");      // v185 - "2026" despesas mes a mes por tipo
@@ -4513,6 +4581,13 @@ let escutaTanquesNivel = null;                                              /* v
    e' o que faz coleta quebrada passar por "nao teve movimento". */
 let combDia = null, vistoCombDia = false;                                   /* v301 */
 let tanquesNivel = null;                                                    /* v278 */
+/* v316 - os dias de recebimento. 🔴 TRES ESTADOS, como no v301: `null` = a escuta ainda
+   nao respondeu (esqueleto), `[]` = perguntei e nao ha' documento nenhum (bloco vazio com
+   explicacao), e dia sem descarga = houve coleta e nao chegou caminhao. Confundir os tres
+   e' o que faz coleta quebrada passar por 'nao teve recebimento'. */
+let recebimentos = null, escutaRecebimentos = null;                         /* v316 */
+let rcbPostoSel = '', rcbJanela = 7, rcbMsg = '';                           /* v316 */
+let avisoReceb = {}, escutaAvisoReceb = null, arMsg = '';                   /* v316 */
 let comprasRitmo = null;                                                    /* v315 */
 let escutaTanquesAjustes = null;                                            /* v278 */
 let tanquesAjustes = {};        /* {cores:{PRODUTO:hex}, ordemPostos:[], ordemTanques:{}} */
@@ -4820,7 +4895,7 @@ const ICO_SVG = {
   empresa:"<path d='M3.6 20.4h16.8'/><path d='M5.4 20.4V6.2L12 3.6l6.6 2.6v14.2'/><path d='M9.6 20.4v-4.4h4.8v4.4'/><path d='M9.4 9.2h1.2M13.4 9.2h1.2M9.4 12.6h1.2M13.4 12.6h1.2'/>",
   g_ajustes:"<circle cx='12' cy='12' r='3.1'/><path d='M19.1 14.6a1.5 1.5 0 0 0 .3 1.7l.1.1a1.9 1.9 0 1 1-2.6 2.6l-.1-.1a1.5 1.5 0 0 0-2.6 1v.2a1.9 1.9 0 0 1-3.7 0v-.1a1.5 1.5 0 0 0-2.6-1l-.1.1a1.9 1.9 0 1 1-2.6-2.6l.1-.1a1.5 1.5 0 0 0-1-2.6h-.2a1.9 1.9 0 1 1 0-3.7h.1a1.5 1.5 0 0 0 1-2.6l-.1-.1a1.9 1.9 0 1 1 2.6-2.6l.1.1a1.5 1.5 0 0 0 1.7.3h.1a1.5 1.5 0 0 0 .9-1.4v-.2a1.9 1.9 0 0 1 3.7 0v.1a1.5 1.5 0 0 0 2.6 1l.1-.1a1.9 1.9 0 1 1 2.6 2.6l-.1.1a1.5 1.5 0 0 0 1 2.6h.2a1.9 1.9 0 0 1 0 3.7h-.1a1.5 1.5 0 0 0-1.4.9z'/>"
 };
-const ICO_BTN = {btnComprar:"comprar",btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnTanquesNivel:"tanquesNivel",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnDre:"dre",btnAfericoes:"afericoes",btnAnalise:"analise",btnRelLoja:"relLoja",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
+const ICO_BTN = {btnComprar:"comprar",btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnTanquesNivel:"tanquesNivel",btnRecebimento:"recebimento",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnDre:"dre",btnAfericoes:"afericoes",btnAnalise:"analise",btnRelLoja:"relLoja",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
 const ICO_GRP = {dia:"g_dia",analise:"g_analise",transp:"g_transp",org:"g_org",ajustes:"g_ajustes"};
 /* 🔑 cor por GRUPO, tirada da paleta do MIV (laranja da marca + verde e dourado Petrobras).
    Assim a cor diz de que familia e' o menu, em vez de ser arco-iris. */
@@ -5063,6 +5138,8 @@ function aoMudarLogin(usuario){
     if (escutaPrecosVenda){ escutaPrecosVenda(); escutaPrecosVenda = null; }
     if (escutaCustosCompra){ escutaCustosCompra(); escutaCustosCompra = null; }   /* v261 */
     if (escutaTanquesNivel){ escutaTanquesNivel(); escutaTanquesNivel = null; tanquesNivel = null; }   /* v278 */
+    if (escutaRecebimentos){ escutaRecebimentos(); escutaRecebimentos = null; recebimentos = null; }   /* v316 */
+    if (escutaAvisoReceb){ escutaAvisoReceb(); escutaAvisoReceb = null; avisoReceb = {}; }   /* v316 */
     if (escutaCombDia){ escutaCombDia(); escutaCombDia = null; combDia = null; vistoCombDia = false; }   /* v301 */
     if (escutaTanquesAjustes){ escutaTanquesAjustes(); escutaTanquesAjustes = null; tanquesAjustes = {}; tqvEdit = null; }   /* v278 */
     if (escutaCustosDiarios){ escutaCustosDiarios(); escutaCustosDiarios = null; }   /* v262 */
@@ -5785,7 +5862,7 @@ function renderAbaAdm(){
   if (!pa || !pa.classList.contains("aberto")) return;
   if (admAba === "perfis")      renderPerfisAcesso();
   else if (admAba === "matriz") renderAdmMatriz();
-  else if (admAba === "regras") renderMetaCaixa();
+  else if (admAba === "regras"){ renderMetaCaixa(); renderAvisoReceb(); }   /* v316 */
   else if (admAba === "ativ")   { popularSelectsAdmin(admEmails()); renderAtividadesFunc(); }
   else                          renderAdminUsuarios();
 }
@@ -6490,6 +6567,13 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v316", data:"09/08/2026", tit:"\ud83d\udce5 Recebimento de combust\u00edvel: acaba a foto do relat\u00f3rio e o texto no WhatsApp", itens:[
+    {t:"n", h:"O menu <b>\ud83d\udce5 Recebimento de combust\u00edvel</b>", d:"Cada descarga de caminh\u00e3o aparece sozinha: a <b>hora</b>, a <b>altura no tanque</b> antes e depois (a mesma que o funcion\u00e1rio confere na r\u00e9gua), os <b>litros que entraram</b>, os litros a 20 \u00b0C, a temperatura e a <b>compara\u00e7\u00e3o com a nota lan\u00e7ada</b>. O dado sempre esteve no Petros \u2014 o Veeder Root grava uma leitura por tanque a cada poucos minutos, com os mesmos quatro n\u00fameros que o console imprime no papel."},
+    {t:"n", h:"O aviso para a gerente, que <b>morre sozinho</b>", d:"Descarga registrada e nota ainda n\u00e3o lan\u00e7ada vira uma tarefa na <b>Caixa de entrada</b> do posto. Quando a nota for lan\u00e7ada, o aviso para de aparecer \u2014 <b>ningu\u00e9m precisa concluir \u00e0 m\u00e3o</b>. E quem recebe se escolhe no <b>Painel Administrativo \u203a Regras</b>, posto por posto."},
+    {t:"n", h:"E o bot\u00e3o que monta o <b>texto do WhatsApp</b>", d:"Enquanto a equipe ainda usar o grupo, um bot\u00e3o copia a mensagem pronta, com os litros por produto e a altura de cada tanque. \u00c9 a ponte: o mesmo recado, sem ningu\u00e9m fotografar papel."},
+    {t:"m", h:"Por que os litros <b>nunca</b> batem redondo com a nota", d:"Porque a conta \u00e9 remontada da leitura da sonda, e a bomba continua vendendo enquanto o caminh\u00e3o descarrega \u2014 ent\u00e3o o n\u00famero <b>erra sempre para menos</b>. Conferido em <b>09/08 contra a foto do papel</b>: 0,10% de diferen\u00e7a na gasolina aditivada e 0,36% na comum. A tela marca em amarelo s\u00f3 o que passar de <b>\u00b11%</b>, e diz com todas as letras que esse 1% \u00e9 escolha, n\u00e3o medi\u00e7\u00e3o."},
+    {t:"c", h:"Uma coisa que o papel n\u00e3o guardava", d:"O console do Veeder Root imprime <b>\u201c\u00faltimo relat\u00f3rio de entrega\u201d \u2014 um s\u00f3 por tanque</b>. Quando chegam dois compartimentos seguidos no mesmo tanque, <b>o primeiro \u00e9 apagado l\u00e1 dentro</b>. Foi o que aconteceu em 09/08 em Dutra: s\u00f3 existe registro da primeira descarga porque algu\u00e9m imprimiu no meio das duas. <b>O banco guarda tudo, desde 2022.</b>"}
+  ]},
   {v:"v315", data:"09/08/2026", tit:"\ud83d\uded2 O que comprar: os n\u00fameros deixam de ser digitados e passam a ser MEDIDOS", itens:[
     {t:"m", h:"A cobertura e o lote agora saem de <b>12 meses de notas de compra</b>", d:"At\u00e9 a v314 a tela usava <b>2 dias de entrega, 3 de reserva e lotes de 5.000 L</b> \u2014 tr\u00eas n\u00fameros iguais para os tr\u00eas postos, que <b>ningu\u00e9m tinha medido</b>. Agora um coletor l\u00ea o hist\u00f3rico das notas todo dia e a tela usa <b>o intervalo real de cada posto E de cada produto</b>. A diferen\u00e7a \u00e9 grande: em <b>\u26fd Teresina</b> a Gasolina Comum entra a cada <b>1,5 dia</b> e o Etanol a cada <b>9,3</b> \u2014 um n\u00famero s\u00f3 n\u00e3o servia para nenhum dos dois."},
     {t:"m", h:"E o lote \u00e9 o <b>compartimento do caminh\u00e3o</b>, n\u00e3o 5.000 fixo", d:"O tanque que atende <b>Dutra</b> tem um compartimento de <b>7.000 L</b> e seis de 5.000; o de <b>Caxias</b> tem dois de <b>10.000</b> e seis de 5.000. As notas mostram exatamente isso \u2014 e o 7.000 aparece <b>136 vezes em Dutra e 6 em Caxias</b>, que s\u00e3o as vezes em que <b>o caminh\u00e3o do outro posto</b> foi carregar l\u00e1."},
@@ -8111,6 +8195,25 @@ function iniciarSync(){
     if (pd && pd.classList.contains("aberto") && !dashEhConv() && !dashEhTransp()) renderCombDia();
   }, ()=>{ vistoCombDia = true; });
 
+  /* v316 - os recebimentos. E' uma COLECAO (um documento por dia), nao um documento so' —
+     por isso a escuta e' de consulta, com teto. 🔑 O teto e' de DOCUMENTOS, nunca da conta: o
+     rodape continua dizendo quantos dias entraram. */
+  escutaRecebimentos = db.collection("recebimentos").orderBy("data", "desc")
+    .limit(RCB_DIAS_LISTA).onSnapshot(snap => {
+      recebimentos = snap.docs.map(d => Object.assign({ id: d.id }, d.data() || {}));
+      const pr = document.getElementById("painelRecebimento");
+      if (pr && pr.classList.contains("aberto")) renderRecebimento();
+    }, () => { recebimentos = []; });
+
+  /* v316 - quem recebe o aviso de recebimento. O coletor do VPS LE este documento; o Painel
+     Administrativo o escreve. 🔑 E' o botao que ele pediu, em vez de o destinatario morar no
+     codigo do servidor. */
+  escutaAvisoReceb = docAvisoReceb.onSnapshot(snap => {
+    avisoReceb = snap.exists ? (snap.data() || {}) : {};
+    const a = document.getElementById("painelAdmin");
+    if (a && a.classList.contains("aberto")) renderAvisoReceb();
+  }, () => { avisoReceb = {}; });
+
   /* v278 - o nivel de agora dos tanques (coletor do VPS, de hora em hora) */
   escutaTanquesNivel = docTanquesNivel.onSnapshot(snap => {
     tanquesNivel = snap.exists ? (snap.data() || {}) : {};
@@ -8617,6 +8720,7 @@ const MENUS_APP = [
   {key:"registros",   btn:"btnRegistros",   pan:"painelRegistros",   emp:"postos", nome:"Custos e preços"},   /* v263 */
   {key:"simular",     btn:"btnSimular",     pan:"painelSimular",     emp:"postos", nome:"Simular Margens"},
   {key:"tanquesNivel", btn:"btnTanquesNivel", pan:"painelTanquesNivel", emp:"postos", nome:"Nível dos tanques"},   /* v278 */
+  {key:"recebimento", btn:"btnRecebimento", pan:"painelRecebimento", emp:"postos", nome:"Recebimento de combustível"},   /* v316 */
   {key:"descontos",   btn:"btnDescontos",   pan:"painelDescontos",   emp:"postos", nome:"Descontos"},
   /* v290 - um menu so no lugar de dois (o "Financeiro" saiu daqui; o painel dele continua vivo,
      agora como abas deste menu). Quem tinha permissao SO no Financeiro continua enxergando:
@@ -8652,7 +8756,7 @@ const MENUS_APP = [
    enquanto o Tiago nao mexer. O que ele mudar mora em config/ordemMenus. */
 const GRUPOS_MENU = [
   {key:"soltos",  nome:"",               icone:"",       itens:["dash"]},
-  {key:"dia",     nome:"Dia a dia",      icone:"\ud83d\udd01", itens:["resumoDia","tanquesNivel","registros","descontos","simular"]},
+  {key:"dia",     nome:"Dia a dia",      icone:"\ud83d\udd01", itens:["resumoDia","tanquesNivel","recebimento","registros","descontos","simular"]},
   {key:"analise", nome:"Análise",        icone:"\ud83d\udcca", itens:["relPosto","dre","afericoes","analise","relLoja","ifood"]},
   {key:"transp",  nome:"Transportadora", icone:"\ud83d\ude9a", itens:["infleet","comprar","pedido","cotacoes","puxadas"]},
   {key:"org",     nome:"Organização",    icone:"\ud83d\udcc1", itens:["calendario","vencimentos","caixa"]},   /* v251 - o 🗂 ninguem reconhecia */
@@ -14081,6 +14185,436 @@ function renderAfericoes(){
   box.innerHTML = h;
 }
 
+/* ===================== v316 - 📥 RECEBIMENTO DE COMBUSTIVEL =====================
+   Substitui a foto do relatorio do Veeder Root e o texto no WhatsApp.
+
+   🔑 A FONTE. O coletor `descargas.mjs` (VPS) le a serie que o Petros ja' guarda
+   (`medicao_tanque_fisico`: volume, volume a 20 graus, ALTURA e temperatura, de N em N minutos),
+   REMONTA cada descarga, agrupa os compartimentos do mesmo caminhao e cruza com a nota lancada
+   (`movimento_estoque`). Grava um documento por dia em `recebimentos/{AAAA-MM-DD}`.
+   👉 claude/recebimento-descarga-veeder-root.md · claude/coletor-descargas-CODIGO.md
+
+   🔴 O QUE ESTA TELA NAO PODE FINGIR:
+   1. **O numero erra para MENOS.** A bomba vende enquanto o caminhao descarrega. Medido em 09/08
+      contra a foto do papel: 0,10% na aditivada, 0,36% na comum. A tela diz isso no rodape.
+   2. **A nota e' do DIA, nao da descarga.** O lancamento no ERP nao guarda a hora, entao dois
+      recebimentos no mesmo tanque no mesmo dia dividem a mesma nota. Amarrar uma nota a uma
+      descarga seria inventar precisao que o dado nao tem.
+   3. **A altura e' o numero da OPERACAO.** E' pela regua que o funcionario confere o recebimento,
+      subindo no tanque. Por isso ela aparece em destaque, e nao escondida num rodape. */
+
+/* quantos DOCUMENTOS de dia a escuta traz. 🔑 Teto de DOCUMENTOS, nunca da conta. */
+const RCB_DIAS_LISTA = 30;
+
+/* 🔴 A FAIXA DE TOLERANCIA — numero ESCOLHIDO, nao medido, e a tela diz isso com todas as letras.
+   Ele nao existe para acusar: existe para separar "variacao normal" de "olhar". Variacao sempre
+   existe, por dilatacao e pela temperatura de carga e de descarga — o proprio Tiago explicou isso
+   em 09/08, e e' por isso que a tela NAO pinta de vermelho quem esta' dentro.
+   ⚠️ O que o derrubaria: se quase nenhuma descarga cair fora, esta' frouxo; se quase todas
+   cairem, esta' apertado. O rodape conta as duas coisas em toda visita — a decisao de mexer nele
+   e' dele, e tem de sair de MEDICAO. */
+const RCB_TOL_PCT = 1.0;
+
+const RCB_JANELAS = [[7, "Últimos 7 dias"], [30, "Últimos 30 dias"]];
+
+/* 🔴 A JANELA EM QUE A COLETA REALMENTE RODA — e ela existe por causa de uma licao, nao por
+   capricho: o cron e' `43 6-21`, entao das 22h as 6h a leitura MAIS NOVA POSSIVEL ja tem mais de
+   tres horas. Sem esta janela, a tela ficaria vermelha TODA MADRUGADA dizendo que a coleta
+   parou — e vermelho que aparece por rotina ensina a equipe a ignorar vermelho (v296).
+   ⚠️ Estes dois numeros e o horario do cron sao a MESMA decisao, tomada duas vezes.
+      Mexeu no cron do `rodar-descargas.sh`, mexa aqui. */
+const RCB_HORA_INI = 6, RCB_HORA_FIM = 21, RCB_IDADE_MAX_H = 3;
+function rcbDentroDaJanela(){
+  const h = new Date().getHours();
+  return h >= RCB_HORA_INI + 1 && h <= RCB_HORA_FIM + 1;
+}
+
+function rcbNum(v){ const n = Number(v); return Number.isFinite(n) ? n : null; }
+function rcbL(v){ const n = rcbNum(v); return n === null ? "—" : fmtBR(n, 0) + " L"; }
+function rcbMM(v){ const n = rcbNum(v); return n === null ? "—" : fmtBR(n, 0) + " mm"; }
+function rcbC(v){ const n = rcbNum(v); return n === null ? "—" : fmtBR(n, 1) + " °C"; }
+function rcbHora(iso){ return String(iso || "").slice(11, 16) || "?"; }
+function rcbDataBR(d){ const s = String(d || ""); return s.length === 10 ? s.slice(8,10) + "/" + s.slice(5,7) + "/" + s.slice(0,4) : s; }
+function rcbHojeIso(){
+  const d = new Date();
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+}
+
+/* 🔴 A SITUACAO DE UM TANQUE NO DIA SE DECIDE AQUI, E SO' AQUI.
+   A cor da borda, o selo, o texto e o contador do aviso do topo apenas USAM.
+   🔑 E' a licao da v297: regra escrita em seis lugares diverge em dois deles, e quem descobre e'
+   o usuario. O patch desta versao trava se `rcbSituacao(` aparecer um numero diferente de vezes. */
+function rcbSituacao(t){
+  if (!t || !Array.isArray(t.recebimentos) || !t.recebimentos.length) return null;
+  /* 🔴 Descarga aberta NAO cobra nota: o caminhao ainda esta' na pista. */
+  if (t.recebimentos.some(r => !r.fechada))
+    return { k:"aberta", selo:"⏳ ainda descarregando", cls:"s-ok", pct:null,
+             nota:"A descarga ainda não terminou — a conta fecha na próxima coleta." };
+  const base = rcbNum(t.notaDoDia && t.notaDoDia.litros);
+  const dif  = rcbNum(t.diferencaBr);
+  /* ausencia continua ausencia: sem nota nao existe diferenca, e diferenca 0 aqui seria a tela
+     dizendo "conferiu certinho" sobre uma conta que nunca foi feita. */
+  if (base === null || dif === null || base <= 0)
+    return { k:"semnota", selo:"🔴 nota ainda não lançada", cls:"s-sem", pct:null, nota:"" };
+  const pct = Math.abs(dif) / base * 100;
+  return (pct <= RCB_TOL_PCT)
+    ? { k:"ok",   selo:"✓ dentro da faixa",  cls:"s-ok",   pct:pct, nota:"" }
+    : { k:"fora", selo:"⚠️ fora da faixa", cls:"s-fora", pct:pct, nota:"" };
+}
+
+function rcbDiasVisiveis(){
+  if (!Array.isArray(recebimentos)) return [];
+  const hoje = rcbHojeIso();
+  const corte = new Date(Date.parse(hoje + "T12:00:00Z") - (rcbJanela - 1) * 86400000)
+                  .toISOString().slice(0, 10);
+  return recebimentos.filter(d => String(d.data || d.id || "") >= corte);
+}
+
+function rcbFiltrarPosto(p){ rcbPostoSel = p; rcbMsg = ""; renderRecebimento(); }
+function rcbSetJanela(n){ rcbJanela = Number(n) || 7; rcbMsg = ""; renderRecebimento(); }
+
+function alternarRecebimento(){
+  const aberto = abrirPainelExclusivo("painelRecebimento");
+  const b = document.getElementById("btnRecebimento");
+  if (b) b.classList.toggle("ativo", aberto);
+  if (aberto) renderRecebimento();
+}
+
+/* ---- o texto que hoje e' digitado no grupo do WhatsApp ---------------------------------
+   🔑 Ele traz SO' o que foi MEDIDO. Distribuidora, motorista e CPF continuam vindo da nota em
+   maos — inventar esses campos aqui seria pior que nao os ter. */
+function rcbTextoWhats(dia, nomePosto, p){
+  const l = [];
+  l.push("RECEBIMENTO DE COMBUSTÍVEL");
+  l.push(rcbDataBR(dia) + " — " + nomePosto);
+  l.push("");
+  (p.tanques || []).forEach(t => {
+    const sit = rcbSituacao(t);
+    if (!sit) return;
+    const r = t.recebimentos;
+    l.push("• " + t.tanque + ": " + rcbL(t.recebidoBr) +
+           (r.length > 1 ? " (" + r.length + " descargas)" : "") +
+           "  — altura " + rcbMM(r[0].altIni) + " → " + rcbMM(r[r.length - 1].altFim) +
+           ", das " + rcbHora(r[0].inicio) + " às " + rcbHora(r[r.length - 1].fim));
+    if (t.notaDoDia)
+      l.push("   nota lançada: " + rcbL(t.notaDoDia.litros) +
+             " (diferença " + (t.diferencaBr > 0 ? "+" : "") + rcbL(t.diferencaBr) + ")");
+    else
+      l.push("   nota ainda não lançada");
+  });
+  l.push("");
+  l.push("Litros medidos pelo Veeder Root" +
+         (p.intervaloMin && p.intervaloMin > 1
+            ? " (captura de " + p.intervaloMin + " em " + p.intervaloMin +
+              " minutos — são aproximados, e erram para menos)" : "") + ".");
+  l.push("Favor lançar as nfs e ctes.");
+  return l.join("\n");
+}
+
+function rcbCopiar(dia, nomePosto){
+  const d = (recebimentos || []).find(x => String(x.data || x.id) === dia);
+  const p = d && d.postos ? d.postos[nomePosto] : null;
+  if (!p){ rcbMsg = "Não achei esse recebimento."; renderRecebimento(); return; }
+  const txt = rcbTextoWhats(dia, nomePosto, p);
+  const fim = () => { rcbMsg = "✓ Mensagem de " + nomePosto + " copiada."; renderRecebimento(); };
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(fim, fim); return;
+    }
+  } catch(e) {}
+  const ta = document.createElement("textarea");
+  ta.value = txt; document.body.appendChild(ta); ta.select();
+  try { document.execCommand("copy"); } catch(e) {}
+  document.body.removeChild(ta); fim();
+}
+
+/* ---- a tela ---------------------------------------------------------------------------- */
+function renderRecebimento(){
+  const box = document.getElementById("rcbBox");
+  if (!box) return;
+  /* 🔴 TRES ESTADOS, e a diferenca entre eles e' a tela inteira. */
+  if (recebimentos === null){ box.innerHTML = esqueletoCaixa(3); return; }
+  if (!recebimentos.length){
+    box.innerHTML = vazioHtml("Ainda não chegou nenhum recebimento",
+      "O servidor lê o Veeder Root de hora em hora, das 6h às 21h, e grava um dia por vez. " +
+      "Se isto continuar vazio depois da próxima hora cheia, a coleta do servidor parou.", "", "");
+    return;
+  }
+
+  let h = "";
+
+  /* 1. de quando e' o numero */
+  const q = recebimentos[0].atualizadoEm || "";
+  const idade = q ? (Date.now() - Date.parse(q)) / 3600000 : null;
+  const velho = (idade !== null && idade > RCB_IDADE_MAX_H && rcbDentroDaJanela());
+  h += '<p class="rcb-pos">Última leitura do servidor em <b>' +
+       escAttr(fmtQuandoLocal(q) || "?") + '</b>' +
+       (velho
+         ? ' <span class="rcb-velho">⚠️ há ' + fmtBR(idade, 0) +
+           ' horas — a coleta deveria rodar de hora em hora</span>'
+         : '') + '</p>';
+  if (!velho && idade !== null && idade > RCB_IDADE_MAX_H)
+    h += '<p class="rcb-pos" style="opacity:.65">A coleta roda das ' + RCB_HORA_INI + 'h às ' +
+         RCB_HORA_FIM + 'h — fora desse horário a leitura ficar parada é o normal.</p>';
+
+  const dias = rcbDiasVisiveis();
+
+  /* 2. os filtros */
+  const postosTodos = [];
+  dias.forEach(d => Object.keys(d.postos || {}).forEach(nm => {
+    if (postosTodos.indexOf(nm) < 0) postosTodos.push(nm); }));
+  /* 🔴 filtro apontando para posto que sumiu volta para "todos" — senao a tela abre VAZIA e uma
+     tela vazia nao diz "seu filtro ficou velho", ela diz "nao ha' dado". (v280) */
+  if (rcbPostoSel && postosTodos.indexOf(rcbPostoSel) < 0) rcbPostoSel = "";
+
+  h += '<div class="rcb-filtro"><span class="rcb-filtro-rot">Período:</span>';
+  RCB_JANELAS.forEach(j => {
+    h += '<button class="rcb-fbt' + (rcbJanela === j[0] ? ' aceso' : '') +
+         '" onclick="rcbSetJanela(' + j[0] + ')">' + j[1] + '</button>';
+  });
+  h += '</div>';
+  if (postosTodos.length > 1){
+    h += '<div class="rcb-filtro"><span class="rcb-filtro-rot">Posto:</span>' +
+         '<button class="rcb-fbt' + (rcbPostoSel ? '' : ' aceso') +
+         '" onclick="rcbFiltrarPosto(\'\')">Todos</button>';
+    postosTodos.forEach(nm => {
+      h += '<button class="rcb-fbt' + (rcbPostoSel === nm ? ' aceso' : '') +
+           '" onclick="rcbFiltrarPosto(' + JSON.stringify(nm).replace(/"/g, "&quot;") + ')">' +
+           escAttr(nm) + '</button>';
+    });
+    h += '</div>';
+  }
+
+  /* 3. o aviso do topo — quantas notas estao faltando NO QUE ESTA' NA TELA, e quantas o filtro
+        escondeu. 🔴 Aviso que some porque alguem filtrou e' pior que aviso nenhum. */
+  let semNota = 0, semNotaFora = 0, comDescarga = 0, dentro = 0, fora = 0;
+  dias.forEach(d => Object.keys(d.postos || {}).forEach(nm => {
+    const naTela = (!rcbPostoSel || rcbPostoSel === nm);
+    (d.postos[nm].tanques || []).forEach(t => {
+      const sit = rcbSituacao(t);
+      if (!sit) return;
+      if (naTela){
+        comDescarga++;
+        if (sit.k === "semnota") semNota++;
+        else if (sit.k === "ok") dentro++;
+        else if (sit.k === "fora") fora++;
+      } else if (sit.k === "semnota") semNotaFora++;
+    });
+  }));
+
+  if (semNota){
+    h += '<div class="rcb-aviso"><b>🔴 ' + semNota +
+         ' recebimento(s) ainda sem a nota lançada</b> no período mostrado. ' +
+         'Isso vira uma tarefa na Caixa de entrada de quem estiver marcado no Painel ' +
+         'Administrativo — e o aviso <b>some sozinho</b> quando a nota for lançada.' +
+         (semNotaFora ? ' <b>E há mais ' + semNotaFora +
+            ' assim em posto que este filtro está escondendo.</b>' : '') + '</div>';
+  } else if (semNotaFora){
+    h += '<div class="rcb-aviso">⚠️ <b>' + semNotaFora +
+         ' recebimento(s) sem nota continuam fora desta tela</b> — o filtro escondeu, ' +
+         'mas o problema não sumiu.</div>';
+  }
+
+  /* 4. um bloco por dia */
+  let desenhou = 0;
+  dias.forEach(d => {
+    const dia = String(d.data || d.id);
+    const nomes = Object.keys(d.postos || {}).filter(nm => !rcbPostoSel || rcbPostoSel === nm);
+    /* dias sem descarga nenhuma nao viram bloco vazio — o rodape conta quantos foram */
+    const temAlgo = nomes.some(nm => (d.postos[nm].tanques || []).some(t => rcbSituacao(t)));
+    if (!temAlgo) return;
+    desenhou++;
+
+    h += '<div class="rcb-dia"><b>' + escAttr(rcbDataBR(dia)) + '</b></div>';
+
+    nomes.forEach(nm => {
+      const p = d.postos[nm];
+      const comRec = (p.tanques || []).filter(t => rcbSituacao(t));
+      if (!comRec.length) return;
+
+      h += '<div class="rcb-posto">' + escAttr(nm) +
+           '<span class="rcb-cnt"> · ' + comRec.length + ' tanque' +
+           (comRec.length === 1 ? '' : 's') +
+           (p.intervaloMin ? ' · sonda de ' + p.intervaloMin + ' em ' + p.intervaloMin +
+                             ' min' : '') + '</span></div>';
+
+      h += '<div class="rcb-acoes"><button class="btn-claro" onclick="rcbCopiar(' +
+           JSON.stringify(dia).replace(/"/g, "&quot;") + ', ' +
+           JSON.stringify(nm).replace(/"/g, "&quot;") +
+           ')">📋 Copiar a mensagem do WhatsApp</button></div>';
+
+      h += '<div class="rcb-grade">';
+      comRec.forEach(t => {
+        const sit = rcbSituacao(t);
+        const r = t.recebimentos;
+        const ini = r[0], fim = r[r.length - 1];
+        h += '<div class="rcb-card rcb-' + sit.k + '">' +
+               '<div class="rcb-top"><span class="rcb-prod">' + escAttr(t.tanque) + '</span>' +
+                 '<span class="rcb-hora">' + rcbHora(ini.inicio) + '–' + rcbHora(fim.fim) +
+                 '</span></div>' +
+               '<div class="rcb-litros">' + rcbL(t.recebidoBr) +
+                 ' <small>recebidos</small></div>' +
+               /* 🔴 SEM TERMOCOMPENSADO, A LINHA SOME — nao vira "0 L a 20 °C" nem "— a 20 °C".
+                  O Veeder Root de Teresina nao manda esse campo (medido em 09/08), e bloco
+                  ausente e' melhor que zero: zero e' o unico que mente. */
+               (t.recebidoTc === null || t.recebidoTc === undefined ? '' :
+                 '<div class="rcb-vinte">' + rcbL(t.recebidoTc) + ' a 20 °C' + bul("rcbVinte") +
+                 '</div>') +
+               '<div class="rcb-linha rcb-regua"><span>Altura (a régua)' + bul("rcbAltura") +
+                 '</span><span>' + rcbMM(ini.altIni) + ' → ' + rcbMM(fim.altFim) + '</span></div>' +
+               '<div class="rcb-linha"><span>Temperatura</span><span>' +
+                 rcbC(ini.drops && ini.drops[0] ? ini.drops[0].tempIni : null) + ' → ' +
+                 rcbC(fim.drops && fim.drops.length ? fim.drops[fim.drops.length - 1].tempFim : null) +
+                 '</span></div>' +
+               '<div class="rcb-linha"><span>Nota do dia' + bul("rcbNota") + '</span><span>' +
+                 (t.notaDoDia
+                   ? rcbL(t.notaDoDia.litros) + ' <small>(' + t.notaDoDia.notas + ')</small>'
+                   : '—') + '</span></div>' +
+               (t.notaDoDia
+                 ? '<div class="rcb-linha"><span>Diferença</span><span class="' +
+                     (sit.k === "fora" ? "rcb-dif-fora" : "rcb-dif-ok") + '">' +
+                     (t.diferencaBr > 0 ? "+" : "") + rcbL(t.diferencaBr) +
+                     (sit.pct !== null ? ' (' + fmtBR(sit.pct, 2) + '%)' : '') + '</span></div>'
+                 : '') +
+               '<span class="rcb-selo ' + sit.cls + '">' + sit.selo + '</span>' +
+               (sit.nota ? '<div class="rcb-comp">' + escAttr(sit.nota) + '</div>' : '') +
+               (r.length > 1 || (r[0].drops && r[0].drops.length > 1)
+                 ? '<div class="rcb-comp">' + rcbCompartimentos(r) + '</div>' : '') +
+             '</div>';
+      });
+      h += '</div>';
+    });
+  });
+
+  if (!desenhou){
+    h += vazioHtml("Nenhum caminhão neste período",
+      "A coleta rodou e não houve descarga nos dias mostrados — isso é resultado válido, " +
+      "não falta de dado. Aumente o período para ver mais atrás.", "", "");
+  }
+
+  /* 5. o rodape que mantem o limiar honesto */
+  h += '<p class="nota-dash" style="margin-top:16px">' +
+       'A faixa de tolerância é de <b>±' + fmtBR(RCB_TOL_PCT, 1) + '%</b> sobre os litros da nota. ' +
+       '<b>Esse número é escolha, não medição</b> — variação sempre existe, por dilatação e pela ' +
+       'temperatura na hora de carregar e de descarregar. No período mostrado: <b>' + dentro +
+       '</b> dentro da faixa, <b>' + fora + '</b> fora e <b>' + semNota + '</b> sem nota lançada, ' +
+       'de ' + comDescarga + ' recebimento(s). ' +
+       'Se quase nada cair fora, a faixa está frouxa; se quase tudo cair, está apertada.</p>';
+  h += '<p class="nota-dash">Os litros são remontados da leitura da sonda e <b>erram sempre para ' +
+       'menos</b>, porque a bomba continua vendendo enquanto o caminhão descarrega. Conferido em ' +
+       '09/08 contra o relatório impresso do console: <b>0,10%</b> na gasolina aditivada e ' +
+       '<b>0,36%</b> na comum.</p>';
+  h += '<div class="rcb-msg" id="rcbMsg">' + escAttr(rcbMsg) + '</div>';
+
+  box.innerHTML = h;
+}
+
+/* os compartimentos, em uma linha por descarga */
+function rcbCompartimentos(recs){
+  const partes = [];
+  recs.forEach(r => (r.drops || []).forEach(d => {
+    partes.push(rcbL(d.aumentoBr) + " às " + rcbHora(d.inicio) + "–" + rcbHora(d.fim));
+  }));
+  if (partes.length < 2) return "";
+  return "<b>" + partes.length + " compartimentos:</b> " + partes.join(" · ");
+}
+
+/* ===================== v316 - o quadro do Painel Administrativo =====================
+   🔑 Ele pediu em 09/08: "coloque uma opcao no painel administrativo para eu gerenciar quem
+   recebe o aviso tambem". E' a regra do projeto de DAR O BOTAO em vez de mudar — o coletor do
+   VPS LE `config/avisoRecebimento`, e nunca traz destinatario escrito no codigo. */
+function arNomeDe(e){ const n = (perfis || {})[e]; return (n && n !== e) ? n : e; }
+function arMarcado(lista, e){ return Array.isArray(lista) && lista.indexOf(e) >= 0; }
+
+function renderAvisoReceb(){
+  const grp = document.getElementById("grupoAvisoReceb");
+  const box = document.getElementById("avisoRecebBox");
+  if (!grp || !box) return;
+  /* v218 - nao redesenhar por baixo da mao de quem esta usando o quadro */
+  if (box.contains(document.activeElement)) return;
+  const souAdmin = ehAdminAtual();
+  grp.style.display = souAdmin ? "" : "none";
+  if (!souAdmin){ box.innerHTML = ""; return; }
+
+  const pessoas = admEmails();
+  const porPosto = (avisoReceb && avisoReceb.porPosto) ? avisoReceb.porPosto : {};
+  const tambem = (avisoReceb && Array.isArray(avisoReceb.tambem)) ? avisoReceb.tambem : [];
+
+  let h = "";
+  if (!pessoas.length){
+    h += '<p class="nota-dash">Nenhum funcionário cadastrado ainda. Crie os usuários na aba ' +
+         '<b>Pessoas</b> e eles aparecem aqui sozinhos.</p>';
+  } else {
+    h += '<div class="pe-sub">Quem recebe o aviso de cada posto</div>';
+    h += '<div class="mc-grid">';
+    CXI_POSTOS.forEach(u => {
+      h += '<div class="mc-col"><h4>' + escAttr(u) + '</h4><div class="usr-perm-grid">';
+      pessoas.forEach(e => {
+        h += '<label class="usr-perm-item"><input type="checkbox" value="' + escAttr(e) + '"' +
+             (arMarcado(porPosto[u], e) ? ' checked' : '') +
+             ' onchange="setAvisoRecebPosto(\'' + escAspas(e) + '\', \'' + escAspas(u) +
+             '\', this.checked)"> ' + escAttr(arNomeDe(e)) + '</label>';
+      });
+      h += '</div></div>';
+    });
+    h += '</div>';
+
+    h += '<div class="pe-sub">E quem recebe o de TODOS os postos</div>';
+    h += '<p class="nota-dash">Marque aqui quem acompanha a rede inteira. O dono do app recebe ' +
+         'sempre, mesmo sem estar marcado.</p>';
+    h += '<div class="usr-perm-grid">';
+    pessoas.forEach(e => {
+      h += '<label class="usr-perm-item"><input type="checkbox" value="' + escAttr(e) + '"' +
+           (arMarcado(tambem, e) ? ' checked' : '') +
+           ' onchange="setAvisoRecebTambem(\'' + escAspas(e) + '\', this.checked)"> ' +
+           escAttr(arNomeDe(e)) + '</label>';
+    });
+    h += '</div>';
+  }
+  h += '<p class="nota-dash">✓ Tudo aqui é salvo na hora — não existe botão de salvar. ' +
+       'A mudança vale para o <b>próximo</b> aviso; a que já está na Caixa de entrada não muda de dono.</p>';
+  h += '<div class="msg-admin" id="msgAvisoReceb">' + escAttr(arMsg) + '</div>';
+  box.innerHTML = h;
+}
+
+function setAvisoRecebPosto(email, unidade, on){
+  if (!ehAdminAtual() || !nuvemPronta) return;
+  email = String(email).toLowerCase();
+  const pp = JSON.parse(JSON.stringify((avisoReceb && avisoReceb.porPosto) ? avisoReceb.porPosto : {}));
+  CXI_POSTOS.forEach(u => { if (!Array.isArray(pp[u])) pp[u] = []; });
+  const lista = pp[unidade];
+  const i = lista.indexOf(email);
+  if (on && i < 0) lista.push(email); else if (!on && i >= 0) lista.splice(i, 1);
+  avisoReceb = Object.assign({}, avisoReceb || {}, { porPosto: pp });
+  arMsg = on ? "✓ " + arNomeDe(email) + " passa a receber o aviso de " + unidade + "."
+             : "✓ " + arNomeDe(email) + " saiu do aviso de " + unidade + ".";
+  docAvisoReceb.set({ porPosto: pp, atualizadoEm: new Date().toISOString(),
+                      por: usuarioAtual || "" }, {merge:true})
+    .then(() => logAtividade({ acao:"editar", area:"Aviso de recebimento",
+      resumo:(on ? "incluiu " : "tirou ") + email + " em " + unidade,
+      colecao:"config", docId:"avisoRecebimento" }))
+    .catch(() => { arMsg = "Não consegui salvar agora."; renderAvisoReceb(); });
+  const cx = document.getElementById("msgAvisoReceb"); if (cx) cx.textContent = arMsg;
+}
+
+function setAvisoRecebTambem(email, on){
+  if (!ehAdminAtual() || !nuvemPronta) return;
+  email = String(email).toLowerCase();
+  const tb = ((avisoReceb && Array.isArray(avisoReceb.tambem)) ? avisoReceb.tambem : []).slice();
+  const i = tb.indexOf(email);
+  if (on && i < 0) tb.push(email); else if (!on && i >= 0) tb.splice(i, 1);
+  avisoReceb = Object.assign({}, avisoReceb || {}, { tambem: tb });
+  arMsg = on ? "✓ " + arNomeDe(email) + " passa a receber o aviso de todos os postos."
+             : "✓ " + arNomeDe(email) + " saiu do aviso geral.";
+  docAvisoReceb.set({ tambem: tb, atualizadoEm: new Date().toISOString(),
+                      por: usuarioAtual || "" }, {merge:true})
+    .then(() => logAtividade({ acao:"editar", area:"Aviso de recebimento",
+      resumo:(on ? "incluiu " : "tirou ") + email + " no aviso geral",
+      colecao:"config", docId:"avisoRecebimento" }))
+    .catch(() => { arMsg = "Não consegui salvar agora."; renderAvisoReceb(); });
+  const cx = document.getElementById("msgAvisoReceb"); if (cx) cx.textContent = arMsg;
+}
+
 function alternarTanquesNivel(){
   const aberto = abrirPainelExclusivo("painelTanquesNivel");
   const b = document.getElementById("btnTanquesNivel");
@@ -17361,6 +17895,12 @@ const BULAS = {
     d:"Quanto cada combust\u00edvel deixou POR LITRO hoje, nos tr\u00eas postos — e s\u00f3 isso: quem quer litros e lucro bruto tem a aba Resultado do menu Relat\u00f3rios. Vem do Petros, coletado de 10 em 10 minutos — \u00e9 o mesmo n\u00famero da tabela Venda de Combust\u00edveis do painel de l\u00e1." },
   cardCaixas: { t:"Caixas",
     d:"Quanto tempo o caixa leva para ser confirmado, e quanto sobra ou falta. Vem do Petros. Em m\u00eas ainda em andamento o percentual de confirmados \u00e9 naturalmente menor — os \u00faltimos dias ainda n\u00e3o foram conferidos." },
+  rcbVinte: { t:"Litros a 20 \u00b0C",
+    d:"O mesmo combust\u00edvel, contado como se estivesse a 20 \u00b0C. <b>20 \u00b0C n\u00e3o \u00e9 a temperatura daqui: \u00e9 a r\u00e9gua padr\u00e3o</b> que o mundo inteiro usa para comparar volumes. Como aqui \u00e9 quente, o volume real \u00e9 sempre MAIOR que o corrigido. Serve para explicar a varia\u00e7\u00e3o entre carregar e descarregar — <b>a compara\u00e7\u00e3o com a nota \u00e9 feita pelo volume real</b>." },
+  rcbAltura: { t:"Altura no tanque",
+    d:"A altura da coluna de combust\u00edvel antes e depois da descarga, em mil\u00edmetros, lida pela sonda. \u00c9 o mesmo n\u00famero que o funcion\u00e1rio confere subindo no tanque com a r\u00e9gua — por isso ele aparece aqui em destaque." },
+  rcbNota: { t:"Diferen\u00e7a contra a nota",
+    d:"Os litros medidos menos os litros da nota lan\u00e7ada no ERP, <b>somando o dia inteiro daquele tanque</b> \u2014 a data do lan\u00e7amento n\u00e3o guarda a hora, ent\u00e3o n\u00e3o d\u00e1 para amarrar uma nota a uma descarga espec\u00edfica. A faixa de toler\u00e2ncia est\u00e1 escrita no rodap\u00e9 da tela, junto com quantos ficaram dentro e fora dela, e <b>esse n\u00famero \u00e9 escolha, n\u00e3o medi\u00e7\u00e3o</b>: varia\u00e7\u00e3o sempre existe, por dilata\u00e7\u00e3o e pela temperatura na hora de carregar e de descarregar. <b>Fora da faixa n\u00e3o quer dizer erro \u2014 quer dizer olhar.</b>" },
   tqNivel: { t:"Quanto tem no tanque",
     d:"O saldo em litros que o Petros tem para aquele tanque neste momento, e o mesmo número em porcentagem da capacidade. Nos postos com sonda ligada ele é leitura de equipamento; onde a sonda não está chegando, é conta a partir da última medição física — e aí a etiqueta ao lado do tanque diz isso." },
   tqDura: { t:"Quantos dias o estoque dura",
