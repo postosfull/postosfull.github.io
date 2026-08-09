@@ -1320,6 +1320,96 @@
   .pe-nao{color:var(--cinza)}
   @media (max-width:640px){ .pe-item{align-items:flex-start} .pe-sel{width:100%;justify-content:space-between} }
   /* v185 - menus Caixas e Despesas */
+
+  /* ===================== v308 - 🛒 O QUE COMPRAR =====================
+     🔴 A REGUA E A MESMA DA TELA NIVEL DOS TANQUES (TQV_CRIT / TQV_ATEN), de proposito:
+     duas telas do mesmo app dizendo "critico" em dias diferentes seria a pior das confusoes.
+     As cores da SITUACAO aqui sao as da urgencia; a cor do PRODUTO continua sendo a de sempre
+     (TQV_COR), a mesma da pista e dos tanques. */
+  .cpr-regua{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin:0 0 14px}
+  .cpr-cmp{display:flex;flex-direction:column;gap:4px;min-width:112px}
+  .cpr-cmp label{font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;opacity:.72}
+  .cpr-cmp input{width:100%;padding:8px 10px;border-radius:10px;border:1px solid var(--bd);
+    background:var(--cx);color:var(--tx);font-size:.95rem;font-variant-numeric:tabular-nums}
+  .cpr-cmp .cpr-un{font-size:.7rem;opacity:.6}
+  .cpr-cob{border-top:1px dashed var(--bd);padding-top:10px}
+  .cpr-cob-tit label{font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;opacity:.72}
+  .cpr-cob .cpr-cmp{min-width:132px}
+  .cpr-mao{color:var(--mar);font-weight:700}
+  .cpr-kpis{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 14px}
+  .cpr-kpi{flex:1 1 130px;background:var(--cx);border:1px solid var(--bd);border-radius:12px;padding:10px 12px}
+  .cpr-kpi .k{font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;opacity:.7}
+  .cpr-kpi .v{font-size:1.32rem;font-weight:700;font-variant-numeric:tabular-nums}
+  .cpr-kpi .u{font-size:.78rem;opacity:.7;margin-left:3px}
+  .cpr-kpi.alerta{border-color:#ef4444}
+  .cpr-kpi.alerta .v{color:#ef4444}
+  /* 🔴 AVISO EM CIMA, METODO EMBAIXO (v241): a caixa vermelha nomeia quem vai faltar; o rodape
+     cinza explica a conta. Nunca ao contrario. */
+  .cpr-urg{border:1px solid #ef4444;border-left-width:4px;border-radius:12px;padding:12px 14px;margin:0 0 14px;
+    background:rgba(239,68,68,.08)}
+  .cpr-urg h4{margin:0 0 8px;font-size:.98rem;color:#ef4444}
+  .cpr-urg p{margin:0 0 6px;font-size:.9rem;line-height:1.45}
+  .cpr-urg p:last-child{margin-bottom:0}
+  .cpr-urg b.c{color:#ef4444}
+  .cpr-urg b.u{color:#f59e0b}
+  .cpr-aviso{border:1px solid #f59e0b;border-left-width:4px;border-radius:12px;padding:10px 14px;margin:0 0 14px;
+    background:rgba(245,158,11,.10);font-size:.88rem;line-height:1.45}
+  .cpr-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+  .cpr-chip{padding:6px 12px;border-radius:999px;border:1px solid var(--bd);background:var(--cx);
+    color:var(--tx);font-size:.85rem;cursor:pointer}
+  .cpr-chip.on{background:var(--mar);border-color:var(--mar);color:#fff}
+  .cpr-posto{margin:0 0 18px}
+  .cpr-posto h3{margin:0 0 4px;font-size:1.02rem;display:flex;flex-wrap:wrap;gap:8px;align-items:baseline}
+  .cpr-posto h3 small{font-weight:400;opacity:.7;font-size:.82rem}
+  .cpr-tab{width:100%;border-collapse:collapse;font-size:.88rem}
+  .cpr-tab th{text-align:right;font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;opacity:.7;
+    padding:6px 8px;border-bottom:1px solid var(--bd);white-space:nowrap}
+  .cpr-tab th:first-child,.cpr-tab td:first-child{text-align:left}
+  .cpr-tab td{text-align:right;padding:9px 8px;border-bottom:1px solid var(--bd);vertical-align:top;
+    font-variant-numeric:tabular-nums}
+  .cpr-tab tr.crit td{background:rgba(239,68,68,.07)}
+  .cpr-prod{display:flex;gap:8px;align-items:center}
+  .cpr-bolinha{width:10px;height:10px;border-radius:50%;flex:0 0 auto}
+  .cpr-prod .nm{font-weight:600}
+  .cpr-sub{display:block;font-size:.74rem;opacity:.66;font-weight:400;font-variant-numeric:tabular-nums}
+  .cpr-sit{display:inline-block;padding:3px 9px;border-radius:999px;font-size:.72rem;font-weight:600;white-space:nowrap}
+  .cpr-c{background:rgba(239,68,68,.16);color:#ef4444}
+  .cpr-u{background:rgba(245,158,11,.18);color:#f59e0b}
+  .cpr-a{background:rgba(59,130,246,.16);color:#3b82f6}
+  .cpr-t{background:rgba(34,197,94,.16);color:#22c55e}
+  .cpr-s{background:var(--cx2,rgba(127,127,127,.16));opacity:.8}
+  .cpr-comprar{font-weight:700;color:#FE7030;white-space:nowrap}
+  .cpr-nao{display:block;font-size:.72rem;color:#f59e0b}
+  .cpr-vazio{opacity:.55}
+  .cpr-carga{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px;margin:10px 0 0}
+  .cpr-comp{border:1px solid var(--bd);border-left-width:4px;border-radius:12px;padding:9px 11px;background:var(--cx)}
+  .cpr-comp .cn{font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;opacity:.65}
+  .cpr-comp .cl{font-size:1.1rem;font-weight:700;font-variant-numeric:tabular-nums}
+  .cpr-comp .cp{font-size:.84rem}
+  .cpr-comp .cd{font-size:.76rem;opacity:.72}
+  .cpr-comp.livre{opacity:.5;border-left-color:var(--bd)!important;border-style:dashed}
+  .cpr-comp .parcial{font-size:.7rem;color:#f59e0b}
+  .cpr-rank{display:flex;flex-direction:column;gap:6px;margin:10px 0 0}
+  .cpr-lin{display:grid;grid-template-columns:112px 1fr 108px;gap:8px;align-items:center;font-size:.85rem}
+  .cpr-bar{height:16px;border-radius:8px;background:var(--bd);overflow:hidden}
+  .cpr-bar i{display:block;height:100%;background:var(--mar);border-radius:8px}
+  .cpr-lin.melhor .cpr-bar i{background:#22c55e}
+  .cpr-lin .vl{text-align:right;font-variant-numeric:tabular-nums}
+  .cpr-melhor{border:1px solid #22c55e;border-radius:12px;padding:12px 14px;background:rgba(34,197,94,.08);margin:10px 0 0}
+  .cpr-melhor .tag{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:#22c55e;font-weight:700}
+  .cpr-melhor .nm{font-size:1.14rem;font-weight:700}
+  .cpr-melhor .tt{font-size:1.3rem;font-weight:700;font-variant-numeric:tabular-nums}
+  .cpr-melhor .ec{font-size:.85rem;opacity:.85}
+  .cpr-acoes{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 0}
+  .cpr-metodo{margin:16px 0 0;padding:12px 14px;border:1px solid var(--bd);border-radius:12px;background:var(--cx)}
+  .cpr-metodo h4{margin:0 0 6px;font-size:.9rem}
+  .cpr-metodo p{margin:0 0 6px;font-size:.8rem;line-height:1.5;opacity:.82}
+  .cpr-metodo p:last-child{margin-bottom:0}
+  @media(max-width:640px){
+    .cpr-tab th.opc,.cpr-tab td.opc{display:none}
+    .cpr-lin{grid-template-columns:92px 1fr 92px;font-size:.8rem}
+  }
+
   /* ===================== v306 - A FAIXA QUE ROLA DE LADO =====================
      🔴 A TROCA DE DECISAO: `auto-fit` fazia o conteudo mandar na ALTURA do card, e a altura
      do card mandava na linha inteira do Dashboard — foi assim que a Dutra caiu sozinha para
@@ -3101,6 +3191,7 @@
       <button class="btn-claro" id="btnRelLoja" onclick="alternarRelLoja()"><span class="mi">🍫</span><span class="mt">Produtos e categorias</span></button>
       <button class="btn-claro" id="btnIfood" onclick="alternarIfood()"><span class="mi">🍔</span><span class="mt">iFood</span></button>
       <button class="btn-claro" id="btnInfleet" onclick="alternarInfleet()"><span class="mi">📡</span><span class="mt">APP Infleet</span></button>
+      <button class="btn-claro" id="btnComprar" onclick="alternarComprar()"><span class="mi">🛒</span><span class="mt">O que comprar</span></button>
       <button class="btn-claro" id="btnPedido" onclick="alternarPedido()"><span class="mi">📝</span><span class="mt">Pedido de carregamento</span></button>
       <button class="btn-claro" id="btnCotacoes" onclick="alternarCotacoes()"><span class="mi">💲</span><span class="mt">Cotações do Dia</span></button>
       <button class="btn-claro" id="btnPuxadas" onclick="alternarPuxadas()"><span class="mi">🧾</span><span class="mt">Puxadas</span></button>
@@ -3334,6 +3425,20 @@
       <p class="nota-dash">Com as cotações acima já preenchidas, basta informar quantos litros o caminhão vai puxar: o app soma produto + frete e mostra em qual distribuidora o pedido sai mais barato. A <b>Vibra</b> fica de fora porque é exclusiva do Posto Full Teresina — o comparativo é para os postos de Dutra e Caxias.</p>
       <div id="conteudoCompCot"></div>
       <canvas id="compCanvas" width="1080" height="1920" style="display:none"></canvas>
+    </div>
+  </div>
+
+  <!-- ===== v308 - 🛒 O QUE COMPRAR =====
+       A tela de decisao da compra: quanto tempo o estoque de cada posto dura, quantos litros
+       pedir, como isso cabe nos compartimentos do caminhao e em qual distribuidora compensa.
+       Inspirada na tela "Compra de combustivel" do GASview (claude/varredura-gasview-inspiracao.md),
+       com DUAS diferencas nossas: o lote nao e generico, e o COMPARTIMENTO do nosso tanque; e a
+       comparacao de preco usa as cotacoes que a equipe ja lanca todo dia. -->
+  <div class="config" id="painelComprar">
+    <div class="grupo">
+      <h2>🛒 O que comprar</h2>
+      <p class="nota-dash">Quantos litros pedir de cada combust&iacute;vel para n&atilde;o faltar produto na pista, considerando o que cada posto vende por dia e a reserva que n&atilde;o pode furar. Quando o posto tem <b>mais de um tanque do mesmo produto, eles entram juntos</b> &mdash; &eacute; assim que a compra &eacute; feita.</p>
+      <div id="cprBox"></div>
     </div>
   </div>
 
@@ -4660,6 +4765,7 @@ const ICO_SVG = {
   usuarios:"<circle cx='9.2' cy='8.4' r='3.4'/><path d='M2.8 20a6.4 6.4 0 0 1 12.8 0'/><path d='M16.4 5.4a3.4 3.4 0 0 1 0 6.6M17.6 14.4a6.4 6.4 0 0 1 3.6 5.6'/>",
   novidades:"<path d='M12 3.4 14.4 8.6l5.7.7-4.2 4 1.1 5.6L12 16.2l-5 2.7 1.1-5.6-4.2-4 5.7-.7z'/>",
   ordenarMenus:"<path d='M4 20.2h4.2L20 8.4a2 2 0 0 0-2.8-2.8L5.4 17.4z'/><path d='M15.6 7 17 8.4'/>",
+  comprar:"<path d='M2.6 3.6h2.6l2.4 10.6h9.6'/><path d='M6.4 6.6h14.2l-1.8 6.4H7.6'/><circle cx='9.2' cy='18.6' r='1.5'/><circle cx='17.2' cy='18.6' r='1.5'/>",
   tanquesNivel:"<rect x='2.8' y='7.4' width='18.4' height='9.2' rx='2.6'/><path d='M2.8 13.4h18.4'/><path d='M6.6 7.4v9.2M11 7.4v9.2M15.4 7.4v9.2'/><path d='M5.2 19.2v1.4M18.8 19.2v1.4'/>",
   dre:"<path d='M3.4 20.6h17.2'/><path d='M6 16.4l4-4.6 3.2 2.6 5.2-6.2'/><path d='M14.2 8.2h4.2v4.2'/>",
   sair:"<path d='M9.6 20.4H5.4a1.8 1.8 0 0 1-1.8-1.8V5.4a1.8 1.8 0 0 1 1.8-1.8h4.2'/><path d='M15.4 16.6 20 12l-4.6-4.6M20 12H9.2'/>",
@@ -4670,7 +4776,7 @@ const ICO_SVG = {
   empresa:"<path d='M3.6 20.4h16.8'/><path d='M5.4 20.4V6.2L12 3.6l6.6 2.6v14.2'/><path d='M9.6 20.4v-4.4h4.8v4.4'/><path d='M9.4 9.2h1.2M13.4 9.2h1.2M9.4 12.6h1.2M13.4 12.6h1.2'/>",
   g_ajustes:"<circle cx='12' cy='12' r='3.1'/><path d='M19.1 14.6a1.5 1.5 0 0 0 .3 1.7l.1.1a1.9 1.9 0 1 1-2.6 2.6l-.1-.1a1.5 1.5 0 0 0-2.6 1v.2a1.9 1.9 0 0 1-3.7 0v-.1a1.5 1.5 0 0 0-2.6-1l-.1.1a1.9 1.9 0 1 1-2.6-2.6l.1-.1a1.5 1.5 0 0 0-1-2.6h-.2a1.9 1.9 0 1 1 0-3.7h.1a1.5 1.5 0 0 0 1-2.6l-.1-.1a1.9 1.9 0 1 1 2.6-2.6l.1.1a1.5 1.5 0 0 0 1.7.3h.1a1.5 1.5 0 0 0 .9-1.4v-.2a1.9 1.9 0 0 1 3.7 0v.1a1.5 1.5 0 0 0 2.6 1l.1-.1a1.9 1.9 0 1 1 2.6 2.6l-.1.1a1.5 1.5 0 0 0 1 2.6h.2a1.9 1.9 0 0 1 0 3.7h-.1a1.5 1.5 0 0 0-1.4.9z'/>"
 };
-const ICO_BTN = {btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnTanquesNivel:"tanquesNivel",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnDre:"dre",btnAnalise:"analise",btnRelLoja:"relLoja",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
+const ICO_BTN = {btnComprar:"comprar",btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnTanquesNivel:"tanquesNivel",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnDre:"dre",btnAnalise:"analise",btnRelLoja:"relLoja",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
 const ICO_GRP = {dia:"g_dia",analise:"g_analise",transp:"g_transp",org:"g_org",ajustes:"g_ajustes"};
 /* 🔑 cor por GRUPO, tirada da paleta do MIV (laranja da marca + verde e dourado Petrobras).
    Assim a cor diz de que familia e' o menu, em vez de ser arco-iris. */
@@ -6340,6 +6446,14 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v308", data:"09/08/2026", tit:"\ud83d\uded2 O que comprar \u2014 a tela que decide o pedido, na Full Transportadora", itens:[
+    {t:"n", h:"Quantos litros pedir de cada combust\u00edvel, em cada posto", d:"Um menu novo na <b>Full Transportadora</b>, logo antes do Pedido de carregamento. Ele l\u00ea o n\u00edvel dos tanques que j\u00e1 chega do Petros de hora em hora e responde a pergunta que interessa: <b>o que comprar hoje</b>. Quando o posto tem mais de um tanque do mesmo produto, <b>eles entram juntos</b> \u2014 \u00e9 assim que a compra \u00e9 feita."},
+    {t:"n", h:"A <b>cobertura</b> e a <b>reserva</b> s\u00e3o um n\u00famero <b>para cada posto</b>", d:"O <b>lote de compra</b> e o <b>prazo de entrega</b> valem para a rede; a <b>cobertura</b> e a <b>reserva m\u00ednima</b> t\u00eam um campo para Teresina, um para Caxias e um para Dutra. Quem voc\u00ea n\u00e3o escolher usa <b>o que cabe naquele posto</b>, medido na hora \u2014 e embaixo do campo est\u00e1 escrito quantos dias cabem e <b>qual produto aperta</b>. O tanque de gasolina de Teresina, por exemplo, comporta menos de 5 dias de venda no total, e a\u00ed nem uma semana de cobertura caberia. Fica guardado <b>neste aparelho</b>, e o \u21ba volta ao autom\u00e1tico."},
+    {t:"m", h:"A Gasolina Podium entrou no Pedido de carregamento", d:"Ela n\u00e3o estava na lista de produtos do pedido desde julho, e Teresina vende Podium \u2014 ent\u00e3o a carga de l\u00e1 nunca fechava sozinha. Agora fecha. (Na compara\u00e7\u00e3o de pre\u00e7o ela continua de fora: \u00e9 produto da Vibra.)"},
+    {t:"n", h:"E a carga j\u00e1 montada nos compartimentos de verdade", d:"Os litros sugeridos caem nos compartimentos do caminh\u00e3o escolhido (o UJM6J70 tem 2\u00d710.000 + 6\u00d75.000; o ROH0J42, 1\u00d77.000 + 6\u00d75.000), com o destino de cada um. O que n\u00e3o couber sai escrito. E o bot\u00e3o <b>\ud83d\udcdd Levar para o Pedido de carregamento</b> leva tudo pronto para o menu do lado \u2014 destino, CNPJ, produto e litros."},
+    {t:"n", h:"Onde compensa comprar aquela carga", d:"Com os litros da carga na m\u00e3o, a tela compara as distribuidoras pelas <b>cota\u00e7\u00f5es que voc\u00ea j\u00e1 lan\u00e7a todo dia</b>, mais o frete de cada uma, e diz a economia at\u00e9 a mais cara. A Vibra fica fora (\u00e9 exclusiva de Teresina), e isso vem escrito na tela."},
+    {t:"m", h:"O n\u00famero que n\u00e3o \u00e9 medi\u00e7\u00e3o aparece com o nome dele", d:"Tanque sem leitura de sonda entra com til na frente e etiqueta de <b>estimado</b> ou <b>impreciso</b>; linha <b>sem base</b> n\u00e3o recebe sugest\u00e3o nenhuma \u2014 \u00e9 prop\u00f3sito, n\u00e3o falha. E se a leitura dos tanques atrasar mais de 3 horas, a tela avisa antes de voc\u00ea decidir."}
+  ]},
   {v:"v307", data:"09/08/2026", tit:"\u26fd O Lucro por combust\u00edvel virou texto, igual ao Vendas do dia", itens:[
     {t:"m", h:"Sem barras e sem cores: o nome do posto em cima, os combust\u00edveis embaixo", d:"O card <b>\u26fd Lucro por combust\u00edvel</b> passou a ter a mesma cara do card <b>\ud83c\udfc1 Vendas do dia</b>: uma caixa por posto, com o nome do posto no topo e, embaixo, uma linha para cada combust\u00edvel com o <b>lucro bruto por litro</b>. As barras coloridas sa\u00edram. O n\u00famero continua o mesmo, com as mesmas tr\u00eas casas."},
     {t:"m", h:"Os tr\u00eas postos de uma vez \u2014 o filtro saiu", d:"Como o desenho virou texto, os tr\u00eas postos voltaram a caber lado a lado e os bot\u00f5es <b>Teresina \u00b7 Caxias \u00b7 Pres. Dutra</b> deixaram de ser necess\u00e1rios."},
@@ -8422,6 +8536,7 @@ const MENUS_APP = [
   {key:"relPosto",    btn:"btnRelPosto",    pan:"painelRelPosto",    emp:"postos|conv", nome:"Relatórios Adaptive"},
   {key:"dre",         btn:"btnDre",         pan:"painelDre",         emp:"postos|conv", nome:"DRE"},   /* v281 */
   {key:"infleet",     btn:"btnInfleet",     pan:"painelInfleet",     emp:"transp", nome:"APP Infleet"},
+  {key:"comprar",     btn:"btnComprar",     pan:"painelComprar",     emp:"transp", nome:"O que comprar"},   /* v308 */
   {key:"pedido",      btn:"btnPedido",      pan:"painelPedido",      emp:"transp", nome:"Pedido de carregamento"},
   {key:"cotacoes",    btn:"btnCotacoes",    pan:"painelCotacoes",    emp:"transp", nome:"Cotações do Dia"},
   {key:"puxadas",     btn:"btnPuxadas",     pan:"painelPuxadas",     emp:"transp", nome:"Puxadas"},
@@ -8450,7 +8565,7 @@ const GRUPOS_MENU = [
   {key:"soltos",  nome:"",               icone:"",       itens:["dash"]},
   {key:"dia",     nome:"Dia a dia",      icone:"\ud83d\udd01", itens:["resumoDia","tanquesNivel","registros","descontos","simular"]},
   {key:"analise", nome:"Análise",        icone:"\ud83d\udcca", itens:["relPosto","dre","analise","relLoja","ifood"]},
-  {key:"transp",  nome:"Transportadora", icone:"\ud83d\ude9a", itens:["infleet","pedido","cotacoes","puxadas"]},
+  {key:"transp",  nome:"Transportadora", icone:"\ud83d\ude9a", itens:["infleet","comprar","pedido","cotacoes","puxadas"]},
   {key:"org",     nome:"Organização",    icone:"\ud83d\udcc1", itens:["calendario","vencimentos","caixa"]},   /* v251 - o 🗂 ninguem reconhecia */
   {key:"ajustes", nome:"Ajustes",        icone:"\u2699",        itens:["conta","config","usuarios"]},
   {key:"soltosFim", nome:"",             icone:"",       itens:["novidades"]}   // v246 - o fim da barra, sem titulo
@@ -13885,7 +14000,718 @@ function copiarResumoTexto(){
 
 /* ================== Pedido de carregamento (Full Transportadora) ==================
    Monta a mensagem que hoje é digitada à mão no grupo dos motoristas. */
-const PRODUTOS_PEDIDO = ["Gasolina Comum","Gasolina Aditivada","Etanol","Diesel S-10","Diesel S-500"];
+
+/* ===================== v308 - 🛒 O QUE COMPRAR (Full Transportadora) =====================
+   A pergunta que esta tela responde: QUAIS PEDIDOS FAZER HOJE.
+   Fonte: `config/tanquesNivel` (o coletor `tanques.mjs` do VPS, de hora em hora) + o cadastro de
+   caminhoes/tanques da Transportadora + `config/cotacoesDia`.
+
+   🔑 O QUE E COPIADO DO GASview e o que e NOSSO.
+     Copiado: os quatro campos que a pessoa mexe na hora (lote, cobertura, prazo de entrega,
+     reserva minima), as frases inteiras em vez de numeros soltos, o "nao cabe tudo", o
+     vocabulario da honestidade e a regra de que linha SEM BASE nao recebe sugestao nenhuma.
+     Nosso: o lote generico de 5.000 L vira o COMPARTIMENTO do nosso tanque (o UJM6J70 tem
+     2x10.000 + 6x5.000; o ROH0J42, 1x7.000 + 6x5.000), e a comparacao de preco usa as cotacoes
+     que a equipe ja lanca todo dia no menu Cotacoes.
+
+   🔴 UMA DIVERGENCIA DECLARADA, PARA NAO VIRAR "POR QUE OS DOIS NAO DAO IGUAL".
+     A tela 🛢️ Nivel dos tanques mostra a previsao PRONTA DO PETROS, tanque a tanque (decisao dele
+     em 07/08: "assim a nossa tela e a do Petros contam a MESMA historia"). Aqui os tanques do
+     mesmo produto sao SOMADOS - porque e assim que a compra e feita - e por isso a conta e
+     estoque / venda media do dia. Em Caxias, que tem DOIS tanques de Diesel S-10, os dois numeros
+     nao sao o mesmo numero, e nenhum dos dois esta errado. Esta escrito no rodape da tela.
+
+   🔴 E O QUE ESTA TELA NAO FAZ: ela nao compra, nao reserva e nao manda pedido. Ela sugere - e a
+     sugestao de quem NAO tem medicao e cortada, nunca chutada. */
+
+const CPR_PADRAO  = { lote:5000, cobertura:7, entrega:2, reserva:3 };
+const CPR_LIMITES = { lote:[1000,15000], cobertura:[0,30], entrega:[0,15], reserva:[0,15] };
+const CPR_CHAVE   = "pf_comprar_regua";
+const CPR_CH_POSTO = "pf_comprar_posto";
+const CPR_CH_CAM   = "pf_comprar_caminhao";
+let cprRegua = null, cprCamSel = "", cprPostoSel = "";
+try { cprPostoSel = localStorage.getItem(CPR_CH_POSTO) || ""; } catch(e){ cprPostoSel = ""; }
+try { cprCamSel   = localStorage.getItem(CPR_CH_CAM)   || ""; } catch(e){ cprCamSel = ""; }
+
+/* 🔑 A REGUA E PREFERENCIA DE QUEM ESTA OLHANDO, e por isso mora no aparelho (localStorage) e nao
+   no Firestore - a mesma regra do filtro de posto da v280. Se um dia a cobertura virar politica
+   da empresa ("sempre 7 dias"), ai sim ela sobe para o config e ganha dono. */
+function cprLerRegua(){
+  if (cprRegua) return cprRegua;
+  let g = null;
+  try { g = JSON.parse(localStorage.getItem(CPR_CHAVE) || "null"); } catch(e){ g = null; }
+  cprRegua = Object.assign({}, CPR_PADRAO, { porPosto:{} });
+  if (g && typeof g === "object"){
+    Object.keys(CPR_PADRAO).forEach(k => {
+      const v = Number(g[k]);
+      if (isFinite(v) && v >= CPR_LIMITES[k][0] && v <= CPR_LIMITES[k][1]) cprRegua[k] = v;
+    });
+    /* 🔴 o que estiver fora do limite e' DESCARTADO, nao cortado: aqui o valor veio do disco, e
+       nao de alguem digitando — numero estranho no localStorage e' lixo, nao intencao. */
+    const pp = g.porPosto;
+    if (pp && typeof pp === "object") Object.keys(pp).forEach(k => {
+      const o = pp[k]; if (!o || typeof o !== "object") return;
+      const guardado = {};
+      [["cob", CPR_LIMITES.cobertura], ["res", CPR_LIMITES.reserva]].forEach(par => {
+        const v = Number(o[par[0]]);
+        if (isFinite(v) && v >= par[1][0] && v <= par[1][1]) guardado[par[0]] = v;
+      });
+      if (Object.keys(guardado).length) cprRegua.porPosto[String(k)] = guardado;
+    });
+  }
+  return cprRegua;
+}
+/* 🔴 A COBERTURA E A RESERVA SAO POR POSTO — escolha dele em 09/08, olhando a foto e a medicao.
+   Com 7 dias para os tres, Teresina dizia "nao cabe tudo" em quase toda linha. E nao era defeito
+   da conta: o tanque de gasolina de Teresina (20.000 L para 4.033 L/dia) comporta 4,9 dias de
+   venda AO TODO, e 2 de entrega + 3 de reserva ja ocupam os cinco.
+   🔑 Uma regua so' para tres postos de tamanhos diferentes obriga o numero a estar errado em
+      dois deles.
+
+   🔴 E O PADRAO NAO E UM NUMERO ESCRITO A MAO, E O QUE CABE — MEDIDO NA HORA.
+   Escrever `Teresina: 0` aqui seria a armadilha da v296 de novo (regra com nome proprio nao
+   sobrevive ao segundo caso): o dia em que um posto ganhar tanque, ou vender mais, o numero
+   escrito continuaria igual e ninguem lembraria de mexer. Entao o padrao de cada posto e
+   `min(o que cabe, 7)`, e o 7 e so' um TETO — quem tem tanque de sobra nao compra mais que uma
+   semana de venda de uma vez.
+   👉 O que ele digitar ganha do automatico; apagar o campo devolve o automatico. */
+function cprGrupos(posto){
+  const ps = (tanquesNivel && tanquesNivel.postos) ? tanquesNivel.postos[posto] : null;
+  const ts = (ps && Array.isArray(ps.tanques)) ? ps.tanques : [];
+  const grupos = {}, ordem = [];
+  ts.forEach(t => {
+    const nome = String((t && t.produto) || "").trim();
+    if (!nome) return;
+    const k = cprChave(nome);
+    if (!grupos[k]){ grupos[k] = { posto, produto:nome, tanques:[], litros:0, cap:0, mediaDia:0, quals:{} }; ordem.push(k); }
+    const g = grupos[k];
+    g.tanques.push({ n:String(t.n || ""), litros:Number(t.litros) || 0, cap:Number(t.cap) || 0 });
+    g.litros   += Number(t.litros) || 0;
+    g.cap      += Number(t.cap) || 0;
+    g.mediaDia += Number(t.mediaDia) || 0;
+    g.quals[String(t.qualidade || "")] = 1;
+  });
+  return ordem.map(k => grupos[k]);
+}
+function cprPP(posto){ return (cprLerRegua().porPosto || {})[String(posto || "")] || {}; }
+function cprReservaDe(posto){
+  const v = cprPP(posto).res;
+  return (v === undefined || v === null) ? cprLerRegua().reserva : v;
+}
+/* 🔑 QUANTOS DIAS DE COBERTURA CABEM NAQUELE POSTO, e qual produto aperta.
+   Por produto: cap / venda-dia - entrega - reserva. O do posto e' o MENOR deles, porque e' o
+   primeiro que estoura o tanque.
+   🔴 Ela NAO pode chamar `cprLinhas()`: quem calcula a linha precisa da cobertura, e a cobertura
+      precisa desta conta — daria volta infinita. Por isso ela le os grupos crus. */
+function cprCabeDias(posto){
+  const r = cprLerRegua(), res = cprReservaDe(posto);
+  let pior = null;
+  cprGrupos(posto).forEach(g => {
+    if (!(g.mediaDia > 0)) return;
+    const d = g.cap / g.mediaDia - r.entrega - res;
+    if (pior === null || d < pior.dias) pior = { dias: d, produto: g.produto };
+  });
+  if (!pior) return null;
+  return { dias: Math.max(0, Math.floor(pior.dias)), produto: pior.produto };
+}
+function cprCoberturaDe(posto){
+  const v = cprPP(posto).cob;
+  if (v !== undefined && v !== null) return v;
+  const teto = cprLerRegua().cobertura;
+  const cabe = cprCabeDias(posto);
+  return cabe ? Math.min(cabe.dias, teto) : teto;
+}
+/* campo: "cob" ou "res". Campo apagado volta para o automatico — sem isso nao haveria como
+   desfazer um numero digitado sem querer. */
+function cprSetPosto(posto, campo, valor){
+  const r = cprLerRegua();
+  const lim = campo === "res" ? CPR_LIMITES.reserva : CPR_LIMITES.cobertura;
+  const txt = String(valor == null ? "" : valor).trim();
+  r.porPosto = r.porPosto || {};
+  const alvo = r.porPosto[posto] = r.porPosto[posto] || {};
+  if (txt === "") delete alvo[campo];
+  else {
+    let v = Number(txt.replace(",", "."));
+    if (!isFinite(v)) v = campo === "res" ? r.reserva : r.cobertura;
+    alvo[campo] = Math.min(lim[1], Math.max(lim[0], v));
+  }
+  if (!Object.keys(alvo).length) delete r.porPosto[posto];
+  try { localStorage.setItem(CPR_CHAVE, JSON.stringify(r)); } catch(e){}
+  renderComprar();
+}
+function cprSetCoberturaPosto(posto, valor){ cprSetPosto(posto, "cob", valor); }
+function cprSetReservaPosto(posto, valor){ cprSetPosto(posto, "res", valor); }
+function cprSetRegua(campo, valor){
+  const lim = CPR_LIMITES[campo]; if (!lim) return;
+  const r = cprLerRegua();
+  let v = Number(String(valor == null ? "" : valor).replace(",", "."));
+  if (!isFinite(v)) v = CPR_PADRAO[campo];
+  r[campo] = Math.min(lim[1], Math.max(lim[0], v));
+  try { localStorage.setItem(CPR_CHAVE, JSON.stringify(r)); } catch(e){}
+  renderComprar();
+}
+function cprVoltarPadrao(){
+  cprRegua = Object.assign({}, CPR_PADRAO, { porPosto:{} });
+  try { localStorage.removeItem(CPR_CHAVE); } catch(e){}
+  renderComprar();
+}
+function cprFiltrarPosto(nm){
+  cprPostoSel = nm || "";
+  try { localStorage.setItem(CPR_CH_POSTO, cprPostoSel); } catch(e){}
+  renderComprar();
+}
+function cprEscolherCaminhao(placa){
+  cprCamSel = normPlaca(placa || "");
+  try { localStorage.setItem(CPR_CH_CAM, cprCamSel); } catch(e){}
+  renderComprar();
+}
+
+/* 🔴 O DE-PARA, NUM LUGAR SO. O tanque vem com o nome do Petros ("OLEO DIESEL B S10 COMUM"), a
+   cotacao usa o nome do app ("Diesel S10") e o Pedido de carregamento usa OUTRO ("Diesel S-10").
+   Sao tres vocabularios para o mesmo liquido, e ja existiam os tres antes desta tela.
+   ⚠️ A ORDEM DOS TESTES IMPORTA, e e a mesma armadilha da cor dos tanques: "OLEO DIESEL S10
+      ADITIVADO" (Teresina) tem de cair em Diesel S-10, NAO em aditivada.
+   🔴 A GASOLINA PODIUM ENTROU NO PEDIDO EM 09/08, por decisao dele. Ela tinha ficado de fora da
+      lista de produtos do Pedido de carregamento em 26/07, e Teresina vende Podium - entao a
+      carga de Teresina saia incompleta. 👉 A terceira coluna dela deixou de ser vazia, e o
+      PRODUTOS_PEDIDO ganhou a linha correspondente.
+      ⚠️ Ela continua FORA da comparacao de preco (combForaComp), e isso NAO mudou: e' produto da
+         Vibra, que e' exclusiva de Teresina. Sao duas coisas diferentes - carregar e comparar. */
+const CPR_DEPARA = [
+  [/S\s*-?\s*10|S10/i,               "Diesel S10",         "Diesel S-10"],
+  [/S\s*-?\s*500|S500/i,             "Diesel S500",        "Diesel S-500"],
+  [/PODIUM/i,                        "Gasolina Podium",    "Gasolina Podium"],
+  [/^(?!.*DIESEL).*(GRID|ADITIV)/i,  "Gasolina Aditivada", "Gasolina Aditivada"],
+  [/ETANOL|\u00c1LCOOL|ALCOOL/i,      "Etanol",             "Etanol"],
+  [/GASOLINA/i,                      "Gasolina Comum",     "Gasolina Comum"]
+];
+function cprDePara(nome){
+  const t = String(nome || "");
+  for (let i = 0; i < CPR_DEPARA.length; i++)
+    if (CPR_DEPARA[i][0].test(t)) return { comb: CPR_DEPARA[i][1], ped: CPR_DEPARA[i][2] };
+  return { comb:"", ped:"" };            /* o que ninguem reconhece nao vira palpite */
+}
+function cprChave(nome){ return String(nome || "").trim().toUpperCase(); }
+
+/* a pior etiqueta manda no grupo: um tanque sem base contamina a soma dos dois */
+const CPR_QUAL_ORDEM = ["medido", "estimado", "impreciso", "sem base"];
+function cprPiorQual(mapa){
+  let pior = "medido";
+  CPR_QUAL_ORDEM.forEach(q => { if (mapa[q]) pior = q; });
+  return pior;
+}
+const CPR_SIT = {
+  critico:  ["Cr\u00edtico",       "cpr-c", 1],
+  urgente:  ["Urgente",           "cpr-u", 2],
+  atencao:  ["Programar",         "cpr-a", 3],
+  ok:       ["Tranquilo",         "cpr-t", 4],
+  semvenda: ["Sem venda medida",  "cpr-s", 5],
+  sembase:  ["Sem base",          "cpr-s", 6]
+};
+
+/* ---- a conta de uma linha (um produto de um posto, com os tanques dele somados) ---- */
+function cprConta(g, r, cob, res){
+  const dp = cprDePara(g.produto);
+  const qualidade = cprPiorQual(g.quals);
+  const semBase = (qualidade === "sem base");
+  const media = Number(g.mediaDia) || 0;
+  const semVenda = !(media > 0);
+  /* 🔴 O MINIMO E 3 DIAS DE VENDA, e nao a reserva do cadastro: o `obterTanque` do Petros nao
+     traz estoque de seguranca por tanque, entao a tela usa o mesmo criterio de reserva que o
+     GASview usa quando o cadastro esta vazio. Esta dito no rodape.
+     E ele nunca passa da capacidade menos um lote - senao nao sobraria espaco nem para uma
+     descarga inteira, e a tela pediria uma carga que nao cabe. */
+  const teto = Math.max(0, g.cap - r.lote);
+  let minimo = semVenda ? 0 : res * media;
+  const minLimitado = minimo > teto;
+  if (minLimitado) minimo = teto;
+
+  const dias    = (!semBase && media > 0) ? (g.litros / media) : null;
+  const diasMin = (!semBase && media > 0) ? ((g.litros - minimo) / media) : null;
+  const espaco  = Math.max(0, g.cap - g.litros);
+
+  let lotes = 0, litrosComprar = 0, naoCabe = false;
+  const sugere = !semBase && !semVenda;
+  if (sugere){
+    const alvo  = media * (r.entrega + cob) + minimo;
+    const falta = alvo - g.litros;
+    if (falta > 0){
+      lotes = Math.ceil(falta / r.lote);
+      litrosComprar = lotes * r.lote;
+      if (litrosComprar > espaco){            /* 🔑 "nao cabe tudo" - do GASview, palavra por palavra */
+        naoCabe = true;
+        lotes = Math.floor(espaco / r.lote);
+        litrosComprar = lotes * r.lote;
+      }
+    }
+  }
+  let sit = "ok";
+  if (semBase) sit = "sembase";
+  else if (semVenda) sit = "semvenda";
+  else if (g.litros < minimo) sit = "critico";
+  else if (diasMin !== null && diasMin < r.entrega) sit = "urgente";
+  else if (diasMin !== null && diasMin <= r.entrega + cob) sit = "atencao";
+
+  return { posto:g.posto, produto:g.produto, comb:dp.comb, prodPedido:dp.ped,
+           tanques:g.tanques, litros:g.litros, cap:g.cap, media:media,
+           qualidade, semBase, semVenda, minimo, minLimitado, dias, diasMin, espaco,
+           lotes, litrosComprar, naoCabe, sit, cobertura: cob, reserva: res, rank: CPR_SIT[sit][2] };
+}
+
+function cprLinhas(){
+  const postos = (tanquesNivel && tanquesNivel.postos) ? tanquesNivel.postos : null;
+  if (!postos) return [];
+  const r = cprLerRegua(), saida = [];
+  Object.keys(postos).forEach(posto => {
+    const cob = cprCoberturaDe(posto), res = cprReservaDe(posto);
+    cprGrupos(posto).forEach(g => saida.push(cprConta(g, r, cob, res)));
+  });
+  return saida;
+}
+function cprOrdenar(lista){
+  return lista.slice().sort((a, b) =>
+    (a.rank - b.rank) ||
+    ((a.dias === null ? 9e9 : a.dias) - (b.dias === null ? 9e9 : b.dias)) ||
+    (b.litrosComprar - a.litrosComprar));
+}
+
+/* ---- a carga: os litros sugeridos caindo nos compartimentos de verdade ---- */
+function cprCaminhoesLista(){
+  return (caminhoes || []).map(c => {
+    const tq = c.tanquePadrao ? normPlaca(c.tanquePadrao) : "";
+    return { placa: normPlaca(c.placa), tanque: tq, comps: compsDoTanque(tq) };
+  }).filter(c => c.placa && c.comps.length);
+}
+function cprCamAtual(){
+  const lista = cprCaminhoesLista();
+  if (!lista.length) return null;
+  return lista.find(c => c.placa === cprCamSel) || lista[0];
+}
+/* 🔴 O COMPARTIMENTO VAI PARA O MAIS URGENTE QUE O ENCHE. Encher primeiro e o certo aqui: meio
+   compartimento de gasolina e meio de diesel na mesma viagem e o que a operacao evita.
+   Quem sobra no fim vira carga parcial, e o que nao coube sai escrito - nunca sumindo. */
+function cprCarga(){
+  const cam = cprCamAtual();
+  if (!cam) return null;
+  const comps = cam.comps.map((cap, i) => ({ i, cap: Number(cap) || 0 }))
+                         .sort((a, b) => (b.cap - a.cap) || (a.i - b.i));
+  const nec = cprOrdenar(cprLinhas().filter(l => l.litrosComprar > 0 && (!cprPostoSel || l.posto === cprPostoSel)))
+                .map(l => ({ l, resta: l.litrosComprar }));
+  const usados = [];
+  comps.forEach(c => {
+    if (c.cap <= 0) return;
+    let alvo = null, parcial = false;
+    for (let k = 0; k < nec.length; k++) if (nec[k].resta >= c.cap){ alvo = nec[k]; break; }
+    if (!alvo){
+      const sobrando = nec.filter(n => n.resta > 0).sort((a, b) => b.resta - a.resta);
+      if (!sobrando.length){ usados.push({ i:c.i, cap:c.cap, litros:0, parcial:false, linha:null }); return; }
+      alvo = sobrando[0]; parcial = true;
+    }
+    const litros = parcial ? alvo.resta : c.cap;
+    usados.push({ i:c.i, cap:c.cap, litros, parcial, linha: alvo.l });
+    alvo.resta -= litros;
+  });
+  const sobra = nec.filter(n => n.resta > 0).map(n => ({ linha:n.l, litros:n.resta }));
+  const cheios = usados.filter(u => u.litros > 0);
+  return { cam, comps: usados.sort((a, b) => a.i - b.i), sobra,
+           litros: cheios.reduce((a, u) => a + u.litros, 0),
+           capacidade: cam.comps.reduce((a, v) => a + (Number(v) || 0), 0),
+           usados: cheios.length, total: cam.comps.length,
+           postos: cheios.map(u => u.linha.posto).filter((v, i, a) => a.indexOf(v) === i) };
+}
+
+/* ---- onde compensa comprar: a mesma matematica do comparativo das Cotacoes ----
+   🔑 Ela le `config/cotacoesDia` (o dia lancado), e nao um preco digitado aqui: preco de
+   distribuidora ja tem dono no app, e um segundo lugar para digitar o mesmo numero e a receita
+   de dois numeros diferentes. O frete por distribuidora tambem e o mesmo (freteCompCot).
+   ⚠️ A VIBRA FICA FORA DA COMPARACAO (distForaComp) porque e exclusiva de Teresina, e a PODIUM
+      tambem (combForaComp). Quando a carga tem um dos dois, a tela DIZ isso. */
+function cprVolumesDaCarga(carga){
+  const vol = {}, fora = [];
+  (carga && carga.comps || []).forEach(u => {
+    if (!u.litros || !u.linha) return;
+    const c = u.linha.comb;
+    if (!c || combForaComp(c)){ if (c && fora.indexOf(c) < 0) fora.push(c); return; }
+    vol[c] = (vol[c] || 0) + u.litros;
+  });
+  return { vol, fora };
+}
+function cprComparar(vol){
+  const combs = Object.keys(vol).filter(c => (vol[c] || 0) > 0);
+  const dists = distsComp();
+  const doc = (cotacoesDia && cotacoesDia.dists) ? cotacoesDia.dists : {};
+  const linhas = dists.map(nome => {
+    const precos = (doc[nome] && doc[nome].precos) ? doc[nome].precos : {};
+    let custoProd = 0, litros = 0, completo = combs.length > 0;
+    const faltando = [], sub = {};
+    combs.forEach(c => {
+      const p = Number(precos[c]) || 0, v = vol[c] || 0;
+      litros += v;
+      if (p > 0){ sub[c] = p * v; custoProd += sub[c]; }
+      else { completo = false; faltando.push(c); sub[c] = null; }
+    });
+    const frete = freteCompCot(nome), custoFrete = frete * litros;
+    return { nome, custoProd, frete, custoFrete, litros, total: custoProd + custoFrete,
+             completo, faltando, sub, precos,
+             quando: (doc[nome] && doc[nome].data) ? doc[nome].data : "" };
+  });
+  const completos = linhas.filter(d => d.completo).sort((a, b) => a.total - b.total);
+  return { combs, linhas, completos,
+           melhor: completos[0] || null,
+           pior: completos.length > 1 ? completos[completos.length - 1] : null };
+}
+
+/* ---- levar a decisao para o Pedido de carregamento ----
+   🔑 E o fim da digitacao dobrada: a carga que a tela montou vira o pedido, com destino, CNPJ,
+   compartimento e litros ja preenchidos. O que a pessoa faz depois e escolher o motorista e a
+   hora - e conferir, que e o que ela sempre fez. */
+function cprClienteDoPosto(posto){
+  const p = String(posto || "").toLowerCase();
+  const c = (clientesPedido || []).find(x => String(x.nome || "").toLowerCase().indexOf(p) >= 0);
+  return c || { nome: "Posto Full " + posto, cnpj: "" };
+}
+function cprLevarParaPedido(){
+  const carga = cprCarga();
+  if (!carga || !carga.usados){ cprAviso("N\u00e3o h\u00e1 carga montada para levar."); return; }
+  const cheios = carga.comps.filter(u => u.litros > 0 && u.linha);
+  const semNome = cheios.filter(u => !u.linha.prodPedido)
+                        .map(u => u.linha.produto).filter((v, i, a) => a.indexOf(v) === i);
+  pedido = novoPedido();
+  pedido.caminhao = carga.cam.placa;
+  pedido.tanque   = carga.cam.tanque;
+  const mot = (motoristas || []).find(m => normPlaca(m.placaCaminhao) === carga.cam.placa);
+  if (mot){
+    pedido.motoristaId = mot.id;
+    pedido.motorista   = mot.nomeCompleto || mot.nome || "";
+    pedido.cpf         = mot.cpf || "";
+  }
+  const destinos = [], iDe = {};
+  carga.postos.forEach(p => { const c = cprClienteDoPosto(p); iDe[p] = destinos.length; destinos.push({ nome:c.nome, cnpj:c.cnpj || "" }); });
+  pedido.destinos = destinos.length ? destinos : [ { nome:"", cnpj:"" } ];
+  pedido.comps = carga.comps.map(u => ({
+    dest: (u.linha && iDe[u.linha.posto] !== undefined) ? iDe[u.linha.posto] : 0,
+    cap: u.cap,
+    /* 🔴 compartimento sem produto NAO entra na mensagem (regra da v176) - entao o que sobrou
+       vazio, e o que nao tem nome no Pedido (a Podium), vai com o produto em branco de proposito */
+    linhas: [ { prod: (u.litros > 0 && u.linha) ? u.linha.prodPedido : "",
+                litros: u.litros > 0 ? Math.round(u.litros).toLocaleString("pt-BR") : "" } ]
+  }));
+  alternarPedido();
+  const m = document.getElementById("pedMsg");
+  if (m) m.textContent = semNome.length
+    ? ("Carga trazida do menu O que comprar. \u26a0 " + semNome.join(", ") +
+       " ficou sem produto: n\u00e3o est\u00e1 na lista do pedido.")
+    : "Carga trazida do menu \ud83d\uded2 O que comprar \u2014 confira e escolha o motorista e a hora.";
+}
+function cprAviso(txt){
+  const el = document.getElementById("cprMsg");
+  if (el){ el.textContent = txt; setTimeout(() => { if (el.textContent === txt) el.textContent = ""; }, 6000); }
+}
+
+/* ---------------------------------------------------------------- a tela ---- */
+function alternarComprar(){
+  const aberto = abrirPainelExclusivo("painelComprar");
+  const b = document.getElementById("btnComprar");
+  if (b) b.classList.toggle("ativo", aberto);
+  if (aberto) renderComprar();
+}
+function cprL(v){ return fmtBR(Math.round(Number(v) || 0), 0) + " L"; }
+function cprDiasTxt(d){
+  if (d === null || d === undefined) return "\u2014";
+  if (d < 0) return "j\u00e1 furou";
+  if (d < 1) return Math.max(1, Math.round(d * 24)) + "h";
+  return fmtBR(d, 1) + " dias";
+}
+function cprQuandoTxt(d){
+  if (d === null || d === undefined || d < 0) return "";
+  const x = new Date(Date.now() + d * 86400000);
+  const p = n => String(n).padStart(2, "0");
+  return p(x.getDate()) + "/" + p(x.getMonth() + 1);
+}
+
+function renderComprar(){
+  const box = document.getElementById("cprBox");
+  if (!box) return;
+  /* null = a nuvem ainda nao respondeu. Esqueleto, nao "sem dados" (v248). */
+  if (tanquesNivel === null){ box.innerHTML = esqueletoCaixa(5); return; }
+  const postos = (tanquesNivel && tanquesNivel.postos) ? tanquesNivel.postos : null;
+  if (!postos || !Object.keys(postos).length){
+    box.innerHTML = '<p class="nota-dash">Ainda n\u00e3o chegou o n\u00edvel dos tanques. Ele vem do Petros pelo coletor do servidor, de hora em hora \u2014 sem ele esta tela n\u00e3o tem como sugerir compra nenhuma.</p>';
+    return;
+  }
+  const r = cprLerRegua();
+  const todas = cprLinhas();
+  const nomes = Object.keys(postos);
+  const vis = todas.filter(l => !cprPostoSel || l.posto === cprPostoSel);
+
+  let h = '<div id="cprMsg" class="msg-admin" style="display:block;min-height:0"></div>';
+
+  /* 1) os campos que valem para a rede inteira */
+  h += '<div class="cpr-regua">';
+  [["lote","Lote de compra","litros"],
+   ["entrega","Prazo de entrega","dias"],["reserva","Reserva m\u00ednima","dias de venda"]].forEach(c => {
+    h += '<div class="cpr-cmp"><label for="cpr_' + c[0] + '">' + c[1] + ' ' + bul("cpr" + c[0]) + '</label>' +
+         '<input id="cpr_' + c[0] + '" type="number" inputmode="numeric" value="' + r[c[0]] + '" ' +
+         'min="' + CPR_LIMITES[c[0]][0] + '" max="' + CPR_LIMITES[c[0]][1] + '" ' +
+         'onchange="cprSetRegua(\'' + c[0] + '\', this.value)">' +
+         '<span class="cpr-un">' + c[2] + '</span></div>';
+  });
+  h += '<div class="cpr-cmp"><label>&nbsp;</label><button class="btn-claro" onclick="cprVoltarPadrao()">\u21ba Voltar ao padr\u00e3o</button></div>';
+  h += '</div>';
+
+  /* 🔴 A COBERTURA, UM CAMPO POR POSTO — escolha dele em 09/08.
+     Embaixo de cada um, a MEDICAO: quantos dias o tanque mais apertado daquele posto comporta,
+     com o nome do produto que aperta. E o botão só aparece quando ele muda alguma coisa. */
+  [["cob", "Cobertura", "cprcobertura"], ["res", "Reserva m\u00ednima", "cprreserva"]].forEach(par => {
+    h += '<div class="cpr-regua cpr-cob"><div class="cpr-cmp cpr-cob-tit"><label>' + par[1] + ' ' + bul(par[2]) +
+         '</label><span class="cpr-un">um por posto</span></div>';
+    nomes.forEach(pp => {
+      const proprio = cprPP(pp)[par[0]] !== undefined;
+      const valor = par[0] === "cob" ? cprCoberturaDe(pp) : cprReservaDe(pp);
+      const lim = par[0] === "res" ? CPR_LIMITES.reserva : CPR_LIMITES.cobertura;
+      let pe;
+      if (par[0] === "cob"){
+        const cab = cprCabeDias(pp);
+        /* 🔑 a MEDICAO fica embaixo do campo: quantos dias cabem ali e QUAL produto aperta.
+           E' o que faz o numero automatico ser conferivel em vez de magico. */
+        pe = cab ? ('cabem ' + cab.dias + ' \u00b7 aperta em ' +
+                    escAttr(cab.produto.length > 18 ? cab.produto.slice(0, 17) + '\u2026' : cab.produto))
+                 : 'dias';
+      } else pe = 'dias de venda';
+      h += '<div class="cpr-cmp"><label for="cpr_' + par[0] + '_' + escAttr(pp) + '">' + escAttr(pp) +
+           (proprio ? ' <span class="cpr-mao" title="voc\u00ea escolheu este n\u00famero">\u2022</span>' : '') + '</label>' +
+           '<input id="cpr_' + par[0] + '_' + escAttr(pp) + '" type="number" inputmode="numeric" value="' + valor + '" ' +
+           'min="' + lim[0] + '" max="' + lim[1] + '" ' +
+           'onchange="cprSetPosto(\'' + escAttr(pp) + '\', \'' + par[0] + '\', this.value)">' +
+           '<span class="cpr-un">' + pe + '</span></div>';
+    });
+    h += '</div>';
+  });
+
+  /* 2) o filtro de posto */
+  h += '<div class="cpr-chips"><button class="cpr-chip' + (cprPostoSel ? '' : ' on') + '" onclick="cprFiltrarPosto(\'\')">Todos os postos</button>';
+  nomes.forEach(p => {
+    const crit = todas.filter(l => l.posto === p && (l.sit === "critico" || l.sit === "urgente")).length;
+    h += '<button class="cpr-chip' + (cprPostoSel === p ? ' on' : '') + '" onclick="cprFiltrarPosto(\'' + escAttr(p) + '\')">' +
+         escAttr(p) + (crit ? ' \u00b7 ' + crit + ' \u26a0' : '') + '</button>';
+  });
+  h += '</div>';
+
+  /* 3) os numeros do topo */
+  const aComprar = vis.filter(l => l.litrosComprar > 0);
+  const lotes = aComprar.reduce((a, l) => a + l.lotes, 0);
+  const litros = aComprar.reduce((a, l) => a + l.litrosComprar, 0);
+  const criticos = vis.filter(l => l.sit === "critico").length;
+  const urgentes = vis.filter(l => l.sit === "urgente").length;
+  const semBase  = vis.filter(l => l.semBase || l.semVenda).length;
+  h += '<div class="cpr-kpis">' +
+    '<div class="cpr-kpi"><div class="k">Total a pedir</div><div class="v">' + fmtBR(lotes, 0) + '<span class="u">lotes</span></div></div>' +
+    '<div class="cpr-kpi"><div class="k">Volume</div><div class="v">' + fmtBR(Math.round(litros), 0) + '<span class="u">L</span></div></div>' +
+    '<div class="cpr-kpi"><div class="k">Produtos a comprar</div><div class="v">' + aComprar.length + '<span class="u">/ ' + vis.length + '</span></div></div>' +
+    '<div class="cpr-kpi' + (criticos ? ' alerta' : '') + '"><div class="k">Abaixo do m\u00ednimo</div><div class="v">' + criticos + '</div></div>' +
+    '<div class="cpr-kpi' + (urgentes ? ' alerta' : '') + '"><div class="k">Furam antes da entrega</div><div class="v">' + urgentes + '</div></div>' +
+    '<div class="cpr-kpi"><div class="k">Sem sugest\u00e3o</div><div class="v">' + semBase + '</div></div>' +
+  '</div>';
+
+  /* 4) 🔴 O AVISO EM CIMA - as frases inteiras, com nome e numero */
+  const urg = cprOrdenar(vis.filter(l => l.sit === "critico" || l.sit === "urgente"));
+  if (urg.length){
+    h += '<div class="cpr-urg"><h4>\u26a0 ' + urg.length + ' combust\u00edve' + (urg.length > 1 ? 'is v\u00e3o' : 'l vai') +
+         ' faltar na pista se n\u00e3o comprar</h4>';
+    urg.forEach(l => {
+      const tq = l.tanques.map(t => "tanque " + t.n).join(" e ");
+      let frase;
+      if (l.sit === "critico")
+        frase = '<b class="c">Cr\u00edtico</b> \u2014 <b>' + escAttr(l.produto) + '</b> em <b>' + escAttr(l.posto) + '</b> (' + tq +
+                ') est\u00e1 abaixo do estoque m\u00ednimo (' + cprL(l.litros) + ' de ' + cprL(l.minimo) +
+                '). Do jeito que est\u00e1 vendendo, acaba em ' + cprDiasTxt(l.dias) + '.';
+      else
+        frase = '<b class="u">Urgente</b> \u2014 <b>' + escAttr(l.produto) + '</b> em <b>' + escAttr(l.posto) + '</b> (' + tq +
+                ') fura o estoque m\u00ednimo em ' + cprDiasTxt(l.diasMin) + ' \u2014 menos que o prazo de entrega.';
+      if (l.litrosComprar > 0) frase += ' Comprar <b>' + l.lotes + ' lote' + (l.lotes > 1 ? 's' : '') + ' = ' + cprL(l.litrosComprar) + '</b>.';
+      h += '<p>' + frase + '</p>';
+    });
+    h += '</div>';
+  }
+
+  /* 5) o vocabulario da honestidade - so aparece quando ha o que dizer */
+  const ruins = {};
+  vis.forEach(l => { if (l.qualidade !== "medido") (ruins[l.qualidade] = ruins[l.qualidade] || []).push(l.posto + " / " + l.produto); });
+  const chavesRuins = Object.keys(ruins);
+  if (chavesRuins.length){
+    h += '<div class="cpr-aviso"><b>\u26a0 Nem todo n\u00famero desta tela \u00e9 medi\u00e7\u00e3o.</b> ' +
+      chavesRuins.map(q => '<b>' + q + '</b>: ' + ruins[q].length + ' (' + ruins[q].slice(0, 4).join(" \u00b7 ") +
+        (ruins[q].length > 4 ? " \u00b7 \u2026" : "") + ')').join(" &nbsp;|&nbsp; ") +
+      '. Linha <b>sem base</b> n\u00e3o recebe sugest\u00e3o nenhuma \u2014 e prop\u00f3sito, n\u00e3o falha.</div>';
+  }
+  const q = tanquesNivel.atualizadoEm || "";
+  const idade = q ? (Date.now() - Date.parse(String(q).replace(" ", "T"))) / 3600000 : null;
+  if (idade !== null && isFinite(idade) && idade > 3)
+    h += '<div class="cpr-aviso">\u23f0 A \u00faltima leitura dos tanques chegou h\u00e1 <b>' + fmtBR(idade, 1) +
+         ' horas</b>. Ela deveria chegar de hora em hora \u2014 os n\u00fameros abaixo est\u00e3o velhos.</div>';
+
+  /* 6) a tabela, um bloco por posto */
+  nomes.forEach(p => {
+    if (cprPostoSel && p !== cprPostoSel) return;
+    const linhas = cprOrdenar(todas.filter(l => l.posto === p));
+    if (!linhas.length) return;
+    const lt = linhas.reduce((a, l) => a + l.litrosComprar, 0);
+    const lo = linhas.reduce((a, l) => a + l.lotes, 0);
+    h += '<div class="cpr-posto"><h3>\u26fd Posto Full - ' + escAttr(p) +
+         ' <small>' + linhas.length + ' combust\u00edveis \u00b7 ' +
+         linhas.reduce((a, l) => a + l.tanques.length, 0) + ' tanques</small>' +
+         (lt > 0 ? ' <small><b>' + lo + ' lotes \u00b7 ' + cprL(lt) + '</b></small>' : '') + '</h3>';
+    h += '<table class="cpr-tab"><thead><tr>' +
+      '<th>Combust\u00edvel / tanques</th><th>Situa\u00e7\u00e3o</th><th>Estoque hoje ' + bul("cprEstoque") + '</th>' +
+      '<th class="opc">M\u00ednimo ' + bul("cprMinimo") + '</th><th class="opc">Venda/dia</th>' +
+      '<th class="opc">Fura o m\u00ednimo ' + bul("cprFura") + '</th><th>Acaba em</th><th>Comprar ' + bul("cprComprar") + '</th>' +
+      '</tr></thead><tbody>';
+    linhas.forEach(l => {
+      const s = CPR_SIT[l.sit];
+      h += '<tr class="' + (l.sit === "critico" ? "crit" : "") + '">';
+      h += '<td><div class="cpr-prod"><span class="cpr-bolinha" style="background:' + tqvCorProduto(l.produto) + '"></span>' +
+           '<span><span class="nm">' + escAttr(l.produto) + '</span>' +
+           '<span class="cpr-sub">' + l.tanques.map(t => "T" + t.n + " " + fmtBR(Math.round(t.litros), 0) + " L").join(" \u00b7 ") + '</span>' +
+           '</span></div></td>';
+      h += '<td><span class="cpr-sit ' + s[1] + '">' + s[0] + '</span></td>';
+      h += '<td>' + (l.semBase ? '<span class="cpr-vazio">\u2014</span>' : (l.qualidade === "medido" ? "" : "~") + cprL(l.litros)) +
+           '<span class="cpr-sub">' + escAttr(l.qualidade) + ' \u00b7 de ' + cprL(l.cap) + '</span></td>';
+      h += '<td class="opc">' + (l.semVenda ? '<span class="cpr-vazio">\u2014</span>' : cprL(l.minimo)) +
+           '<span class="cpr-sub">' + (l.minLimitado ? "limitado ao tanque" : (l.reserva + " dias de venda")) + '</span></td>';
+      h += '<td class="opc">' + (l.media > 0 ? cprL(l.media) : '<span class="cpr-vazio">\u2014</span>') + '</td>';
+      h += '<td class="opc">' + cprDiasTxt(l.diasMin) + '</td>';
+      h += '<td>' + cprDiasTxt(l.dias) + '<span class="cpr-sub">' + cprQuandoTxt(l.dias) + '</span></td>';
+      if (l.litrosComprar > 0)
+        h += '<td><span class="cpr-comprar">' + l.lotes + ' lote' + (l.lotes > 1 ? 's' : '') + '</span>' +
+             '<span class="cpr-sub">' + cprL(l.litrosComprar) + '</span>' +
+             (l.naoCabe ? '<span class="cpr-nao">n\u00e3o cabe tudo</span>' : '') + '</td>';
+      else
+        /* 🔴 ZERO LOTES TEM TRES MOTIVOS DIFERENTES, E ELES NAO PODEM VIRAR UM TRAVESSAO SO.
+           "Nao preciso" e "preciso e nao cabe nem um lote" sao a mesma casa da tabela e a
+           decisao oposta — o segundo quer dizer que a carga tem de vir depois que descer o que
+           esta no tanque, e sem esta linha a tela diria calada "esta tudo bem aqui". */
+        h += '<td><span class="cpr-vazio">\u2014</span>' +
+             (l.semBase ? '<span class="cpr-sub">sem base</span>' :
+              l.semVenda ? '<span class="cpr-sub">sem venda</span>' :
+              l.naoCabe  ? '<span class="cpr-nao">precisa, mas n\u00e3o cabe um lote</span>' : '') + '</td>';
+      h += '</tr>';
+    });
+    h += '</tbody></table></div>';
+  });
+
+  /* 7) a carga - o que o GASview nao tem, porque ele nao tem caminhao */
+  h += cprHtmlCarga();
+
+  /* 8) 🔴 O METODO EMBAIXO */
+  h += '<div class="cpr-metodo"><h4>\ud83d\udcd0 Como esta sugest\u00e3o \u00e9 calculada</h4>' +
+    '<p>Cada linha \u00e9 um combust\u00edvel de um posto. Quando o posto tem <b>mais de um tanque do mesmo produto, eles entram juntos</b> \u2014 \u00e9 assim que a compra \u00e9 feita. A sugest\u00e3o cobre <b>' + r.entrega +
+    ' dias de espera pela entrega mais a cobertura daquele posto</b> (' +
+    nomes.map(pp => escAttr(pp) + ' ' + cprCoberturaDe(pp)).join(' \u00b7 ') +
+    ') e ainda deixa o m\u00ednimo no tanque. O resultado \u00e9 arredondado para cima em lotes de <b>' +
+    fmtBR(r.lote, 0) + ' L</b>, e cortado quando n\u00e3o cabe no tanque.</p>' +
+    '<p><b>Por que a cobertura e a reserva s\u00e3o um n\u00famero por posto:</b> o tanque de cada posto comporta um tanto de dias, e s\u00f3 isso. Embaixo do campo de cobertura est\u00e1 escrito quantos dias cabem ali e <b>qual produto aperta</b>. Quem n\u00e3o tem n\u00famero escolhido usa <b>o que cabe</b>, medido na hora, com teto de ' + r.cobertura + ' dias \u2014 e o pontinho ao lado do nome do posto diz que aquele n\u00famero foi voc\u00ea que p\u00f4s.</p>' +
+    '<p>\u26a0 <b>O outro lado da cobertura curta:</b> ela vale para o posto inteiro, ent\u00e3o o produto que TEM folga no tanque (o etanol, por exemplo) passa a ser comprado s\u00f3 quando aperta, e n\u00e3o cheio. Se preferir encher os folgados, suba a cobertura daquele posto \u2014 o \u201cn\u00e3o cabe tudo\u201d continua cuidando dos apertados, linha por linha.</p>' +
+    '<p><b>M\u00ednimo:</b> o Petros n\u00e3o manda estoque de seguran\u00e7a por tanque, ent\u00e3o o m\u00ednimo aqui \u00e9 <b>' + r.reserva +
+    ' dias da venda m\u00e9dia</b>. Ele nunca passa da capacidade menos um lote \u2014 sen\u00e3o n\u00e3o sobraria espa\u00e7o nem para uma descarga inteira.</p>' +
+    '<p><b>Venda/dia</b> \u00e9 a m\u00e9dia dos \u00faltimos 7 dias, do pr\u00f3prio Petros. <b>Estoque hoje:</b> \u201cmedido\u201d \u00e9 leitura de sonda; \u201cestimado\u201d \u00e9 conta a partir da \u00faltima contagem f\u00edsica \u2014 \u00e9 aproxima\u00e7\u00e3o, n\u00e3o medi\u00e7\u00e3o.</p>' +
+    '<p>\u26a0 <b>Por que o \u201cacaba em\u201d daqui pode diferir do da tela \ud83d\udee2\ufe0f N\u00edvel dos tanques:</b> l\u00e1 o n\u00famero \u00e9 a previs\u00e3o pronta do Petros, <b>tanque a tanque</b>; aqui os tanques do mesmo produto s\u00e3o somados e a conta \u00e9 estoque \u00f7 venda m\u00e9dia. Em Caxias, que tem dois tanques de Diesel S-10, os dois n\u00fameros n\u00e3o s\u00e3o o mesmo n\u00famero \u2014 e nenhum dos dois est\u00e1 errado.</p>' +
+    (q ? '<p>\u00daltima leitura dos tanques: ' + escAttr(fmtQuandoLocal(q)) + '.</p>' : '') +
+  '</div>';
+
+  box.innerHTML = h;
+}
+
+/* ---- os dois blocos de baixo: a carga e onde comprar ---- */
+function cprHtmlCarga(){
+  const lista = cprCaminhoesLista();
+  if (!lista.length)
+    return '<div class="cpr-posto"><h3>\ud83d\ude9b Montar a carga</h3>' +
+      '<p class="nota-dash">Nenhum caminh\u00e3o com compartimenta\u00e7\u00e3o cadastrada. Cadastre em <b>Configura\u00e7\u00f5es \u2192 Caminh\u00f5es e tanques</b>.</p></div>';
+  const carga = cprCarga();
+  if (!carga) return "";
+  let h = '<div class="cpr-posto"><h3>\ud83d\ude9b Montar a carga <small>os litros sugeridos caindo nos compartimentos de verdade</small></h3>';
+  h += '<div class="cpr-chips">';
+  lista.forEach(c => {
+    h += '<button class="cpr-chip' + (c.placa === carga.cam.placa ? ' on' : '') + '" onclick="cprEscolherCaminhao(\'' + escAttr(c.placa) + '\')">' +
+         escAttr(c.placa) + ' \u00b7 ' + c.comps.length + ' comp. \u00b7 ' + fmtBR(c.comps.reduce((a, v) => a + (Number(v) || 0), 0), 0) + ' L</button>';
+  });
+  h += '</div>';
+  if (!carga.usados){
+    h += '<p class="nota-dash">Nada a carregar' + (cprPostoSel ? ' em <b>' + escAttr(cprPostoSel) + '</b>' : '') +
+         ': nenhum produto precisa de compra com a r\u00e9gua de agora.</p></div>';
+    return h;
+  }
+  h += '<p class="nota-dash">Tanque <b>' + escAttr(carga.cam.tanque) + '</b> \u00b7 <b>' + carga.usados + ' de ' + carga.total +
+       '</b> compartimentos \u00b7 <b>' + cprL(carga.litros) + '</b> de ' + cprL(carga.capacidade) +
+       ' \u00b7 destino' + (carga.postos.length > 1 ? 's' : '') + ': <b>' + carga.postos.map(escAttr).join(", ") + '</b></p>';
+  h += '<div class="cpr-carga">';
+  carga.comps.forEach(u => {
+    if (!u.litros || !u.linha){
+      h += '<div class="cpr-comp livre"><div class="cn">C' + (u.i + 1) + ' \u00b7 ' + fmtBR(u.cap, 0) + ' L</div>' +
+           '<div class="cp">vazio</div></div>';
+      return;
+    }
+    h += '<div class="cpr-comp" style="border-left-color:' + tqvCorProduto(u.linha.produto) + '">' +
+      '<div class="cn">C' + (u.i + 1) + ' \u00b7 cabe ' + fmtBR(u.cap, 0) + ' L</div>' +
+      '<div class="cl">' + fmtBR(Math.round(u.litros), 0) + ' L</div>' +
+      '<div class="cp">' + escAttr(u.linha.produto) + '</div>' +
+      '<div class="cd">\u2192 ' + escAttr(u.linha.posto) + '</div>' +
+      (u.parcial ? '<div class="parcial">carregamento parcial</div>' : '') +
+    '</div>';
+  });
+  h += '</div>';
+  if (carga.sobra.length){
+    h += '<p class="nota-dash">\u26a0 <b>N\u00e3o coube nesta viagem:</b> ' +
+      carga.sobra.map(s => escAttr(s.linha.produto) + " para " + escAttr(s.linha.posto) + " (" + cprL(s.litros) + ")").join(" \u00b7 ") +
+      '. D\u00e1 outra viagem \u2014 ou escolha o outro caminh\u00e3o.</p>';
+  }
+  h += '<div class="cpr-acoes">' +
+    '<button class="btn-verde" onclick="cprLevarParaPedido()">\ud83d\udcdd Levar para o Pedido de carregamento</button>' +
+  '</div>';
+  h += cprHtmlOndeComprar(carga);
+  h += '</div>';
+  return h;
+}
+
+function cprHtmlOndeComprar(carga){
+  const vv = cprVolumesDaCarga(carga);
+  const combs = Object.keys(vv.vol);
+  let h = '<h3 style="margin-top:18px">\ud83d\udcb2 Onde compensa comprar esta carga</h3>';
+  if (!combs.length)
+    return h + '<p class="nota-dash">Esta carga n\u00e3o tem produto compar\u00e1vel' +
+      (vv.fora.length ? ' (' + vv.fora.map(escAttr).join(", ") + ' fica de fora \u2014 \u00e9 produto da Vibra)' : '') + '.</p>';
+  const r = cprComparar(vv.vol);
+  const dia = (cotacoesDia && cotacoesDia.data) ? cotacoesDia.data : "";
+  h += '<p class="nota-dash">Pelas cota\u00e7\u00f5es lan\u00e7adas' + (dia ? ' em <b>' + escAttr(fmtDataCurta(dia)) + '</b>' : '') +
+       ', mais o frete de cada distribuidora. A <b>Vibra fica fora</b> da compara\u00e7\u00e3o (\u00e9 exclusiva de Teresina)' +
+       (vv.fora.length ? ', e ' + vv.fora.map(escAttr).join(", ") + ' tamb\u00e9m' : '') + '.</p>';
+  if (!r.completos.length){
+    const p = r.linhas.filter(d => d.faltando.length && d.faltando.length < r.combs.length);
+    return h + '<p class="nota-dash">Nenhuma distribuidora tem a cota\u00e7\u00e3o completa dos produtos desta carga. ' +
+      (p.length ? 'Falta: ' + p.map(d => escAttr(d.nome) + ' (' + d.faltando.map(escAttr).join(", ") + ')').join(' \u00b7 ') + '. ' : '') +
+      'Lance os pre\u00e7os no menu <b>\ud83d\udcb2 Cota\u00e7\u00f5es do Dia</b>.</p>';
+  }
+  h += '<div class="cpr-melhor"><div class="tag">\u2705 Melhor op\u00e7\u00e3o</div>' +
+    '<div class="nm">' + escAttr(r.melhor.nome) + '</div>' +
+    '<div class="tt">R$ ' + fmtBR(r.melhor.total, 2) + '</div>';
+  if (r.pior && r.pior.total > r.melhor.total){
+    const ec = r.pior.total - r.melhor.total;
+    h += '<div class="ec">Economia de at\u00e9 <b>R$ ' + fmtBR(ec, 2) + '</b> (' + fmtBR(ec / r.pior.total * 100, 1) +
+         '%) em rela\u00e7\u00e3o \u00e0 mais cara \u2014 ' + cprL(r.melhor.litros) + ' na carga.</div>';
+  }
+  h += '</div><div class="cpr-rank">';
+  const max = r.completos[r.completos.length - 1].total || 1;
+  r.completos.forEach((d, i) => {
+    h += '<div class="cpr-lin' + (i === 0 ? ' melhor' : '') + '">' +
+      '<span>' + escAttr(d.nome) + '</span>' +
+      '<span class="cpr-bar"><i style="width:' + Math.max(6, d.total / max * 100).toFixed(1) + '%"></i></span>' +
+      '<span class="vl">R$ ' + fmtBR(d.total, 2) + '</span></div>';
+  });
+  h += '</div>';
+  return h;
+}
+
+const PRODUTOS_PEDIDO = ["Gasolina Comum","Gasolina Aditivada","Gasolina Podium","Etanol","Diesel S-10","Diesel S-500"];   /* v308 - a Podium entrou */
 const CLIENTES_PEDIDO_PADRAO = [
   { nome:"Posto Full Teresina",       cnpj:"09.641.208/0001-64" },
   { nome:"Posto Full Caxias",         cnpj:"15.772.754/0001-37" },
@@ -15788,6 +16614,22 @@ const BULAS = {
     d:"É a hora em que o tanque zera, calculada pelo próprio Petros a partir da média de venda dos últimos 7 dias, menos o relógio de agora. NÃO é promessa: se a venda mudar de ritmo, ou se chegar carga, a conta muda junto. Tanque sem base de medição não recebe previsão nenhuma." },
   tqEtiqueta: { t:"Medido, estimado ou impreciso",
     d:"<b>Medido</b> é leitura de sonda. <b>Estimado</b> é conta a partir da última medição física, somando compras e tirando vendas — é aproximação, não medição. <b>Impreciso</b> é a mesma conta, mas com a base já velha demais (mais de 7 dias). <b>Sem base</b> é quando não há medição nenhuma — e essa linha não recebe previsão." },
+  cprlote: { t:"Lote de compra",
+    d:"O tamanho do peda\u00e7o em que a compra \u00e9 arredondada. Aqui ele \u00e9 5.000 L porque \u00e9 o compartimento comum dos nossos dois tanques \u2014 o UJM6J70 tem dois de 10.000 e seis de 5.000, o ROH0J42 tem um de 7.000 e seis de 5.000. Mudar este campo muda s\u00f3 o arredondamento da sugest\u00e3o, nunca o cadastro do caminh\u00e3o." },
+  cprcobertura: { t:"Cobertura",
+    d:"Quantos dias de venda a compra tem de cobrir depois que a carga chegar, com um n\u00famero para cada posto. Quem voc\u00ea n\u00e3o escolher usa O QUE CABE naquele posto, medido na hora (o menor entre os produtos), com teto de sete dias. Embaixo do campo est\u00e1 escrito quantos dias cabem e qual produto aperta. Apagar o campo devolve o autom\u00e1tico." },
+  cprentrega: { t:"Prazo de entrega",
+    d:"Quantos dias levam entre pedir e a carga chegar na pista. Ele entra duas vezes na conta: soma na cobertura e \u00e9 o corte do que \u00e9 urgente \u2014 furar o m\u00ednimo antes de a entrega chegar \u00e9 o que faz uma linha ser urgente." },
+  cprreserva: { t:"Reserva m\u00ednima",
+    d:"O piso que n\u00e3o pode furar, escrito em dias de venda, e com um n\u00famero para cada posto. O Petros n\u00e3o manda estoque de seguran\u00e7a por tanque, ent\u00e3o esta \u00e9 a reserva que a tela usa. Ela nunca passa da capacidade menos um lote \u2014 sen\u00e3o n\u00e3o sobraria espa\u00e7o nem para uma descarga inteira." },
+  cprEstoque: { t:"Estoque hoje",
+    d:"A soma dos tanques daquele produto naquele posto. \u201cMedido\u201d \u00e9 leitura de sonda; \u201cestimado\u201d \u00e9 conta a partir da \u00faltima contagem f\u00edsica, somando compras e tirando vendas \u2014 \u00e9 aproxima\u00e7\u00e3o, n\u00e3o medi\u00e7\u00e3o, e por isso vem com um til na frente. Linha sem base n\u00e3o recebe sugest\u00e3o nenhuma." },
+  cprMinimo: { t:"M\u00ednimo",
+    d:"O piso do tanque, em litros: os dias de reserva multiplicados pela venda m\u00e9dia do dia. Quando esse valor n\u00e3o caberia no tanque, ele \u00e9 cortado na capacidade menos um lote, e a tela escreve \u201climitado ao tanque\u201d." },
+  cprFura: { t:"Fura o m\u00ednimo",
+    d:"Quantos dias faltam para o estoque cair abaixo do m\u00ednimo \u2014 n\u00e3o para acabar. \u00c9 esse n\u00famero, e n\u00e3o o \u201cacaba em\u201d, que decide o que \u00e9 urgente: se ele for menor que o prazo de entrega, pedir hoje j\u00e1 chega tarde." },
+  cprComprar: { t:"Quanto comprar",
+    d:"A venda dos pr\u00f3ximos dias (entrega + cobertura) mais o m\u00ednimo, menos o que j\u00e1 tem no tanque, arredondado para cima em lotes. Quando o resultado n\u00e3o cabe no espa\u00e7o vazio do tanque, ele \u00e9 cortado e aparece \u201cn\u00e3o cabe tudo\u201d \u2014 o resto fica para a viagem seguinte." },
   volume: { t:"Volume vendido",
     d:"Quantos litros os postos venderam no per\u00edodo. Vem dos pain\u00e9is do Petros. Quando os litros do m\u00eas ainda n\u00e3o foram coletados, aparece um travess\u00e3o em vez de zero \u2014 zero seria mentira." },
   vendas: { t:"Vendas",
