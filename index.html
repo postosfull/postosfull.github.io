@@ -3128,6 +3128,12 @@
   .dp-edit-cx select,.dp-edit-cx input{min-width:210px}
   .dp-edit-bt{display:flex;gap:8px;flex-wrap:wrap}
 
+  /* v312 - no celular, De e Ate dividem a linha. Cinco campos empilhados empurravam o
+     primeiro numero para baixo de duas rolagens (achado da foto, nao da assercao). */
+  @media (max-width:560px){
+    #painelAfericoes .evo-filtros .afer-data{flex:1 1 calc(50% - 6px);min-width:0}
+  }
+
 </style>
 </head>
 <body>
@@ -3201,6 +3207,8 @@
       <!-- v290 - Relatorios + Financeiro viraram UM menu so: "Relatorios Adaptive" -->
       <button class="btn-claro" id="btnRelPosto" onclick="alternarRelatorios()"><span class="mi">📑</span><span class="mt">Relatórios Adaptive</span></button>
       <button class="btn-claro" id="btnDre" onclick="alternarDre()"><span class="mi">📉</span><span class="mt">DRE</span></button>
+      <!-- v312 - as Afericoes: o teste do bico, com periodo livre -->
+      <button class="btn-claro" id="btnAfericoes" onclick="alternarAfericoes()"><span class="mi">📏</span><span class="mt">Aferições</span></button>
       <button class="btn-claro" id="btnAnalise" onclick="alternarAnalise()"><span class="mi">🧠</span><span class="mt">Análise</span></button>
       <button class="btn-claro" id="btnRelLoja" onclick="alternarRelLoja()"><span class="mi">🍫</span><span class="mt">Produtos e categorias</span></button>
       <button class="btn-claro" id="btnIfood" onclick="alternarIfood()"><span class="mi">🍔</span><span class="mt">iFood</span></button>
@@ -3616,6 +3624,19 @@
       <div class="doc-tools" id="rpzAbas"></div>
       <div class="ord-abas-box"></div>
       <div id="rpzBox"></div>
+    </div>
+  </div>
+
+  <!-- ===== v312 - AFERICOES =====
+       Le relatoriosPetros, tipo `afer` (relatorio "Afericoes Ocorridas no Periodo" do Adaptive),
+       documentos MENSAIS `afer_postos_{unidade}_{AAAA-MM}` - e o periodo desta tela e' LIVRE,
+       entao ela junta os meses e depois filtra linha a linha pela data.
+       🔴 EMOJI EM HTML E' GLIFO (em string JS a maioria do arquivo esta como \uXXXX). -->
+  <div class="config" id="painelAfericoes">
+    <div class="grupo">
+      <h2>📏 Aferições</h2>
+      <p class="nota-dash">O teste do bico: uma prova de <b>20 litros</b> para ver se a bomba entrega o que ela marca. Os números vêm do Petros/Adaptive e chegam pelo servidor.</p>
+      <div id="aferBox"></div>
     </div>
   </div>
 
@@ -4781,6 +4802,7 @@ const ICO_SVG = {
   ordenarMenus:"<path d='M4 20.2h4.2L20 8.4a2 2 0 0 0-2.8-2.8L5.4 17.4z'/><path d='M15.6 7 17 8.4'/>",
   comprar:"<path d='M2.6 3.6h2.6l2.4 10.6h9.6'/><path d='M6.4 6.6h14.2l-1.8 6.4H7.6'/><circle cx='9.2' cy='18.6' r='1.5'/><circle cx='17.2' cy='18.6' r='1.5'/>",
   tanquesNivel:"<rect x='2.8' y='7.4' width='18.4' height='9.2' rx='2.6'/><path d='M2.8 13.4h18.4'/><path d='M6.6 7.4v9.2M11 7.4v9.2M15.4 7.4v9.2'/><path d='M5.2 19.2v1.4M18.8 19.2v1.4'/>",
+  afericoes:"<path d='M8.2 2.8h7.6'/><path d='M9.4 2.8v14.6a2.6 2.6 0 0 0 5.2 0V2.8'/><path d='M9.4 13.4h5.2'/><path d='M9.4 9.8h2.4M9.4 6.6h2.4'/><path d='M6.8 21.2h10.4'/>",
   dre:"<path d='M3.4 20.6h17.2'/><path d='M6 16.4l4-4.6 3.2 2.6 5.2-6.2'/><path d='M14.2 8.2h4.2v4.2'/>",
   sair:"<path d='M9.6 20.4H5.4a1.8 1.8 0 0 1-1.8-1.8V5.4a1.8 1.8 0 0 1 1.8-1.8h4.2'/><path d='M15.4 16.6 20 12l-4.6-4.6M20 12H9.2'/>",
   g_dia:"<path d='M20.4 11.2a8.4 8.4 0 1 0-.6 4.4'/><path d='M20.6 5.6v5.6h-5.6'/>",
@@ -4790,7 +4812,7 @@ const ICO_SVG = {
   empresa:"<path d='M3.6 20.4h16.8'/><path d='M5.4 20.4V6.2L12 3.6l6.6 2.6v14.2'/><path d='M9.6 20.4v-4.4h4.8v4.4'/><path d='M9.4 9.2h1.2M13.4 9.2h1.2M9.4 12.6h1.2M13.4 12.6h1.2'/>",
   g_ajustes:"<circle cx='12' cy='12' r='3.1'/><path d='M19.1 14.6a1.5 1.5 0 0 0 .3 1.7l.1.1a1.9 1.9 0 1 1-2.6 2.6l-.1-.1a1.5 1.5 0 0 0-2.6 1v.2a1.9 1.9 0 0 1-3.7 0v-.1a1.5 1.5 0 0 0-2.6-1l-.1.1a1.9 1.9 0 1 1-2.6-2.6l.1-.1a1.5 1.5 0 0 0-1-2.6h-.2a1.9 1.9 0 1 1 0-3.7h.1a1.5 1.5 0 0 0 1-2.6l-.1-.1a1.9 1.9 0 1 1 2.6-2.6l.1.1a1.5 1.5 0 0 0 1.7.3h.1a1.5 1.5 0 0 0 .9-1.4v-.2a1.9 1.9 0 0 1 3.7 0v.1a1.5 1.5 0 0 0 2.6 1l.1-.1a1.9 1.9 0 1 1 2.6 2.6l-.1.1a1.5 1.5 0 0 0 1 2.6h.2a1.9 1.9 0 0 1 0 3.7h-.1a1.5 1.5 0 0 0-1.4.9z'/>"
 };
-const ICO_BTN = {btnComprar:"comprar",btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnTanquesNivel:"tanquesNivel",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnDre:"dre",btnAnalise:"analise",btnRelLoja:"relLoja",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
+const ICO_BTN = {btnComprar:"comprar",btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnTanquesNivel:"tanquesNivel",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnDre:"dre",btnAfericoes:"afericoes",btnAnalise:"analise",btnRelLoja:"relLoja",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
 const ICO_GRP = {dia:"g_dia",analise:"g_analise",transp:"g_transp",org:"g_org",ajustes:"g_ajustes"};
 /* 🔑 cor por GRUPO, tirada da paleta do MIV (laranja da marca + verde e dourado Petrobras).
    Assim a cor diz de que familia e' o menu, em vez de ser arco-iris. */
@@ -6460,6 +6482,12 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v312", data:"09/08/2026", tit:"📏 Aferições: o teste do bico virou menu, com período livre", itens:[
+    {t:"n", h:"Menu novo <b>📏 Aferições</b>, dentro de 📊 Análise", d:"Escolha o período por atalho (<b>este mês, mês passado, últimos 90 dias, este ano</b>) ou por <b>De/Até</b> na mão — e o período pode atravessar meses, coisa que a aba antiga não fazia. Dá para filtrar por posto e por combustível, e a lista mostra aferição por aferição: data, hora, posto, combustível, quanto a bomba marcou e quem fez."},
+    {t:"n", h:"A prova de <b>20 litros</b>, que ninguém estava olhando", d:"Toda aferição é uma prova de 20 litros, e o número gravado é o que a <b>bomba marcou</b>. Marcar <b>menos</b> de 20 quer dizer que o posto entregou e não cobrou; marcar <b>mais</b> quer dizer que o cliente pagou e não levou. O INMETRO aceita até <b>0,5%</b> do primeiro lado e só <b>0,3%</b> do segundo — a tela usa as duas réguas, cada uma no seu lado. Em julho, 18 aferições ficaram fora."},
+    {t:"n", h:"E ela diz quando o número <b>não</b> é medição", d:"Em 2026, <b>4.522 das 4.981 aferições marcaram 20,000 redondo</b>. Bomba não acerta no mililitro 91% das vezes: quase sempre isso quer dizer que ninguém anotou a leitura e o sistema recebeu “20”. A tela conta essas separado e avisa — elas não são bomba certa, são <b>bomba não medida</b>."},
+    {t:"m", h:"Quem está aferindo, e quem não está", d:"A tabela por posto mostra em <b>quantos dias do período</b> cada posto aferiu, quantas ficaram fora da tolerância e qual foi a <b>última</b>. Posto sem nenhuma aferição no período <b>aparece assim mesmo</b>, com aviso — sumir da tabela faria falta de medição parecer ausência de problema."},
+    {t:"c", h:"Onde a tela ainda não chega", d:"O campo que o ERP manda traz o <b>combustível</b>, não o <b>número do bico</b> — então ainda não dá para dizer “o bico 3 está torto”, só “o diesel S10 de Dutra está”. A observação e quem validou também existem no relatório e ainda não são coletadas. Já está na fila."}]},
   {v:"v311", data:"09/08/2026", tit:"\ud83d\uded2 O que comprar: as pastilhas de posto viram bot\u00e3o, e o pedido de Teresina abre a Vibra", itens:[
     {t:"m", h:"Agora d\u00e1 para ver que os postos s\u00e3o <b>bot\u00f5es</b>", d:"As pastilhas <b>\u26fd Teresina \u00b7 Caxias \u00b7 Dutra</b> ganharam fundo, borda e sombra, e <b>a do posto aberto fica laranja</b>. Antes elas eram texto solto \u2014 e, pior, <b>nem a escolhida se destacava</b>: a cor que o c\u00f3digo pedia n\u00e3o existia, e CSS com cor inexistente <b>some sem dar erro</b>."},
     {t:"n", h:"E o pedido de Teresina abre o portal da Vibra", d:"No bloco <b>\ud83c\udfe2 O pedido deste posto</b>, ao lado do \ud83d\udccb Copiar o pedido, entrou <b>\ud83d\udd17 Abrir o portal da Vibra</b> \u2014 copia os litros aqui, abre l\u00e1 e cola. Se o celular bloquear a janela, aparece um link para tocar."}
@@ -8564,6 +8592,7 @@ const MENUS_APP = [
      menuPermitidoDe("relPosto") faz OR com "financeiro", "relPetros" e "despesas". */
   {key:"relPosto",    btn:"btnRelPosto",    pan:"painelRelPosto",    emp:"postos|conv", nome:"Relatórios Adaptive"},
   {key:"dre",         btn:"btnDre",         pan:"painelDre",         emp:"postos|conv", nome:"DRE"},   /* v281 */
+  {key:"afericoes",   btn:"btnAfericoes",   pan:"painelAfericoes",   emp:"postos", nome:"Aferições"},   /* v312 */
   {key:"infleet",     btn:"btnInfleet",     pan:"painelInfleet",     emp:"transp", nome:"APP Infleet"},
   {key:"comprar",     btn:"btnComprar",     pan:"painelComprar",     emp:"transp", nome:"O que comprar"},   /* v308 */
   {key:"pedido",      btn:"btnPedido",      pan:"painelPedido",      emp:"transp", nome:"Pedido de carregamento"},
@@ -8593,7 +8622,7 @@ const MENUS_APP = [
 const GRUPOS_MENU = [
   {key:"soltos",  nome:"",               icone:"",       itens:["dash"]},
   {key:"dia",     nome:"Dia a dia",      icone:"\ud83d\udd01", itens:["resumoDia","tanquesNivel","registros","descontos","simular"]},
-  {key:"analise", nome:"Análise",        icone:"\ud83d\udcca", itens:["relPosto","dre","analise","relLoja","ifood"]},
+  {key:"analise", nome:"Análise",        icone:"\ud83d\udcca", itens:["relPosto","dre","afericoes","analise","relLoja","ifood"]},
   {key:"transp",  nome:"Transportadora", icone:"\ud83d\ude9a", itens:["infleet","comprar","pedido","cotacoes","puxadas"]},
   {key:"org",     nome:"Organização",    icone:"\ud83d\udcc1", itens:["calendario","vencimentos","caixa"]},   /* v251 - o 🗂 ninguem reconhecia */
   {key:"ajustes", nome:"Ajustes",        icone:"\u2699",        itens:["conta","config","usuarios"]},
@@ -13589,6 +13618,376 @@ function renderDre(){
   else setTimeout(dreAnimarLinhas, 0);
 }
 
+/* ================== v312 - O MENU 📏 AFERIÇÕES ==================
+   Pedido do Tiago em 09/08, olhando o /calibrations do GASview.
+
+   🔴 O QUE ESTA TELA NAO E': ela NAO substitui a aba `z:afer` de Relatorios Adaptive por
+      enquanto — as duas leem a MESMA fonte (relatoriosPetros, tipo `afer`), entao ou batem, ou
+      uma das duas esta' errada. A aba sai quando o Tiago disser que esta pronta.
+
+   🔴 AS TRES COISAS QUE A MEDICAO DE 09/08 ENSINOU, e que estao escritas no codigo:
+
+   1. **A coluna que o coletor chama de `bico` e' o COMBUSTIVEL.** O `denominacao_bico` do
+      Adaptive traz "GASOLINA COMUM", "DIESEL S10 COMUM", "ETANOL" — nao traz numero de bico
+      nenhum. O `numero_bico` existe no relatorio e o coletor NAO grava.
+      👉 Enquanto ele nao gravar, esta tela escreve COMBUSTIVEL onde o GASview escreve BICO.
+         🔑 Rotulo que promete mais do que o dado tem e' mentira com cara de recurso.
+
+   2. **Toda afericao e' uma prova de 20 LITROS**, e o numero gravado (`qtde_aferida`) e' o que a
+      BOMBA marcou (confirmado pelo Tiago em 09/08). Dai saem os dois lados, que NAO tem o mesmo
+      limite no INMETRO:
+        - bomba marcou MENOS de 20  -> entregou 20 e cobrou menos -> o POSTO da' combustivel de
+          graca. Limite 0,5% (e' o lado que beneficia o cliente).
+        - bomba marcou MAIS de 20   -> entregou 20 e cobrou mais  -> o CLIENTE paga sem receber.
+          Limite 0,3%. 🔴 E' este que da' multa.
+      🔑 A regua e' ASSIMETRICA de proposito. Usar 0,3% dos dois lados marcaria como irregular
+         uma bomba que o INMETRO aceita, e do lado errado.
+
+   3. **4.522 das 4.981 afericoes de 2026 marcaram 20,000 EXATO** — 91%. Bomba nao e' exata ao
+      mililitro 91% das vezes: o que isso quer dizer e' que, na maioria, ninguem anotou a leitura
+      e o sistema recebeu "20".
+      🔴 POR ISSO `exata` E' UMA CLASSE PROPRIA, E NAO "DENTRO DA TOLERANCIA". Somar as duas
+         diria "4.836 bombas certas", que e' zero sabido virando numero bonito — exatamente o que
+         a regra "zero e' o unico que mente" proibe. A tela conta as duas separadas e explica.
+
+   🔴 E A REGRA DOS SEIS LUGARES (v297): a classificacao de uma afericao se decide em
+      `aferClasse(q)`, E SO' ALI. Os quadrinhos, as barras, a lista e a cor apenas USAM.
+      A conferencia que sustenta isso esta' no patch: `aferClasse(` aparece exatamente 4 vezes
+      no arquivo (a definicao + os tres usos), e as constantes de tolerancia, uma vez cada. */
+
+/* 🔴 TUDO EM MILILITROS INTEIROS, e nao em litros com virgula.
+   O ERP manda tres casas (mL), e o INMETRO escreve a regra em mL: 100 mL para um lado e 60 mL
+   para o outro. Comparar em ponto flutuante trocaria a resposta bem no limite — 19,90 sai de
+   `19.9 - 20 = -0.100000000000001` e virava IRREGULAR uma bomba que esta' exatamente no limite.
+   🔑 Numero que decide multa nao se compara com fracao binaria. */
+const AFER_PROVA_ML       = 20000;   /* os 20 litros da proveta, em mL */
+const AFER_TOL_CLIENTE_ML = 60;      /* 0,3% - bomba marcou A MAIS: o cliente paga sem receber */
+const AFER_TOL_POSTO_ML   = 100;     /* 0,5% - bomba marcou A MENOS: o posto entrega de graca */
+const AFER_MIN            = 19;      /* fora da faixa 19..21 nao foi prova de 20 L */
+const AFER_MAX            = 21;
+const AFER_UNS = [{ chave:"teresina", nome:"Teresina" },
+                  { chave:"caxias",   nome:"Caxias" },
+                  { chave:"dutra",    nome:"Pres. Dutra" }];
+
+let aferAtalho = "mes", aferDe = "", aferAte = "", aferPosto = "", aferComb = "", aferTudo = false;
+
+/* 🔴 A UNICA FUNCAO QUE DECIDE O QUE E' CADA AFERICAO.
+   Devolve {classe, desvio, pct, texto}. `desvio` e' em litros, com sinal:
+   positivo = a bomba marcou a MAIS que os 20 da proveta.
+   ⚠️ `null`/vazio NAO cai para zero: quantidade ausente vira `semQtd`, nao vira "exata".
+      Number(null) e' 0, e 0 aqui viraria "-100%" — a familia do zero que mente. */
+function aferClasse(q){
+  if (q === null || q === undefined || q === "" || !isFinite(Number(q)))
+    return { classe:"semQtd", desvio:null, pct:null, texto:"sem quantidade" };
+  const v = Number(q);
+  if (v < AFER_MIN || v > AFER_MAX)
+    return { classe:"naoProva", desvio:null, pct:null, texto:"não foi prova de 20 L" };
+  const ml = Math.round(v * 1000) - AFER_PROVA_ML;   /* mL inteiros, com sinal */
+  const d = ml / 1000, pct = ml / AFER_PROVA_ML;
+  if (ml === 0)
+    return { classe:"exata", desvio:0, pct:0, texto:"marcou 20,000 exato" };
+  if (ml > 0)
+    return ml > AFER_TOL_CLIENTE_ML
+      ? { classe:"foraCliente", desvio:d, pct:pct, texto:"o cliente pagou sem receber" }
+      : { classe:"dentro", desvio:d, pct:pct, texto:"dentro da tolerância" };
+  return -ml > AFER_TOL_POSTO_ML
+    ? { classe:"foraPosto", desvio:d, pct:pct, texto:"o posto entregou de graça" }
+    : { classe:"dentro", desvio:d, pct:pct, texto:"dentro da tolerância" };
+}
+const AFER_FORA = { foraCliente:1, foraPosto:1 };
+
+/* ---- o periodo. Os atalhos escrevem em `aferDe`/`aferAte`; o De/Ate escreve direto. ---- */
+function aferHojeISO(){ const d = new Date(); return d.getFullYear() + "-" +
+  String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0"); }
+function aferPeriodoDoAtalho(a, hoje){
+  const h = hoje || aferHojeISO(), y = +h.slice(0,4), m = +h.slice(5,7);
+  const ult = n => String(new Date(y, n, 0).getDate()).padStart(2,"0");
+  const p2 = n => String(n).padStart(2,"0");
+  if (a === "mes")       return { de: h.slice(0,7) + "-01", ate: h };
+  if (a === "mesPassado"){ const ym = m === 1 ? (y-1) + "-12" : y + "-" + p2(m-1);
+                           return { de: ym + "-01", ate: ym + "-" + ult(m === 1 ? 12 : m-1) }; }
+  if (a === "d90"){ const d = new Date(Date.parse(h + "T12:00:00") - 89*86400000);
+                    return { de: d.getFullYear() + "-" + p2(d.getMonth()+1) + "-" + p2(d.getDate()), ate: h }; }
+  if (a === "ano")       return { de: y + "-01-01", ate: h };
+  return null;   /* "livre" - quem manda sao os campos De/Ate */
+}
+/* Os meses AAAA-MM que o periodo atravessa. E' por eles que os documentos sao lidos. */
+function aferMesesDoPeriodo(de, ate){
+  if (!de || !ate || de > ate) return [];
+  const out = []; let y = +de.slice(0,4), m = +de.slice(5,7);
+  const fy = +ate.slice(0,4), fm = +ate.slice(5,7);
+  while (y < fy || (y === fy && m <= fm)){
+    out.push(y + "-" + String(m).padStart(2,"0"));
+    if (out.length > 240) break;               /* trava boba contra periodo maluco */
+    m++; if (m > 12){ m = 1; y++; }
+  }
+  return out;
+}
+
+/* ---- as linhas do periodo, ja' filtradas e classificadas ----
+   🔴 O documento e' MENSAL; o periodo e' LIVRE. Entao ler o mes nao basta: cada linha e'
+      conferida contra `de`/`ate` pela data dela. Sem isso, "01/07 a 15/07" mostraria julho
+      inteiro e o numero pareceria certo. */
+function aferLinhas(de, ate, posto, comb){
+  const meses = aferMesesDoPeriodo(de, ate), out = [];
+  AFER_UNS.forEach(u => {
+    if (posto && posto !== u.chave) return;
+    meses.forEach(mes => {
+      const doc = relPetros["afer_postos_" + u.chave + "_" + mes];
+      if (!doc) return;
+      rpzLista(doc).forEach(r => {
+        const iso = String(r[0] || ""), dia = iso.slice(0, 10);
+        if (!dia || dia < de || dia > ate) return;
+        const prod = rpzTxt(r[1]) || "—";
+        if (comb && prod !== comb) return;
+        const c = aferClasse(r[2]);
+        out.push({ iso: iso, dia: dia, un: u.chave, posto: u.nome, prod: prod,
+                   qtd: (r[2] === null || r[2] === undefined || r[2] === "") ? null : Number(r[2]),
+                   aten: rpzTxt(r[3]) || "—", validada: String(r[4] || "N") === "S",
+                   classe: c.classe, desvio: c.desvio, pct: c.pct, texto: c.texto });
+      });
+    });
+  });
+  out.sort((a, b) => a.iso < b.iso ? 1 : (a.iso > b.iso ? -1 : 0));
+  return out;
+}
+
+/* ---- as contas do periodo. Funcao pura: recebe linhas, devolve numeros. ---- */
+function aferResumo(ls){
+  const r = { n: ls.length, litros: 0, validadas: 0, exata: 0, dentro: 0,
+              foraCliente: 0, foraPosto: 0, naoProva: 0, semQtd: 0,
+              dias: {}, postos: {}, prod: {}, aten: {}, pior: null, comLeitura: 0, semDoc: 0 };
+  ls.forEach(l => {
+    if (l.qtd !== null && isFinite(l.qtd)) r.litros += l.qtd;
+    if (l.validada) r.validadas++;
+    r[l.classe] = (r[l.classe] || 0) + 1;
+    if (l.classe !== "exata" && l.classe !== "semQtd" && l.classe !== "naoProva") r.comLeitura++;
+    r.dias[l.dia] = 1;
+    if (!r.postos[l.un]) r.postos[l.un] = { nome: l.posto, n: 0, litros: 0, dias: {}, fora: 0, ult: "" };
+    const p = r.postos[l.un];
+    p.n++; if (l.qtd !== null && isFinite(l.qtd)) p.litros += l.qtd;
+    p.dias[l.dia] = 1; if (l.iso > p.ult) p.ult = l.iso;
+    if (AFER_FORA[l.classe]){ p.fora++;
+      if (!r.pior || Math.abs(l.pct) > Math.abs(r.pior.pct)) r.pior = l; }
+    r.prod[l.prod] = (r.prod[l.prod] || 0) + 1;
+    r.aten[l.aten] = (r.aten[l.aten] || 0) + 1;
+  });
+  r.nDias = Object.keys(r.dias).length;
+  r.fora = r.foraCliente + r.foraPosto;
+  return r;
+}
+/* Quantos dias CORRIDOS tem o periodo - e' o denominador de "dias com afericao". */
+function aferDiasDoPeriodo(de, ate){
+  if (!de || !ate || de > ate) return 0;
+  return Math.round((Date.parse(ate + "T12:00:00") - Date.parse(de + "T12:00:00")) / 86400000) + 1;
+}
+
+/* ================== a tela ================== */
+
+function alternarAfericoes(){
+  const aberto = abrirPainelExclusivo("painelAfericoes");
+  const b = document.getElementById("btnAfericoes");
+  if (b) b.classList.toggle("ativo", aberto);
+  if (aberto) renderAfericoes();
+}
+function aferMudaAtalho(v){
+  aferAtalho = v;
+  const p = aferPeriodoDoAtalho(v);
+  if (p){ aferDe = p.de; aferAte = p.ate; }
+  renderAfericoes();
+}
+function aferMudaData(qual, v){
+  if (qual === "de") aferDe = v; else aferAte = v;
+  aferAtalho = "livre";
+  renderAfericoes();
+}
+function aferMudaFiltro(qual, v){
+  if (qual === "posto") aferPosto = v; else aferComb = v;
+  renderAfericoes();
+}
+function aferVerTudo(){ aferTudo = !aferTudo; renderAfericoes(); }
+
+const AFER_ATALHOS = [["mes","Este mês"],["mesPassado","Mês passado"],
+                      ["d90","Últimos 90 dias"],["ano","Este ano"],["livre","Escolher"]];
+const AFER_LIM_LISTA = 60;
+
+function aferFiltrosHtml(){
+  let h = '<div class="evo-filtros">';
+  h += '<div class="desc-campo"><label>Período</label><select onchange="aferMudaAtalho(this.value)">' +
+       AFER_ATALHOS.map(a => '<option value="' + a[0] + '"' + (aferAtalho === a[0] ? ' selected' : '') +
+       '>' + a[1] + '</option>').join("") + '</select></div>';
+  /* a classe `afer-data` existe so' para o celular: sem ela, cinco campos empilhados empurram o
+     primeiro numero para baixo de duas rolagens (a foto do celular mostrou). */
+  h += '<div class="desc-campo afer-data"><label>De</label><input type="date" value="' + escAttr(aferDe) +
+       '" onchange="aferMudaData(\'de\', this.value)"></div>';
+  h += '<div class="desc-campo afer-data"><label>Até</label><input type="date" value="' + escAttr(aferAte) +
+       '" onchange="aferMudaData(\'ate\', this.value)"></div>';
+  h += '<div class="desc-campo"><label>Posto</label><select onchange="aferMudaFiltro(\'posto\', this.value)">' +
+       '<option value="">Todos os postos</option>' +
+       AFER_UNS.map(u => '<option value="' + u.chave + '"' + (aferPosto === u.chave ? ' selected' : '') +
+       '>' + escAttr(u.nome) + '</option>').join("") + '</select></div>';
+  /* 🔴 A lista de combustiveis NAO e' escrita a mao: ela sai do proprio periodo.
+     Lista fixa envelhece calada (v217) - e aqui envelheceria no dia em que um produto novo
+     entrasse na bomba. */
+  const prods = {};
+  aferLinhas(aferDe, aferAte, aferPosto, "").forEach(l => { prods[l.prod] = 1; });
+  const lista = Object.keys(prods).sort();
+  if (aferComb && lista.indexOf(aferComb) < 0) lista.push(aferComb);
+  h += '<div class="desc-campo"><label>Combustível</label><select onchange="aferMudaFiltro(\'comb\', this.value)">' +
+       '<option value="">Todos os combustíveis</option>' +
+       lista.map(p => '<option value="' + escAttr(p) + '"' + (aferComb === p ? ' selected' : '') +
+       '>' + escAttr(p) + '</option>').join("") + '</select></div>';
+  return h + '</div>';
+}
+
+function aferPctTexto(l){
+  if (l.pct === null) return "—";
+  /* ⚠️ Zero com sinal na frente ("−0,00%") e' o tipo de detalhe que a asserção nao pega e a
+     FOTO pega: quem le' entende que a bomba marcou a menos. Zero nao tem lado. */
+  if (l.pct === 0) return "0,00%";
+  return (l.pct > 0 ? "+" : "−") + fmtBR(Math.abs(l.pct) * 100, 2) + "%";
+}
+function aferTabelaHtml(ls){
+  const mostra = aferTudo ? ls : ls.slice(0, AFER_LIM_LISTA);
+  let h = finTab(["Data / hora", "Posto", "Combustível" + bul("aferCombustivel"), "A bomba marcou",
+                  "Diferença" + bul("aferDiferenca"), "Responsável"],
+    mostra.map(l => [
+      escAttr(rpzDia(l.dia) + " " + String(l.iso).slice(11, 16)),
+      escAttr(l.posto),
+      escAttr(l.prod),
+      l.qtd === null ? "—" : rpzDin(l.qtd, 3) + " L",
+      '<span class="' + (AFER_FORA[l.classe] ? "rpz-neg" : "") + '">' + aferPctTexto(l) + '</span>',
+      escAttr(l.aten)
+    ]));
+  if (ls.length > AFER_LIM_LISTA)
+    h += '<p class="nota-dash"><button class="btn-claro" onclick="aferVerTudo()">' +
+         (aferTudo ? "Mostrar só as " + AFER_LIM_LISTA + " primeiras"
+                   : "Ver as " + rpzDin0(ls.length) + " linhas") + '</button> ' +
+         (aferTudo ? "" : "Mostrando " + AFER_LIM_LISTA + " de " + rpzDin0(ls.length) + ".") + '</p>';
+  return h;
+}
+
+function renderAfericoes(){
+  const box = document.getElementById("aferBox");
+  if (!box) return;
+  if (!aferDe || !aferAte){ const p = aferPeriodoDoAtalho(aferAtalho) || aferPeriodoDoAtalho("mes");
+                            aferDe = p.de; aferAte = p.ate; }
+  /* 🔑 Estado AUSENTE e estado VAZIO precisam de dois valores diferentes: enquanto a nuvem nao
+     respondeu, esqueleto; depois dela, "nenhuma afericao" e' resposta de verdade. */
+  if (!vistoRelPetros){ box.innerHTML = aferFiltrosHtml() + esqueletoCaixa(4); return; }
+
+  const ls = aferLinhas(aferDe, aferAte, aferPosto, aferComb);
+  const r = aferResumo(ls);
+  const diasPer = aferDiasDoPeriodo(aferDe, aferAte);
+  let h = aferFiltrosHtml();
+
+  if (aferDe > aferAte){
+    box.innerHTML = h + vazioHtml("A data de início está depois da data de fim",
+      "Ajuste o De e o Até — " + escAttr(rpzDia(aferDe)) + " vem depois de " + escAttr(rpzDia(aferAte)) + ".");
+    return;
+  }
+  if (!ls.length){
+    box.innerHTML = h + vazioHtml("Nenhuma aferição neste período",
+      "De " + escAttr(rpzDia(aferDe)) + " a " + escAttr(rpzDia(aferAte)) +
+      " não há aferição gravada" +
+      (aferPosto || aferComb ? " com os filtros escolhidos." : ".") +
+      " Isso pode ser que ninguém aferiu, ou que a coleta do mês ainda não rodou — são coisas diferentes.");
+    return;
+  }
+
+  /* ---------- 1. O DESVIO: a prova de 20 litros ---------- */
+  h += '<h3 class="cxi-sub">A prova de 20 litros: quanto a bomba marcou</h3>';
+  h += '<p class="nota-dash">Cada aferição' +
+       ' é uma prova de <b>20 litros</b>. O número gravado é o que a <b>bomba marcou</b>: ' +
+       'marcar <b>menos</b> de 20 quer dizer que o posto entregou e não cobrou; marcar <b>mais</b> ' +
+       'quer dizer que o cliente pagou e não levou. O INMETRO aceita até <b>0,5%</b> do primeiro ' +
+       'lado e só <b>0,3%</b> do segundo.</p>';
+  h += '<div class="rpz-cards">';
+  h += finCard("Marcou 20,000 exato" + bul("aferExata"), rpzDin0(r.exata));
+  h += finCard("Dentro da tolerância", rpzDin0(r.dentro), r.dentro ? "rpz-pos" : "");
+  /* ⚠️ O `sub` do finCard sai COLADO no numero ("10 7 do posto"), e a foto pegou isso. A
+     reparticao virou frase abaixo dos quadros, onde ela se le'. */
+  h += finCard("Fora da tolerância" + bul("aferFora"), rpzDin0(r.fora), r.fora ? "rpz-neg" : "rpz-pos");
+  h += finCard("Não foi prova de 20 L" + bul("aferNaoProva"), rpzDin0(r.naoProva + r.semQtd));
+  h += '</div>';
+  if (r.fora)
+    h += '<p class="nota-dash">Das <b>' + rpzDin0(r.fora) + '</b> fora da tolerância, <b>' +
+      rpzDin0(r.foraPosto) + '</b> ' + (r.foraPosto === 1 ? "é" : "são") +
+      ' do lado do posto (entregou e não cobrou) e <b>' + rpzDin0(r.foraCliente) + '</b> ' +
+      (r.foraCliente === 1 ? "é" : "são") + ' do lado do cliente (pagou e não levou).</p>';
+
+  /* 🔴 O AVISO EM CIMA, O METODO EMBAIXO (v241). Este e' o aviso: sem ele, "4.522 exatas" se le
+     como "as bombas estao certas", que e' a leitura errada. */
+  if (r.exata > 0 && r.n > 0){
+    const pctEx = r.exata / r.n * 100;
+    if (pctEx >= 50)
+      /* ⚠️ NAO e' vermelho de proposito: isto acontece TODO mes, e vermelho no que e' rotina
+         ensina a equipe a ignorar vermelho (v296). O vermelho fica para o posto que nao aferiu. */
+      h += '<div class="ana-resumo">📏 <b>' + rpzDin0(r.exata) + ' das ' + rpzDin0(r.n) +
+        ' (' + fmtBR(pctEx, 0) + '%) marcaram 20,000 redondo.</b> Bomba não acerta no mililitro ' +
+        'essa quantidade de vezes: o mais provável é que ninguém tenha anotado a leitura e o ' +
+        'sistema tenha recebido “20”. <b>Elas não são bomba certa — são bomba não medida.</b> ' +
+        'A análise do desvio vale sobre as <b>' + rpzDin0(r.comLeitura) + '</b> que trazem leitura de verdade.</div>';
+  }
+  if (r.pior)
+    h += '<p class="nota-dash">🔎 <b>A maior diferença do período:</b> ' +
+      escAttr(rpzDia(r.pior.dia)) + ', ' + escAttr(r.pior.posto) + ', ' + escAttr(r.pior.prod) +
+      ' — a bomba marcou <b>' + rpzDin(r.pior.qtd, 3) + ' L</b> numa prova de 20 (' +
+      aferPctTexto(r.pior) + '), ' + escAttr(r.pior.texto) + '.</p>';
+
+  const foraPorPosto = AFER_UNS.filter(u => r.postos[u.chave])
+    .map(u => [u.nome, r.postos[u.chave].fora]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]);
+  if (foraPorPosto.length)
+    h += finBarras(foraPorPosto, "Aferições fora da tolerância, por posto",
+                   v => rpzDin0(v));
+
+  /* ---------- 2. A COBRANCA: quem esta' aferindo ---------- */
+  h += '<h3 class="cxi-sub">Quem está aferindo, e quem não está</h3>';
+  h += '<p class="nota-dash">Dias do período em que houve pelo menos uma aferição' +
+       ' em cada posto. O período escolhido tem <b>' + diasPer + ' dias</b>.</p>';
+  h += finTab(["Posto", "Aferições", "Litros", "Dias com aferição",
+               "Fora da tolerância", "Última"],
+    AFER_UNS.filter(u => r.postos[u.chave]).map(u => { const p = r.postos[u.chave]; return [
+      escAttr(p.nome), rpzDin0(p.n), rpzDin(p.litros) + " L",
+      Object.keys(p.dias).length + " de " + diasPer,
+      p.fora ? '<span class="rpz-neg">' + rpzDin0(p.fora) + '</span>' : "0",
+      escAttr(rpzDia(String(p.ult).slice(0, 10)))
+    ]; }),
+    ["Total", rpzDin0(r.n), rpzDin(r.litros) + " L", r.nDias + " de " + diasPer,
+     r.fora ? '<span class="rpz-neg">' + rpzDin0(r.fora) + '</span>' : "0", ""]);
+
+  /* 🔴 Posto SEM NENHUMA afericao no periodo nao pode sumir da tabela: ausencia e' a informacao.
+     Bloco ausente e' melhor que zero, mas aqui o zero e' SABIDO - e zero sabido aparece. */
+  const semNada = AFER_UNS.filter(u => !r.postos[u.chave] && (!aferPosto || aferPosto === u.chave));
+  if (semNada.length)
+    h += '<div class="rel-alerta">⚠️ <b>' + semNada.map(u => escAttr(u.nome)).join(" e ") +
+      (semNada.length > 1 ? "</b> não têm" : "</b> não tem") +
+      ' nenhuma aferição gravada neste período.</div>';
+
+  /* ---------- 3. A VALIDACAO: uma linha, nao uma tela ---------- */
+  if (r.validadas === 0)
+    h += '<p class="nota-dash">🖊️ <b>Nenhuma das ' + rpzDin0(r.n) +
+      ' foi validada no sistema.</b> Aferição registrada não é aferição validada' +
+      ': o teste foi lançado, mas ninguém conferiu e assinou embaixo no ERP.</p>';
+  else
+    h += '<p class="nota-dash">🖊️ <b>' + rpzDin0(r.validadas) + ' de ' + rpzDin0(r.n) +
+      '</b> foram validadas no sistema.</p>';
+
+  /* ---------- 4. A LISTA ---------- */
+  h += '<h3 class="cxi-sub">Aferições registradas</h3>';
+  h += '<p class="nota-dash">Uma linha por aferição' +
+       ', da mais recente para a mais antiga.</p>';
+  h += aferTabelaHtml(ls);
+
+  h += '<p class="nota-dash" style="margin-top:14px">Onde os números nascem: relatório ' +
+       '<b>Aferições Ocorridas no Período</b>' +
+       ' do Petros/Adaptive, coletado pelo servidor. A coluna <b>Combustível</b> é o campo ' +
+       '<code>denominacao_bico</code> do ERP, que traz o produto e não o número do bico — ' +
+       'por isso esta tela ainda não separa bico a bico.</p>';
+
+  box.innerHTML = h;
+}
+
 function alternarTanquesNivel(){
   const aberto = abrirPainelExclusivo("painelTanquesNivel");
   const b = document.getElementById("btnTanquesNivel");
@@ -16861,6 +17260,16 @@ const BULAS = {
     d:"O dinheiro dispon\u00edvel, mais o que h\u00e1 a receber, menos o que h\u00e1 a pagar. \u00c9 o retrato de hoje, n\u00e3o uma previs\u00e3o: nada aqui projeta venda futura." },
   vencido: { t:"Vencido, e os prazos ao lado",
     d:"T\u00edtulos cuja data de vencimento j\u00e1 passou e que continuam em aberto. Os quadros ao lado repartem o resto pelo vencimento: hoje, os pr\u00f3ximos 7 dias e o resto do m\u00eas \u2014 cada t\u00edtulo aparece em um balde s\u00f3." },
+  aferExata: { t:"Marcou 20,000 exato",
+    d:"Afer\u00e7\u00f5es em que o n\u00famero gravado bateu exatamente 20 litros. Bomba n\u00e3o acerta no mililitro essa quantidade de vezes: quase sempre isso quer dizer que ningu\u00e9m anotou a leitura e o sistema recebeu \u201c20\u201d. Elas n\u00e3o contam como bomba conferida." },
+  aferFora: { t:"Fora da toler\u00e2ncia",
+    d:"O INMETRO n\u00e3o aceita o mesmo dos dois lados. A bomba pode marcar at\u00e9 0,5% A MENOS do que entregou (o posto d\u00e1 combust\u00edvel de gra\u00e7a, e quem ganha \u00e9 o cliente), mas s\u00f3 0,3% A MAIS (a\u00ed o cliente paga por combust\u00edvel que n\u00e3o levou \u2014 \u00e9 esse lado que d\u00e1 multa)." },
+  aferNaoProva: { t:"N\u00e3o foi prova de 20 L",
+    d:"Lan\u00e7amentos com quantidade muito longe de 20 litros \u2014 1 L, 5 L, 10 L \u2014 ou sem quantidade nenhuma. Podem ser teste de outro tipo ou erro de digita\u00e7\u00e3o. Eles ficam de fora da conta do desvio, e aparecem aqui para n\u00e3o sumirem calados." },
+  aferDiferenca: { t:"Diferen\u00e7a",
+    d:"Quanto o n\u00famero da bomba se afastou dos 20 litros da prova, em porcentagem. Negativo quer dizer que a bomba marcou a menos do que entregou; positivo, que marcou a mais." },
+  aferCombustivel: { t:"Combust\u00edvel (e n\u00e3o bico)",
+    d:"O ERP manda o campo `denominacao_bico`, mas o que vem escrito nele \u00e9 o PRODUTO (gasolina comum, etanol, diesel S10), n\u00e3o o n\u00famero do bico. Enquanto a coleta n\u00e3o trouxer o n\u00famero, esta tela n\u00e3o separa bico a bico." },
   afericoes: { t:"Aferi\u00e7\u00f5es",
     d:"Testes de calibra\u00e7\u00e3o dos bicos registrados no per\u00edodo. Registrar n\u00e3o \u00e9 validar: quantos ficaram sem valida\u00e7\u00e3o est\u00e1 no quadro ao lado." },
   semValidacao: { t:"Sem valida\u00e7\u00e3o",
