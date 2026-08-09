@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v313 — Postos Full (não é o app)</title>
+<title>PRÉVIA v314 — Postos Full (não é o app)</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -6482,6 +6482,11 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v314", data:"09/08/2026", tit:"📏 Aferições: agora dá para saber de qual BICO foi cada prova", itens:[
+    {t:"n", h:"A coluna <b>Bico</b> na lista", d:"Pedido do Tiago. O ERP sempre teve o número do bico e o nosso coletor não estava guardando — passou a guardar hoje, e os <b>oito meses de 2026 foram recarregados</b> (4.981 aferições, 64 bicos diferentes nos três postos). Antes, quatro provas do mesmo diesel apareciam como quatro linhas iguais; agora dá para ver que foram os <b>bicos 13, 15, 17 e 19</b>."},
+    {t:"n", h:"E a coluna <b>Motivo</b>, que muda como se lê a diferença", d:"O ERP guarda por que a aferição foi feita — <b>corretiva, preventiva, manutenção, para o gerente</b> — escrito à mão. A tela junta as formas diferentes de escrever o mesmo motivo (com acento, sem acento e com erro de digitação) e mostra <b>em que motivo caíram as que ficaram fora da tolerância</b>. Isso importa: um desvio numa aferição de <b>manutenção</b> costuma ser o aparelho sendo ajustado, e não é a mesma coisa que um desvio numa aferição de rotina. <b>O app não diz qual dos dois é normal</b> — ele reparte e deixa a leitura com quem conhece o posto."},
+    {t:"m", h:"Quantos bicos foram aferidos no período", d:"Uma linha abaixo dos quadrinhos diz quantos bicos diferentes entraram na conta. Quando o período for anterior a 09/08/2026, ela avisa que o número do bico ainda não era guardado — em vez de mostrar zero, que pareceria “nenhum bico aferido”."},
+    {t:"c", h:"Um aviso que deixou de ser verdade saiu", d:"O rodapé da tela dizia que ela “ainda não separa bico a bico”. Não diz mais, porque agora separa. Aviso que descreve uma limitação já resolvida é pior que aviso nenhum: ele ensina a desconfiar de uma coisa que já foi consertada."}]},
   {v:"v313", data:"09/08/2026", tit:"\ud83c\udfa8 Seis cores que o app pedia e nunca apareciam", itens:[
     {t:"m", h:"O posto com <b>teto de desconto de 100%</b> volta a ser marcado", d:"Em <b>\ud83c\udff7\ufe0f Descontos</b>, o quadro <b>Teto de desconto configurado no PDV</b> deveria <b>contornar</b> o posto cujo teto est\u00e1 em 100% ou mais \u2014 que na pr\u00e1tica \u00e9 <b>sem teto</b>. Esse contorno estava escrito no c\u00f3digo e <b>nunca desenhou nada</b>: ele pedia uma cor que n\u00e3o existe, e CSS com cor inexistente <b>some sem dar erro</b>. Agora aparece."},
     {t:"m", h:"E mais cinco marcas que estavam apagadas", d:"Em <b>\ud83c\udf6b Produtos e categorias</b>, a nota <i>\u201cvendidos em uma loja s\u00f3\u201d</i> volta a ter a tarja <b>laranja</b> (ela \u00e9 informativa, e ficava igual ao aviso de verdade logo acima) e o bot\u00e3o <b>Ver todos os N produtos</b> volta a ter borda. Em <b>\u2699 Configura\u00e7\u00f5es</b> o nome do posto volta ao laranja, em <b>\u26fd Custos e pre\u00e7os</b> o resumo reage ao passar o mouse, e o campo de data dos <b>Descontos</b> usa a cor certa. <b>Nenhum n\u00famero mudou</b> \u2014 s\u00f3 voltaram a aparecer marcas que j\u00e1 deviam estar l\u00e1."}
@@ -13728,6 +13733,33 @@ function aferMesesDoPeriodo(de, ate){
   return out;
 }
 
+/* 🔴 A ÚNICA QUE DECIDE O MOTIVO DE UMA AFERIÇÃO, e ela existe porque o campo é TEXTO LIVRE
+   digitado por gente: `AFERICAO CORRETIVA` e `AFERIÇÃO CORRETIVA` são o mesmo motivo escrito de
+   dois jeitos (1.157 + 1.074 em 2026), e `MANUTENCAO PEVENTIVA` é o mesmo com erro de digitação.
+   Sem juntar, a tela mostraria doze motivos onde existem quatro.
+   ⚠️ O QUE ELA NÃO FAZ: inventar um balde "Outros". Motivo que ela não reconhece volta como veio,
+      só com os espaços arrumados — texto que ninguém previu é justamente o que vale ler. */
+function aferMotivo(txt){
+  const cru = String(txt == null ? "" : txt).replace(/\s+/g, " ").trim();
+  if (!cru) return "";
+  /* ⚠️ NAO ha' troca de acento aqui, e isso e' de proposito: as palavras que a funcao procura
+     (CORRETIV, PREVENTIV, MANUTEN, GERENTE) NAO TEM ACENTO NENHUM DENTRO — e' por isso que
+     "MANUTENÇÃO" e "MANUTENCAO" caem no mesmo lugar sem precisar de conversao.
+     🔑 A primeira versao trocava os acentos, e a prova por mutacao mostrou que quebrar essa troca
+        nao mudava resposta nenhuma: era codigo que parecia decidir e nao decidia.
+     👉 Palavra-chave nova com acento dentro obriga a trazer a troca de volta. */
+  const t = cru.toUpperCase();
+  /* 🔴 A ORDEM IMPORTA: "MANUTENCAO PREVENTIVA" tem as duas palavras, e o que ela é de verdade é
+     preventiva. Por isso PREVENTIV é testado ANTES de MANUTEN. */
+  if (t.indexOf("CORRETIV") >= 0)                    return "Corretiva";
+  if (t.indexOf("PREVENTIV") >= 0 ||
+      t.indexOf("PEVENTIV") >= 0)                    return "Preventiva";
+  if (t.indexOf("MANUTEN") >= 0)                     return "Manutenção";
+  if (t.indexOf("GERENTE") >= 0)                     return "Para o gerente";
+  if (t.indexOf("AR NO BICO") >= 0)                  return "Ar no bico";
+  return cru;
+}
+
 /* ---- as linhas do periodo, ja' filtradas e classificadas ----
    🔴 O documento e' MENSAL; o periodo e' LIVRE. Entao ler o mes nao basta: cada linha e'
       conferida contra `de`/`ate` pela data dela. Sem isso, "01/07 a 15/07" mostraria julho
@@ -13748,6 +13780,12 @@ function aferLinhas(de, ate, posto, comb){
         out.push({ iso: iso, dia: dia, un: u.chave, posto: u.nome, prod: prod,
                    qtd: (r[2] === null || r[2] === undefined || r[2] === "") ? null : Number(r[2]),
                    aten: rpzTxt(r[3]) || "—", validada: String(r[4] || "N") === "S",
+                   /* ⚠️ As quatro de baixo só existem desde a recarga de 09/08. Mês coletado pelo
+                      caminho antigo tem CINCO posições — `r[5]` vem `undefined`, e "não tem" a
+                      tela sabe mostrar. Por isso elas entraram no FIM lá no coletor. */
+                   bico: String(r[5] == null ? "" : r[5]).trim(),
+                   motivo: aferMotivo(r[6]),
+                   validador: String(r[7] == null ? "" : r[7]).trim(),
                    classe: c.classe, desvio: c.desvio, pct: c.pct, texto: c.texto });
       });
     });
@@ -13760,7 +13798,8 @@ function aferLinhas(de, ate, posto, comb){
 function aferResumo(ls){
   const r = { n: ls.length, litros: 0, validadas: 0, exata: 0, dentro: 0,
               foraCliente: 0, foraPosto: 0, naoProva: 0, semQtd: 0,
-              dias: {}, postos: {}, prod: {}, aten: {}, pior: null, comLeitura: 0, semDoc: 0 };
+              dias: {}, postos: {}, prod: {}, aten: {}, pior: null, comLeitura: 0, semDoc: 0,
+              bicos: {}, motivo: {}, motivoFora: {} };
   ls.forEach(l => {
     if (l.qtd !== null && isFinite(l.qtd)) r.litros += l.qtd;
     if (l.validada) r.validadas++;
@@ -13774,9 +13813,14 @@ function aferResumo(ls){
     if (AFER_FORA[l.classe]){ p.fora++;
       if (!r.pior || Math.abs(l.pct) > Math.abs(r.pior.pct)) r.pior = l; }
     r.prod[l.prod] = (r.prod[l.prod] || 0) + 1;
+    if (l.bico) r.bicos[l.un + "#" + l.bico] = 1;
+    const mt = l.motivo || "sem motivo escrito";
+    r.motivo[mt] = (r.motivo[mt] || 0) + 1;
+    if (AFER_FORA[l.classe]) r.motivoFora[mt] = (r.motivoFora[mt] || 0) + 1;
     r.aten[l.aten] = (r.aten[l.aten] || 0) + 1;
   });
   r.nDias = Object.keys(r.dias).length;
+  r.nBicos = Object.keys(r.bicos).length;
   r.fora = r.foraCliente + r.foraPosto;
   return r;
 }
@@ -13853,14 +13897,16 @@ function aferPctTexto(l){
 }
 function aferTabelaHtml(ls){
   const mostra = aferTudo ? ls : ls.slice(0, AFER_LIM_LISTA);
-  let h = finTab(["Data / hora", "Posto", "Combustível" + bul("aferCombustivel"), "A bomba marcou",
-                  "Diferença" + bul("aferDiferenca"), "Responsável"],
+  let h = finTab(["Data / hora", "Posto", "Bico" + bul("aferBico"), "Combustível", "A bomba marcou",
+                  "Diferença" + bul("aferDiferenca"), "Motivo" + bul("aferMotivoBula"), "Responsável"],
     mostra.map(l => [
       escAttr(rpzDia(l.dia) + " " + String(l.iso).slice(11, 16)),
       escAttr(l.posto),
+      l.bico ? escAttr(l.bico) : "—",
       escAttr(l.prod),
       l.qtd === null ? "—" : rpzDin(l.qtd, 3) + " L",
       '<span class="' + (AFER_FORA[l.classe] ? "rpz-neg" : "") + '">' + aferPctTexto(l) + '</span>',
+      l.motivo ? escAttr(l.motivo) : "—",
       escAttr(l.aten)
     ]));
   if (ls.length > AFER_LIM_LISTA)
@@ -13914,6 +13960,12 @@ function renderAfericoes(){
   h += finCard("Fora da tolerância" + bul("aferFora"), rpzDin0(r.fora), r.fora ? "rpz-neg" : "rpz-pos");
   h += finCard("Não foi prova de 20 L" + bul("aferNaoProva"), rpzDin0(r.naoProva + r.semQtd));
   h += '</div>';
+  /* 🔴 Zero SABIDO aparece; zero chutado, não. Enquanto houver mês coletado pelo caminho antigo,
+     o número de bicos é MENOR do que a realidade — e a tela diz isso em vez de mostrar "0". */
+  if (r.nBicos)
+    h += '<p class="nota-dash">🔧 <b>' + rpzDin0(r.nBicos) + '</b> bico(s) diferente(s) aferido(s) no período.</p>';
+  else
+    h += '<p class="nota-dash">🔧 <b>O número do bico não foi coletado neste período.</b> Ele passou a ser gravado em 09/08/2026; antes disso o ERP mandava só o combustível.</p>';
   if (r.fora)
     h += '<p class="nota-dash">Das <b>' + rpzDin0(r.fora) + '</b> fora da tolerância, <b>' +
       rpzDin0(r.foraPosto) + '</b> ' + (r.foraPosto === 1 ? "é" : "são") +
@@ -13938,6 +13990,16 @@ function renderAfericoes(){
       escAttr(rpzDia(r.pior.dia)) + ', ' + escAttr(r.pior.posto) + ', ' + escAttr(r.pior.prod) +
       ' — a bomba marcou <b>' + rpzDin(r.pior.qtd, 3) + ' L</b> numa prova de 20 (' +
       aferPctTexto(r.pior) + '), ' + escAttr(r.pior.texto) + '.</p>';
+
+  /* 🔴 A REPARTIÇÃO QUE MUDA A LEITURA DO NÚMERO DE CIMA. Em 20/07, em Pres. Dutra, os quatro
+     desvios de diesel S10 eram quatro bicos diferentes num dia de MANUTENÇÃO DAS BOMBAS — e dois
+     deles aparecem de novo, no mesmo dia, marcando 20,000 exato: é o antes e o depois do ajuste.
+     🔑 Desvio numa aferição de manutenção não quer dizer o mesmo que desvio numa de rotina.
+     ⚠️ E o app NÃO diz qual dos dois é "normal" (v211): ele reparte e deixa a leitura com quem
+        sabe do posto. */
+  const foraMot = Object.keys(r.motivoFora).map(k => [k, r.motivoFora[k]]).sort((a, b) => b[1] - a[1]);
+  if (foraMot.length)
+    h += finBarras(foraMot, "As que ficaram fora, por motivo da aferição", v => rpzDin0(v));
 
   const foraPorPosto = AFER_UNS.filter(u => r.postos[u.chave])
     .map(u => [u.nome, r.postos[u.chave].fora]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]);
@@ -13983,11 +14045,16 @@ function renderAfericoes(){
        ', da mais recente para a mais antiga.</p>';
   h += aferTabelaHtml(ls);
 
+  /* ⚠️ O rodapé anterior avisava que a tela "ainda não separa bico a bico". Isso deixou de ser
+     verdade com a recarga de 09/08, e aviso que descreve limitação vencida é pior que aviso
+     nenhum: ele ensina a desconfiar de uma coisa que já foi resolvida. */
   h += '<p class="nota-dash" style="margin-top:14px">Onde os números nascem: relatório ' +
        '<b>Aferições Ocorridas no Período</b>' +
-       ' do Petros/Adaptive, coletado pelo servidor. A coluna <b>Combustível</b> é o campo ' +
-       '<code>denominacao_bico</code> do ERP, que traz o produto e não o número do bico — ' +
-       'por isso esta tela ainda não separa bico a bico.</p>';
+       ' do Petros/Adaptive, coletado pelo servidor. O <b>bico</b> é o <code>numero_bico</code> e ' +
+       'o <b>combustível</b> é o <code>denominacao_bico</code> — apesar do nome, este último traz ' +
+       'o produto. O <b>motivo</b> é escrito à mão no ERP, então a tela junta as variantes ' +
+       '(“AFERICAO CORRETIVA” e “AFERIÇÃO CORRETIVA” são o mesmo motivo).' +
+       (r.validador === 0 ? '' : '') + '</p>';
 
   box.innerHTML = h;
 }
@@ -17264,6 +17331,10 @@ const BULAS = {
     d:"O dinheiro dispon\u00edvel, mais o que h\u00e1 a receber, menos o que h\u00e1 a pagar. \u00c9 o retrato de hoje, n\u00e3o uma previs\u00e3o: nada aqui projeta venda futura." },
   vencido: { t:"Vencido, e os prazos ao lado",
     d:"T\u00edtulos cuja data de vencimento j\u00e1 passou e que continuam em aberto. Os quadros ao lado repartem o resto pelo vencimento: hoje, os pr\u00f3ximos 7 dias e o resto do m\u00eas \u2014 cada t\u00edtulo aparece em um balde s\u00f3." },
+  aferBico: { t:"Bico",
+    d:"O n\u00famero do bico da bomba em que a prova foi feita. Ele passou a ser guardado em 09/08/2026; per\u00edodo mais antigo que isso pode aparecer com um tra\u00e7o." },
+  aferMotivoBula: { t:"Motivo da afer\u00e7\u00e3o",
+    d:"Por que a afer\u00e7\u00e3o foi feita, escrito \u00e0 m\u00e3o por quem lan\u00e7ou no ERP. A tela junta as formas diferentes de escrever o mesmo motivo (com acento, sem acento e com erro de digita\u00e7\u00e3o). \u00c9 importante ao lado da diferen\u00e7a: um desvio numa afer\u00e7\u00e3o de MANUTEN\u00c7\u00c3O costuma ser o aparelho sendo ajustado, e n\u00e3o o mesmo que um desvio numa afer\u00e7\u00e3o de rotina." },
   aferExata: { t:"Marcou 20,000 exato",
     d:"Afer\u00e7\u00f5es em que o n\u00famero gravado bateu exatamente 20 litros. Bomba n\u00e3o acerta no mililitro essa quantidade de vezes: quase sempre isso quer dizer que ningu\u00e9m anotou a leitura e o sistema recebeu \u201c20\u201d. Elas n\u00e3o contam como bomba conferida." },
   aferFora: { t:"Fora da toler\u00e2ncia",
@@ -17273,7 +17344,7 @@ const BULAS = {
   aferDiferenca: { t:"Diferen\u00e7a",
     d:"Quanto o n\u00famero da bomba se afastou dos 20 litros da prova, em porcentagem. Negativo quer dizer que a bomba marcou a menos do que entregou; positivo, que marcou a mais." },
   aferCombustivel: { t:"Combust\u00edvel (e n\u00e3o bico)",
-    d:"O ERP manda o campo `denominacao_bico`, mas o que vem escrito nele \u00e9 o PRODUTO (gasolina comum, etanol, diesel S10), n\u00e3o o n\u00famero do bico. Enquanto a coleta n\u00e3o trouxer o n\u00famero, esta tela n\u00e3o separa bico a bico." },
+    d:"O ERP manda o campo `denominacao_bico`, mas o que vem escrito nele \u00e9 o PRODUTO (gasolina comum, etanol, diesel S10), n\u00e3o o n\u00famero do bico \u2014 que vem no campo ao lado, desde 09/08/2026." },
   afericoes: { t:"Aferi\u00e7\u00f5es",
     d:"Testes de calibra\u00e7\u00e3o dos bicos registrados no per\u00edodo. Registrar n\u00e3o \u00e9 validar: quantos ficaram sem valida\u00e7\u00e3o est\u00e1 no quadro ao lado." },
   semValidacao: { t:"Sem valida\u00e7\u00e3o",
