@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRÉVIA v314 — Postos Full (não é o app)</title>
+<title>Prévia — Postos Full</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
      LinkedIn e o Google leem para montar a previa do link. Sem elas, o link
@@ -4269,6 +4269,13 @@ const docCustosCompra = db.collection("config").doc("custosCompra");
    mediaDia,acabaEm,qualidade,medido,medidoEm,...}] } }, atualizadoEm, por }.
    ⚠️ E' FOTO DE AGORA, sem historico - por isso mora em `config`, nao num documento de mes. */
 const docCombDia = db.collection("config").doc("combustivelDia");   /* v301 - o lucro por combustivel de HOJE (coletor combdia.mjs) */
+/* 🔴 v315 - O RITMO DE COMPRA MEDIDO, escrito pelo coletor `compras.mjs` (VPS, 5h39).
+   Por posto E por produto: de quanto em quanto tempo entra combustivel (media, mediana, p90 e o
+   maior vao), em que dias da semana, de que tamanho e' o lote, e a mesma coisa numa janela curta
+   de 90 dias ao lado da de 12 meses — e' a janela curta que separa "mudou agora" de "sempre foi".
+   ⚠️ DOCUMENTO AUSENTE E' CASO NORMAL, nao defeito: o app volta para a regua digitada e DIZ isso
+      na tela. Zero seria o unico que mente. */
+const docComprasRitmo = db.collection("config").doc("comprasRitmo");
 const docTanquesNivel = db.collection("config").doc("tanquesNivel");
 /* v278 - o que o ADMIN personaliza nesta tela: cor de cada combustivel, ordem dos
    postos e ordem dos tanques dentro de cada posto. Documento AUSENTE = tudo no padrao. */
@@ -4506,6 +4513,7 @@ let escutaTanquesNivel = null;                                              /* v
    e' o que faz coleta quebrada passar por "nao teve movimento". */
 let combDia = null, vistoCombDia = false;                                   /* v301 */
 let tanquesNivel = null;                                                    /* v278 */
+let comprasRitmo = null;                                                    /* v315 */
 let escutaTanquesAjustes = null;                                            /* v278 */
 let tanquesAjustes = {};        /* {cores:{PRODUTO:hex}, ordemPostos:[], ordemTanques:{}} */
 /* rascunho do admin enquanto a caixa Personalizar esta aberta. null = usando o salvo. */
@@ -6482,6 +6490,11 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v315", data:"09/08/2026", tit:"\ud83d\uded2 O que comprar: os n\u00fameros deixam de ser digitados e passam a ser MEDIDOS", itens:[
+    {t:"m", h:"A cobertura e o lote agora saem de <b>12 meses de notas de compra</b>", d:"At\u00e9 a v314 a tela usava <b>2 dias de entrega, 3 de reserva e lotes de 5.000 L</b> \u2014 tr\u00eas n\u00fameros iguais para os tr\u00eas postos, que <b>ningu\u00e9m tinha medido</b>. Agora um coletor l\u00ea o hist\u00f3rico das notas todo dia e a tela usa <b>o intervalo real de cada posto E de cada produto</b>. A diferen\u00e7a \u00e9 grande: em <b>\u26fd Teresina</b> a Gasolina Comum entra a cada <b>1,5 dia</b> e o Etanol a cada <b>9,3</b> \u2014 um n\u00famero s\u00f3 n\u00e3o servia para nenhum dos dois."},
+    {t:"m", h:"E o lote \u00e9 o <b>compartimento do caminh\u00e3o</b>, n\u00e3o 5.000 fixo", d:"O tanque que atende <b>Dutra</b> tem um compartimento de <b>7.000 L</b> e seis de 5.000; o de <b>Caxias</b> tem dois de <b>10.000</b> e seis de 5.000. As notas mostram exatamente isso \u2014 e o 7.000 aparece <b>136 vezes em Dutra e 6 em Caxias</b>, que s\u00e3o as vezes em que <b>o caminh\u00e3o do outro posto</b> foi carregar l\u00e1."},
+    {t:"c", h:"O que estava errado, e o que eu tinha dito", d:"Com 2 + 3 dias, a tela exigia <b>cinco dias de estoque</b> antes de qualquer cobertura \u2014 e nem Teresina nem Dutra t\u00eam tanque para isso, ent\u00e3o os dois nasciam com cobertura <b>zero</b>. Eu tinha anunciado isso como <i>\u201co tanque de Teresina \u00e9 pequeno demais\u201d</i>. <b>Era o par\u00e2metro que estava errado, n\u00e3o o tanque.</b> O campo continua edit\u00e1vel: o que voc\u00ea digitar ganha da medi\u00e7\u00e3o."}
+  ]},
   {v:"v314", data:"09/08/2026", tit:"📏 Aferições: agora dá para saber de qual BICO foi cada prova", itens:[
     {t:"n", h:"A coluna <b>Bico</b> na lista", d:"Pedido do Tiago. O ERP sempre teve o número do bico e o nosso coletor não estava guardando — passou a guardar hoje, e os <b>oito meses de 2026 foram recarregados</b> (4.981 aferições, 64 bicos diferentes nos três postos). Antes, quatro provas do mesmo diesel apareciam como quatro linhas iguais; agora dá para ver que foram os <b>bicos 13, 15, 17 e 19</b>."},
     {t:"n", h:"E a coluna <b>Motivo</b>, que muda como se lê a diferença", d:"O ERP guarda por que a aferição foi feita — <b>corretiva, preventiva, manutenção, para o gerente</b> — escrito à mão. A tela junta as formas diferentes de escrever o mesmo motivo (com acento, sem acento e com erro de digitação) e mostra <b>em que motivo caíram as que ficaram fora da tolerância</b>. Isso importa: um desvio numa aferição de <b>manutenção</b> costuma ser o aparelho sendo ajustado, e não é a mesma coisa que um desvio numa aferição de rotina. <b>O app não diz qual dos dois é normal</b> — ele reparte e deixa a leitura com quem conhece o posto."},
@@ -8104,6 +8117,15 @@ function iniciarSync(){
     const pt = document.getElementById("painelTanquesNivel");
     if (pt && pt.classList.contains("aberto")) renderTanquesNivel();
   }, ()=>{ tanquesNivel = {}; });
+
+  /* v315 - o ritmo de compra medido. 🔑 Documento AUSENTE vira `{}` e nao `null`: o `{}` quer
+     dizer "perguntei e nao tem", que e' diferente de "ainda nao perguntei". Sao os tres estados
+     de ausencia da v301, e confundi-los e' o que faz coleta quebrada passar por "nao teve nada". */
+  docComprasRitmo.onSnapshot(snap => {
+    comprasRitmo = snap.exists ? (snap.data() || {}) : {};
+    const pc = document.getElementById("painelComprar");
+    if (pc && pc.classList.contains("aberto")) renderComprar();
+  }, ()=>{ comprasRitmo = {}; });
 
   /* v278 - a personalizacao do admin (cores e ordem) */
   escutaTanquesAjustes = docTanquesAjustes.onSnapshot(snap => {
@@ -14523,7 +14545,16 @@ function copiarResumoTexto(){
    🔴 E O QUE ESTA TELA NAO FAZ: ela nao compra, nao reserva e nao manda pedido. Ela sugere - e a
      sugestao de quem NAO tem medicao e cortada, nunca chutada. */
 
-const CPR_PADRAO  = { lote:5000, cobertura:7, entrega:2, reserva:3 };
+/* 🔴 v315 - ESTES NUMEROS DEIXARAM DE SER RESERVA E VIRARAM SO' O QUE SOBRA QUANDO NAO HA
+   MEDICAO. O que manda agora e' o `config/comprasRitmo`, medido em 12 meses de notas.
+   ⚠️ Mas eles mudaram tambem, porque estavam ERRADOS: `entrega:2` + `reserva:3` exigiam CINCO
+      dias de estoque antes de qualquer cobertura, e nem Teresina nem Dutra tem tanque para isso —
+      os dois nasciam com cobertura ZERO e eu li isso como "o tanque e' pequeno".
+   👉 `entrega:1` e' fato dito por ele em 09/08 ("pedimos e chega no dia seguinte"), nao medicao:
+      nota fiscal nao sabe quando o pedido foi feito.
+   👉 `reserva:1` sai da medicao: o p90 (que virou a cobertura) ja' atravessa o vao ruim, e a
+      reserva cobre o que sobra dele — `maior - p90` deu **1 dia nos tres postos**. */
+const CPR_PADRAO  = { lote:5000, cobertura:7, entrega:1, reserva:1 };
 const CPR_LIMITES = { lote:[1000,15000], cobertura:[0,30], entrega:[0,15], reserva:[0,15] };
 const CPR_CHAVE   = "pf_comprar_regua";
 const CPR_CH_POSTO = "pf_comprar_posto";
@@ -14597,6 +14628,48 @@ function cprGrupos(posto){
   return ordem.map(k => grupos[k]);
 }
 function cprPP(posto){ return (cprLerRegua().porPosto || {})[String(posto || "")] || {}; }
+
+/* ============ v315 - A MEDICAO, e o cuidado de JUNTAR pelo lugar certo ============
+   🔴 O JOIN NAO PODE SER PELO NOME, E QUASE FOI. O coletor guarda o produto com o nome do APP
+      (`Diesel S10 Grid` em Teresina); a tela le o nome do TANQUE no Petros
+      (`OLEO DIESEL S10 ADITIVADO`). Juntar por texto perderia justamente o diesel de Teresina —
+      e perderia CALADO, caindo no numero do posto sem ninguem notar.
+   👉 Por isso os DOIS lados passam pelo mesmo `cprDePara` e o encontro e' pela FAMILIA:
+      `OLEO DIESEL S10 ADITIVADO` -> Diesel S10 <- `Diesel S10 Grid`.
+   🔑 E' a licao dos tres vocabularios da v308, agora com um quarto falante na mesa. Regra com
+      nome proprio ("em Teresina, leia Grid") nao sobreviveria ao segundo caso. */
+function cprRitmoPosto(posto){
+  const p = (comprasRitmo && comprasRitmo.postos) ? comprasRitmo.postos[String(posto || "")] : null;
+  return (p && typeof p === "object") ? p : null;
+}
+function cprRitmoProd(posto, nomeDoTanque){
+  const p = cprRitmoPosto(posto);
+  if (!p || !p.produtos) return null;
+  const fam = cprDePara(nomeDoTanque).comb;
+  if (!fam) return null;
+  /* 🔴 AMBIGUIDADE NAO SE RESOLVE NO CHUTE: se dois produtos do coletor caem na mesma familia
+     naquele posto, a tela NAO escolhe um — ela desiste da medicao e volta para a regua, que e' o
+     comportamento honesto. (Hoje nao acontece em posto nenhum; a trava e' para o dia em que a
+     rede ganhar um produto novo.) */
+  const achados = Object.keys(p.produtos).filter(k => cprDePara(k).comb === fam);
+  if (achados.length !== 1) return null;
+  const m = p.produtos[achados[0]];
+  return (m && typeof m === "object") ? m : null;
+}
+/* 🔑 A COBERTURA MEDIDA E' O p90, NAO A MEDIA. Em Caxias a media e' 3,08 dias e o p90 e' 5: quem
+   dimensiona pedido pela media fica curto na perna longa, que e' exatamente a que faz faltar
+   combustivel. E o p90 tambem NAO e' o maior vao — o feriado nao pode dimensionar o ano. */
+function cprCobMedida(posto, nomeDoTanque){
+  const m = cprRitmoProd(posto, nomeDoTanque);
+  const v = m ? Number(m.p90) : NaN;
+  return isFinite(v) && v >= 0 ? Math.round(v) : null;
+}
+/* O lote medido: o tamanho que MAIS aparece nas notas daquele produto naquele posto. */
+function cprLoteMedido(posto, nomeDoTanque){
+  const m = cprRitmoProd(posto, nomeDoTanque);
+  const v = m ? Number(m.lote) : NaN;
+  return isFinite(v) && v > 0 ? v : null;
+}
 function cprReservaDe(posto){
   const v = cprPP(posto).res;
   return (v === undefined || v === null) ? cprLerRegua().reserva : v;
@@ -14617,12 +14690,29 @@ function cprCabeDias(posto){
   if (!pior) return null;
   return { dias: Math.max(0, Math.floor(pior.dias)), produto: pior.produto };
 }
+/* 🔴 v315 - A COBERTURA DO POSTO agora tem TRES origens, e a ordem importa:
+   1. o que ELE digitou para aquele posto — ganha de tudo, inclusive da medicao;
+   2. o p90 MEDIDO do produto que compra com mais frequencia naquele posto;
+   3. o que cabe no tanque, limitado pelo teto da regua — o comportamento da v308.
+   🔑 O numero do POSTO existe so' para a fileira de campos e para o produto que nao tem medicao:
+      quem decide cada linha e' o numero do PRODUTO (ver `cprConta`). */
 function cprCoberturaDe(posto){
   const v = cprPP(posto).cob;
   if (v !== undefined && v !== null) return v;
-  const teto = cprLerRegua().cobertura;
+  const p = cprRitmoPosto(posto);
+  const medido = p ? Number(p.p90) : NaN;
   const cabe = cprCabeDias(posto);
+  if (isFinite(medido) && medido >= 0)
+    return cabe ? Math.min(Math.round(medido), cabe.dias) : Math.round(medido);
+  const teto = cprLerRegua().cobertura;
   return cabe ? Math.min(cabe.dias, teto) : teto;
+}
+/* De onde veio o numero que esta na tela — para o rodape poder DIZER, em vez de o numero
+   aparecer magico. 🔑 Foi a falta disso que deixou a regua da v308 passar por medida. */
+function cprOrigemCobertura(posto){
+  if (cprPP(posto).cob !== undefined && cprPP(posto).cob !== null) return "digitado";
+  const p = cprRitmoPosto(posto);
+  return (p && isFinite(Number(p.p90))) ? "medido" : "regua";
 }
 /* campo: "cob" ou "res". Campo apagado volta para o automatico — sem isso nao haveria como
    desfazer um numero digitado sem querer. */
@@ -14747,7 +14837,22 @@ function cprConta(g, r, cob, res){
      GASview usa quando o cadastro esta vazio. Esta dito no rodape.
      E ele nunca passa da capacidade menos um lote - senao nao sobraria espaco nem para uma
      descarga inteira, e a tela pediria uma carga que nao cabe. */
-  const teto = Math.max(0, g.cap - r.lote);
+  /* 🔴 v315 - DAQUI PARA BAIXO O QUE MANDA E' O NUMERO DO PRODUTO, nao o do posto.
+     Em Teresina a Gasolina Comum entra a cada 1,46 dia e o Etanol a cada 9,32 — sete vezes de
+     diferenca dentro do mesmo posto. Uma cobertura so' nao descreve nenhum dos dois.
+     👉 Se ELE digitou uma cobertura para o posto, ela ganha da medicao (e' decisao dele).
+        Se nao digitou e ha' medicao do produto, vale o p90 do produto, limitado pelo que cabe.
+        Sem medicao, vale o numero do posto — igual a v308. */
+  const cobPosto = cprPP(g.posto).cob;
+  const digitouCob = (cobPosto !== undefined && cobPosto !== null);
+  const medidoCob = digitouCob ? null : cprCobMedida(g.posto, g.produto);
+  const cabeP = (media > 0) ? Math.max(0, Math.floor(g.cap / media - r.entrega - res)) : null;
+  const cobP = (medidoCob === null) ? cob
+             : (cabeP === null ? medidoCob : Math.min(medidoCob, cabeP));
+  /* 🔑 E O LOTE E' O COMPARTIMENTO DO CAMINHAO, medido nas notas: 7.000 em Dutra, 10.000 em
+     Caxias, 5.000 em Teresina. O 5.000 da regua vira so' o que sobra quando nao ha' medicao. */
+  const loteP = cprLoteMedido(g.posto, g.produto) || r.lote;
+  const teto = Math.max(0, g.cap - loteP);
   let minimo = semVenda ? 0 : res * media;
   const minLimitado = minimo > teto;
   if (minLimitado) minimo = teto;
@@ -14759,15 +14864,15 @@ function cprConta(g, r, cob, res){
   let lotes = 0, litrosComprar = 0, naoCabe = false;
   const sugere = !semBase && !semVenda;
   if (sugere){
-    const alvo  = media * (r.entrega + cob) + minimo;
+    const alvo  = media * (r.entrega + cobP) + minimo;
     const falta = alvo - g.litros;
     if (falta > 0){
-      lotes = Math.ceil(falta / r.lote);
-      litrosComprar = lotes * r.lote;
+      lotes = Math.ceil(falta / loteP);
+      litrosComprar = lotes * loteP;
       if (litrosComprar > espaco){            /* 🔑 "nao cabe tudo" - do GASview, palavra por palavra */
         naoCabe = true;
-        lotes = Math.floor(espaco / r.lote);
-        litrosComprar = lotes * r.lote;
+        lotes = Math.floor(espaco / loteP);
+        litrosComprar = lotes * loteP;
       }
     }
   }
@@ -14776,9 +14881,10 @@ function cprConta(g, r, cob, res){
   else if (semVenda) sit = "semvenda";
   else if (g.litros < minimo) sit = "critico";
   else if (diasMin !== null && diasMin < r.entrega) sit = "urgente";
-  else if (diasMin !== null && diasMin <= r.entrega + cob) sit = "atencao";
+  else if (diasMin !== null && diasMin <= r.entrega + cobP) sit = "atencao";
 
-  return { posto:g.posto, produto:g.produto, comb:dp.comb, prodPedido:dp.ped,
+  return { cobP, loteP, cobMedida:medidoCob, loteMedido:cprLoteMedido(g.posto, g.produto),
+           posto:g.posto, produto:g.produto, comb:dp.comb, prodPedido:dp.ped,
            tanques:g.tanques, litros:g.litros, cap:g.cap, media:media,
            qualidade, semBase, semVenda, minimo, minLimitado, dias, diasMin, espaco,
            lotes, litrosComprar, naoCabe, sit, cobertura: cob, reserva: res, rank: CPR_SIT[sit][2] };
@@ -15034,7 +15140,13 @@ function renderComprar(){
       const cab = cprCabeDias(posto);
       /* 🔑 a MEDICAO fica embaixo do campo: quantos dias cabem ali e QUAL produto aperta.
          E' o que faz o numero automatico ser conferivel em vez de magico. */
-      pe = cab ? ('cabem ' + cab.dias + ' \u00b7 aperta em ' +
+      /* v315 - a origem entra ANTES do "cabem": o numero automatico deixou de ser um so'. */
+      const orig315 = cprOrigemCobertura(posto);
+      if (orig315 === "medido"){
+        const p315 = cprRitmoPosto(posto);
+        pe = 'medido em ' + (p315.dias || 0) + ' entregas \u00b7 p90 ' + p315.p90 + 'd';
+      }
+      else pe = cab ? ('cabem ' + cab.dias + ' \u00b7 aperta em ' +
                   escAttr(cab.produto.length > 18 ? cab.produto.slice(0, 17) + '\u2026' : cab.produto))
                : 'dias';
     }
