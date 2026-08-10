@@ -3367,6 +3367,7 @@
       <button class="btn-claro" id="btnDre" onclick="alternarDre()"><span class="mi">📉</span><span class="mt">DRE</span></button>
       <!-- v312 - as Afericoes: o teste do bico, com periodo livre -->
       <button class="btn-claro" id="btnAfericoes" onclick="alternarAfericoes()"><span class="mi">📏</span><span class="mt">Aferições</span></button>
+      <button class="btn-claro" id="btnClientes" onclick="alternarClientes()"><span class="mi">🧾</span><span class="mt">Clientes</span></button>
       <button class="btn-claro" id="btnAnalise" onclick="alternarAnalise()"><span class="mi">🧠</span><span class="mt">Análise</span></button>
       <button class="btn-claro" id="btnRelLoja" onclick="alternarRelLoja()"><span class="mi">🍫</span><span class="mt">Produtos e categorias</span></button>
       <button class="btn-claro" id="btnIfood" onclick="alternarIfood()"><span class="mi">🍔</span><span class="mt">iFood</span></button>
@@ -3797,6 +3798,15 @@
       <h2>📏 Aferições</h2>
       <p class="nota-dash">O teste do bico: uma prova de <b>20 litros</b> para ver se a bomba entrega o que ela marca. Os números vêm do Petros/Adaptive e chegam pelo servidor.</p>
       <div id="aferBox"></div>
+    </div>
+  </div>
+
+  <!-- v328 - menu Clientes: a carteira a prazo da REDE, por cliente -->
+  <div class="config" id="painelClientes">
+    <div class="grupo">
+      <h2>🧾 Clientes</h2>
+      <p class="nota-dash">Quem compra <b>a prazo</b> nos tr&ecirc;s postos, somado. Cada cliente aparece uma vez, com o selo de onde ele compra. Clique num nome para ver a ficha dele. Os n&uacute;meros v&ecirc;m do Petros/Adaptive e chegam pelo servidor.</p>
+      <div id="cliBox"></div>
     </div>
   </div>
 
@@ -5139,6 +5149,7 @@ const ICO_SVG = {
   /* v317 - o menu recebimento (v316) nasceu SEM desenho e por isso ficava no emoji nos
      estilos minimalista e vivo. Caminhao-tanque, escolhido por ele na previa em imagem. */
   recebimento:"<rect x='1.9' y='7.4' width='12.4' height='7' rx='3.5'/><path d='M14.6 9.4h3l3.5 3.4v1.6h-6.5z'/><circle cx='6.6' cy='18' r='1.9'/><circle cx='17.2' cy='18' r='1.9'/><path d='M1.9 18h2.6M8.8 18h6.2M19.4 18h2.4'/>",
+  clientes:"<circle cx='9' cy='8' r='3.2'/><path d='M3.4 19.4a5.9 5.9 0 0 1 11.2 0'/><path d='M16.4 5.6a3 3 0 0 1 0 5.6'/><path d='M17.6 14.2a5.4 5.4 0 0 1 3 4.4'/>",
   afericoes:"<path d='M8.2 2.8h7.6'/><path d='M9.4 2.8v14.6a2.6 2.6 0 0 0 5.2 0V2.8'/><path d='M9.4 13.4h5.2'/><path d='M9.4 9.8h2.4M9.4 6.6h2.4'/><path d='M6.8 21.2h10.4'/>",
   /* v326 - prancheta com visto. Menu novo SAI COM DESENHO no mesmo patch que o cria: sem ele
      o botao volta ao emoji nos estilos minimalista e vivo, sem erro nenhum (a licao da v317). */
@@ -5152,7 +5163,7 @@ const ICO_SVG = {
   empresa:"<path d='M3.6 20.4h16.8'/><path d='M5.4 20.4V6.2L12 3.6l6.6 2.6v14.2'/><path d='M9.6 20.4v-4.4h4.8v4.4'/><path d='M9.4 9.2h1.2M13.4 9.2h1.2M9.4 12.6h1.2M13.4 12.6h1.2'/>",
   g_ajustes:"<circle cx='12' cy='12' r='3.1'/><path d='M19.1 14.6a1.5 1.5 0 0 0 .3 1.7l.1.1a1.9 1.9 0 1 1-2.6 2.6l-.1-.1a1.5 1.5 0 0 0-2.6 1v.2a1.9 1.9 0 0 1-3.7 0v-.1a1.5 1.5 0 0 0-2.6-1l-.1.1a1.9 1.9 0 1 1-2.6-2.6l.1-.1a1.5 1.5 0 0 0-1-2.6h-.2a1.9 1.9 0 1 1 0-3.7h.1a1.5 1.5 0 0 0 1-2.6l-.1-.1a1.9 1.9 0 1 1 2.6-2.6l.1.1a1.5 1.5 0 0 0 1.7.3h.1a1.5 1.5 0 0 0 .9-1.4v-.2a1.9 1.9 0 0 1 3.7 0v.1a1.5 1.5 0 0 0 2.6 1l.1-.1a1.9 1.9 0 1 1 2.6 2.6l-.1.1a1.5 1.5 0 0 0 1 2.6h.2a1.9 1.9 0 0 1 0 3.7h-.1a1.5 1.5 0 0 0-1.4.9z'/>"
 };
-const ICO_BTN = {btnComprar:"comprar",btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnTanquesNivel:"tanquesNivel",btnRecebimento:"recebimento",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnDre:"dre",btnAfericoes:"afericoes",btnAnalise:"analise",btnRelLoja:"relLoja",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnPendAdm:"pendAdm",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
+const ICO_BTN = {btnComprar:"comprar",btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnTanquesNivel:"tanquesNivel",btnRecebimento:"recebimento",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnDre:"dre",btnAfericoes:"afericoes",btnClientes:"clientes",btnAnalise:"analise",btnRelLoja:"relLoja",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnPendAdm:"pendAdm",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
 const ICO_GRP = {dia:"g_dia",analise:"g_analise",transp:"g_transp",org:"g_org",ajustes:"g_ajustes"};
 /* 🔑 cor por GRUPO, tirada da paleta do MIV (laranja da marca + verde e dourado Petrobras).
    Assim a cor diz de que familia e' o menu, em vez de ser arco-iris. */
@@ -6967,6 +6978,13 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v328", data:"10/08/2026", tit:"\ud83e\uddfe Menu novo: Clientes \u2014 a carteira a prazo dos tr\u00eas postos, por cliente", itens:[
+    {t:"n", h:"Onde fica", d:"No grupo <b>\ud83d\udcca An\u00e1lise</b>, ao lado de Relat\u00f3rios Adaptive e Afer\u00e7\u00f5es. \u26a0\ufe0f <b>A ficha do cliente j\u00e1 existia desde a v327</b>, mas s\u00f3 dentro da aba \ud83d\udcc4 A Prazo \u2014 e quem n\u00e3o sabia que ela estava l\u00e1 n\u00e3o achava."},
+    {t:"n", h:"Os tr\u00eas postos somados, cada cliente uma vez", d:"A aba A Prazo mostra <b>um posto por vez</b> e organiza por t\u00edtulo. Este menu soma <b>os tr\u00eas</b> e organiza por <b>cliente</b>: quem compra em mais de um posto aparece <b>uma vez s\u00f3</b>, com o selo de onde compra, e a tela diz quantos s\u00e3o."},
+    {t:"n", h:"Quatro n\u00fameros no topo", d:"<b>Clientes</b>, <b>em aberto</b>, <b>vencido</b> e <b>quantos t\u00eam atraso</b> \u2014 da rede inteira. A lista vem do maior para o menor, com a fatia de cada um."},
+    {t:"n", h:"A ficha \u00e9 a mesma dos dois lugares", d:"Clicar num cliente aqui abre a mesma ficha que abre na aba A Prazo \u2014 em aberto, vencido, a vencer, o atraso dele e os t\u00edtulos dele \u2014 e aqui ela ganha a coluna <b>Posto</b>, porque os t\u00edtulos podem ser de mais de um."},
+    {t:"c", h:"O que ele ainda N\u00c3O faz", d:"N\u00e3o junta empresas do mesmo grupo: a <b>DISCAR de Caxias</b> e a <b>DISCAR de Pres. Dutra</b> t\u00eam <b>CNPJ diferente</b> e aparecem separadas, porque juntar seria inventar um grupo que o sistema n\u00e3o declara. E n\u00e3o mostra <b>margem por cliente</b> \u2014 depende de uma coleta que ainda n\u00e3o existe."}
+  ]},
   {v:"v327", data:"10/08/2026", tit:"\ud83d\udc64 A Prazo: clique no cliente e veja a ficha dele", itens:[
     {t:"n", h:"A lista de maiores clientes virou bot\u00e3o", d:"Na aba <b>\ud83c\udfe6 Financeiro \u2192 \ud83d\udcc4 A Prazo</b>, clicar num cliente abre a <b>ficha dele</b> ali mesmo: quanto ele tem <b>em aberto</b>, quanto j\u00e1 <b>venceu</b>, quanto est\u00e1 <b>a vencer</b> e quantos t\u00edtulos s\u00e3o. Clicar de novo fecha."},
     {t:"n", h:"O atraso de cada um, separado", d:"Quando o cliente tem coisa vencida, a ficha mostra <b>como o atraso dele est\u00e1 dividido</b> \u2014 at\u00e9 30 dias, de 31 a 90, e mais de 90. \u00c9 o mesmo quadro que j\u00e1 existia para o posto inteiro, agora para uma pessoa s\u00f3."},
@@ -8510,6 +8528,8 @@ function iniciarSync(){
     if (pr && pr.classList.contains("aberto")) renderRelPosto();
     const pf = document.getElementById("painelFinanceiro");  // v249 - faltava redesenhar estes dois
     if (pf && pf.classList.contains("aberto")) renderFinanceiro();
+    const pcli = document.getElementById("painelClientes");  // v328 - senao a tela fica no esqueleto para sempre
+    if (pcli && pcli.classList.contains("aberto")) renderMenuClientes();
     const pdre = document.getElementById("painelDre");       // v281 - a tela da DRE le a mesma colecao
     if (pdre && pdre.classList.contains("aberto")) renderDre();
     const pdesc = document.getElementById("painelDescontos"); // v282 - a lista Do Petros idem
@@ -9224,6 +9244,7 @@ const MENUS_APP = [
   {key:"puxadas",     btn:"btnPuxadas",     pan:"painelPuxadas",     emp:"transp", nome:"Puxadas"},
   {key:"relLoja",     btn:"btnRelLoja",     pan:"painelRelLoja",     emp:"conv",   nome:"Produtos e categorias"},
   {key:"ifood",       btn:"btnIfood",       pan:"painelIfood",       emp:"conv",   nome:"iFood"},
+  {key:"clientes",    btn:"btnClientes",    pan:"painelClientes",    emp:"postos", nome:"Clientes"},   // v328 - a loja nao vende a prazo (v193)
   {key:"analise",     btn:"btnAnalise",     pan:"painelAnalise",     emp:"postos|conv|transp", nome:"Análise"},
   {key:"calendario",  btn:"btnCalendario",  pan:"painelCalendario",  emp:"ambos",  nome:"Calendário"},
   {key:"vencimentos", btn:"btnVencimentos", pan:"painelVencimentos", emp:"ambos",  nome:"Documentos"},
@@ -9247,7 +9268,7 @@ const MENUS_APP = [
 const GRUPOS_MENU = [
   {key:"soltos",  nome:"",               icone:"",       itens:["dash"]},
   {key:"dia",     nome:"Dia a dia",      icone:"\ud83d\udd01", itens:["resumoDia","tanquesNivel","recebimento","registros","descontos","simular"]},
-  {key:"analise", nome:"Análise",        icone:"\ud83d\udcca", itens:["relPosto","dre","afericoes","analise","relLoja","ifood"]},
+  {key:"analise", nome:"Análise",        icone:"\ud83d\udcca", itens:["relPosto","dre","afericoes","clientes","analise","relLoja","ifood"]},
   {key:"transp",  nome:"Transportadora", icone:"\ud83d\ude9a", itens:["infleet","comprar","pedido","cotacoes","puxadas"]},
   {key:"org",     nome:"Organização",    icone:"\ud83d\udcc1", itens:["calendario","vencimentos","caixa","pendAdm"]},   /* v251 - o 🗂 ninguem reconhecia */
   {key:"ajustes", nome:"Ajustes",        icone:"\u2699",        itens:["conta","config","usuarios"]},
@@ -11337,6 +11358,108 @@ function rpzBlocoColab(ls){
 }
 
 /* --- A Prazo: [cliente, titulo, parcela, emissao, vencimento, valor, tipo, cobranca] --- */
+/* ============================ v328 - MENU CLIENTES ============================
+   A carteira a prazo dos TRES postos, por cliente. Le exatamente os mesmos documentos
+   que a aba A Prazo (relatoriosPetros, aprazo_postos_{unidade}_{periodo}) - nao ha
+   coleta nova. 🔴 O ATRASO DE CADA LINHA E' CONTADO CONTRA O `ate` DO DOCUMENTO DAQUELE
+   POSTO, nao contra hoje e nao contra uma data comum: cada posto tem a foto dele, e
+   misturar as reguas inventaria atraso que nao existe (e' a regra da v255). */
+let cliRedeAberto = "";
+
+/* O periodo mais recente de cada unidade. Devolve as linhas ja' no MESMO formato que a
+   ficha espera, com `un` a mais. 🔑 Formato unico = uma funcao de ficha para as duas telas. */
+function cliLinhasDaRede(){
+  const sig = siglaEmpresa(empresa);
+  const out = [];
+  const fotos = [];
+  (UNIDADES_REL || []).forEach(u => {
+    const pre = "aprazo_" + sig + "_" + u.chave + "_";
+    const per = Object.keys(relPetros).filter(k => k.indexOf(pre) === 0)
+                  .map(k => k.slice(pre.length)).sort().reverse()[0];
+    if (!per) return;
+    const doc = relPetros[pre + per];
+    if (!doc) return;
+    const ate = String(doc.ate || "");
+    if (ate) fotos.push(ate);
+    const ref = /^\d{4}-\d{2}-\d{2}$/.test(ate) ? new Date(ate + "T00:00:00") : new Date();
+    ref.setHours(0, 0, 0, 0);
+    const dia = 24 * 60 * 60 * 1000;
+    rpzLista(doc).forEach(r => {
+      const vc = String(r[4] || "");
+      const d = vc ? new Date(vc + "T00:00:00") : null;
+      out.push({ nome: rpzTxt(r[0]) || "—", tit: r[1], parc: r[2], emis: r[3], venc: vc,
+                 val: Number(r[5]) || 0, atraso: d ? Math.floor((ref - d) / dia) : 0,
+                 cobr: r[7], un: u.nome });
+    });
+  });
+  return { linhas: out, fotos: fotos.sort() };
+}
+
+function abrirFichaRede(nome){
+  cliRedeAberto = (cliRedeAberto === String(nome)) ? "" : String(nome);
+  renderMenuClientes();
+}
+
+function alternarClientes(){
+  const aberto = abrirPainelExclusivo("painelClientes");
+  const b = document.getElementById("btnClientes");
+  if (b) b.classList.toggle("ativo", aberto);
+  if (aberto) renderMenuClientes();
+}
+
+function renderMenuClientes(){
+  const box = document.getElementById("cliBox");
+  if (!box) return;
+  if (!vistoRelPetros){ box.innerHTML = esqueletoCaixa(4); return; }
+  const dados = cliLinhasDaRede();
+  const linhas = dados.linhas;
+  if (!linhas.length){
+    box.innerHTML = '<div class="ana-vazio">Ainda não há carteira a prazo carregada.<br>Ela vem do Adaptive/Petros.</div>';
+    return;
+  }
+  /* agrupa por NOME. 🔴 NAO junta CNPJ diferente por conta propria: a DISCAR de Caxias e a
+     de Pres. Dutra sao DUAS empresas, com raizes de CNPJ diferentes (medido em 10/08), e
+     junta-las seria inventar um grupo economico que o ERP nao declara. */
+  const porCli = {};
+  let tot = 0, vencido = 0;
+  linhas.forEach(l => {
+    tot += l.val;
+    if (l.atraso > 0) vencido += l.val;
+    const c = porCli[l.nome] || (porCli[l.nome] = { nome: l.nome, val: 0, venc: 0, uns: {}, n: 0 });
+    c.val += l.val; c.n++;
+    if (l.atraso > 0) c.venc += l.val;
+    if (l.un) c.uns[l.un] = true;
+  });
+  const lista = Object.keys(porCli).map(k => porCli[k]).sort((a, b) => b.val - a.val);
+  const comAtraso = lista.filter(c => c.venc > 0).length;
+  const emMaisDeUm = lista.filter(c => Object.keys(c.uns).length > 1).length;
+
+  let h = '<div class="rpz-cards">';
+  h += '<div class="rpz-card"><span>Clientes</span><b>' + lista.length + '</b></div>';
+  h += '<div class="rpz-card"><span>Em aberto</span><b>R$ ' + rpzDin0(tot) + '</b></div>';
+  h += '<div class="rpz-card"><span>Vencido</span><b class="' + (vencido > 0 ? "rpz-neg" : "") + '">R$ ' + rpzDin0(vencido) + '</b></div>';
+  h += '<div class="rpz-card"><span>Com atraso</span><b class="' + (comAtraso > 0 ? "rpz-neg" : "") + '">' + comAtraso + '</b></div></div>';
+
+  h += '<h3 class="cxi-sub">A carteira, por cliente</h3>';
+  h += '<p class="nota-dash">Clique num cliente para ver a ficha dele.' +
+       (emMaisDeUm ? ' <b>' + emMaisDeUm + '</b> ' + (emMaisDeUm === 1 ? 'cliente compra' : 'clientes compram') + ' em mais de um posto.' : '') + '</p>';
+  h += '<div class="rpz-rola"><table class="rpz-tab"><thead><tr><th>Cliente</th><th>Postos</th><th class="rpz-r">Em aberto (R$)</th><th class="rpz-r">Vencido (R$)</th><th class="rpz-r">%</th></tr></thead><tbody>';
+  lista.forEach(c => {
+    const aberto = (c.nome === cliRedeAberto);
+    h += '<tr class="rpz-cli' + (aberto ? ' rpz-cli-on' : '') + '" onclick="abrirFichaRede(\'' + escAttr(aspAdm(c.nome)) + '\')">' +
+         '<td class="rpz-nome">' + escAttr(c.nome) + '</td>' +
+         '<td>' + Object.keys(c.uns).map(u => '<span class="rpz-un">' + escAttr(u) + '</span>').join("") + '</td>' +
+         '<td class="rpz-r">' + rpzDin0(c.val) + '</td>' +
+         '<td class="rpz-r' + (c.venc > 0 ? ' rpz-neg' : '') + '">' + (c.venc > 0 ? rpzDin0(c.venc) : "—") + '</td>' +
+         '<td class="rpz-r">' + (tot ? (c.val / tot * 100).toFixed(1) : "0.0") + '%</td></tr>';
+  });
+  h += '</tbody></table></div>';
+  if (cliRedeAberto) h += rpzFichaCliente(cliRedeAberto, linhas, tot);
+  h += '<p class="ana-rodape">Posição em ' + (dados.fotos.length ? rpzDia(dados.fotos[dados.fotos.length - 1]) : "—") +
+       '. Fonte: Vendas a Prazo em Aberto - Geral (Petros).</p>';
+  box.innerHTML = h;
+}
+
 /* v327 - abre/fecha a ficha do cliente na aba A Prazo. Clicar no mesmo nome fecha,
    igual ao abrirFichaPessoa() do Painel Administrativo. */
 function abrirFichaCliente(nome){
@@ -11380,9 +11503,15 @@ function rpzFichaCliente(nome, linhas, tot){
     });
     h += '</div>';
   }
-  h += '<h3 class="cxi-sub">Os títulos dele</h3><div class="rpz-rola"><table class="rpz-tab"><thead><tr><th>Título</th><th>Emissão</th><th>Vencimento</th><th class="rpz-r">Dias</th><th class="rpz-r">Valor (R$)</th><th>Cobrança</th></tr></thead><tbody>';
+  /* v328 - a MESMA ficha serve as duas telas. Coluna Posto so' quando as linhas trazem
+     `un` (menu Clientes); na aba A Prazo o posto e' um so' e a coluna seria um travessao. */
+  const temUn = meus.some(l => l.un);
+  h += '<h3 class="cxi-sub">Os títulos dele</h3><div class="rpz-rola"><table class="rpz-tab"><thead><tr>' +
+       (temUn ? '<th>Posto</th>' : '') +
+       '<th>Título</th><th>Emissão</th><th>Vencimento</th><th class="rpz-r">Dias</th><th class="rpz-r">Valor (R$)</th><th>Cobrança</th></tr></thead><tbody>';
   meus.slice().sort((a, b) => String(a.venc || "").localeCompare(String(b.venc || ""))).forEach(l => {
-    h += '<tr><td>' + escAttr(rpzTxt(l.tit || "")) + '/' + escAttr(rpzTxt(l.parc || "")) + '</td>' +
+    h += '<tr>' + (temUn ? '<td>' + escAttr(l.un || "—") + '</td>' : '') +
+         '<td>' + escAttr(rpzTxt(l.tit || "")) + '/' + escAttr(rpzTxt(l.parc || "")) + '</td>' +
          '<td>' + escAttr(l.emis ? rpzDia(l.emis) : "—") + '</td>' +
          '<td>' + escAttr(l.venc ? rpzDia(l.venc) : "—") + '</td>' +
          '<td class="rpz-r' + (l.atraso > 0 ? ' rpz-neg' : '') + '">' + (l.atraso > 0 ? l.atraso : "—") + '</td>' +
@@ -11392,7 +11521,8 @@ function rpzFichaCliente(nome, linhas, tot){
   h += '</tbody></table></div>';
   /* o rodape diz a fatia e desde quando ele compra - as duas perguntas que a lista de
      cima nao respondia. Sem emissao valida, nao inventa data: omite a frase. */
-  h += '<p class="rpz-fic-res">' + (tot ? (emAberto / tot * 100).toFixed(1) : "0.0") + '% do que este posto tem a receber' +
+  h += '<p class="rpz-fic-res">' + (tot ? (emAberto / tot * 100).toFixed(1) : "0.0") +
+       (temUn ? '% do que a rede tem a receber' : '% do que este posto tem a receber') +
        (emis.length ? ' · título mais antigo em ' + rpzDia(emis[0]) + ' · mais recente em ' + rpzDia(emis[emis.length - 1]) : '') +
        '.</p>';
   return h + '</div>';
