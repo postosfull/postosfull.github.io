@@ -1879,6 +1879,31 @@
   .pnd-aviso{font-size:.74rem;color:var(--cinza);margin-top:6px}
   .pnd-topo{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:2px}
   .pnd-cont{font-size:.78rem;color:var(--cinza)}
+  /* v326 - ✅ Pendências Administrativas. O CARTAO E' O `rec-card` DA CAIXA DE ENTRADA (v188) e
+     os blocos sao os `pnd-sec` da v319: nasce aqui SO' o que nao existia — o selo de atraso, o
+     selo de unidade e a linha do formulario. */
+  .rec-tag.padm-u0{background:rgba(180,35,24,.14);color:#b42318}
+  .rec-tag.padm-u1{background:rgba(234,179,8,.18);color:#8a6100}
+  .rec-tag.padm-u2{background:rgba(59,130,246,.14);color:#1d4ed8}
+  .rec-tag.padm-atr{background:rgba(225,29,72,.16);color:#e11d48}
+  .rec-tag.padm-un{background:rgba(14,124,134,.14);color:#0E7C86}
+  .padm-prazo{font-size:.76rem;color:var(--cinza);margin-top:6px}
+  .padm-prazo.venceu{color:#e11d48;font-weight:700}
+  .padm-form-linha{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;margin:2px 0 4px}
+  /* 🔴 ISTO NASCEU DA FOTO NO CELULAR, e nao de asserção nenhuma: com `flex-wrap` os seis chips
+     de categoria mais os de unidade viravam CINCO FILEIRAS num aparelho de 390 px — quase meia
+     tela de filtro antes da primeira pendência. 🔑 É o mesmo defeito da v319 entrando por outra
+     porta: ali era explicação comprida, aqui é filtro. Uma fileira que ROLA de lado ocupa a
+     altura de uma, e continua mostrando que existe mais coisa à direita. */
+  /* ⚠️ `.doc-tools.padm-chips` e nao so' `.padm-chips`: as duas teriam a MESMA forca, e como o
+     `.doc-tools{flex-wrap:wrap}` mora mais abaixo no arquivo, ele venceria — a primeira foto do
+     celular saiu com as tres fileiras intactas e a regra nova sem efeito nenhum, calada. */
+  .doc-tools.padm-chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+  .doc-tools.padm-chips::-webkit-scrollbar{display:none}
+  .doc-tools.padm-chips .doc-chip{flex:0 0 auto}
+  /* e o cabeçalho do cartão QUEBRA LINHA: sem isto os selos se espremiam e "há 15 min" saía
+     empilhado em três linhas de uma letra */
+  .padm-topo{flex-wrap:wrap;row-gap:6px}
   /* v320 - a ficha do dono, trancada para os outros administradores */
   .adm-trava{border:1px solid var(--borda);border-left:4px solid #FE7030;border-radius:10px;
     padding:10px 12px;margin:10px 0 0;font-size:.86rem;color:var(--txt);background:var(--superficie-2)}
@@ -3344,6 +3369,8 @@
       <button class="btn-claro" id="btnCalendario" onclick="alternarCalendario()"><span class="mi">📅</span><span class="mt">Calendário</span></button>
       <button class="btn-claro" id="btnVencimentos" onclick="alternarVencimentos()"><span class="mi">📁</span><span class="mt">Documentos</span></button>
       <button class="btn-claro" id="btnCaixa" onclick="alternarCaixa()"><span class="mi">📥</span><span class="mt">Caixa de entrada</span><span class="menu-badge" id="badgeCaixa" style="display:none">0</span></button>
+      <!-- v326 - a lista da equipe: pendencias administrativas por unidade -->
+      <button class="btn-claro" id="btnPendAdm" onclick="alternarPendAdm()"><span class="mi">✅</span><span class="mt">Pendências Administrativas</span><span class="menu-badge" id="badgePendAdm" style="display:none">0</span></button>
       <button class="btn-claro" id="btnConta" onclick="alternarConta()"><span class="mi">👤</span><span class="mt">Minha conta</span></button>
       <button class="btn-claro" id="btnConfig" onclick="alternarConfig()"><span class="mi">⚙</span><span class="mt">Configurações</span></button>
       <button class="btn-claro" id="btnUsuarios" style="display:none" onclick="alternarAdmin()"><span class="mi">👥</span><span class="mt">Painel Administrativo</span><span class="menu-badge" id="badgeAdmin" style="display:none">0</span></button>
@@ -4178,6 +4205,48 @@
     </div>
   </div>
 
+  <!-- ===================== v326 - ✅ PENDÊNCIAS ADMINISTRATIVAS =====================
+       O menu da EQUIPE. Mora no grupo 📁 Organização, ao lado da Caixa de entrada, e entra na
+       lista de permissões como qualquer outro menu — quem enxerga é escolhido pessoa a pessoa. -->
+  <div class="config" id="painelPendAdm">
+    <div class="grupo">
+      <h2>✅ Pendências Administrativas</h2>
+      <!-- 🔴 EXPLICAÇÃO CURTA DE PROPÓSITO: num aparelho de 390 px, dois parágrafos empurram a
+           primeira pendência para fora da tela — foi o que a foto da v319 mostrou. -->
+      <p class="nota-dash">O que está pendente na sua unidade, do mais urgente para o que pode esperar.</p>
+      <div class="pnd-topo"><span class="pnd-cont" id="padmContador"></span></div>
+      <div class="doc-tools padm-chips" id="padmChips"></div>
+      <div class="doc-tools padm-chips" id="padmChipsUn" style="display:none"></div>
+      <div class="msg-admin" id="padmMsg" style="display:none"></div>
+      <div id="padmLista"></div>
+      <div class="hist-rodape">
+        <button id="padmBtnFeitas" class="btn-claro" style="display:none" onclick="padmAlternarFeitas()">👁 Ver as resolvidas</button>
+      </div>
+      <div id="padmFeitas" style="display:none"></div>
+    </div>
+    <!-- 🔴 O FORMULÁRIO VEM DEPOIS DA LISTA, e isso é decisão e não descuido: ele só aparece para
+         quem pode abrir pendência (hoje, quem administra o app), e a lista é o que TODO MUNDO abre
+         o menu para ver. Formulário em cima empurraria para baixo o conteúdo de quem tem de agir. -->
+    <div class="grupo" id="grupoNovaPadm" style="display:none">
+      <h2>➕ Abrir uma pendência</h2>
+      <p class="nota-dash">Ela aparece para quem responde pela unidade escolhida. <b>Escreva o número que motivou</b> — pendência sem número vira “alguém pediu para eu olhar uma coisa”.</p>
+      <div class="recado-form">
+        <input id="padmTitulo" maxlength="90" placeholder="O que precisa ser feito (ex.: Renovar a licença do IBAMA de Caxias)">
+        <textarea id="padmDesc" maxlength="900" rows="3" placeholder="Por quê, com o número (ex.: venceu em 12/07 e a Central de Vencimentos está com 0 documentos cadastrados)"></textarea>
+        <div class="padm-form-linha">
+          <label class="cot-data-lbl">Unidade: <select id="padmUnidade"></select></label>
+          <label class="cot-data-lbl">Categoria: <select id="padmCat"></select></label>
+          <label class="cot-data-lbl">Prioridade: <select id="padmUrg"></select></label>
+          <label class="cot-data-lbl">Prazo (opcional): <input type="date" id="padmPrazo"></label>
+        </div>
+        <label class="recado-exigir"><input type="checkbox" id="padmSoPessoas" onchange="padmAlternarPessoas()"> 👤 Só para pessoas específicas (em vez de toda a unidade)</label>
+        <div id="padmPessoas" class="recado-pessoas" style="display:none"></div>
+        <button class="btn-verde" onclick="padmCriar()">Abrir pendência</button>
+      </div>
+      <div class="msg-admin" id="msgPadmNova"></div>
+    </div>
+  </div>
+
   <div class="config" id="painelNovidades">
     <div class="grupo">
       <div class="nvd-topo">
@@ -4419,6 +4488,8 @@ const colPerfis = db.collection("perfis");   // nome amigável por usuário (id 
 const colPresenca = db.collection("presenca"); // "sinal de vida" de cada usuário logado (id do doc = e-mail)
 const colRecados = db.collection("recados");   // caixa de entrada: avisos e tarefas internas
 const colPendencias = db.collection("pendencias"); // v319 - o que depende do Tiago, com conversa e "concluido"
+const colPendenciasAdm = db.collection("pendenciasAdm"); // v326 - o que a EQUIPE resolve, por unidade
+const docUnidadesEquipe = db.collection("config").doc("unidadesEquipe"); // v326 - {porUsuario:{email:[chaveUnidade]}}
 const docPermEnvio = db.collection("config").doc("permissoesEnvio"); // quem pode enviar avisos/tarefas
 const docPermissoes = db.collection("config").doc("permissoes"); // {porUsuario:{email:{menuKey:bool}}} — quais menus cada usuário vê
 const docPerfisAcesso = db.collection("config").doc("perfisAcesso"); // {perfis:{id:{nome,menus:{key:true}}}} — perfis de acesso a menus
@@ -4528,6 +4599,14 @@ let escutaRecados = null;
 /* v319 - a aba 📌 Pendencias */
 let pendencias = [];
 let escutaPendencias = null;
+/* v326 - o menu ✅ Pendencias Administrativas (a lista da equipe) */
+let pendenciasAdm = [];
+let escutaPendenciasAdm = null;
+let unidadesEquipe = {};            // emailLower -> [chave de unidade]
+let escutaUnidades = null;
+let padmFiltroCat = "", padmFiltroUn = "", padmMostrarFeitas = false;
+let padmResolvendo = "", padmComentando = "", padmMsg = "";
+let padmTxtTmp = {};
 let pndFiltro = "", pndMostrarFeitas = false, pndConcluindo = "", pndEscrevendo = "", pndMsg = "";
 let pndTxtTmp = {};
 let permissaoEnvio = {};               // emailLower -> true (pode enviar avisos/tarefas)
@@ -5051,6 +5130,9 @@ const ICO_SVG = {
      estilos minimalista e vivo. Caminhao-tanque, escolhido por ele na previa em imagem. */
   recebimento:"<rect x='1.9' y='7.4' width='12.4' height='7' rx='3.5'/><path d='M14.6 9.4h3l3.5 3.4v1.6h-6.5z'/><circle cx='6.6' cy='18' r='1.9'/><circle cx='17.2' cy='18' r='1.9'/><path d='M1.9 18h2.6M8.8 18h6.2M19.4 18h2.4'/>",
   afericoes:"<path d='M8.2 2.8h7.6'/><path d='M9.4 2.8v14.6a2.6 2.6 0 0 0 5.2 0V2.8'/><path d='M9.4 13.4h5.2'/><path d='M9.4 9.8h2.4M9.4 6.6h2.4'/><path d='M6.8 21.2h10.4'/>",
+  /* v326 - prancheta com visto. Menu novo SAI COM DESENHO no mesmo patch que o cria: sem ele
+     o botao volta ao emoji nos estilos minimalista e vivo, sem erro nenhum (a licao da v317). */
+  pendAdm:"<rect x='4.4' y='4.6' width='15.2' height='16' rx='2.4'/><rect x='8.6' y='1.9' width='6.8' height='3.6' rx='1.3'/><path d='M8.7 13.1l2.4 2.4 4.4-4.8'/>",
   dre:"<path d='M3.4 20.6h17.2'/><path d='M6 16.4l4-4.6 3.2 2.6 5.2-6.2'/><path d='M14.2 8.2h4.2v4.2'/>",
   sair:"<path d='M9.6 20.4H5.4a1.8 1.8 0 0 1-1.8-1.8V5.4a1.8 1.8 0 0 1 1.8-1.8h4.2'/><path d='M15.4 16.6 20 12l-4.6-4.6M20 12H9.2'/>",
   g_dia:"<path d='M20.4 11.2a8.4 8.4 0 1 0-.6 4.4'/><path d='M20.6 5.6v5.6h-5.6'/>",
@@ -5060,7 +5142,7 @@ const ICO_SVG = {
   empresa:"<path d='M3.6 20.4h16.8'/><path d='M5.4 20.4V6.2L12 3.6l6.6 2.6v14.2'/><path d='M9.6 20.4v-4.4h4.8v4.4'/><path d='M9.4 9.2h1.2M13.4 9.2h1.2M9.4 12.6h1.2M13.4 12.6h1.2'/>",
   g_ajustes:"<circle cx='12' cy='12' r='3.1'/><path d='M19.1 14.6a1.5 1.5 0 0 0 .3 1.7l.1.1a1.9 1.9 0 1 1-2.6 2.6l-.1-.1a1.5 1.5 0 0 0-2.6 1v.2a1.9 1.9 0 0 1-3.7 0v-.1a1.5 1.5 0 0 0-2.6-1l-.1.1a1.9 1.9 0 1 1-2.6-2.6l.1-.1a1.5 1.5 0 0 0-1-2.6h-.2a1.9 1.9 0 1 1 0-3.7h.1a1.5 1.5 0 0 0 1-2.6l-.1-.1a1.9 1.9 0 1 1 2.6-2.6l.1.1a1.5 1.5 0 0 0 1.7.3h.1a1.5 1.5 0 0 0 .9-1.4v-.2a1.9 1.9 0 0 1 3.7 0v.1a1.5 1.5 0 0 0 2.6 1l.1-.1a1.9 1.9 0 1 1 2.6 2.6l-.1.1a1.5 1.5 0 0 0 1 2.6h.2a1.9 1.9 0 0 1 0 3.7h-.1a1.5 1.5 0 0 0-1.4.9z'/>"
 };
-const ICO_BTN = {btnComprar:"comprar",btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnTanquesNivel:"tanquesNivel",btnRecebimento:"recebimento",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnDre:"dre",btnAfericoes:"afericoes",btnAnalise:"analise",btnRelLoja:"relLoja",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
+const ICO_BTN = {btnComprar:"comprar",btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnTanquesNivel:"tanquesNivel",btnRecebimento:"recebimento",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnDre:"dre",btnAfericoes:"afericoes",btnAnalise:"analise",btnRelLoja:"relLoja",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnPendAdm:"pendAdm",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
 const ICO_GRP = {dia:"g_dia",analise:"g_analise",transp:"g_transp",org:"g_org",ajustes:"g_ajustes"};
 /* 🔑 cor por GRUPO, tirada da paleta do MIV (laranja da marca + verde e dourado Petrobras).
    Assim a cor diz de que familia e' o menu, em vez de ser arco-iris. */
@@ -5318,6 +5400,8 @@ function aoMudarLogin(usuario){
     if (heartbeatTimer){ clearInterval(heartbeatTimer); heartbeatTimer = null; }
     if (escutaRecados){ escutaRecados(); escutaRecados = null; }
     if (escutaPendencias){ escutaPendencias(); escutaPendencias = null; }
+    if (escutaPendenciasAdm){ escutaPendenciasAdm(); escutaPendenciasAdm = null; }
+    if (escutaUnidades){ escutaUnidades(); escutaUnidades = null; }
     if (escutaPermEnvio){ escutaPermEnvio(); escutaPermEnvio = null; }
     if (escutaEventos){ escutaEventos(); escutaEventos = null; }
     if (escutaPermEventos){ escutaPermEventos(); escutaPermEventos = null; }
@@ -6293,6 +6377,22 @@ function fichaPessoaHtml(e){
   });
   h += '</div>';
 
+  /* unidades (v326) - o cadastro que faz o menu ✅ Pendencias Administrativas ser CURTO para
+     quem tem de resolver.
+     🔴 ELE MORA EM DOCUMENTO PROPRIO (`config/unidadesEquipe`) DE PROPOSITO: as gravacoes de
+     `config/permissoes` remontam a ficha da pessoa a partir de uma LISTA DE CAMPOS ESCRITA A MAO
+     (setPermUsuarioEmp), e um campo novo la' dentro seria apagado de carona na primeira vez que
+     alguem mexesse nos menus dela. 🔑 E' a licao da v307 — e ela continua aberta naquele arquivo,
+     entao o certo nao era confiar nela: era nao depender dela. */
+  h += '<div class="adm-sec">🏢 Unidades pelas quais responde</div><div class="usr-perm-grid">';
+  const uniPes = padmUnidadesDe(e);
+  UNIDADES_PADM.forEach(u => {
+    h += '<label class="usr-perm-item"><input type="checkbox" ' + (uniPes.indexOf(u.k) >= 0 ? 'checked ' : '') +
+         'onchange="setUnidadePessoa(\'' + a + '\', \'' + u.k + '\', this.checked)"> ' + escAttr(u.origem) + '</label>';
+  });
+  h += '</div>';
+  if (!uniPes.length) h += '<p class="nota-dash">⚠️ Sem unidade marcada, ela só enxerga as pendências abertas <b>no nome dela</b> e as que valem para <b>todas as unidades</b>.</p>';
+
   /* caixas */
   h += '<div class="adm-sec">🧾 Conferência dos caixas</div><div class="usr-perm-grid">';
   const resp = (metaCaixa && metaCaixa.responsaveis) ? metaCaixa.responsaveis : {};
@@ -6857,6 +6957,13 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v326", data:"10/08/2026", tit:"\u2705 Menu novo: Pend\u00eancias Administrativas \u2014 o que cada unidade tem para resolver", itens:[
+    {t:"n", h:"Cada um v\u00ea o que \u00e9 da sua unidade", d:"O menu novo fica no grupo <b>\ud83d\udcc1 Organiza\u00e7\u00e3o</b>, ao lado da Caixa de entrada. Cada pend\u00eancia nasce ligada a uma <b>unidade</b> (Teresina, Caxias, Dutra, as tr\u00eas lojas ou a Transportadora), e voc\u00ea enxerga <b>as da sua unidade</b> mais o que for aberto <b>no seu nome</b>. Quem responde por mais de uma unidade ganha um filtro para escolher."},
+    {t:"n", h:"Prioridade, categoria e prazo", d:"A lista vem em blocos: <b>\u23f0 Passou do prazo</b>, <b>\ud83d\udd34 Urgente</b>, <b>\ud83d\udfe1 Esta semana</b> e <b>\ud83d\udd35 Quando der</b>. O que tem prazo vencido <b>sobe para o topo</b>, seja qual for a prioridade. Os bot\u00f5es de cima filtram por categoria (Documentos e licen\u00e7as, Financeiro, Fiscal, Combust\u00edvel e tanques, Loja, Equipe, Manuten\u00e7\u00e3o, Sistema e dados)."},
+    {t:"n", h:"\u2713 Resolvido e \ud83d\udcac Comentar", d:"<b>\u2713 Resolvido</b> tira da lista e guarda <b>quem resolveu, quando e o que escreveu</b> \u2014 e as resolvidas continuam vis\u00edveis no bot\u00e3o \u201cVer as resolvidas\u201d. <b>\ud83d\udcac Comentar</b> deixa recado dentro da pr\u00f3pria pend\u00eancia, para ir tratando do assunto sem misturar com a Caixa de entrada."},
+    {t:"m", h:"O n\u00famero vermelho no menu conta s\u00f3 o que cobra hoje", d:"A bolinha do bot\u00e3o soma <b>as urgentes e as que passaram do prazo</b> \u2014 nunca a lista inteira. \u26a0\ufe0f Este menu <b>n\u00e3o toca o sino</b>: ele \u00e9 uma lista para consultar, e o n\u00famero \u00e9 o aviso."},
+    {t:"m", h:"Na ficha de cada pessoa entrou \ud83c\udfe2 Unidades pelas quais responde", d:"No Painel Administrativo, abrindo o nome de algu\u00e9m, d\u00e1 para marcar as unidades dela. <b>Sem unidade marcada, a pessoa s\u00f3 v\u00ea as pend\u00eancias abertas no nome dela</b> \u2014 e a pr\u00f3pria tela avisa isso, em vez de dizer que est\u00e1 tudo em dia."}
+  ]},
   {v:"v325", data:"10/08/2026", tit:"\ud83e\uddfe O hist\u00f3rico desta lista voltou a ficar completo", itens:[
     {t:"c", h:"Faltava a v323 aqui dentro", d:"Esta lista pulava da <b>v322 para a v324</b>. As mudan\u00e7as das <b>Cota\u00e7\u00f5es do Dia</b> sa\u00edram na <b>v323</b> e estavam sendo contadas na linha da v324, que na verdade s\u00f3 consertou a barra presa. <b>Agora cada vers\u00e3o conta o que ela mesma fez</b> \u2014 nada no app mudou com esta."}
   ]},
@@ -8206,6 +8313,29 @@ function iniciarSync(){
     if (pAdmP && pAdmP.classList.contains("aberto") && admAba === "pend") renderPendencias();
   }, ()=>{});
 
+  /* v326 - as unidades pelas quais cada pessoa responde. E' o que faz a lista da gerente ser
+     CURTA: sem isto, ou ela ve a rede inteira ou nao ve nada. */
+  escutaUnidades = docUnidadesEquipe.onSnapshot(snap => {
+    const d = snap.exists ? (snap.data() || {}) : {};
+    unidadesEquipe = (d && d.porUsuario) ? d.porUsuario : {};
+    atualizarBadgePendAdm();
+    const pU = document.getElementById("painelPendAdm");
+    if (pU && pU.classList.contains("aberto")) padmRender();
+    const pAdmU = document.getElementById("painelAdmin");
+    if (pAdmU && pAdmU.classList.contains("aberto")) renderAbaAdm();
+  }, ()=>{});
+
+  // v326 - ✅ Pendencias Administrativas (o que a equipe resolve)
+  escutaPendenciasAdm = colPendenciasAdm.onSnapshot(snap => {
+    const arr = [];
+    snap.forEach(doc => arr.push(Object.assign({ id: doc.id }, doc.data() || {})));
+    arr.sort((a,b) => msDeQuando(b.criadaEm) - msDeQuando(a.criadaEm));
+    pendenciasAdm = arr;
+    atualizarBadgePendAdm();
+    const pPa = document.getElementById("painelPendAdm");
+    if (pPa && pPa.classList.contains("aberto")) padmRender();
+  }, ()=>{});
+
   // Quem pode enviar avisos/tarefas
   escutaPermEnvio = docPermEnvio.onSnapshot(snap => {
     const d = snap.exists ? (snap.data() || {}) : {};
@@ -9081,6 +9211,7 @@ const MENUS_APP = [
   {key:"calendario",  btn:"btnCalendario",  pan:"painelCalendario",  emp:"ambos",  nome:"Calendário"},
   {key:"vencimentos", btn:"btnVencimentos", pan:"painelVencimentos", emp:"ambos",  nome:"Documentos"},
   {key:"caixa",       btn:"btnCaixa",       pan:"painelCaixa",       emp:"ambos",  nome:"Caixa de entrada"},
+  {key:"pendAdm",     btn:"btnPendAdm",     pan:"painelPendAdm",     emp:"ambos",  nome:"Pendências Administrativas"},   /* v326 */
   {key:"conta",       btn:"btnConta",       pan:"painelConta",       emp:"ambos",  nome:"Minha conta"},
   {key:"config",      btn:"btnConfig",      pan:"painelConfig",      emp:"ambos",  nome:"Configurações"},
   {key:"novidades",   btn:"btnNovidades",   pan:"painelNovidades",   emp:"ambos",  nome:"Novidades"}   // v246
@@ -9101,7 +9232,7 @@ const GRUPOS_MENU = [
   {key:"dia",     nome:"Dia a dia",      icone:"\ud83d\udd01", itens:["resumoDia","tanquesNivel","recebimento","registros","descontos","simular"]},
   {key:"analise", nome:"Análise",        icone:"\ud83d\udcca", itens:["relPosto","dre","afericoes","analise","relLoja","ifood"]},
   {key:"transp",  nome:"Transportadora", icone:"\ud83d\ude9a", itens:["infleet","comprar","pedido","cotacoes","puxadas"]},
-  {key:"org",     nome:"Organização",    icone:"\ud83d\udcc1", itens:["calendario","vencimentos","caixa"]},   /* v251 - o 🗂 ninguem reconhecia */
+  {key:"org",     nome:"Organização",    icone:"\ud83d\udcc1", itens:["calendario","vencimentos","caixa","pendAdm"]},   /* v251 - o 🗂 ninguem reconhecia */
   {key:"ajustes", nome:"Ajustes",        icone:"\u2699",        itens:["conta","config","usuarios"]},
   {key:"soltosFim", nome:"",             icone:"",       itens:["novidades"]}   // v246 - o fim da barra, sem titulo
 ];
@@ -14980,6 +15111,413 @@ function renderPendencias(){
   const m = document.getElementById("pndMsg");
   if (m){ m.textContent = pndMsg || ""; m.style.display = pndMsg ? "" : "none"; }
   atualizarBadgePendencias();
+}
+
+/* ===================== v326 — ✅ PENDÊNCIAS ADMINISTRATIVAS =====================
+
+   O pedido veio das GERENTES, por ele: *"um menu parecido com o que você fez comigo no painel
+   administrativo, só que voltado para coisas que elas podem ajudar a ir resolvendo nas empresas…
+   se tivesse como categorizar as pendências por ordem de prioridade seria interessante, e
+   classificada por categorias"*.
+
+   🔴 POR QUE ISTO NÃO É UMA ABA DA CAIXA DE ENTRADA — a lição já custou uma versão inteira:
+   a Caixa de entrada serve ao que NASCE E MORRE SOZINHO (o vigia da sincronização, o fechamento,
+   a nota a lançar). Pendência administrativa fica semanas, e cada uma que fica empurra as
+   operacionais para baixo. 🔑 Duas coisas com tempos de vida diferentes não cabem na mesma lista
+   — foi exatamente o que a v319 corrigiu do lado dele.
+
+   🔴 E POR QUE NÃO É UMA ABA DO PAINEL ADMINISTRATIVO: aquele painel inteiro só abre para admin, e
+   hoje existe UM admin. Menu próprio entra na lista de permissões e ele escolhe pessoa a pessoa
+   quem enxerga — sem mexer em quem vê o painel.
+
+   🔑 AS QUATRO ESCOLHAS DELE (AskUserQuestion, 10/08): menu próprio · só ele abre pendência (a
+   gerente resolve e comenta) · cada gerente vê só a unidade dela · três níveis + prazo opcional,
+   com o vencido subindo para o topo.
+
+   ⚠️ E O QUE ESTA VERSÃO NÃO PROMETE: ela não toca o sino nem manda notificação. O contrapeso é
+   UM número no botão do menu, e ele conta só o que cobra HOJE — urgente ou vencido. Contar a
+   lista inteira faria dele paisagem em duas semanas (a regra da v248). */
+
+/* 🔑 Duas escritas para a MESMA categoria, como AGENDAS_CAL já faz com `origem`/`curto`: o nome
+   inteiro no filtro e no seletor, onde ele ensina; o curto no selo do cartão, onde a foto do
+   celular mostrou "Documentos e licenças" quebrando em duas linhas dentro da pastilha. */
+const PADM_CAT = [
+  {k:"doc",    nome:"📄 Documentos e licenças",   curto:"📄 Documentos"},
+  {k:"fin",    nome:"💰 Financeiro",              curto:"💰 Financeiro"},
+  {k:"fis",    nome:"🧾 Fiscal",                  curto:"🧾 Fiscal"},
+  {k:"comb",   nome:"⛽ Combustível e tanques",   curto:"⛽ Combustível"},
+  {k:"loja",   nome:"🏪 Loja",                    curto:"🏪 Loja"},
+  {k:"equipe", nome:"👥 Equipe",                  curto:"👥 Equipe"},
+  {k:"manut",  nome:"🔧 Manutenção",              curto:"🔧 Manutenção"},
+  {k:"sist",   nome:"💻 Sistema e dados",         curto:"💻 Sistema"},
+  {k:"outros", nome:"📌 Outros",                  curto:"📌 Outros"}
+];
+function padmCat(k){ return PADM_CAT.find(x => x.k === k) || PADM_CAT[PADM_CAT.length - 1]; }
+function padmNomeCat(k){ return padmCat(k).nome; }
+function padmCurtoCat(k){ return padmCat(k).curto; }
+
+/* 🔴 UM LUGAR SÓ decide o grau — o selo do cartão, o cabeçalho do bloco, a ordem da lista e o
+   número do botão APENAS USAM. É a lição da v297, que custou seis lugares, e da v319. */
+const PADM_URG = {
+  urgente: { ord:1, selo:"🔴 urgente",     cls:"padm-u0", tit:"🔴 Urgente" },
+  semana:  { ord:2, selo:"🟡 esta semana", cls:"padm-u1", tit:"🟡 Esta semana" },
+  depois:  { ord:3, selo:"🔵 quando der",  cls:"padm-u2", tit:"🔵 Quando der" }
+};
+const PADM_ATRASO = { ord:0, selo:"⏰ atrasada", cls:"padm-atr", tit:"⏰ Passou do prazo" };
+const PADM_BLOCOS = [PADM_ATRASO, PADM_URG.urgente, PADM_URG.semana, PADM_URG.depois];
+
+function padmGrau(p){ return PADM_URG[(p && p.urgencia) || "semana"] || PADM_URG.semana; }
+/* 🔴 O ATRASO É DERIVADO DO PRAZO, NUNCA GRAVADO. Um campo `atrasada` no documento seria uma
+   segunda verdade que envelhece sozinha: ela amanhece atrasada sem ninguém escrever nada, e no
+   dia em que divergisse do prazo quem apareceria mentindo é a tela. (É a regra do
+   `pndEsperandoClaude` da v319, na porta do prazo.) */
+function padmAtrasada(p){ return !!(p && !p.concluida && p.prazo && String(p.prazo) < hojeISO()); }
+/* o bloco em que o cartão cai: vencido sobe para o topo, seja qual for o nível */
+function padmBloco(p){ return padmAtrasada(p) ? PADM_ATRASO : padmGrau(p); }
+
+/* 🔑 As unidades são as MESMAS do resto do app (AGENDAS_CAL, v217) — sem "Outros", que não é
+   unidade. Lista nova escrita à mão aqui envelheceria calada no dia em que nascesse a quarta loja. */
+const UNIDADES_PADM = AGENDAS_CAL.filter(a => a.k !== "cg");
+function padmNomeUnidade(k){
+  if (k === "todas") return "Todas as unidades";
+  const u = UNIDADES_PADM.find(x => x.k === k);
+  return u ? u.origem : String(k || "");
+}
+function padmCurtoUnidade(k){
+  if (k === "todas") return "Todas";
+  const u = UNIDADES_PADM.find(x => x.k === k);
+  return u ? u.curto : String(k || "");
+}
+function padmUnidadesDe(email){
+  const l = (unidadesEquipe || {})[String(email || "").toLowerCase()];
+  return Array.isArray(l) ? l : [];
+}
+function padmMinhasUnidades(){ return padmUnidadesDe(usuarioAtual); }
+
+/* 🔴 UMA REGRA SÓ DECIDE QUEM VÊ UMA PENDÊNCIA, e a lista, os chips e o número do botão perguntam
+   todos a ela. Se cada lugar perguntasse do seu jeito, o botão acabaria cobrando uma pendência
+   que a pessoa não consegue abrir — que é o defeito mais desmoralizante que um contador tem. */
+function padmVisivelParaMim(p){
+  if (!p) return false;
+  if (ehAdminAtual()) return true;
+  const eu = String(usuarioAtual || "").toLowerCase();
+  const para = Array.isArray(p.para) ? p.para.map(x => String(x).toLowerCase()) : [];
+  if (para.length) return para.indexOf(eu) >= 0;   /* pendência com NOME não vaza para a unidade */
+  if (p.unidade === "todas") return true;
+  return padmMinhasUnidades().indexOf(p.unidade) >= 0;
+}
+function padmVisiveis(){ return (pendenciasAdm || []).filter(padmVisivelParaMim); }
+function padmAbertasCobrando(){
+  return padmVisiveis().filter(p => !p.concluida && (padmAtrasada(p) || padmGrau(p).ord === 1)).length;
+}
+function atualizarBadgePendAdm(){
+  const b = document.getElementById("badgePendAdm");
+  if (!b) return;
+  const n = padmAbertasCobrando();
+  b.textContent = n; b.style.display = n ? "" : "none";
+}
+/* Hoje quem abre pendência é quem administra o app — que é o "você e eu" que ele escolheu, sem
+   inventar um poder novo na ficha. 👉 No dia em que existir um SEGUNDO admin, isto vira um poder
+   próprio, ao lado dos quatro de PODERES_ADM. */
+function padmPodeAbrir(){ return ehAdminAtual(); }
+
+function alternarPendAdm(){
+  const aberto = abrirPainelExclusivo("painelPendAdm");
+  const b = document.getElementById("btnPendAdm");
+  if (b) b.classList.toggle("ativo", aberto);
+  if (aberto) padmRender();
+}
+
+/* ----- ações ----- */
+function padmIrCat(k){ padmFiltroCat = (padmFiltroCat === k) ? "" : String(k || ""); padmRender(); }
+function padmIrUn(k){ padmFiltroUn = (padmFiltroUn === k) ? "" : String(k || ""); padmRender(); }
+function padmAlternarFeitas(){
+  padmMostrarFeitas = !padmMostrarFeitas;
+  const b = document.getElementById("padmBtnFeitas");
+  if (b) b.textContent = padmMostrarFeitas ? "🙈 Esconder as resolvidas" : "👁 Ver as resolvidas";
+  const c = document.getElementById("padmFeitas");
+  if (c) c.style.display = padmMostrarFeitas ? "" : "none";
+  padmRender();
+}
+function padmResolver(id){ padmResolvendo = String(id || ""); padmComentando = ""; padmRender(); }
+function padmCancelar(){ padmResolvendo = ""; padmComentando = ""; padmRender(); }
+function padmComentar(id){ padmComentando = String(id || ""); padmResolvendo = ""; padmRender(); }
+function padmTexto(id, v){ padmTxtTmp[id] = v; }
+
+/* 🔴 RESOLVER GRAVA NO SERVIDOR, com hora, com quem e com o que a pessoa escreveu — e com
+   `merge:true`, para não apagar a descrição nem a conversa. Concluir calado seria apagar estado. */
+function padmConfirmarResolver(id){
+  const p = (pendenciasAdm || []).find(x => x.id === id); if (!p) return;
+  if (!padmVisivelParaMim(p)) return;
+  const obs = String(padmTxtTmp[id] || "").trim();
+  colPendenciasAdm.doc(id).set({
+    concluida:true, concluidaEm: Date.now(),
+    concluidaPor: usuarioAtual || "", concluidaNome: nomeUsuario || usuarioAtual || "",
+    obs: obs
+  }, { merge:true })
+  .then(() => {
+    delete padmTxtTmp[id]; padmResolvendo = ""; padmMsg = "";
+    logAtividade({ acao:"concluiu", area:"Pendências Administrativas", resumo:"Resolveu: " + (p.titulo || "") });
+  })
+  .catch(e => { padmMsg = "Não consegui marcar como resolvida: " + (e && e.message ? e.message : e); padmRender(); });
+}
+function padmReabrir(id){
+  if (!padmPodeAbrir()){ padmMsg = "Só quem abre pendência pode reabrir uma que já foi resolvida."; padmRender(); return; }
+  colPendenciasAdm.doc(id).set({ concluida:false, concluidaEm:0, concluidaPor:"", concluidaNome:"", obs:"" }, { merge:true })
+    .catch(()=>{});
+}
+/* 🔴 A CONVERSA ENTRA POR `arrayUnion`, NUNCA REESCREVENDO O ARRAY: duas pessoas gravando o
+   documento inteiro é o acidente da v183 com outro nome — e aqui são várias gerentes. */
+function padmEnviarComentario(id){
+  const p = (pendenciasAdm || []).find(x => x.id === id); if (!p) return;
+  if (!padmVisivelParaMim(p)) return;
+  const txt = String(padmTxtTmp[id] || "").trim();
+  if (!txt){ padmMsg = "Escreva alguma coisa antes de enviar."; padmRender(); return; }
+  const msg = { quem: String(usuarioAtual || "").toLowerCase(), nome: nomeUsuario || usuarioAtual || "",
+                texto: txt, quando: Date.now() };
+  colPendenciasAdm.doc(id).update({ conversa: firebase.firestore.FieldValue.arrayUnion(msg) })
+    .then(() => { delete padmTxtTmp[id]; padmComentando = ""; padmMsg = ""; })
+    .catch(e => { padmMsg = "Não consegui enviar: " + (e && e.message ? e.message : e); padmRender(); });
+}
+
+/* ----- abrir uma pendência (só quem pode) ----- */
+function padmAlternarPessoas(){
+  const ch = document.getElementById("padmSoPessoas");
+  const box = document.getElementById("padmPessoas");
+  if (!box) return;
+  const on = !!(ch && ch.checked);
+  box.style.display = on ? "" : "none";
+  if (on) padmRenderPessoas();
+}
+function padmRenderPessoas(){
+  const box = document.getElementById("padmPessoas"); if (!box) return;
+  const eu = (usuarioAtual || "").toLowerCase();
+  const emails = todosUsuariosConhecidos().filter(e => e !== eu);
+  box.innerHTML = emails.length
+    ? emails.map(e => '<label class="recado-pessoa"><input type="checkbox" value="' + escAttr(e) + '"> ' +
+        escAttr(nomeUsuarioDe(e)) + ' <span class="recado-pessoa-email">' + escAttr(e) + '</span></label>').join("")
+    : '<p class="nota-dash">Ainda não há outras pessoas cadastradas.</p>';
+}
+/* os três seletores saem das MESMAS listas que desenham a tela — nenhuma opção escrita à mão */
+function padmMontarFormulario(){
+  const su = document.getElementById("padmUnidade");
+  if (su && !su.options.length){
+    su.innerHTML = UNIDADES_PADM.map(u => '<option value="' + escAttr(u.k) + '">' + escAttr(u.origem) + '</option>').join("") +
+                   '<option value="todas">Todas as unidades</option>';
+  }
+  const sc = document.getElementById("padmCat");
+  if (sc && !sc.options.length)
+    sc.innerHTML = PADM_CAT.map(c => '<option value="' + escAttr(c.k) + '">' + escAttr(c.nome) + '</option>').join("");
+  const sg = document.getElementById("padmUrg");
+  if (sg && !sg.options.length)
+    sg.innerHTML = Object.keys(PADM_URG).map(k => '<option value="' + escAttr(k) + '"' + (k === "semana" ? " selected" : "") +
+                     '>' + escAttr(PADM_URG[k].tit) + '</option>').join("");
+}
+function padmCriar(){
+  if (!padmPodeAbrir()) return avisoAdmin("msgPadmNova", "Só quem administra o app abre pendência aqui.", "erro");
+  const it = document.getElementById("padmTitulo");
+  const t = ((it && it.value) || "").trim();
+  if (!t) return avisoAdmin("msgPadmNova", "Escreva o que precisa ser feito.", "erro");
+  const idd = document.getElementById("padmDesc");
+  const d = ((idd && idd.value) || "").trim();
+  const un  = (document.getElementById("padmUnidade") || {}).value || "todas";
+  const cat = (document.getElementById("padmCat") || {}).value || "outros";
+  const urg = (document.getElementById("padmUrg") || {}).value || "semana";
+  const prazo = (((document.getElementById("padmPrazo") || {}).value) || "").trim();
+  const so = document.getElementById("padmSoPessoas");
+  let para = [];
+  if (so && so.checked){
+    para = [...document.querySelectorAll('#padmPessoas input:checked')].map(c => c.value.toLowerCase());
+    if (!para.length) return avisoAdmin("msgPadmNova", "Escolha pelo menos uma pessoa — ou desmarque, para valer na unidade inteira.", "erro");
+  }
+  const id = "pad_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 6);
+  colPendenciasAdm.doc(id).set({
+    titulo:t, descricao:d, categoria:cat, urgencia:urg, prazo:prazo, unidade:un, para:para,
+    criadaEm: Date.now(), criadaPor: usuarioAtual || "", criadaNome: nomeUsuario || usuarioAtual || "",
+    concluida:false, concluidaEm:0, concluidaPor:"", concluidaNome:"", obs:"", conversa:[]
+  }).then(() => {
+    if (it) it.value = "";
+    if (idd) idd.value = "";
+    const ip = document.getElementById("padmPrazo"); if (ip) ip.value = "";
+    if (so){ so.checked = false; padmAlternarPessoas(); }
+    avisoAdmin("msgPadmNova", "Pendência aberta para " + padmNomeUnidade(un) + ".", "ok");
+    logAtividade({ acao:"enviou", area:"Pendências Administrativas",
+                   resumo:"Abriu: " + t + " (" + padmCurtoUnidade(un) + ")" });
+  }).catch(e => avisoAdmin("msgPadmNova", msgErro(e), "erro"));
+}
+
+/* ----- o cadastro de unidades, na ficha do Painel Administrativo ----- */
+function setUnidadePessoa(email, k, on){
+  if (!ehAdminAtual() || !nuvemPronta) return;
+  email = String(email).toLowerCase();
+  if (!podeMexerNaFicha(email)) return negarFicha();
+  const m = JSON.parse(JSON.stringify(unidadesEquipe || {}));
+  const l = Array.isArray(m[email]) ? m[email].slice() : [];
+  const i = l.indexOf(k);
+  if (on && i < 0) l.push(k); else if (!on && i >= 0) l.splice(i, 1);
+  m[email] = l;
+  unidadesEquipe = m;
+  gravarUnidadesEquipe(admNomeDe(email));
+}
+/* 🔴 UM CAMINHO SÓ até `config/unidadesEquipe` — a regra da v320 aplicada de saída, em vez de
+   deixar dez `set` espalhados para consertar depois. */
+function gravarUnidadesEquipe(nome){
+  docUnidadesEquipe.set({ porUsuario: unidadesEquipe || {} })
+    .then(() => { avisoAdmin("msgAdminLista", "Unidades de " + (nome || "") + " atualizadas.", "ok"); renderAbaAdm(); })
+    .catch(er => avisoAdmin("msgAdminLista", msgErro(er), "erro"));
+}
+
+/* ----- desenho ----- */
+function padmConversaHtml(p){
+  const c = Array.isArray(p.conversa) ? p.conversa : [];
+  if (!c.length) return "";
+  const eu = String(usuarioAtual || "").toLowerCase();
+  return '<div class="pnd-conv">' + c.map(m => {
+    const meu = String(m.quem || "").toLowerCase() === eu;
+    return '<div class="pnd-bal ' + (meu ? "eu" : "claude") + '">' +
+             '<div class="pnd-bal-quem">' + escAttr(meu ? "Você" : (m.nome || m.quem || "")) +
+               ' · ' + escAttr(fmtHaTempo(m.quando)) + '</div>' +
+             '<div class="pnd-bal-txt">' + escAttr(m.texto || "") + '</div>' +
+           '</div>';
+  }).join("") + '</div>';
+}
+function padmCardHtml(p, feita){
+  const g = padmGrau(p), atr = padmAtrasada(p), ida = escAspas(p.id);
+  let h = '<div class="rec-card' + (feita ? " feito" : "") + '">';
+  h += '<div class="rec-topo padm-topo">' +
+         '<span class="rec-tag ' + g.cls + '">' + g.selo + '</span>' +
+         (atr ? '<span class="rec-tag ' + PADM_ATRASO.cls + '">' + PADM_ATRASO.selo + '</span>' : '') +
+         '<span class="rec-tag pnd-as">' + escAttr(padmCurtoCat(p.categoria)) + '</span>' +
+         '<span class="rec-tag padm-un">' + escAttr(padmCurtoUnidade(p.unidade)) + '</span>' +
+         '<span class="rec-quando">' + escAttr(fmtHaTempo(p.criadaEm)) + '</span>' +
+       '</div>';
+  h += '<div class="rec-titulo">' + escAttr(p.titulo || "") + '</div>';
+  if (p.descricao) h += '<div class="rec-texto">' + escAttr(p.descricao) + '</div>';
+  if (p.prazo) h += '<div class="padm-prazo' + (atr ? " venceu" : "") + '">' +
+                    (atr ? "⏰ O prazo era " : "🗓 Prazo: ") + escAttr(fmtDataCurta(p.prazo)) + '</div>';
+  const quem = (Array.isArray(p.para) && p.para.length)
+    ? p.para.map(x => nomeUsuarioDe(x)).join(", ")
+    : padmNomeUnidade(p.unidade);
+  h += '<div class="rec-meta">Para: ' + escAttr(quem) + ' · aberta por ' + escAttr(p.criadaNome || p.criadaPor || "") + '</div>';
+  h += padmConversaHtml(p);
+  if (feita){
+    h += '<div class="rec-feito">✓ Resolvida por ' + escAttr(p.concluidaNome || p.concluidaPor || "") +
+         ' ' + escAttr(fmtHaTempo(p.concluidaEm)) + '</div>';
+    if (p.obs) h += '<div class="rec-obs-feita">' + escAttr(p.obs) + '</div>';
+    if (padmPodeAbrir())
+      h += '<div class="rec-acoes"><button class="btn-claro" onclick="padmReabrir(\'' + ida + '\')">↩︎ Reabrir</button></div>';
+    return h + '</div>';
+  }
+  if (padmResolvendo === p.id){
+    h += '<div class="rec-box"><div class="rec-box-tit">Como resolveu? (opcional — mas é o que quem abriu vai ler)</div>' +
+         '<textarea class="rec-obs" rows="3" maxlength="800" placeholder="Ex.: falei com o contador, o protocolo saiu hoje, número 4471." oninput="padmTexto(\'' + ida + '\', this.value)">' +
+         escAttr(padmTxtTmp[p.id] || "") + '</textarea>' +
+         '<div class="rec-acoes"><button class="btn-verde" onclick="padmConfirmarResolver(\'' + ida + '\')">✓ Resolvido</button>' +
+         '<button class="btn-claro" onclick="padmCancelar()">Cancelar</button></div></div>';
+  } else if (padmComentando === p.id){
+    h += '<div class="rec-box"><div class="rec-box-tit">Comentar nesta pendência</div>' +
+         '<textarea class="rec-obs" rows="3" maxlength="1500" placeholder="Ex.: já pedi a segunda via, o cartório disse que fica pronto na quinta." oninput="padmTexto(\'' + ida + '\', this.value)">' +
+         escAttr(padmTxtTmp[p.id] || "") + '</textarea>' +
+         '<div class="rec-acoes"><button class="btn-verde" onclick="padmEnviarComentario(\'' + ida + '\')">Enviar</button>' +
+         '<button class="btn-claro" onclick="padmCancelar()">Cancelar</button></div></div>';
+  } else {
+    h += '<div class="rec-acoes">' +
+           '<button class="btn-verde" onclick="padmResolver(\'' + ida + '\')">✓ Resolvido</button>' +
+           '<button class="btn-claro" onclick="padmComentar(\'' + ida + '\')">💬 Comentar</button>' +
+         '</div>';
+  }
+  return h + '</div>';
+}
+
+function padmRender(){
+  const box = document.getElementById("padmLista"); if (!box) return;
+  padmMontarFormulario();
+  const gn = document.getElementById("grupoNovaPadm");
+  if (gn) gn.style.display = padmPodeAbrir() ? "" : "none";
+
+  const vis = padmVisiveis();
+
+  /* os chips saem dos DADOS, na ordem da lista de categorias — categoria que ninguém usou não
+     vira botão vazio, e a ordem não muda conforme quem abre a tela */
+  const cats = [];
+  vis.forEach(p => { if (!p.concluida){ const k = p.categoria || "outros"; if (cats.indexOf(k) < 0) cats.push(k); } });
+  cats.sort((a, b) => PADM_CAT.findIndex(x => x.k === a) - PADM_CAT.findIndex(x => x.k === b));
+  const cc = document.getElementById("padmChips");
+  if (cc) cc.innerHTML = cats.length
+    ? ('<button class="doc-chip' + (padmFiltroCat ? "" : " ativo") + '" onclick="padmIrCat(\'\')">tudo</button>' +
+       cats.map(k => '<button class="doc-chip' + (padmFiltroCat === k ? " ativo" : "") + '" onclick="padmIrCat(\'' +
+         escAspas(k) + '\')">' + escAttr(padmNomeCat(k)) + '</button>').join(""))
+    : "";
+
+  /* 🔑 O chip de UNIDADE só aparece para quem enxerga MAIS DE UMA. Para a gerente de um posto só,
+     ele seria um botão que não filtra nada — e botão que não faz nada ensina a ignorar botão. */
+  const uns = [];
+  vis.forEach(p => { if (!p.concluida){ const k = p.unidade || "todas"; if (uns.indexOf(k) < 0) uns.push(k); } });
+  /* ordem FIXA (a das unidades, com "todas" no fim) — se saísse na ordem dos dados, os botões
+     trocariam de lugar a cada pendência nova, e botão que anda o dedo não acerta */
+  const ordUn = k => (k === "todas") ? 99 : UNIDADES_PADM.findIndex(u => u.k === k);
+  uns.sort((a, b) => ordUn(a) - ordUn(b));
+  const cu = document.getElementById("padmChipsUn");
+  if (cu){
+    if (uns.length > 1){
+      cu.style.display = "";
+      cu.innerHTML = '<button class="doc-chip' + (padmFiltroUn ? "" : " ativo") + '" onclick="padmIrUn(\'\')">tudo</button>' +
+        uns.map(k => '<button class="doc-chip' + (padmFiltroUn === k ? " ativo" : "") + '" onclick="padmIrUn(\'' +
+          escAspas(k) + '\')">' + escAttr(padmCurtoUnidade(k)) + '</button>').join("");
+    } else {
+      cu.style.display = "none"; cu.innerHTML = "";
+      if (padmFiltroUn && uns.indexOf(padmFiltroUn) < 0) padmFiltroUn = "";
+    }
+  }
+
+  const dentro = p => (!padmFiltroCat || (p.categoria || "outros") === padmFiltroCat) &&
+                      (!padmFiltroUn  || (p.unidade  || "todas")  === padmFiltroUn);
+  const abertas = vis.filter(p => !p.concluida && dentro(p));
+  const feitas  = vis.filter(p =>  p.concluida && dentro(p));
+
+  /* ⚠️ ISTO FICA NO TOPO, SEMPRE, PARA QUEM NÃO TEM UNIDADE — e não só quando a lista está vazia.
+     🔑 Uma lista curta é indistinguível de uma lista curta POR ESTAR CEGA: sem este aviso, quem
+     não foi ligada a nenhuma unidade lê "só tem uma pendência" e entende "está quase tudo em dia",
+     quando o certo é "eu só estou vendo o que tem o meu nome". E o caso vazio seria pior ainda: um
+     "Nenhuma pendência 🎉" é uma mentira simpática para quem não está em dia, e sim sem enxergar. */
+  let h = (!ehAdminAtual() && !padmMinhasUnidades().length)
+    ? '<p class="nota-dash">⚠️ Você ainda não está ligada a nenhuma unidade, então esta lista só mostra o que for aberto <b>no seu nome</b> e o que vale para <b>todas as unidades</b>. Peça ao administrador para marcar a sua unidade.</p>'
+    : "";
+  if (!abertas.length){
+    h += '<p class="nota-dash">' + ((padmFiltroCat || padmFiltroUn) ? "Nada em aberto com este filtro." : "Nenhuma pendência em aberto. 🎉") + '</p>';
+  } else {
+    PADM_BLOCOS.forEach(b => {
+      const grupo = abertas.filter(p => padmBloco(p) === b)
+        .sort((a, c) => {
+          const pa = String(a.prazo || "9999-12-31"), pc = String(c.prazo || "9999-12-31");
+          if (pa !== pc) return pa < pc ? -1 : 1;          /* prazo mais perto primeiro */
+          return msDeQuando(c.criadaEm) - msDeQuando(a.criadaEm);
+        });
+      if (!grupo.length) return;
+      h += '<div class="pnd-sec">' + b.tit + ' <span class="pnd-n">' + grupo.length + '</span></div>';
+      h += grupo.map(p => padmCardHtml(p, false)).join("");
+    });
+  }
+  box.innerHTML = h;
+
+  const cnt = document.getElementById("padmContador");
+  if (cnt){
+    const atrasadas = abertas.filter(padmAtrasada).length;
+    cnt.textContent = abertas.length + " em aberto" +
+      (atrasadas ? (" · " + atrasadas + " passou do prazo") : "") +
+      (feitas.length ? (" · " + feitas.length + " resolvida" + (feitas.length === 1 ? "" : "s")) : "");
+  }
+  const bf = document.getElementById("padmBtnFeitas");
+  if (bf) bf.style.display = feitas.length ? "" : "none";
+  const cff = document.getElementById("padmFeitas");
+  if (cff && padmMostrarFeitas){
+    cff.innerHTML = feitas.length
+      ? feitas.sort((a, b) => msDeQuando(b.concluidaEm) - msDeQuando(a.concluidaEm)).map(p => padmCardHtml(p, true)).join("")
+      : '<p class="nota-dash">Nada resolvido ainda.</p>';
+  }
+  const m = document.getElementById("padmMsg");
+  if (m){ m.textContent = padmMsg || ""; m.style.display = padmMsg ? "" : "none"; }
+  atualizarBadgePendAdm();
 }
 
 /* ---- v321: 👤 Adicionar uma pessoa — o formulário morto vira os dois passos que existem -------
