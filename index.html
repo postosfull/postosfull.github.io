@@ -889,6 +889,17 @@
   .cardres-l{display:flex;justify-content:space-between;align-items:baseline;padding:6px 10px;font-size:18px;border-radius:8px}
   .cardres-l b{font-variant-numeric:tabular-nums;font-weight:700}
   .cardres-l.tot{background:#fff4ec;font-weight:800;margin-top:5px}
+  /* v317 - a linha miudinha de cada tanque no cartao do Recebimento.
+     🔑 Cores FIXAS, como o resto do `.cardres`: o cartao vira imagem e vai para o WhatsApp, onde
+     nao existe tema escuro nem `var()`. */
+  .cardres-sub{display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+    padding:0 10px 7px;font-size:13px;color:#6b7280;line-height:1.4}
+  .cardres-sub .nao{color:#b42318;font-weight:700}
+  .cardres-sub .ok{color:#087443;font-weight:700}
+  /* 🔴 O ESTADO DA NOTA NAO QUEBRA LINHA. A FOTO pegou: no tanque com dois compartimentos o texto
+     da esquerda ocupa duas linhas e arrastava o "nota nao lancada" junto, desalinhando a linha
+     inteira. Quem pode quebrar e' a descricao; o estado, nao. */
+  .cardres-sub > span:last-child{white-space:nowrap}
   .cardres-mes{margin-top:16px;padding-top:12px;border-top:1px solid #e8eaed;display:flex;justify-content:space-between;
     align-items:baseline;gap:10px;font-size:13px;color:#6b7280}
   .cardres-mes b{color:#1b1f24;font-variant-numeric:tabular-nums}
@@ -3751,6 +3762,9 @@
       <h2>📥 Recebimento de combustível</h2>
       <p class="nota-dash">Cada descarga de caminhão: a hora, a <b>altura no tanque</b> (a mesma que o funcionário confere na régua), os litros que entraram e a comparação com a nota lançada. Vem do Veeder Root, pelo Petros — <b>ninguém precisa mais fotografar o relatório</b>.</p>
       <div id="rcbBox"></div>
+      <!-- v317 - o cartao que vira imagem. Fica fora da tela ate alguem pedir (mesma peca do
+           Resumo do dia: classe `cardres`, cores fixas claras, `left:-10000px`). -->
+      <div id="cartaoReceb" class="cardres"></div>
     </div>
   </div>
 
@@ -6570,6 +6584,10 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v318", data:"10/08/2026", tit:"\ud83d\uddbc\ufe0f O recebimento de combust\u00edvel agora sai como IMAGEM", itens:[
+    {t:"n", h:"Bot\u00e3o <b>\ud83d\uddbc\ufe0f Enviar como imagem</b>, ao lado do Copiar", d:"Pedido do Tiago: <i>\u201calém de copiar a mensagem para colar no whatsapp devia ter a opção de enviar como foto para ficar mais fácil o entendimento, que nem você já faz em alguns outros menus como o Resumo do dia\u201d</i>. O cart\u00e3o sai com a logo, um bloco por tanque com os <b>litros</b>, a <b>hora</b>, a <b>altura da r\u00e9gua</b> e o estado da nota \u2014 e no rodap\u00e9 o total do posto. <b>No celular abre direto o compartilhamento</b>; no computador, baixa o arquivo."},
+    {t:"m", h:"E ele reusa a MESMA pe\u00e7a do Resumo do dia", d:"Nada de cart\u00e3o novo: s\u00e3o as mesmas classes e o mesmo caminho de gera\u00e7\u00e3o que existem desde a v154, com as cores fixas claras \u2014 porque a imagem vai para o WhatsApp, onde n\u00e3o existe tema escuro. <b>Escrever um segundo cart\u00e3o com a mesma cara seria criar a pr\u00f3xima diverg\u00eancia.</b>"}
+  ]},
   {v:"v317", data:"09/08/2026", tit:"\ud83d\ude9b O \u00edcone do Recebimento de combust\u00edvel", itens:[
     {t:"c", h:"O \u00edcone do menu <b>Recebimento de combust\u00edvel</b> agora acompanha o estilo escolhido", d:"Ele era o \u00fanico bot\u00e3o da barra sem desenho pr\u00f3prio. Nos estilos <b>Minimalista</b> e <b>Vivo</b> ele continuava sendo o emoji \ud83d\udce5 \u2014 e trocar de estilo ou recarregar a p\u00e1gina n\u00e3o mudava nada, porque n\u00e3o havia desenho para pintar. Agora ele tem o seu: um <b>caminh\u00e3o-tanque</b>, no mesmo tra\u00e7o dos outros \u00edcones. No estilo <b>Cl\u00e1ssico</b> o emoji continua, como em todos os menus."}
   ]},
@@ -14334,6 +14352,112 @@ function rcbCopiar(dia, nomePosto){
   document.body.removeChild(ta); fim();
 }
 
+/* ---- v317: o cartão que vira IMAGEM ------------------------------------------------------
+   🔑 NENHUMA PEÇA NOVA. Este cartão usa as MESMAS classes `cardres-*` do Resumo do dia (v154) e
+   o MESMO caminho de geração (`carregarBibliotecasPDF` → html2canvas → `navigator.share` no
+   celular, download no computador). Escrever um segundo cartão com a mesma cara seria criar a
+   próxima divergência — é a lição da v307.
+
+   🔴 E ele NÃO decide nada por conta própria: a situação de cada tanque sai de `rcbSituacao()`,
+   a mesma da tela e a mesma do texto do WhatsApp. Se o cartão tivesse a própria regra, um dia a
+   imagem diria "dentro da faixa" e a tela diria o contrário — e quem descobre isso é o cliente.
+
+   ⚠️ As cores aqui são FIXAS e claras, de propósito: a imagem vai para o WhatsApp, onde não
+   existe tema escuro nem `var()`. É a mesma decisão que o `.cardres` do Resumo do dia tomou. */
+
+function rcbCartaoLinhaSub(esq, dirHtml){
+  return '<div class="cardres-sub"><span>' + esq + '</span>' + (dirHtml || '') + '</div>';
+}
+
+function montarCartaoReceb(dia, nomePosto){
+  const d = (recebimentos || []).find(x => String(x.data || x.id) === dia);
+  const p = d && d.postos ? d.postos[nomePosto] : null;
+  const el = document.getElementById("cartaoReceb");
+  if (!p || !el) return null;
+
+  const tanques = (p.tanques || []).filter(t => rcbSituacao(t));
+  if (!tanques.length) return null;
+
+  let total = 0, h = "";
+  h += '<div class="cardres-topo"><img src="logo-full.png" alt="Postos Full">' +
+       '<div class="cardres-dt">Recebimento de<b>' + escAttr(rcbDataBR(dia)) + '</b></div></div>';
+  h += '<div class="cardres-corpo">';
+  h += '<div class="cardres-sec">⛽ ' + escAttr(String(nomePosto).toUpperCase()) +
+       ' <span class="un">litros recebidos</span></div>';
+
+  tanques.forEach(t => {
+    const sit = rcbSituacao(t);
+    const r = t.recebimentos;
+    const ini = r[0], fim = r[r.length - 1];
+    total += Number(t.recebidoBr) || 0;
+
+    h += cardLinhaResumo(t.tanque, rcbL(t.recebidoBr));
+    /* a linha miudinha: a HORA e a ALTURA — que é o número pelo qual o recebimento é conferido */
+    h += rcbCartaoLinhaSub(
+      rcbHora(ini.inicio) + '–' + rcbHora(fim.fim) +
+      ' · régua ' + rcbMM(ini.altIni) + ' → ' + rcbMM(fim.altFim) +
+      (r.length > 1 || (r[0].drops && r[0].drops.length > 1)
+        ? ' · ' + r.reduce((a, x) => a + (x.drops ? x.drops.length : 1), 0) + ' compartimentos'
+        : ''),
+      /* 🔴 o estado da nota vem de rcbSituacao, nunca recalculado aqui */
+      /* 🔴 A GUARDA DO `notaDoDia` NAO E' PARANOIA — ela apareceu num teste que sabotou o
+         `rcbSituacao` e derrubou o cartao inteiro com "Cannot read properties of null".
+         Em producao o estado e' impossivel (so ha' `ok`/`fora` quando a nota existe), mas
+         🔑 desreferenciar um campo com base numa CONCLUSAO tomada em outra funcao e' um
+         acoplamento invisivel: no dia em que a regra mudar, quem quebra e' o cartao, e o
+         cartao e' justamente o que a equipe manda no grupo. */
+      (sit.k === "semnota" || !t.notaDoDia
+        ? '<span class="nao">nota não lançada</span>'
+        : (sit.k === "aberta"
+            ? '<span>ainda descarregando</span>'
+            : '<span class="' + (sit.k === "ok" ? 'ok' : 'nao') + '">nota ' +
+              rcbL(t.notaDoDia.litros) + ' · ' + (t.diferencaBr > 0 ? '+' : '') +
+              rcbL(t.diferencaBr) + '</span>')));
+  });
+
+  h += cardLinhaResumo("Total", rcbL(total), true);
+
+  /* o rodapé diz DE ONDE vem o número — a mesma ideia do selo do cabeçalho (v265) */
+  h += '<div class="cardres-mes"><div>Medido pelo Veeder Root' +
+       (p.intervaloMin ? ' · sonda de ' + p.intervaloMin + ' em ' + p.intervaloMin + ' min' : '') +
+       '</div><div><b>' + tanques.length + ' tanque' + (tanques.length === 1 ? '' : 's') +
+       '</b></div></div>';
+  h += '</div>';
+  el.innerHTML = h;
+  return el;
+}
+
+async function rcbImagem(dia, nomePosto){
+  const el = montarCartaoReceb(dia, nomePosto);
+  if (!el){ rcbMsg = "Não achei esse recebimento."; renderRecebimento(); return; }
+  rcbMsg = "Gerando a imagem…"; renderRecebimento();
+  try {
+    await carregarBibliotecasPDF();
+    const canvas = await html2canvas(el, { scale:2, backgroundColor:"#ffffff", useCORS:true, logging:false });
+    const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
+    const nome = "recebimento-" + String(nomePosto).toLowerCase() + "-" + dia + ".png";
+    const legenda = "📥 Recebimento de combustível — " + nomePosto + ", " + rcbDataBR(dia);
+    const arq = new File([blob], nome, { type:"image/png" });
+    if (navigator.canShare && navigator.canShare({ files:[arq] })){
+      await navigator.share({ files:[arq], text: legenda });
+      rcbMsg = "Escolha o grupo para enviar a imagem."; renderRecebimento();
+      return;
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = nome; document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    rcbMsg = "Imagem salva (" + nome + ") — é só anexar no WhatsApp."; renderRecebimento();
+  } catch(e){
+    /* ⚠️ cancelar o compartilhamento NÃO é erro: o aparelho manda AbortError e a mensagem
+       precisa dizer isso, senão a pessoa acha que quebrou. */
+    rcbMsg = (e && e.name === "AbortError") ? "Envio cancelado."
+           : ("Não consegui gerar a imagem: " + (e && e.message ? e.message : e));
+    renderRecebimento();
+  }
+}
+
 /* ---- a tela ---------------------------------------------------------------------------- */
 function renderRecebimento(){
   const box = document.getElementById("rcbBox");
@@ -14444,10 +14568,16 @@ function renderRecebimento(){
            (p.intervaloMin ? ' · sonda de ' + p.intervaloMin + ' em ' + p.intervaloMin +
                              ' min' : '') + '</span></div>';
 
-      h += '<div class="rcb-acoes"><button class="btn-claro" onclick="rcbCopiar(' +
-           JSON.stringify(dia).replace(/"/g, "&quot;") + ', ' +
-           JSON.stringify(nm).replace(/"/g, "&quot;") +
-           ')">📋 Copiar a mensagem do WhatsApp</button></div>';
+      const argsD = JSON.stringify(dia).replace(/"/g, "&quot;");
+      const argsP = JSON.stringify(nm).replace(/"/g, "&quot;");
+      /* 🔑 A ordem é a do Resumo do dia: a imagem primeiro, o texto depois — foi ele quem
+         pediu a imagem justamente por ser mais fácil de entender no grupo. */
+      h += '<div class="rcb-acoes">' +
+             '<button class="btn-verde" onclick="rcbImagem(' + argsD + ', ' + argsP +
+               ')">🖼️ Enviar como imagem</button>' +
+             '<button class="btn-claro" onclick="rcbCopiar(' + argsD + ', ' + argsP +
+               ')">📋 Copiar a mensagem do WhatsApp</button>' +
+           '</div>';
 
       h += '<div class="rcb-grade">';
       comRec.forEach(t => {
