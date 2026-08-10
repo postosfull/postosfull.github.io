@@ -1999,6 +1999,24 @@
   .adm-ficha{border:2px solid #FE7030;border-radius:11px;padding:12px 14px;margin:0 0 10px;background:var(--superficie);background-image:linear-gradient(var(--superficie),var(--superficie))}
   .adm-ficha-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:8px}
   .adm-ficha-nome{border:1px solid var(--borda);border-radius:8px;padding:6px 9px;font-size:.85rem;font-weight:600;font-family:inherit;background:var(--superficie);color:var(--txt);min-width:170px}
+  /* v322 - apagar a ficha. 🔑 Cores pedidas por TOKEN QUE EXISTE (`--vermelho`, `--erro-bg`):
+     a licao da v311, em que 23 declaracoes morreram caladas por pedir cor inventada. */
+  .adm-apagar{color:var(--vermelho);border-color:var(--vermelho)}
+  .adm-apagar-box{border:1px solid var(--vermelho);background:var(--erro-bg);border-radius:8px;
+    padding:12px 14px;margin-top:6px;font-size:.88rem;line-height:1.6}
+  .adm-apagar-box p{margin:0 0 8px}
+  .adm-apagar-grave{font-weight:600}
+  .adm-apagar-bts{display:flex;gap:8px;flex-wrap:wrap}
+  /* 🔴 `background-image:none` NAO E' ENFEITE: o `.btn-claro` poe um gradiente cinza, e
+     gradiente pinta POR CIMA da cor de fundo. Sem esta linha o botao fica cinza com a regra
+     de cor "certa" — foi o que a foto pegou. 🔑 Cor certa na folha nao e' cor certa na tela. */
+  /* 🔴 `button.` NAO E' ENFEITE, E' ESPECIFICIDADE: existe um SEGUNDO `.btn-claro`, mais
+     abaixo na folha, que poe um gradiente cinza. Com a mesma especificidade das duas, a
+     de baixo ganha — e o botao de apagar sai CINZA com a regra de cor "certa".
+     🔑 A licao da v311 uma camada abaixo: cor certa na folha nao e' cor certa na tela,
+     e quem decide nao e' quem pediu primeiro. */
+  button.adm-apagar-sim{background-image:none;background:var(--vermelho);color:#fff;
+    border-color:var(--vermelho);font-weight:700}
   .adm-ficha-bts{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
   .adm-sec{font-size:.8rem;font-weight:700;margin:13px 0 5px}
   .adm-herda{background:#FFF0E6;background-image:linear-gradient(#FFF0E6,#FFF0E6);border:1px solid #FFD8BF;border-radius:9px;padding:8px 11px;font-size:.76rem;line-height:1.5;margin:8px 0;color:#1E1E1E}
@@ -4857,7 +4875,10 @@ function podeMexerEmAdmin(){ return ehDonoAtual(); }
    o app esta quebrado — a licao da v286 (icone explica estado; VERBO explica o porque). */
 function negarAdm(caixa, oQue){
   avisoAdmin(caixa || "msgAdminLista",
-    "🔒 " + oQue + " Esta e' uma trava de seguranca do app: ela nao depende de ser administrador.",
+    /* 🔴 v322 - ESTA FRASE ESTAVA SEM ACENTO NA TELA DA EQUIPE desde a v320 ("Esta e' uma trava
+       de seguranca... ela nao depende"). E' o estilo dos meus COMENTARIOS vazando para texto de
+       tela. 🔑 Comentario e' para mim; frase de tela e' para quem usa o app. */
+    "🔒 " + oQue + " Esta é uma trava de segurança do app: ela não depende de ser administrador.",
     "erro");
   return false;
 }
@@ -6034,6 +6055,102 @@ function renderAbaAdm(){
 /* ----- aba Pessoas ----- */
 function admBusca(v){ admBuscaTxt = String(v || ""); renderAdminUsuarios(); }
 function admFiltroPerfil(v){ admFiltroPerfilSel = String(v || ""); renderAdminUsuarios(); }
+/* ---- v322: 🗑️ apagar a ficha de uma pessoa -----------------------------------------------
+
+   🔴 POR QUE ELA EXISTE, e a lição é a mesma de hoje pela SEGUNDA vez: a v321 tornou fácil
+   CRIAR uma ficha e deixou o DESFAZER de fora. Ele preencheu o formulário para testar, a ficha
+   nasceu — e o app não tinha como apagá-la. 🔑 Botão que cria sem botão que apaga não é
+   funcionalidade pela metade: é uma armadilha para quem experimenta.
+   ⚠️ E o que existia por perto ENGANAVA: a `liberarTudoUsuario` tira o PERFIL (manda para a tela
+   de espera) e deixa o NOME gravado em `perfis` — a pessoa continua na lista, parecendo que o
+   botão não fez nada.
+
+   🔴 A COISA MAIS IMPORTANTE QUE ESTA TELA TEM DE DIZER: apagar a ficha NÃO apaga a conta.
+   Quem já tem conta no Firebase CONTINUA CONSEGUINDO ENTRAR — só cai na tela de espera. Tirar o
+   acesso de verdade é bloquear a conta no Firebase, e o aviso leva para lá.
+   👉 Decisão dele (10/08): o botão vale para qualquer pessoa, COM esse aviso na confirmação.  */
+
+let admFichaApagar = null;   /* e-mail com a confirmação aberta — estado em variável, nunca no DOM */
+
+/* 🔑 "Já entrou" é medido pela PRESENÇA, que é o mesmo sinal que a lista mostra como
+   "nunca entrou". Não inventa um segundo jeito de saber a mesma coisa. */
+function fichaJaEntrou(email){ return !!(presencaMap[String(email || "").toLowerCase()] || 0); }
+
+function pedirApagarFicha(email){
+  email = String(email || "").toLowerCase();
+  if (!podeMexerNaFicha(email)) return negarFicha();              /* v320 */
+  if (ehDono(email)) return negarAdm("msgAdminLista",
+    "A ficha do dono do app não pode ser apagada, nem por ele mesmo.");
+  admFichaApagar = email;
+  renderAdminUsuarios();
+}
+function cancelarApagarFicha(){ admFichaApagar = null; renderAdminUsuarios(); }
+
+/* 🔴 A ORDEM DAS DUAS GRAVAÇÕES É UMA DECISÃO DE SEGURANÇA, não arrumação.
+   Primeiro sai a PERMISSÃO, depois o NOME. Se a segunda falhar, a pessoa fica sem acesso e com
+   o nome na lista — que é um estado que o app já conhece (é o mesmo da `liberarTudoUsuario`).
+   ⚠️ Na ordem inversa, a falha deixaria alguém COM ACESSO e sem nome. 🔑 Quando uma operação
+   tem duas metades, a primeira a executar é a que fecha a porta. */
+function apagarFichaUsuario(email){
+  email = String(email || "").toLowerCase();
+  if (!podeMexerNaFicha(email)) return negarFicha();              /* v320 */
+  if (ehDono(email)) return negarAdm("msgAdminLista",
+    "A ficha do dono do app não pode ser apagada, nem por ele mesmo.");
+  if (!permissoesTodos[email] && !(perfis || {})[email])
+    return avisoAdmin("msgAdminLista", "Não existe ficha com esse e-mail.", "erro");
+
+  const nome = admNomeDe(email);
+  const entrou = fichaJaEntrou(email);
+  admFichaApagar = null;
+  admFichaAberta = "";                     /* a ficha fecha: não sobra tela de quem não existe */
+  delete permissoesTodos[email];
+
+  gravarPermissoesAdm(null, () => {
+    colPerfis.doc(email).delete()
+      .then(() => {
+        avisoAdmin("msgAdminLista", "Ficha de " + nome + " apagada." +
+          (entrou ? " ⚠️ A conta dela no Firebase CONTINUA ATIVA — bloqueie por lá se quiser " +
+                    "tirar o acesso de vez." : ""), "ok");
+        renderAdminUsuarios();
+      })
+      /* 🔴 NÃO desfaz: a metade que já foi é a que protege. A mensagem diz exatamente onde parou,
+         em vez de anunciar um sucesso que não houve. */
+      .catch(er => { avisoAdmin("msgAdminLista",
+        "O acesso de " + nome + " foi removido, mas o NOME não foi apagado (" + msgErro(er) +
+        "). Tente apagar a ficha de novo.", "erro"); renderAdminUsuarios(); });
+  }, "msgAdminLista");
+
+  logAtividade({ acao:"apagou", area:"Pessoas", resumo:"Apagou a ficha de " + email });
+}
+
+/* 🔑 A CONFIRMAÇÃO DIZ O QUE SOME **E O QUE FICA**. Confirmação que só pergunta "tem certeza?"
+   transfere o risco para a pessoa sem lhe dar a informação para decidir. */
+function apagarFichaHtml(email){
+  const a = aspAdm(email);
+  if (admFichaApagar !== email)
+    return '<div class="adm-sec">🗑️ Apagar a ficha</div>' +
+      '<p class="nota-dash">Tira esta pessoa da lista: o <b>nome</b> e o <b>perfil de acesso</b> dela. ' +
+      'A conta no Firebase não é tocada.</p>' +
+      '<button class="btn-claro adm-apagar" onclick="pedirApagarFicha(\'' + a + '\')">🗑️ Apagar a ficha</button>';
+
+  const entrou = fichaJaEntrou(email);
+  let h = '<div class="adm-sec">🗑️ Apagar a ficha</div><div class="adm-apagar-box">';
+  h += '<p><b>Apagar a ficha de ' + escAttr(admNomeDe(email)) + '?</b></p>';
+  h += '<p><b>Some:</b> o nome que aparece no app e o perfil de acesso. Ela sai da lista de Pessoas.</p>';
+  h += entrou
+    ? ('<p class="adm-apagar-grave">⚠️ <b>Esta pessoa já entrou no app.</b> Apagar a ficha ' +
+       '<b>NÃO tira o acesso dela</b>: a conta continua ativa no Firebase e ela consegue entrar — ' +
+       'vai cair na tela de espera. Para tirar o acesso de vez, bloqueie a conta em ' +
+       '<a class="link-console" href="https://console.firebase.google.com/project/postos-full/authentication/users" target="_blank" rel="noopener">Firebase › Users ↗</a>.</p>')
+    : ('<p><b>Fica:</b> nada — esta pessoa <b>nunca entrou no app</b>. Se você também não chegou ' +
+       'a criar a conta dela no Firebase, não sobra rastro nenhum.</p>');
+  h += '<p class="nota-dash">O que ela fez fica no histórico de 📜 Atividades, como sempre.</p>';
+  h += '<span class="adm-apagar-bts">' +
+    '<button class="btn-claro adm-apagar-sim" onclick="apagarFichaUsuario(\'' + a + '\')">Sim, apagar a ficha</button>' +
+    '<button class="btn-claro" onclick="cancelarApagarFicha()">Cancelar</button></span>';
+  return h + '</div>';
+}
+
 function abrirFichaPessoa(email){
   email = String(email || "").toLowerCase();
   admFichaAberta = (admFichaAberta === email) ? "" : email;
@@ -6197,6 +6314,9 @@ function fichaPessoaHtml(e){
     });
     h += '</div>';
   }
+  /* 🔴 v322 - por ULTIMO na ficha, de proposito: e' o que nao se faz por engano ao rolar a tela.
+     ⚠️ E NAO aparece na ficha trancada — a do dono, vista por outro admin. */
+  if (!trancada && !ehDono(e)) h += apagarFichaHtml(e);
   h += '</div>';
   return h;
 }
@@ -6732,6 +6852,10 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v322", data:"10/08/2026", tit:"\ud83d\uddd1\ufe0f D\u00e1 para APAGAR a ficha de uma pessoa \u2014 e a tela diz o que some e o que fica", itens:[
+    {t:"n", h:"O bot\u00e3o fica no fim da ficha da pessoa", d:"Abra o nome dela na lista de <b>Pessoas</b> e role at\u00e9 o fim: <b>\ud83d\uddd1\ufe0f Apagar a ficha</b>. Some o <b>nome</b> e o <b>perfil de acesso</b>, e ela sai da lista. <b>O que ela fez continua no hist\u00f3rico de \ud83d\udcdc Atividades.</b>"},
+    {t:"m", h:"\u26a0\ufe0f Apagar a ficha N\u00c3O tira o acesso de quem j\u00e1 usa o app", d:"A conta no Firebase \u00e9 outra coisa: quem j\u00e1 entrou alguma vez <b>continua conseguindo entrar</b> depois de a ficha ser apagada \u2014 vai cair na tela de espera. Por isso a confirma\u00e7\u00e3o <b>avisa e leva ao Firebase</b> quando \u00e9 esse o caso. Para quem <b>nunca entrou</b>, ela diz isso tamb\u00e9m, e a\u00ed n\u00e3o sobra rastro."}
+  ]},
   {v:"v321", data:"10/08/2026", tit:"\ud83d\udc64 O bot\u00e3o \u201cCriar novo usu\u00e1rio\u201d, que n\u00e3o funcionava desde junho, deu lugar aos dois passos que existem", itens:[
     {t:"m", h:"O formul\u00e1rio saiu \u2014 e a tela passou a dizer a verdade", d:"Criar conta pelo app foi <b>fechado de prop\u00f3sito</b> na v269, e desde ent\u00e3o aquele bot\u00e3o respondia um erro em ingl\u00eas. <b>O aviso disso j\u00e1 estava aqui no Novidades desde junho, e o bot\u00e3o continuou na tela ao lado dele.</b> Agora o quadro se chama <b>\ud83d\udc64 Adicionar uma pessoa</b> e mostra os dois passos: criar a conta no Firebase (com o link) e preparar a ficha aqui."},
     {t:"n", h:"E a segunda metade agora \u00e9 um bot\u00e3o: <b>Preparar a ficha</b>", d:"Voc\u00ea digita o nome, o mesmo e-mail que usou no Firebase e escolhe o perfil de acesso. A pessoa <b>j\u00e1 entra com o nome certo e vendo os menus</b>, em vez de cair na tela de espera e gerar um aviso de \u201cesperando perfil\u201d. Se o e-mail j\u00e1 tiver ficha, o bot\u00e3o <b>recusa e explica</b> \u2014 trocar o perfil de algu\u00e9m se faz abrindo o nome dela na lista, onde d\u00e1 para ver o que est\u00e1 mudando."}
