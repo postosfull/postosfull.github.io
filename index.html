@@ -6857,7 +6857,13 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
-  {v:"v324", data:"10/08/2026", tit:"\u23f3 A cota\u00e7\u00e3o vale s\u00f3 no dia em que foi lan\u00e7ada", itens:[
+  {v:"v325", data:"10/08/2026", tit:"\ud83e\uddfe O hist\u00f3rico desta lista voltou a ficar completo", itens:[
+    {t:"c", h:"Faltava a v323 aqui dentro", d:"Esta lista pulava da <b>v322 para a v324</b>. As mudan\u00e7as das <b>Cota\u00e7\u00f5es do Dia</b> sa\u00edram na <b>v323</b> e estavam sendo contadas na linha da v324, que na verdade s\u00f3 consertou a barra presa. <b>Agora cada vers\u00e3o conta o que ela mesma fez</b> \u2014 nada no app mudou com esta."}
+  ]},
+  {v:"v324", data:"10/08/2026", tit:"\u27f3 A barra \u201cTrazendo a vers\u00e3o nova\u201d ficou presa \u2014 e foi solta", itens:[
+    {t:"c", h:"Quem abriu o app depois da v323 via um aviso que n\u00e3o passava", d:"A v323 subiu sem a pr\u00f3pria linha nesta lista, ent\u00e3o o app se achava atrasado e ficava <b>procurando para sempre</b> uma vers\u00e3o que, na conta dele, nunca chegava \u2014 a faixa laranja <b>\u201c\u23f3 Trazendo a vers\u00e3o nova\u2026\u201d</b> ficava na tela. Consertado cerca de 20 minutos depois. <b>As mudan\u00e7as das Cota\u00e7\u00f5es s\u00e3o as da v323, logo abaixo.</b>"}
+  ]},
+  {v:"v323", data:"10/08/2026", tit:"\u23f3 A cota\u00e7\u00e3o vale s\u00f3 no dia em que foi lan\u00e7ada", itens:[
     {t:"c", h:"Pre\u00e7o de outro dia n\u00e3o aparece mais como se fosse de hoje", d:"O menu <b>\ud83d\udcb2 Cota\u00e7\u00f5es do Dia</b> mostrava distribuidoras com <b>\u2713 lan\u00e7ada</b> e o nome de quem lan\u00e7ou, mas os pre\u00e7os eram de <b>dias atr\u00e1s</b> \u2014 eles ficavam guardados e nunca venciam. Agora cada pre\u00e7o vale <b>s\u00f3 no dia em que foi lan\u00e7ado</b>, e quem ainda n\u00e3o tem cota\u00e7\u00e3o de hoje aparece como <b>sem cota\u00e7\u00e3o hoje</b>."},
     {t:"n", h:"\u21ba Repetir o pre\u00e7o do \u00faltimo dia num clique", d:"Onde o campo est\u00e1 vazio, ao lado dele aparece uma pastilha cinza com o <b>\u00faltimo dia em que aquele produto foi lan\u00e7ado</b> (por exemplo <b>\u21ba 04/08</b>). Passe o mouse para ver quanto era; <b>clique para usar o mesmo pre\u00e7o como cota\u00e7\u00e3o de hoje</b>, com o seu nome."},
     {t:"c", h:"O \ud83d\uded2 O que comprar espera as cota\u00e7\u00f5es do dia", d:"Antes ele j\u00e1 abria apontando uma distribuidora, usando pre\u00e7o velho. Agora, enquanto ningu\u00e9m tiver lan\u00e7ado cota\u00e7\u00e3o hoje, ele diz <b>\u23f3 Aguardando as cota\u00e7\u00f5es de hoje</b> e n\u00e3o aponta ningu\u00e9m. <b>Pre\u00e7o de outro dia n\u00e3o decide a compra de hoje.</b>"},
