@@ -1650,6 +1650,15 @@
   .am-p{font-size:.78rem;font-weight:600;min-width:62px;text-align:right}
   @media(max-width:520px){ .cxi-q{min-width:34px} .cxi-v{min-width:70px} .am-p{min-width:52px} }
   .rpz-nome{max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* v327 - a linha do cliente na aba A Prazo vira botao. Cores literais de proposito:
+     var(--verde) e o LARANJA da marca, nao "positivo" (armadilha do mapa do projeto). */
+  tr.rpz-cli{cursor:pointer}
+  tr.rpz-cli:hover>td{background:var(--superficie-2)}
+  tr.rpz-cli-on>td{background:var(--superficie-2);font-weight:600}
+  .rpz-fic{white-space:normal;background:var(--superficie-2);border:1px solid var(--borda);border-radius:10px;padding:10px 11px 12px;margin:8px 0 2px}
+  .rpz-fic-tit{font-size:.78rem;font-weight:700;margin:0 0 7px}
+  .rpz-fic-res{font-size:.72rem;color:var(--cinza);margin:7px 0 0}
+  .rpz-fic-fecha{float:right;font-size:.7rem;color:var(--cinza);cursor:pointer;border:1px solid var(--borda);border-radius:6px;padding:1px 7px}
   .rpz-un{font-size:.62rem;font-weight:700;color:var(--cinza);background:var(--superficie-2);border:1px solid var(--borda);border-radius:5px;padding:0 4px;margin-right:5px;white-space:nowrap}
   @media (max-width:640px){
     table.rpz-tab{font-size:.72rem}
@@ -4645,6 +4654,7 @@ let despesasAno = {}, dspAnoSel = "", dspPostoSel = "todos", dspComRet = true;  
    duas, e e a razao de contagemAba() poder devolver null com honestidade. */
 let vistoRelPetros = false;
 let relPetros = {}, rpzAba = "mapa", rpzUnidSel = "teresina", rpzPerSel = "";  // v191
+let rpzCliAberto = "";   // v327 - qual cliente da aba A Prazo esta com a ficha aberta
 let ordemAbasRel = {}, abaRelAtual = "", ordAbasAberto = false;  // v192
 let nomesAbasRel = {}, renAbasAberto = false;                     // v207 - nomes escolhidos pelo Tiago
 /* v224 - em qual menu cada aba mora ("rel" = Relatorios, "fin" = Financeiro).
@@ -6957,6 +6967,13 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v327", data:"10/08/2026", tit:"\ud83d\udc64 A Prazo: clique no cliente e veja a ficha dele", itens:[
+    {t:"n", h:"A lista de maiores clientes virou bot\u00e3o", d:"Na aba <b>\ud83c\udfe6 Financeiro \u2192 \ud83d\udcc4 A Prazo</b>, clicar num cliente abre a <b>ficha dele</b> ali mesmo: quanto ele tem <b>em aberto</b>, quanto j\u00e1 <b>venceu</b>, quanto est\u00e1 <b>a vencer</b> e quantos t\u00edtulos s\u00e3o. Clicar de novo fecha."},
+    {t:"n", h:"O atraso de cada um, separado", d:"Quando o cliente tem coisa vencida, a ficha mostra <b>como o atraso dele est\u00e1 dividido</b> \u2014 at\u00e9 30 dias, de 31 a 90, e mais de 90. \u00c9 o mesmo quadro que j\u00e1 existia para o posto inteiro, agora para uma pessoa s\u00f3."},
+    {t:"n", h:"Todos os t\u00edtulos dele, e desde quando ele compra", d:"A ficha lista <b>os t\u00edtulos daquele cliente</b> com emiss\u00e3o, vencimento, dias de atraso, valor e forma de cobran\u00e7a \u2014 e no fim diz <b>que fatia da carteira ele representa</b> e a data do t\u00edtulo mais antigo e do mais recente."},
+    {t:"m", h:"A lista de t\u00edtulos vencidos tamb\u00e9m abre a ficha", d:"Clicar num nome dentro de <b>T\u00edtulos vencidos</b> abre a ficha do mesmo jeito \u2014 e o cliente sobe para a lista de cima, mesmo que ele n\u00e3o esteja entre os 15 maiores."},
+    {t:"c", h:"O que esta vers\u00e3o ainda N\u00c3O faz", d:"Ela mostra <b>o que o cliente deve</b>, e s\u00f3. <b>Margem por cliente</b> \u2014 quanto cada um d\u00e1 de lucro \u2014 depende de uma coleta nova no Petros que ainda n\u00e3o existe, e fica para uma pr\u00f3xima vers\u00e3o."}
+  ]},
   {v:"v326", data:"10/08/2026", tit:"\u2705 Menu novo: Pend\u00eancias Administrativas \u2014 o que cada unidade tem para resolver", itens:[
     {t:"n", h:"Cada um v\u00ea o que \u00e9 da sua unidade", d:"O menu novo fica no grupo <b>\ud83d\udcc1 Organiza\u00e7\u00e3o</b>, ao lado da Caixa de entrada. Cada pend\u00eancia nasce ligada a uma <b>unidade</b> (Teresina, Caxias, Dutra, as tr\u00eas lojas ou a Transportadora), e voc\u00ea enxerga <b>as da sua unidade</b> mais o que for aberto <b>no seu nome</b>. Quem responde por mais de uma unidade ganha um filtro para escolher."},
     {t:"n", h:"Prioridade, categoria e prazo", d:"A lista vem em blocos: <b>\u23f0 Passou do prazo</b>, <b>\ud83d\udd34 Urgente</b>, <b>\ud83d\udfe1 Esta semana</b> e <b>\ud83d\udd35 Quando der</b>. O que tem prazo vencido <b>sobe para o topo</b>, seja qual for a prioridade. Os bot\u00f5es de cima filtram por categoria (Documentos e licen\u00e7as, Financeiro, Fiscal, Combust\u00edvel e tanques, Loja, Equipe, Manuten\u00e7\u00e3o, Sistema e dados)."},
@@ -11320,6 +11337,66 @@ function rpzBlocoColab(ls){
 }
 
 /* --- A Prazo: [cliente, titulo, parcela, emissao, vencimento, valor, tipo, cobranca] --- */
+/* v327 - abre/fecha a ficha do cliente na aba A Prazo. Clicar no mesmo nome fecha,
+   igual ao abrirFichaPessoa() do Painel Administrativo. */
+function abrirFichaCliente(nome){
+  rpzCliAberto = (rpzCliAberto === String(nome)) ? "" : String(nome);
+  renderRelPetros();
+}
+/* v327 - a ficha. `linhas` sao as MESMAS que o bloco ja' montou (nome, tit, parc, emis,
+   venc, val, atraso), entao a ficha nunca discorda do resumo de cima: os dois somam a
+   mesma lista. `tot` e' a carteira inteira, para a fatia. */
+function rpzFichaCliente(nome, linhas, tot){
+  const meus = linhas.filter(l => l.nome === nome);
+  if (!meus.length) return '';
+  let emAberto = 0, vencido = 0, aVencer = 0;
+  const faixas = [0, 0, 0];   /* ate 30 - 31 a 90 - 91+ , todos vencidos */
+  meus.forEach(l => {
+    emAberto += l.val;
+    if (l.atraso > 0){ vencido += l.val; faixas[l.atraso <= 30 ? 0 : (l.atraso <= 90 ? 1 : 2)] += l.val; }
+    else aVencer += l.val;
+  });
+  const emis = meus.map(l => String(l.emis || "")).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort();
+  /* 🔴 A FICHA NAO E' UMA LINHA DA TABELA — e' um bloco DEPOIS dela.
+     A foto em 400px (v327) mostrou por que: a tabela mora dentro de .rpz-rola, que rola na
+     HORIZONTAL. Com a ficha la' dentro, "A VENCER" e a frase do rodape ficavam cortados e so'
+     apareciam arrastando a tela de lado. Tabela pode rolar; bloco de texto e cartao, nao. */
+  let h = '<div class="rpz-fic rpz-fic-bloco">' +
+          '<span class="rpz-fic-fecha" onclick="abrirFichaCliente(\'' + escAttr(aspAdm(nome)) + '\')">fechar</span>' +
+          '<p class="rpz-fic-tit">' + escAttr(nome) + '</p>';
+  h += '<div class="rpz-cards">';
+  h += '<div class="rpz-card"><span>Em aberto</span><b>R$ ' + rpzDin0(emAberto) + '</b></div>';
+  h += '<div class="rpz-card"><span>Vencido</span><b class="' + (vencido > 0 ? "rpz-neg" : "") + '">R$ ' + rpzDin0(vencido) + '</b></div>';
+  h += '<div class="rpz-card"><span>A vencer</span><b>R$ ' + rpzDin0(aVencer) + '</b></div>';
+  h += '<div class="rpz-card"><span>Títulos</span><b>' + meus.length + '</b></div></div>';
+  if (vencido > 0){
+    const NOMES = ["Vencido até 30 dias", "Vencido 31 a 90 dias", "Vencido há mais de 90 dias"];
+    const maxF = Math.max.apply(null, faixas.concat([1]));
+    h += '<h3 class="cxi-sub">O atraso dele</h3><div class="cxi-graf">';
+    faixas.forEach((v, i) => {
+      h += '<div class="cxi-par"><span class="cxi-q">' + NOMES[i] + '</span>' +
+           '<span class="cxi-wrap"><span class="cxi-bar' + (v > 0 ? ' cxi-bar-alerta' : '') + '" style="width:' + (v / maxF * 100).toFixed(1) + '%"></span></span>' +
+           '<span class="cxi-v' + (v > 0 ? ' cxi-v-alerta' : '') + '">' + rpzDin0(v) + '</span></div>';
+    });
+    h += '</div>';
+  }
+  h += '<h3 class="cxi-sub">Os títulos dele</h3><div class="rpz-rola"><table class="rpz-tab"><thead><tr><th>Título</th><th>Emissão</th><th>Vencimento</th><th class="rpz-r">Dias</th><th class="rpz-r">Valor (R$)</th><th>Cobrança</th></tr></thead><tbody>';
+  meus.slice().sort((a, b) => String(a.venc || "").localeCompare(String(b.venc || ""))).forEach(l => {
+    h += '<tr><td>' + escAttr(rpzTxt(l.tit || "")) + '/' + escAttr(rpzTxt(l.parc || "")) + '</td>' +
+         '<td>' + escAttr(l.emis ? rpzDia(l.emis) : "—") + '</td>' +
+         '<td>' + escAttr(l.venc ? rpzDia(l.venc) : "—") + '</td>' +
+         '<td class="rpz-r' + (l.atraso > 0 ? ' rpz-neg' : '') + '">' + (l.atraso > 0 ? l.atraso : "—") + '</td>' +
+         '<td class="rpz-r">' + rpzDin(l.val) + '</td>' +
+         '<td class="rpz-nome">' + escAttr(rpzTxt(l.cobr || "")) + '</td></tr>';
+  });
+  h += '</tbody></table></div>';
+  /* o rodape diz a fatia e desde quando ele compra - as duas perguntas que a lista de
+     cima nao respondia. Sem emissao valida, nao inventa data: omite a frase. */
+  h += '<p class="rpz-fic-res">' + (tot ? (emAberto / tot * 100).toFixed(1) : "0.0") + '% do que este posto tem a receber' +
+       (emis.length ? ' · título mais antigo em ' + rpzDia(emis[0]) + ' · mais recente em ' + rpzDia(emis[emis.length - 1]) : '') +
+       '.</p>';
+  return h + '</div>';
+}
 function rpzBlocoAprazo(ls, dataFoto){
   if (!ls.length) return '<div class="ana-vazio">Nenhum título a prazo em aberto.</div>';
   /* v255 - O ATRASO CONTA-SE ATE' A DATA DA FOTO, NAO ATE' HOJE.
@@ -11360,17 +11437,29 @@ function rpzBlocoAprazo(ls, dataFoto){
   });
   h += '</div>';
   const clientes = Object.keys(porCliente).map(k => [k, porCliente[k]]).sort((a, b) => b[1] - a[1]);
-  h += '<h3 class="cxi-sub">Maiores clientes</h3><div class="rpz-rola"><table class="rpz-tab"><thead><tr><th>Cliente</th><th class="rpz-r">Em aberto (R$)</th><th class="rpz-r">%</th></tr></thead><tbody>';
-  clientes.slice(0, 15).forEach(c => {
-    h += '<tr><td class="rpz-nome">' + escAttr(c[0]) + '</td><td class="rpz-r">' + rpzDin0(c[1]) + '</td><td class="rpz-r">' + (tot ? (c[1] / tot * 100).toFixed(1) : "0.0") + '%</td></tr>';
+  /* v327 - a linha virou botao: clicar abre a ficha do cliente logo abaixo dela.
+     🔴 O cliente aberto entra na lista MESMO fora dos 15 primeiros - senao clicar num nome
+     da lista de vencidos (ou trocar de unidade com uma ficha aberta) abriria uma ficha
+     invisivel, e a tela pareceria nao ter feito nada. */
+  const visiveis = clientes.slice(0, 15);
+  if (rpzCliAberto && !visiveis.some(c => c[0] === rpzCliAberto)){
+    const extra = clientes.find(c => c[0] === rpzCliAberto);
+    if (extra) visiveis.push(extra);
+  }
+  h += '<h3 class="cxi-sub">Maiores clientes</h3><p class="nota-dash">Clique num cliente para ver a ficha dele.</p><div class="rpz-rola"><table class="rpz-tab"><thead><tr><th>Cliente</th><th class="rpz-r">Em aberto (R$)</th><th class="rpz-r">%</th></tr></thead><tbody>';
+  visiveis.forEach(c => {
+    const aberto = (c[0] === rpzCliAberto);
+    h += '<tr class="rpz-cli' + (aberto ? ' rpz-cli-on' : '') + '" onclick="abrirFichaCliente(\'' + escAttr(aspAdm(c[0])) + '\')">' +
+         '<td class="rpz-nome">' + escAttr(c[0]) + '</td><td class="rpz-r">' + rpzDin0(c[1]) + '</td><td class="rpz-r">' + (tot ? (c[1] / tot * 100).toFixed(1) : "0.0") + '%</td></tr>';
   });
   h += '</tbody></table></div>';
+  if (rpzCliAberto) h += rpzFichaCliente(rpzCliAberto, linhas, tot);
   if (clientes.length > 15) h += '<p class="nota-dash">Mostrando os 15 maiores de ' + clientes.length + ' clientes.</p>';
   const venc = linhas.filter(l => l.atraso > 0).sort((a, b) => b.atraso - a.atraso);
   if (venc.length){
     h += '<details class="rel-det"><summary>Títulos vencidos (' + venc.length + ')</summary><div class="rpz-rola"><table class="rpz-tab"><thead><tr><th>Cliente</th><th>Título</th><th>Vencimento</th><th class="rpz-r">Dias</th><th class="rpz-r">Valor (R$)</th></tr></thead><tbody>';
     venc.slice(0, 100).forEach(l => {
-      h += '<tr><td class="rpz-nome">' + escAttr(l.nome) + '</td><td>' + escAttr(rpzTxt(l.tit || "")) + '/' + escAttr(rpzTxt(l.parc || "")) + '</td>' +
+      h += '<tr class="rpz-cli" onclick="abrirFichaCliente(\'' + escAttr(aspAdm(l.nome)) + '\')"><td class="rpz-nome">' + escAttr(l.nome) + '</td><td>' + escAttr(rpzTxt(l.tit || "")) + '/' + escAttr(rpzTxt(l.parc || "")) + '</td>' +
            '<td>' + escAttr(l.venc ? l.venc.split("-").reverse().join("/") : "—") + '</td>' +
            '<td class="rpz-r rpz-neg">' + l.atraso + '</td><td class="rpz-r">' + rpzDin(l.val) + '</td></tr>';
     });
