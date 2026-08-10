@@ -4885,6 +4885,9 @@ const ICO_SVG = {
   ordenarMenus:"<path d='M4 20.2h4.2L20 8.4a2 2 0 0 0-2.8-2.8L5.4 17.4z'/><path d='M15.6 7 17 8.4'/>",
   comprar:"<path d='M2.6 3.6h2.6l2.4 10.6h9.6'/><path d='M6.4 6.6h14.2l-1.8 6.4H7.6'/><circle cx='9.2' cy='18.6' r='1.5'/><circle cx='17.2' cy='18.6' r='1.5'/>",
   tanquesNivel:"<rect x='2.8' y='7.4' width='18.4' height='9.2' rx='2.6'/><path d='M2.8 13.4h18.4'/><path d='M6.6 7.4v9.2M11 7.4v9.2M15.4 7.4v9.2'/><path d='M5.2 19.2v1.4M18.8 19.2v1.4'/>",
+  /* v317 - o menu recebimento (v316) nasceu SEM desenho e por isso ficava no emoji nos
+     estilos minimalista e vivo. Caminhao-tanque, escolhido por ele na previa em imagem. */
+  recebimento:"<rect x='1.9' y='7.4' width='12.4' height='7' rx='3.5'/><path d='M14.6 9.4h3l3.5 3.4v1.6h-6.5z'/><circle cx='6.6' cy='18' r='1.9'/><circle cx='17.2' cy='18' r='1.9'/><path d='M1.9 18h2.6M8.8 18h6.2M19.4 18h2.4'/>",
   afericoes:"<path d='M8.2 2.8h7.6'/><path d='M9.4 2.8v14.6a2.6 2.6 0 0 0 5.2 0V2.8'/><path d='M9.4 13.4h5.2'/><path d='M9.4 9.8h2.4M9.4 6.6h2.4'/><path d='M6.8 21.2h10.4'/>",
   dre:"<path d='M3.4 20.6h17.2'/><path d='M6 16.4l4-4.6 3.2 2.6 5.2-6.2'/><path d='M14.2 8.2h4.2v4.2'/>",
   sair:"<path d='M9.6 20.4H5.4a1.8 1.8 0 0 1-1.8-1.8V5.4a1.8 1.8 0 0 1 1.8-1.8h4.2'/><path d='M15.4 16.6 20 12l-4.6-4.6M20 12H9.2'/>",
@@ -6567,6 +6570,9 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v317", data:"09/08/2026", tit:"\ud83d\ude9b O \u00edcone do Recebimento de combust\u00edvel", itens:[
+    {t:"c", h:"O \u00edcone do menu <b>Recebimento de combust\u00edvel</b> agora acompanha o estilo escolhido", d:"Ele era o \u00fanico bot\u00e3o da barra sem desenho pr\u00f3prio. Nos estilos <b>Minimalista</b> e <b>Vivo</b> ele continuava sendo o emoji \ud83d\udce5 \u2014 e trocar de estilo ou recarregar a p\u00e1gina n\u00e3o mudava nada, porque n\u00e3o havia desenho para pintar. Agora ele tem o seu: um <b>caminh\u00e3o-tanque</b>, no mesmo tra\u00e7o dos outros \u00edcones. No estilo <b>Cl\u00e1ssico</b> o emoji continua, como em todos os menus."}
+  ]},
   {v:"v316", data:"09/08/2026", tit:"\ud83d\udce5 Recebimento de combust\u00edvel: acaba a foto do relat\u00f3rio e o texto no WhatsApp", itens:[
     {t:"n", h:"O menu <b>\ud83d\udce5 Recebimento de combust\u00edvel</b>", d:"Cada descarga de caminh\u00e3o aparece sozinha: a <b>hora</b>, a <b>altura no tanque</b> antes e depois (a mesma que o funcion\u00e1rio confere na r\u00e9gua), os <b>litros que entraram</b>, os litros a 20 \u00b0C, a temperatura e a <b>compara\u00e7\u00e3o com a nota lan\u00e7ada</b>. O dado sempre esteve no Petros \u2014 o Veeder Root grava uma leitura por tanque a cada poucos minutos, com os mesmos quatro n\u00fameros que o console imprime no papel."},
     {t:"n", h:"O aviso para a gerente, que <b>morre sozinho</b>", d:"Descarga registrada e nota ainda n\u00e3o lan\u00e7ada vira uma tarefa na <b>Caixa de entrada</b> do posto. Quando a nota for lan\u00e7ada, o aviso para de aparecer \u2014 <b>ningu\u00e9m precisa concluir \u00e0 m\u00e3o</b>. E quem recebe se escolhe no <b>Painel Administrativo \u203a Regras</b>, posto por posto."},
