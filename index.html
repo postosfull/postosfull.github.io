@@ -6978,6 +6978,11 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v329", data:"10/08/2026", tit:"\ud83d\udd27 Clientes: a ficha aparecia fora da tela \u2014 e agora mostra o aberto por posto", itens:[
+    {t:"c", h:"Clicar num cliente parecia n\u00e3o fazer nada", d:"E o clique <b>sempre funcionou</b>: a ficha abria, s\u00f3 que <b>depois da lista inteira</b>. Com os clientes de verdade a lista tem <b>dezenas de linhas</b>, ent\u00e3o a ficha nascia muito abaixo da tela e ningu\u00e9m a via. Agora ela aparece <b>logo abaixo dos quatro n\u00fameros do topo</b>, sempre no mesmo lugar."},
+    {t:"m", h:"E se ainda assim ela ficar fora da vista, a tela vai at\u00e9 ela", d:"Se voc\u00ea rolou at\u00e9 o fim da lista e clicou num cliente l\u00e1 embaixo, o app <b>traz a ficha para a vista</b> \u2014 e s\u00f3 quando ela n\u00e3o est\u00e1 vis\u00edvel, para n\u00e3o dar solavanco em quem j\u00e1 est\u00e1 olhando para ela."},
+    {t:"n", h:"\ud83c\udfe2 O que ele tem aberto, por posto", d:"Quando o cliente compra em <b>mais de um posto</b>, a ficha ganha um quadro com <b>quanto ele tem aberto, quanto est\u00e1 vencido e quantos t\u00edtulos s\u00e3o em cada posto</b>, e a fatia de cada um. Com um posto s\u00f3 o quadro n\u00e3o aparece \u2014 seria repetir os n\u00fameros do topo."}
+  ]},
   {v:"v328", data:"10/08/2026", tit:"\ud83e\uddfe Menu novo: Clientes \u2014 a carteira a prazo dos tr\u00eas postos, por cliente", itens:[
     {t:"n", h:"Onde fica", d:"No grupo <b>\ud83d\udcca An\u00e1lise</b>, ao lado de Relat\u00f3rios Adaptive e Afer\u00e7\u00f5es. \u26a0\ufe0f <b>A ficha do cliente j\u00e1 existia desde a v327</b>, mas s\u00f3 dentro da aba \ud83d\udcc4 A Prazo \u2014 e quem n\u00e3o sabia que ela estava l\u00e1 n\u00e3o achava."},
     {t:"n", h:"Os tr\u00eas postos somados, cada cliente uma vez", d:"A aba A Prazo mostra <b>um posto por vez</b> e organiza por t\u00edtulo. Este menu soma <b>os tr\u00eas</b> e organiza por <b>cliente</b>: quem compra em mais de um posto aparece <b>uma vez s\u00f3</b>, com o selo de onde compra, e a tela diz quantos s\u00e3o."},
@@ -11440,6 +11445,13 @@ function renderMenuClientes(){
   h += '<div class="rpz-card"><span>Vencido</span><b class="' + (vencido > 0 ? "rpz-neg" : "") + '">R$ ' + rpzDin0(vencido) + '</b></div>';
   h += '<div class="rpz-card"><span>Com atraso</span><b class="' + (comAtraso > 0 ? "rpz-neg" : "") + '">' + comAtraso + '</b></div></div>';
 
+  /* 🔴 v329 - A FICHA VEM ANTES DA LISTA, e isso e' conserto de defeito, nao gosto.
+     Ate' a v328 ela era emitida DEPOIS da tabela: com os 42 clientes reais, clicar no
+     primeiro nome punha a ficha a 1.636px do topo numa janela de 900px - o app fazia a
+     coisa certa num lugar que ninguem via, e o relato foi "nao acontece nada".
+     🔑 Lugar de resposta e' perto da pergunta. Aqui o lugar e' FIXO: logo abaixo dos
+     cartoes, sempre o mesmo, nao importa em que linha a pessoa clicou. */
+  if (cliRedeAberto) h += rpzFichaCliente(cliRedeAberto, linhas, tot);
   h += '<h3 class="cxi-sub">A carteira, por cliente</h3>';
   h += '<p class="nota-dash">Clique num cliente para ver a ficha dele.' +
        (emMaisDeUm ? ' <b>' + emMaisDeUm + '</b> ' + (emMaisDeUm === 1 ? 'cliente compra' : 'clientes compram') + ' em mais de um posto.' : '') + '</p>';
@@ -11454,10 +11466,20 @@ function renderMenuClientes(){
          '<td class="rpz-r">' + (tot ? (c.val / tot * 100).toFixed(1) : "0.0") + '%</td></tr>';
   });
   h += '</tbody></table></div>';
-  if (cliRedeAberto) h += rpzFichaCliente(cliRedeAberto, linhas, tot);
   h += '<p class="ana-rodape">Posição em ' + (dados.fotos.length ? rpzDia(dados.fotos[dados.fotos.length - 1]) : "—") +
        '. Fonte: Vendas a Prazo em Aberto - Geral (Petros).</p>';
   box.innerHTML = h;
+  /* 🔴 v329 - a segunda metade do conserto. O lugar fixo resolve o caso normal; este bloco
+     resolve o outro: quem rolou ate' o fim da lista e clicou num cliente la' embaixo teria a
+     ficha ATRAS dele, fora da tela por cima.
+     ⚠️ E ele so' rola QUANDO A FICHA NAO ESTA VISIVEL - rolar a cada clique daria solavanco
+     em quem ja' esta olhando para ela, inclusive ao FECHAR. */
+  const fic = box.querySelector(".rpz-fic-bloco");
+  if (fic){
+    const r = fic.getBoundingClientRect();
+    const visivel = r.top >= 0 && r.top < (window.innerHeight || 0) - 40;
+    if (!visivel) fic.scrollIntoView({ block: "center", behavior: "smooth" });
+  }
 }
 
 /* v327 - abre/fecha a ficha do cliente na aba A Prazo. Clicar no mesmo nome fecha,
@@ -11506,6 +11528,31 @@ function rpzFichaCliente(nome, linhas, tot){
   /* v328 - a MESMA ficha serve as duas telas. Coluna Posto so' quando as linhas trazem
      `un` (menu Clientes); na aba A Prazo o posto e' um so' e a coluna seria um travessao. */
   const temUn = meus.some(l => l.un);
+  /* 🆕 v329 - "O que ele tem aberto, por posto" (pedido do Tiago). Sai das MESMAS linhas
+     que o resto da ficha, entao os postos sempre somam o total de cima - nao ha segunda
+     conta. So' aparece com mais de um posto: com um so', repetiria os cartoes do topo. */
+  if (temUn){
+    const porPostoFic = {};
+    meus.forEach(l => {
+      const k = l.un || "—";
+      const u = porPostoFic[k] || (porPostoFic[k] = { un: k, val: 0, venc: 0, n: 0 });
+      u.val += l.val; u.n++;
+      if (l.atraso > 0) u.venc += l.val;
+    });
+    const postosFic = Object.keys(porPostoFic).map(k => porPostoFic[k]).sort((a, b) => b.val - a.val);
+    if (postosFic.length > 1){
+      h += '<h3 class="cxi-sub">O que ele tem aberto, por posto</h3>';
+      h += '<div class="rpz-rola"><table class="rpz-tab"><thead><tr><th>Posto</th><th class="rpz-r">Em aberto (R$)</th><th class="rpz-r">Vencido (R$)</th><th class="rpz-r">Títulos</th><th class="rpz-r">%</th></tr></thead><tbody>';
+      postosFic.forEach(u => {
+        h += '<tr><td><span class="rpz-un">' + escAttr(u.un) + '</span></td>' +
+             '<td class="rpz-r">' + rpzDin0(u.val) + '</td>' +
+             '<td class="rpz-r' + (u.venc > 0 ? ' rpz-neg' : '') + '">' + (u.venc > 0 ? rpzDin0(u.venc) : "—") + '</td>' +
+             '<td class="rpz-r">' + u.n + '</td>' +
+             '<td class="rpz-r">' + (emAberto ? (u.val / emAberto * 100).toFixed(1) : "0.0") + '%</td></tr>';
+      });
+      h += '</tbody></table></div>';
+    }
+  }
   h += '<h3 class="cxi-sub">Os títulos dele</h3><div class="rpz-rola"><table class="rpz-tab"><thead><tr>' +
        (temUn ? '<th>Posto</th>' : '') +
        '<th>Título</th><th>Emissão</th><th>Vencimento</th><th class="rpz-r">Dias</th><th class="rpz-r">Valor (R$)</th><th>Cobrança</th></tr></thead><tbody>';
