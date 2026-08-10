@@ -1134,6 +1134,16 @@
   }
 
   /* ---------- Painel admin ---------- */
+  /* v321 - os dois passos de adicionar uma pessoa
+     🔴 NAO PONHA `display:flex` NO PARAGRAFO. A primeira versao fazia isso para alinhar a
+     bolinha, e cada <b> e cada <a> da frase virou uma COLUNA — o passo 1 apareceu picado na
+     tela, com o texto certo e ilegivel. A bolinha e' um selo EM LINHA; o texto e' texto. */
+  .adm-passo{font-size:.88rem;color:var(--txt);margin:8px 0;line-height:1.75}
+  .adm-passo-n{width:20px;height:20px;border-radius:50%;background:var(--verde);
+    color:#fff;font-size:.72rem;font-weight:700;display:inline-flex;align-items:center;
+    justify-content:center;margin-right:6px;vertical-align:1px}
+  .admin-form select{border:1px solid var(--borda);border-radius:8px;padding:9px 10px;
+    font-size:.9rem;background:var(--superficie);color:var(--txt);font-family:inherit}
   .admin-form{display:flex;gap:8px;flex-wrap:wrap;max-width:560px;margin-bottom:18px}
   .admin-form input{
     flex:1;min-width:180px;padding:8px 10px;border:1px solid var(--borda);
@@ -4000,12 +4010,15 @@
         <div class="msg-admin" id="msgAdminLista"></div>
       </div>
       <div class="grupo">
-        <h2>Criar novo usuário</h2>
+        <h2>👤 Adicionar uma pessoa</h2>
+        <p class="nota-dash">São <b>dois passos</b>, e o primeiro não é aqui. <b>Criar a conta</b> é no painel do Firebase — o cadastro pelo app foi fechado de propósito, e é por isso que o formulário que existia neste lugar não funcionava mais. Depois de criada, <b>prepare a ficha</b> aqui embaixo: a pessoa já entra com o nome certo e vendo os menus, em vez de cair na tela de espera.</p>
+        <div class="adm-passo"><span class="adm-passo-n">1</span> <a class="link-console" href="https://console.firebase.google.com/project/postos-full/authentication/users" target="_blank" rel="noopener">Criar a conta no Firebase ↗</a> — aba <b>Users</b>, botão <b>Add user</b>, e-mail e uma senha inicial. <b>A senha você passa para a pessoa</b>, e ela troca no primeiro acesso em "Esqueci minha senha".</div>
+        <div class="adm-passo"><span class="adm-passo-n">2</span> Preparar a ficha dela aqui:</div>
         <div class="admin-form">
-          <input type="text" id="novoUsuarioNome" maxlength="40" placeholder="Nome do funcionário (como aparece no app)">
-          <input type="email" id="novoUsuarioEmail" placeholder="E-mail do funcionário">
-          <input type="text" id="novoUsuarioSenha" placeholder="Senha inicial (mín. 6 caracteres)">
-          <button class="btn-verde" onclick="criarUsuario()">Criar usuário</button>
+          <input type="text" id="novaPessoaNome" maxlength="40" placeholder="Nome (como aparece no app)">
+          <input type="email" id="novaPessoaEmail" placeholder="O MESMO e-mail que você usou no Firebase">
+          <select id="novaPessoaPerfil"></select>
+          <button class="btn-verde" onclick="prepararFicha()">Preparar a ficha</button>
         </div>
         <div class="msg-admin" id="msgAdmin"></div>
       </div>
@@ -5958,11 +5971,16 @@ function setEmpresaUsuario(email, sig, on){
 /* 🔴 v320 — ESTE E' O UNICO CAMINHO ATE' `config/permissoes`. Antes eram DEZ lugares chamando
    `docPermissoes.set` por conta propria; cinco passavam por aqui e cinco nao. Agora todos passam,
    e por isso a rede de seguranca precisa existir em UM lugar so'. */
-function gravarPermissoesAdm(msgOk, depois){
+/* 🔴 v321 — `caixa` e' o TERCEIRO parametro, e ele e' opcional de proposito: os dez chamadores
+   que nasceram dentro da ficha continuam falando em `msgAdminLista`, sem tocar em nada.
+   ⚠️ Quem chama de OUTRO quadro da tela precisa dizer onde quer a resposta — foi o que a suite
+   da v321 flagrou: o "deu certo" da `prepararFicha()` saia' acima da lista, longe do botao. */
+function gravarPermissoesAdm(msgOk, depois, caixa){
   protegerDonoAntesDeGravar();
+  const cx = caixa || "msgAdminLista";
   docPermissoes.set({ porUsuario: permissoesTodos })
-    .then(()=>{ if (msgOk) avisoAdmin("msgAdminLista", msgOk, "ok"); if (typeof depois === "function") depois(); })
-    .catch(er => avisoAdmin("msgAdminLista", msgErro(er), "erro"));
+    .then(()=>{ if (msgOk) avisoAdmin(cx, msgOk, "ok"); if (typeof depois === "function") depois(); })
+    .catch(er => avisoAdmin(cx, msgErro(er), "erro"));
   aplicarVisibilidadeMenus();
   renderAbaAdm();
 }
@@ -6005,6 +6023,7 @@ function renderAbaAdm(){
   const pa = document.getElementById("painelAdmin");
   if (!pa || !pa.classList.contains("aberto")) return;
   if (admAba === "pend")        renderPendencias();          /* v319 */
+  if (admAba === "pessoas")     renderNovaPessoa();          /* v321 - enche o seletor de perfis */
   else if (admAba === "perfis") renderPerfisAcesso();
   else if (admAba === "matriz") renderAdmMatriz();
   else if (admAba === "regras"){ renderMetaCaixa(); renderAvisoReceb(); }   /* v316 */
@@ -6642,25 +6661,12 @@ function avisoAdmin(id, texto, tipo){
   el.className = "msg-admin " + tipo;
 }
 
-function criarUsuario(){
-  const nome  = document.getElementById("novoUsuarioNome").value.trim();
-  const email = document.getElementById("novoUsuarioEmail").value.trim().toLowerCase();
-  const senha = document.getElementById("novoUsuarioSenha").value;
-  if(!email || !senha){ avisoAdmin("msgAdmin", "Preencha e-mail e senha inicial.", "erro"); return; }
-  // App secundário: cria o usuário sem derrubar a sessão do administrador
-  const sec = firebase.apps.find(a => a.name === "secundario") || firebase.initializeApp(firebaseConfig, "secundario");
-  sec.auth().createUserWithEmailAndPassword(email, senha)
-    .then(()=> sec.auth().signOut())
-    .then(()=> nome ? colPerfis.doc(email).set({ nome, email }, { merge:true }).catch(()=>{}) : null)
-    .then(()=>{
-      document.getElementById("novoUsuarioNome").value = "";
-      document.getElementById("novoUsuarioEmail").value = "";
-      document.getElementById("novoUsuarioSenha").value = "";
-      avisoAdmin("msgAdmin", "Usuário " + (nome ? nome + " (" + email + ")" : email) + " criado! Passe a senha inicial para ele — no primeiro acesso, ele pode trocá-la em \"Esqueci minha senha\".", "ok");
-      renderAdminUsuarios();
-    })
-    .catch(e => avisoAdmin("msgAdmin", msgErro(e), "erro"));
-}
+/* 🔴 v321 — A `criarUsuario()` FOI APAGADA. Ela chamava `createUserWithEmailAndPassword` pelo
+   navegador, e isso esta' DESLIGADO no projeto desde a v269 (`auth/admin-restricted-operation`).
+   ⚠️ Nao foi codigo que "parou de ser usado": era codigo que NAO PODIA funcionar, com um botao
+   na tela chamando por ele. 🔑 A entrada da v269 no menu Novidades ja' avisava a equipe disso —
+   e o aviso ficou dois meses ao lado do botao que ele desmentia.
+   👉 Quem cria conta e' o Firebase; quem prepara a ficha e' a `prepararFicha()`, logo abaixo. */
 
 function resetUsuario(){
   const email = document.getElementById("resetUsuarioEmail").value.trim();
@@ -6726,6 +6732,10 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v321", data:"10/08/2026", tit:"\ud83d\udc64 O bot\u00e3o \u201cCriar novo usu\u00e1rio\u201d, que n\u00e3o funcionava desde junho, deu lugar aos dois passos que existem", itens:[
+    {t:"m", h:"O formul\u00e1rio saiu \u2014 e a tela passou a dizer a verdade", d:"Criar conta pelo app foi <b>fechado de prop\u00f3sito</b> na v269, e desde ent\u00e3o aquele bot\u00e3o respondia um erro em ingl\u00eas. <b>O aviso disso j\u00e1 estava aqui no Novidades desde junho, e o bot\u00e3o continuou na tela ao lado dele.</b> Agora o quadro se chama <b>\ud83d\udc64 Adicionar uma pessoa</b> e mostra os dois passos: criar a conta no Firebase (com o link) e preparar a ficha aqui."},
+    {t:"n", h:"E a segunda metade agora \u00e9 um bot\u00e3o: <b>Preparar a ficha</b>", d:"Voc\u00ea digita o nome, o mesmo e-mail que usou no Firebase e escolhe o perfil de acesso. A pessoa <b>j\u00e1 entra com o nome certo e vendo os menus</b>, em vez de cair na tela de espera e gerar um aviso de \u201cesperando perfil\u201d. Se o e-mail j\u00e1 tiver ficha, o bot\u00e3o <b>recusa e explica</b> \u2014 trocar o perfil de algu\u00e9m se faz abrindo o nome dela na lista, onde d\u00e1 para ver o que est\u00e1 mudando."}
+  ]},
   {v:"v320", data:"10/08/2026", tit:"\ud83d\udd10 O dono do app n\u00e3o pode ter os privil\u00e9gios revogados", itens:[
     {t:"n", h:"A ficha do dono fica <b>trancada</b> para os outros administradores", d:"Pedido do Tiago: <i>\u201cuma trava para que, mesmo sendo admin, ningu\u00e9m possa remover nenhum privil\u00e9gio meu\u201d</i>. O poder de administrador, o perfil de acesso, os menus, as empresas, as notifica\u00e7\u00f5es, a responsabilidade pelos caixas e a troca de senha do dono s\u00f3 ele mesmo altera. A ficha continua vis\u00edvel para consulta \u2014 e <b>diz na tela por que est\u00e1 travada</b>."},
     {t:"n", h:"E <b>conceder ou remover o poder de administrador</b> passou a ser exclusivo dele", d:"Um administrador continua cuidando de pessoas, perfis, menus e regras, mas quem entra e sai da lista de administradores \u00e9 decis\u00e3o do dono. <b>S\u00e3o duas portas para esse poder</b> \u2014 pela pessoa e pelo perfil \u2014 e as duas ficaram trancadas."},
@@ -14829,6 +14839,78 @@ function renderPendencias(){
   const m = document.getElementById("pndMsg");
   if (m){ m.textContent = pndMsg || ""; m.style.display = pndMsg ? "" : "none"; }
   atualizarBadgePendencias();
+}
+
+/* ---- v321: 👤 Adicionar uma pessoa — o formulário morto vira os dois passos que existem -------
+
+   🔴 O QUE ELE ERA: um formulário "Criar novo usuário" que NÃO PODIA FUNCIONAR desde 06/08. A v269
+   fechou o cadastro pelo navegador de propósito, e o Firebase passou a responder
+   `auth/admin-restricted-operation`. ⚠️ E o mais desconfortável: a própria entrada da v269 no menu
+   🎁 Novidades JÁ AVISAVA a equipe de que "o botão Criar novo usuário não funciona mais". O app
+   contou, e o botão ficou.
+   🔑 Aviso não conserta botão. Enquanto o botão existir, alguém vai clicar nele — e foi o que
+   aconteceu em 10/08, quando eu pedi ao Tiago para criar a conta de teste.
+
+   🔑 E A CORREÇÃO NÃO É FAZER O BOTÃO FUNCIONAR: a Cloud Function de criar usuário foi RECUSADA
+   por ele em 06/08. O certo é a tela dizer a verdade — e fazer a metade que ela PODE fazer. */
+
+function pfPerfilOpcoes(sel){
+  const ids = Object.keys(perfisAcesso || {});
+  let h = '<option value="">Sem perfil (fica na tela de espera)</option>';
+  ids.forEach(id => {
+    h += '<option value="' + escAttr(id) + '"' + (sel === id ? ' selected' : '') + '>' +
+         escAttr(nomePerfilAdm(id)) + '</option>';
+  });
+  return h;
+}
+
+function renderNovaPessoa(){
+  const s = document.getElementById("novaPessoaPerfil");
+  if (s) s.innerHTML = pfPerfilOpcoes(s.value);
+}
+
+/* 🔴 O QUE ESTA FUNÇÃO FAZ E O QUE ELA NÃO FAZ, dito no nome e na tela: ela NÃO cria conta —
+   isso é no Firebase. Ela prepara a FICHA, que é a metade que o app alcança: o nome que aparece
+   para todo mundo e o perfil de acesso.
+   👉 Assim a pessoa entra já enxergando os menus, em vez de cair na tela de espera e gerar um
+   aviso "1 pessoa está esperando perfil de acesso" na Caixa de entrada do dono.
+   (Foi exatamente isto que eu fiz à mão para a conta de teste em 10/08 — virou botão.) */
+function prepararFicha(){
+  if (!ehAdminAtual())
+    return negarAdm("msgAdmin", "Só administradores preparam a ficha de uma pessoa.");
+  const nome  = (document.getElementById("novaPessoaNome").value || "").trim();
+  const email = (document.getElementById("novaPessoaEmail").value || "").trim().toLowerCase();
+  const perfil = document.getElementById("novaPessoaPerfil").value || "";
+  if (!email || email.indexOf("@") < 1)
+    return avisoAdmin("msgAdmin", "Digite o e-mail da pessoa — o mesmo que você usou no Firebase.", "erro");
+
+  /* 🔴 NÃO SOBRESCREVER QUEM JÁ EXISTE. Sem esta guarda, digitar um e-mail que já está na lista
+     trocaria o perfil de alguém em silêncio — e o painel tem uma tela própria para isso, a ficha. */
+  if (permissoesTodos && permissoesTodos[email])
+    return avisoAdmin("msgAdmin", admNomeDe(email) + " já tem ficha. Para mudar o perfil dela, " +
+      "abra o nome dela na lista acima — assim você vê o que está mudando.", "erro");
+
+  const antes = perfil ? Object.assign({}, permissoesTodos) : null;
+  colPerfis.doc(email).set({ nome: nome, email: email }, { merge: true })
+    .then(() => {
+      if (!perfil){
+        avisoAdmin("msgAdmin", "Ficha de " + (nome || email) + " criada SEM perfil: quando ela entrar, " +
+          "vai cair na tela de espera. Escolha um perfil na lista acima quando quiser liberar.", "ok");
+        renderAdminUsuarios();
+        return;
+      }
+      permissoesTodos[email] = { perfil: perfil };
+      gravarPermissoesAdm("Ficha de " + (nome || email) + " pronta, com o perfil " +
+        nomePerfilAdm(perfil) + ". Ela já entra vendo os menus.", renderAdminUsuarios,
+        "msgAdmin");   /* 🔴 debaixo do botao que foi clicado, nao acima da lista */
+      const a = document.getElementById("novaPessoaNome"); if (a) a.value = "";
+      const b = document.getElementById("novaPessoaEmail"); if (b) b.value = "";
+      logAtividade({ acao:"criou", area:"Pessoas", resumo:"Preparou a ficha de " + email });
+    })
+    .catch(e => {
+      if (antes) permissoesTodos = antes;
+      avisoAdmin("msgAdmin", msgErro(e), "erro");
+    });
 }
 
 /* ---- a tela ---------------------------------------------------------------------------- */
