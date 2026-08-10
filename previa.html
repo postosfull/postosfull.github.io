@@ -1864,6 +1864,13 @@
   .pnd-aviso{font-size:.74rem;color:var(--cinza);margin-top:6px}
   .pnd-topo{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:2px}
   .pnd-cont{font-size:.78rem;color:var(--cinza)}
+  /* v320 - a ficha do dono, trancada para os outros administradores */
+  .adm-trava{border:1px solid var(--borda);border-left:4px solid #FE7030;border-radius:10px;
+    padding:10px 12px;margin:10px 0 0;font-size:.86rem;color:var(--txt);background:var(--superficie-2)}
+  .adm-trancado input,.adm-trancado select,.adm-trancado button,.adm-trancado textarea{
+    pointer-events:none;opacity:.55}
+  /* 🔴 o ✕ fechar continua clicavel: trancar a ficha nao pode trancar a pessoa DENTRO dela */
+  .adm-trancado .adm-ficha-bts button[onclick^="abrirFichaPessoa"]{pointer-events:auto;opacity:1}
   .rec-card{border:1px solid var(--borda);border-radius:12px;padding:12px 14px;background:var(--superficie-2);margin-bottom:10px}
   .rec-card.feito{opacity:.72}
   .rec-topo{display:flex;align-items:center;gap:8px;margin-bottom:4px}
@@ -4807,7 +4814,59 @@ function registrarTokenSePermitido(){
    config/permissoes.porUsuario[email].admin -- que `ehAdminEmail()` ja consulta
    desde a v216, e que so um admin consegue escrever (regra publicada em 06/08).
    NAO volte a por e-mail aqui: o painel da admin sem precisar publicar versao. */
-const ADMINS = [];
+/* 🔴 v320 — O DONO DO APP.
+   Esta lista existe desde a v216 e ficou VAZIA na v269, de proposito: naquele dia o e-mail do dono
+   saiu do codigo-fonte para que ADMIN pudesse ser criado no Firestore, sem publicar versao.
+   🔑 ISSO CONTINUA VALENDO — o que muda aqui e' o PAPEL da lista. Ela nao volta a ser "a fonte de
+   quem e' admin" (os outros continuam vindo do banco); ela passa a ser o PISO QUE NINGUEM REBAIXA.
+   ⚠️ E repare no efeito que faz a trava funcionar: `ehAdminEmail` consulta esta lista ANTES do
+   Firestore. Mesmo que alguem grave `admin:false` no banco pelo console do navegador, o app
+   continua tratando o dono como admin — para tira-lo seria preciso PUBLICAR uma versao nova, que
+   exige o repositorio, nao o painel. */
+const ADMINS = ["tiago.z5@gmail.com"];
+const DONO_APP = (ADMINS[0] || "").toLowerCase();
+function ehDono(email){ return !!DONO_APP && String(email || "").toLowerCase() === DONO_APP; }
+function ehDonoAtual(){ return ehDono(usuarioAtual); }
+
+/* 🔴 A GUARDA E' UMA SO', E TUDO PERGUNTA A ELA. A licao da v297 aplicada de saida: se cada funcao
+   escrevesse a propria regra, a proxima que nascesse nasceria sem. */
+function podeMexerNaFicha(emailAlvo){
+  if (!ehAdminAtual()) return false;
+  if (ehDono(emailAlvo) && !ehDonoAtual()) return false;
+  return true;
+}
+/* 🔴 E DAR/TIRAR ADMIN E' SO' DO DONO (decisao dele, 10/08). Existem DUAS portas para o poder de
+   admin — a da PESSOA (`setPoderAdminUsuario`) e a do PERFIL (`poderes.admin`, que `ehAdminEmail`
+   tambem le). Trancar so' a primeira seria a armadilha da v297 de novo. */
+function podeMexerEmAdmin(){ return ehDonoAtual(); }
+
+/* 🔴 A RECUSA NUNCA E' MUDA. Botao que nao faz nada e nao diz por que ensina a pessoa a achar que
+   o app esta quebrado — a licao da v286 (icone explica estado; VERBO explica o porque). */
+function negarAdm(caixa, oQue){
+  avisoAdmin(caixa || "msgAdminLista",
+    "🔒 " + oQue + " Esta e' uma trava de seguranca do app: ela nao depende de ser administrador.",
+    "erro");
+  return false;
+}
+function negarFicha(caixa){
+  return negarAdm(caixa, "Só o dono do app pode alterar a ficha dele.");
+}
+function negarAdminPoder(caixa){
+  return negarAdm(caixa, "Só o dono do app pode conceder ou remover o poder de administrador.");
+}
+/* 🔴 A REDE DE SEGURANCA, e ela e' a parte que quase escapou: `config/permissoes` e' gravado
+   INTEIRO (`{porUsuario: permissoesTodos}`) por DEZ lugares. Ou seja, uma edicao feita para OUTRA
+   pessoa carrega a ficha do dono junto, a partir do que estava na memoria daquela aba.
+   🔑 E' a licao da v307 ("tela que reescreve o documento inteiro") e o acidente da v183 ("quem
+   grava por ultimo apaga quem gravou antes") no documento mais sensivel do app.
+   👉 Por isso a trava mora na GRAVACAO, nao no botao: antes de escrever, a entrada do dono volta a
+   ser a que o SERVIDOR mandou por ultimo. */
+let _permDonoServidor = null;   // o que o Firestore disse por ultimo sobre a ficha do dono
+function protegerDonoAntesDeGravar(){
+  if (!DONO_APP || ehDonoAtual()) return;
+  if (_permDonoServidor === null) delete permissoesTodos[DONO_APP];
+  else permissoesTodos[DONO_APP] = JSON.parse(JSON.stringify(_permDonoServidor));
+}
 
 const ERROS_AUTH = {
   "auth/invalid-credential": "E-mail ou senha incorretos.",
@@ -5265,6 +5324,7 @@ function setPermEnvio(email, on){
 // v187 - "" = seguir o perfil, "sim" = pode, "nao" = nao pode
 function setPermEnvioModo(email, modo){
   email = (email||"").toLowerCase();
+  if (!podeMexerNaFicha(email)) return negarFicha();   /* v320 */
   if (!permissaoEnvio) permissaoEnvio = {};
   if (modo === "sim") permissaoEnvio[email] = true;
   else if (modo === "nao") permissaoEnvio[email] = false;
@@ -5272,6 +5332,7 @@ function setPermEnvioModo(email, modo){
   gravarPermEnvio(); renderPermEnvio();
 }
 function setPermEnvioPerfil(id, on){
+  if (!ehAdminAtual()) return negarAdm("msgPerfis", "Só administradores mexem em perfis de acesso.");   /* v320 */
   if (!permissaoEnvioPerfil) permissaoEnvioPerfil = {};
   if (on) permissaoEnvioPerfil[id] = true; else delete permissaoEnvioPerfil[id];
   gravarPermEnvio(); renderPermEnvio();
@@ -5831,6 +5892,8 @@ function origemPoderAdm(email){
 function setPoderAdminUsuario(email, modo){
   email = String(email).toLowerCase();
   if (!ehAdminAtual()) return;
+  /* v320 - a 1a das DUAS portas do poder de admin */
+  if (!podeMexerEmAdmin()) return negarAdminPoder();
   const cur = permissoesTodos[email] ? Object.assign({}, permissoesTodos[email]) : {};
   if (modo === "sim") cur.admin = true;
   else if (modo === "nao") cur.admin = false;
@@ -5840,6 +5903,10 @@ function setPoderAdminUsuario(email, modo){
 }
 function setPoderPerfil(id, chave, on){
   if (!perfisAcesso[id] || !ehAdminAtual()) return;
+  /* 🔴 v320 - A 2a PORTA DO PODER DE ADMIN, e e' a que se esquece: um perfil carrega
+     `poderes.admin`, e `ehAdminEmail` le isso. Trancar so' a ficha da pessoa deixaria o caminho
+     do perfil aberto. */
+  if (chave === "admin" && !podeMexerEmAdmin()) return negarAdminPoder("msgPerfis");
   if (!perfisAcesso[id].poderes) perfisAcesso[id].poderes = {};
   if (on) perfisAcesso[id].poderes[chave] = true; else delete perfisAcesso[id].poderes[chave];
   docPerfisAcesso.set({ perfis: perfisAcesso })
@@ -5879,6 +5946,7 @@ function setEmpresaPerfil(id, sig, on){
 }
 function setEmpresaUsuario(email, sig, on){
   email = String(email).toLowerCase();
+  if (!podeMexerNaFicha(email)) return negarFicha();   /* v320 */
   const cur = permissoesTodos[email] ? Object.assign({}, permissoesTodos[email]) : {};
   if (!cur.empresas){ cur.empresas = {}; EMPRESAS_ADM.forEach(x => cur.empresas[x.sig] = empresaPermitidaDe(email, x.sig)); }
   cur.empresas[sig] = !!on;
@@ -5887,9 +5955,13 @@ function setEmpresaUsuario(email, sig, on){
 }
 
 /* ----- gravacao comum ----- */
-function gravarPermissoesAdm(msgOk){
+/* 🔴 v320 — ESTE E' O UNICO CAMINHO ATE' `config/permissoes`. Antes eram DEZ lugares chamando
+   `docPermissoes.set` por conta propria; cinco passavam por aqui e cinco nao. Agora todos passam,
+   e por isso a rede de seguranca precisa existir em UM lugar so'. */
+function gravarPermissoesAdm(msgOk, depois){
+  protegerDonoAntesDeGravar();
   docPermissoes.set({ porUsuario: permissoesTodos })
-    .then(()=> avisoAdmin("msgAdminLista", msgOk, "ok"))
+    .then(()=>{ if (msgOk) avisoAdmin("msgAdminLista", msgOk, "ok"); if (typeof depois === "function") depois(); })
     .catch(er => avisoAdmin("msgAdminLista", msgErro(er), "erro"));
   aplicarVisibilidadeMenus();
   renderAbaAdm();
@@ -5902,6 +5974,7 @@ function menusManualDoUsuario(email){
 }
 function setPermUsuarioEmp(email, sig, key, on){
   email = String(email).toLowerCase();
+  if (!podeMexerNaFicha(email)) return negarFicha();   /* v320 */
   const cur = permissoesTodos[email] ? Object.assign({}, permissoesTodos[email]) : {};
   const r = normPerm(cur);
   let menus = (r && r.menus && mapaMenusNovo(r.menus)) ? JSON.parse(JSON.stringify(r.menus)) : menusManualDoUsuario(email);
@@ -6007,11 +6080,20 @@ function selTresEstados(chamada, modo, rotSim, rotNao){
 function fichaPessoaHtml(e){
   const a = aspAdm(e);
   const fixo = ehAdminFixo(e);
+  /* 🔴 v320 - a ficha do dono, vista por outro administrador, aparece TRANCADA e DIZENDO POR QUE.
+     ⚠️ O `pointer-events:none` do CSS e' so' a aparencia — quem realmente recusa sao as guardas
+     dentro de cada funcao. Desenho nunca e' permissao. */
+  const trancada = !podeMexerNaFicha(e);
   const rule = normPerm(permissoesTodos[e]);
   const pid = perfilDoUsuario(e);
   let modo = ""; if (pid) modo = "perfil:" + pid; else if (rule && rule.menus) modo = "manual";
 
-  let h = '<div class="adm-ficha"><div class="adm-ficha-top">' +
+  let h = "";
+  if (trancada) h += '<div class="adm-trava">🔒 <b>Esta é a ficha do dono do app.</b> ' +
+    'Ela pode ser consultada, mas não alterada — nem por um administrador. ' +
+    'O poder de administrador, o perfil, os menus, as empresas, as notificações e a troca de senha ' +
+    'ficam por conta dele.</div>';
+  h += '<div class="adm-ficha' + (trancada ? ' adm-trancado' : '') + '"><div class="adm-ficha-top">' +
     '<input class="adm-ficha-nome" maxlength="40" value="' + escAttr(admNomeDe(e) === e ? "" : admNomeDe(e)) +
     '" placeholder="Sem nome definido" onchange="salvarNomeUsuario(\'' + a + '\', this.value)">' +
     '<span class="adm-pes-mail">' + escAttr(e) + '</span>' + presencaHtml(e) +
@@ -6045,7 +6127,11 @@ function fichaPessoaHtml(e){
   } else if (modo === "manual"){
     h += '<div class="adm-sec">2 · Empresas e menus desta pessoa</div>' + gradeMenusHtml("usuario", e, rule ? rule.menus : null, permissoesTodos[e] || {});
   } else {
-    h += '<p class="nota-dash">\u23f3 Sem perfil, esta pessoa <b>n\u00e3o v\u00ea menu nenhum</b> \u2014 ela fica na tela de espera, com acesso s\u00f3 \u00e0 Caixa de entrada e \u00e0 Minha conta. Escolha um perfil acima ou marque os menus \u00e0 m\u00e3o.</p>';
+    h += ehAdminEmail(e)
+      ? ('<p class="nota-dash">\ud83d\udee1\ufe0f <b>' + (fixo ? "Dono do app" : "Administradora(o)") +
+         '</b> \u2014 esta pessoa <b>v\u00ea todos os menus e as tr\u00eas empresas</b>, com ou sem perfil. ' +
+         'O perfil acima s\u00f3 passaria a valer se o poder de administrador sa\u00edsse.</p>')
+      : '<p class="nota-dash">\u23f3 Sem perfil, esta pessoa <b>n\u00e3o v\u00ea menu nenhum</b> \u2014 ela fica na tela de espera, com acesso s\u00f3 \u00e0 Caixa de entrada e \u00e0 Minha conta. Escolha um perfil acima ou marque os menus \u00e0 m\u00e3o.</p>';
   }
 
   /* poderes */
@@ -6121,6 +6207,7 @@ function editarPerfilDaPessoa(id){ admPerfilSel = id; irParaAbaAdm("perfis"); }
 function setRespCaixaPessoa(email, unidade, on){
   if (!ehAdminAtual() || !nuvemPronta) return;
   email = String(email).toLowerCase();
+  if (!podeMexerNaFicha(email)) return negarFicha("msgMetaCaixa");   /* v320 */
   const resp = JSON.parse(JSON.stringify((metaCaixa && metaCaixa.responsaveis) ? metaCaixa.responsaveis : {}));
   CXI_POSTOS.forEach(u => { if (!Array.isArray(resp[u])) resp[u] = []; });
   const lista = resp[unidade];
@@ -6420,6 +6507,7 @@ function alternarPermUsuario(email){
 }
 function setPermUsuario(email, key, marcado){
   email = String(email).toLowerCase();
+  if (!podeMexerNaFicha(email)) return negarFicha();   /* v320 */
   const rule = normPerm(permissoesTodos[email]);
   let menus;
   if (rule && rule.menus){ menus = Object.assign({}, rule.menus); }
@@ -6427,14 +6515,12 @@ function setPermUsuario(email, key, marcado){
   menus[key] = !!marcado;
   const aviAtual = (permissoesTodos[email] && permissoesTodos[email].avisos) ? permissoesTodos[email].avisos : null;
   permissoesTodos[email] = aviAtual ? { menus, avisos: aviAtual } : { menus };   // vira modo manual (preserva exceção de notificações)
-  docPermissoes.set({ porUsuario: permissoesTodos })
-    .then(()=> avisoAdmin("msgAdminLista", "Menus de " + email + " salvos.", "ok"))
-    .catch(er => avisoAdmin("msgAdminLista", msgErro(er), "erro"));
-  aplicarVisibilidadeMenus();
+  gravarPermissoesAdm("Menus de " + email + " salvos.");
 }
 // Define como o usuário acessa os menus: "" (sem perfil, fica esperando), "perfil:<id>" ou "manual"
 function definirAcessoUsuario(email, val){
   email = String(email).toLowerCase();
+  if (!podeMexerNaFicha(email)) return negarFicha();   /* v320 */
   const aviAtual = (permissoesTodos[email] && permissoesTodos[email].avisos) ? permissoesTodos[email].avisos : null;
   if (val === ""){
     if (aviAtual) permissoesTodos[email] = { avisos: aviAtual }; else delete permissoesTodos[email];
@@ -6444,15 +6530,12 @@ function definirAcessoUsuario(email, val){
     const menus = menusManualDoUsuario(email);      // v216 - ja nasce separado por empresa
     permissoesTodos[email] = aviAtual ? { menus, avisos: aviAtual } : { menus };
   }
-  docPermissoes.set({ porUsuario: permissoesTodos })
-    .then(()=> avisoAdmin("msgAdminLista", "Acesso de " + email + " atualizado.", "ok"))
-    .catch(er => avisoAdmin("msgAdminLista", msgErro(er), "erro"));
-  aplicarVisibilidadeMenus();
-  renderAbaAdm();
+  gravarPermissoesAdm("Acesso de " + email + " atualizado.");
 }
 // Exceção de notificações por usuário (independe do perfil)
 function definirModoAvisosUsuario(email, val){
   email = String(email).toLowerCase();
+  if (!podeMexerNaFicha(email)) return negarFicha();   /* v320 */
   const cur = permissoesTodos[email] ? Object.assign({}, permissoesTodos[email]) : {};
   if (val === "manual"){
     const keys = CHAVES_AGENDA.slice();   // v217
@@ -6466,21 +6549,16 @@ function definirModoAvisosUsuario(email, val){
   }
   const temMenu = cur.perfil || cur.menus || Object.keys(cur).some(k => k !== "avisos");
   if (!cur.avisos && !temMenu) delete permissoesTodos[email]; else permissoesTodos[email] = cur;
-  docPermissoes.set({ porUsuario: permissoesTodos })
-    .then(()=> avisoAdmin("msgAdminLista", "Notificações de " + email + " atualizadas.", "ok"))
-    .catch(er => avisoAdmin("msgAdminLista", msgErro(er), "erro"));
-  renderAbaAdm();
-  refrescarAvisosCalendario();
+  gravarPermissoesAdm("Notificações de " + email + " atualizadas.", refrescarAvisosCalendario);
 }
 function setAvisoUsuario(email, origem, on){
   email = String(email).toLowerCase();
+  if (!podeMexerNaFicha(email)) return negarFicha();   /* v320 */
   const cur = permissoesTodos[email] ? Object.assign({}, permissoesTodos[email]) : {};
   cur.avisos = Object.assign({}, cur.avisos || {});
   cur.avisos[origem] = !!on;
   permissoesTodos[email] = cur;
-  docPermissoes.set({ porUsuario: permissoesTodos })
-    .then(()=> refrescarAvisosCalendario())
-    .catch(er => avisoAdmin("msgAdminLista", msgErro(er), "erro"));
+  gravarPermissoesAdm("", refrescarAvisosCalendario);
 }
 // ----- Perfis de acesso (templates de menus, com vínculo ao vivo) -----
 
@@ -6497,6 +6575,7 @@ function criarPerfilAcesso(){
     .catch(e => avisoAdmin("msgPerfis", msgErro(e), "erro"));
 }
 function setMenuPerfil(id, key, on){
+  if (!ehAdminAtual()) return negarAdm("msgPerfis", "Só administradores mexem em perfis de acesso.");   /* v320 */
   if (!perfisAcesso[id]) return;
   if (!perfisAcesso[id].menus) perfisAcesso[id].menus = {};
   if (on) perfisAcesso[id].menus[key] = true; else delete perfisAcesso[id].menus[key];
@@ -6505,6 +6584,7 @@ function setMenuPerfil(id, key, on){
     .catch(e => avisoAdmin("msgPerfis", msgErro(e), "erro"));
 }
 function setAvisoPerfil(id, origem, on){
+  if (!ehAdminAtual()) return negarAdm("msgPerfis", "Só administradores mexem em perfis de acesso.");   /* v320 */
   if (!perfisAcesso[id]) return;
   if (!perfisAcesso[id].avisos) perfisAcesso[id].avisos = {};
   perfisAcesso[id].avisos[origem] = !!on;
@@ -6514,6 +6594,7 @@ function setAvisoPerfil(id, origem, on){
 }
 function renomearPerfilAcesso(id, val){
   if (!perfisAcesso[id]) return;
+  if (!ehAdminAtual()) return negarAdm("msgPerfis", "Só administradores mexem em perfis de acesso.");   /* v320 */
   perfisAcesso[id].nome = String(val || "").trim();
   docPerfisAcesso.set({ perfis: perfisAcesso })
     .then(()=>{ renderPerfisAcesso(); renderAdminUsuarios(); })
@@ -6523,6 +6604,11 @@ let confirmarExclPerfil = null;
 function removerPerfilAcesso(id){
   if (confirmarExclPerfil !== id){ confirmarExclPerfil = id; avisoAdmin("msgPerfis", "Toque de novo em \u2715 excluir para confirmar a remoção do perfil.", "erro"); return; }
   confirmarExclPerfil = null;
+  /* 🔴 v320 - apagar o perfil QUE O DONO SEGUE muda a ficha dele por tabela. Mesma trava, porta
+     lateral: e' o tipo de caminho que uma guarda por funcao sozinha nao enxerga. */
+  if (!ehAdminAtual()) return negarAdm("msgPerfis", "Só administradores mexem em perfis de acesso.");
+  if (DONO_APP && !ehDonoAtual() && perfilDoUsuario(DONO_APP) === id)
+    return negarAdm("msgPerfis", "Este é o perfil do dono do app e não pode ser excluído por outra pessoa.");
   delete perfisAcesso[id];
   docPerfisAcesso.set({ perfis: perfisAcesso })
     .then(()=>{ avisoAdmin("msgPerfis", "Perfil excluído. Quem usava esse perfil ficou na tela de espera — escolha outro perfil para essas pessoas.", "ok"); renderPerfisAcesso(); renderAdminUsuarios(); aplicarVisibilidadeMenus(); })
@@ -6530,14 +6616,13 @@ function removerPerfilAcesso(id){
 }
 function liberarTudoUsuario(email){
   email = String(email).toLowerCase();
+  if (!podeMexerNaFicha(email)) return negarFicha();   /* v320 */
   delete permissoesTodos[email];   // v221 - sem regra = volta para a fila de espera
-  docPermissoes.set({ porUsuario: permissoesTodos })
-    .then(()=> { avisoAdmin("msgAdminLista", email + " ficou sem perfil e voltou para a tela de espera.", "ok"); renderAdminUsuarios(); })
-    .catch(er => avisoAdmin("msgAdminLista", msgErro(er), "erro"));
-  aplicarVisibilidadeMenus();
+  gravarPermissoesAdm(email + " ficou sem perfil e voltou para a tela de espera.", renderAdminUsuarios);
 }
 
 function salvarNomeUsuario(email, valor){
+  if (!podeMexerNaFicha(email)) return negarFicha();   /* v320 */
   const nome = String(valor || "").trim();
   colPerfis.doc(email).set({ nome, email }, { merge: true })
     .then(()=> avisoAdmin("msgAdminLista", 'Nome de ' + email + ' salvo' + (nome ? ': "' + nome + '".' : ' (ficou sem nome).'), "ok"))
@@ -6545,6 +6630,7 @@ function salvarNomeUsuario(email, valor){
 }
 
 function enviarResetUsuario(email){
+  if (!podeMexerNaFicha(email)) return negarFicha();   /* v320 */
   auth.sendPasswordResetEmail(email)
     .then(()=> avisoAdmin("msgAdminLista", "Link de troca de senha enviado para " + email + ".", "ok"))
     .catch(e => avisoAdmin("msgAdminLista", msgErro(e), "erro"));
@@ -6578,6 +6664,7 @@ function criarUsuario(){
 
 function resetUsuario(){
   const email = document.getElementById("resetUsuarioEmail").value.trim();
+  if (!podeMexerNaFicha(email)) return negarFicha("msgAdminReset");   /* v320 */
   if(!email){ avisoAdmin("msgAdminReset", "Digite o e-mail do usuário.", "erro"); return; }
   auth.sendPasswordResetEmail(email)
     .then(()=> avisoAdmin("msgAdminReset", "Link de redefinição enviado para " + email + ".", "ok"))
@@ -6639,6 +6726,11 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v320", data:"10/08/2026", tit:"\ud83d\udd10 O dono do app n\u00e3o pode ter os privil\u00e9gios revogados", itens:[
+    {t:"n", h:"A ficha do dono fica <b>trancada</b> para os outros administradores", d:"Pedido do Tiago: <i>\u201cuma trava para que, mesmo sendo admin, ningu\u00e9m possa remover nenhum privil\u00e9gio meu\u201d</i>. O poder de administrador, o perfil de acesso, os menus, as empresas, as notifica\u00e7\u00f5es, a responsabilidade pelos caixas e a troca de senha do dono s\u00f3 ele mesmo altera. A ficha continua vis\u00edvel para consulta \u2014 e <b>diz na tela por que est\u00e1 travada</b>."},
+    {t:"n", h:"E <b>conceder ou remover o poder de administrador</b> passou a ser exclusivo dele", d:"Um administrador continua cuidando de pessoas, perfis, menus e regras, mas quem entra e sai da lista de administradores \u00e9 decis\u00e3o do dono. <b>S\u00e3o duas portas para esse poder</b> \u2014 pela pessoa e pelo perfil \u2014 e as duas ficaram trancadas."},
+    {t:"m", h:"E 11 telas de permiss\u00e3o ganharam a confer\u00eancia que faltava", d:"Das 14 fun\u00e7\u00f5es que mexem em permiss\u00e3o, <b>s\u00f3 tr\u00eas</b> conferiam se quem chamou era administrador; as outras dependiam apenas de o bot\u00e3o estar escondido. <b>Bot\u00e3o escondido n\u00e3o \u00e9 permiss\u00e3o.</b> E as dez grava\u00e7\u00f5es da tabela de permiss\u00f5es, que antes eram espalhadas, passaram a ter <b>um caminho s\u00f3</b>."}
+  ]},
   {v:"v319", data:"10/08/2026", tit:"\ud83d\udccc As pend\u00eancias sa\u00edram da Caixa de entrada e ganharam aba pr\u00f3pria", itens:[
     {t:"n", h:"Nova aba <b>\ud83d\udccc Pend\u00eancias</b> no Painel Administrativo", d:"Pedido do Tiago: <i>\u201cminha caixa de entrada est\u00e1 ficando cheia de mensagens suas\u2026 que tal uma aba no painel administrativo com todas as pend\u00eancias do sistema e coisas que voc\u00ea pediu para eu verificar, com descri\u00e7\u00e3o e tudo?\u201d</i> Cada pend\u00eancia traz a <b>descri\u00e7\u00e3o inteira</b> e o n\u00famero que a motivou, separada em <b>travando</b>, <b>para resolver</b> e <b>quando der</b>. <b>\u2713 Conclu\u00eddo</b> tira da lista e guarda no hist\u00f3rico."},
     {t:"n", h:"E d\u00e1 para conversar <b>dentro</b> de cada pend\u00eancia", d:"O bot\u00e3o <b>\ud83d\udcac Falar com o Claude</b> abre uma caixa por pend\u00eancia \u2014 a conversa fica guardada ali, ent\u00e3o daqui a tr\u00eas meses o <i>porqu\u00ea</i> ainda est\u00e1 do lado do <i>o qu\u00ea</i>. <b>O Claude n\u00e3o fica escutando</b>: ele l\u00ea o que est\u00e1 sem resposta quando uma conversa nova come\u00e7a, e a tela diz isso na cara, ao lado do campo de escrever."},
@@ -8172,6 +8264,9 @@ function iniciarSync(){
     const bruto = (d && d.porUsuario) ? d.porUsuario : {};
     const norm = {}; Object.keys(bruto).forEach(k => { norm[String(k).toLowerCase()] = bruto[k]; });
     permissoesTodos = norm;
+    /* v320 - a foto do servidor da ficha do dono, que a rede de seguranca usa para restaurar */
+    _permDonoServidor = (DONO_APP && Object.prototype.hasOwnProperty.call(norm, DONO_APP))
+      ? JSON.parse(JSON.stringify(norm[DONO_APP])) : null;
     vistoPermissoes = true;                       // v221
     aplicarVisibilidadeMenus();
     garantirPainelPermitido();
@@ -18761,6 +18856,7 @@ function origemEventosDe(email){
 }
 function setPermEventosModo(email, modo){
   email = (email||"").toLowerCase();
+  if (!podeMexerNaFicha(email)) return negarFicha();   /* v320 */
   if (!permissaoEventos) permissaoEventos = {};
   if (modo === "sim") permissaoEventos[email] = true;
   else if (modo === "nao") permissaoEventos[email] = false;
@@ -18768,6 +18864,7 @@ function setPermEventosModo(email, modo){
   gravarPermEventos();
 }
 function setPermEventosPerfil(id, on){
+  if (!ehAdminAtual()) return negarAdm("msgPerfis", "Só administradores mexem em perfis de acesso.");   /* v320 */
   if (!permissaoEventosPerfil) permissaoEventosPerfil = {};
   if (on) permissaoEventosPerfil[id] = true; else delete permissaoEventosPerfil[id];
   gravarPermEventos();
@@ -18804,6 +18901,7 @@ function origemDescontosDe(email){
 }
 function setPermDescontosModo(email, modo){
   email = (email||"").toLowerCase();
+  if (!podeMexerNaFicha(email)) return negarFicha();   /* v320 */
   if (!permissaoDesc) permissaoDesc = {};
   if (modo === "sim") permissaoDesc[email] = true;
   else if (modo === "nao") permissaoDesc[email] = false;
@@ -18811,6 +18909,7 @@ function setPermDescontosModo(email, modo){
   gravarPermDescontos();
 }
 function setPermDescontosPerfil(id, on){
+  if (!ehAdminAtual()) return negarAdm("msgPerfis", "Só administradores mexem em perfis de acesso.");   /* v320 */
   if (!permissaoDescPerfil) permissaoDescPerfil = {};
   if (on) permissaoDescPerfil[id] = true; else delete permissaoDescPerfil[id];
   gravarPermDescontos();
