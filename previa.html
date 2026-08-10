@@ -1841,6 +1841,29 @@
   .pres.off{color:var(--cinza)}
   .pres.off .dot{background:var(--cinza)}
   .pres-resumo{display:flex;align-items:center;gap:8px;margin:0 0 12px;padding:10px 12px;border:1px solid var(--borda);border-radius:10px;background:var(--superficie-2);font-size:.85rem}
+  /* ===== v319 - a aba 📌 Pendencias =====
+     🔑 O CARTAO E' O `rec-card` DA CAIXA DE ENTRADA, sem uma linha de CSS nova. O que nasce aqui
+     e' so' o que nao existia: os graus, os baloes da conversa e o cabecalho de cada bloco. */
+  .rec-tag.pnd-u0{background:rgba(180,35,24,.14);color:#b42318}
+  .rec-tag.pnd-u1{background:rgba(234,179,8,.18);color:#8a6100}
+  .rec-tag.pnd-u2{background:rgba(59,130,246,.14);color:#1d4ed8}
+  .rec-tag.pnd-as{background:var(--superficie);border:1px solid var(--borda);color:var(--cinza);font-weight:600}
+  .rec-tag.pnd-esp{background:rgba(254,112,48,.14);color:#FE7030}
+  .pnd-sec{font-size:.82rem;font-weight:700;color:var(--txt);margin:16px 0 8px;display:flex;align-items:center;gap:8px}
+  .pnd-sec:first-child{margin-top:4px}
+  .pnd-n{background:var(--superficie);border:1px solid var(--borda);border-radius:999px;
+    padding:1px 8px;font-size:.72rem;color:var(--cinza)}
+  .pnd-conv{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+  .pnd-bal{border-radius:10px;padding:7px 10px;max-width:88%;font-size:.86rem}
+  .pnd-bal.eu{align-self:flex-end;background:var(--verde-claro);color:var(--txt)}
+  .pnd-bal.claude{align-self:flex-start;background:var(--superficie);border:1px solid var(--borda);color:var(--txt)}
+  .pnd-bal-quem{font-size:.68rem;color:var(--cinza);font-weight:700;margin-bottom:2px}
+  .pnd-bal-txt{white-space:pre-wrap}
+  /* 🔴 O aviso de que eu NAO fico escutando mora colado no campo de escrever, e nao no topo da
+     tela: aviso longe do lugar onde a pessoa age e' aviso que ninguem le. */
+  .pnd-aviso{font-size:.74rem;color:var(--cinza);margin-top:6px}
+  .pnd-topo{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:2px}
+  .pnd-cont{font-size:.78rem;color:var(--cinza)}
   .rec-card{border:1px solid var(--borda);border-radius:12px;padding:12px 14px;background:var(--superficie-2);margin-bottom:10px}
   .rec-card.feito{opacity:.72}
   .rec-topo{display:flex;align-items:center;gap:8px;margin-bottom:4px}
@@ -3283,7 +3306,7 @@
       <button class="btn-claro" id="btnCaixa" onclick="alternarCaixa()"><span class="mi">📥</span><span class="mt">Caixa de entrada</span><span class="menu-badge" id="badgeCaixa" style="display:none">0</span></button>
       <button class="btn-claro" id="btnConta" onclick="alternarConta()"><span class="mi">👤</span><span class="mt">Minha conta</span></button>
       <button class="btn-claro" id="btnConfig" onclick="alternarConfig()"><span class="mi">⚙</span><span class="mt">Configurações</span></button>
-      <button class="btn-claro" id="btnUsuarios" style="display:none" onclick="alternarAdmin()"><span class="mi">👥</span><span class="mt">Painel Administrativo</span></button>
+      <button class="btn-claro" id="btnUsuarios" style="display:none" onclick="alternarAdmin()"><span class="mi">👥</span><span class="mt">Painel Administrativo</span><span class="menu-badge" id="badgeAdmin" style="display:none">0</span></button>
       <button class="btn-claro" id="btnNovidades" onclick="alternarNovidades()"><span class="mi">🎁</span><span class="mt">Novidades</span><span class="menu-badge" id="badgeNovidades" style="display:none">0</span></button>   <!-- v246 -->
     </div>
     <button class="btn-claro menu-ordenar" id="btnOrdenarMenus" style="display:none" onclick="alternarPersonalizarMenus()"><span class="mi" id="ordIcone">✏️</span><span class="mt" id="ordLabel">Personalizar menus</span></button>
@@ -3981,6 +4004,27 @@
       </div>
     </div>
 
+    <div class="adm-pag" id="admPagPendencias" style="display:none">
+      <div class="grupo">
+        <h2>📌 Pendências</h2>
+        <!-- 🔴 ESTE TEXTO FOI CORTADO PELA METADE DEPOIS DA FOTO NO CELULAR. Na primeira redação
+             eram dois parágrafos de onze linhas: num aparelho de 390 px, ele lia a explicação
+             inteira ANTES de ver a primeira pendência — mais de meia tela de instrução.
+             🔑 Explicação comprida no topo não ensina: ela empurra o conteúdo para fora da tela.
+             O aviso longo continua existindo, colado no campo de escrever, que é onde ele importa. -->
+        <p class="nota-dash">Tudo o que <b>depende de você</b>, com a descrição inteira e o número que motivou. <b>✓ Concluído</b> tira da lista e me avisa que resolveu; <b>💬 Falar com o Claude</b> abre a conversa daquela pendência.</p>
+        <p class="nota-dash">⚠️ <b>O Claude não fica escutando</b> — ele lê o que você escrever quando uma conversa nova começar.</p>
+        <div class="pnd-topo"><span class="pnd-cont" id="pndContador"></span></div>
+        <div class="doc-tools" id="pndChips"></div>
+        <div class="msg-admin" id="pndMsg" style="display:none"></div>
+        <div id="pndLista"></div>
+        <div class="hist-rodape">
+          <button id="pndBtnFeitas" class="btn-claro" style="display:none" onclick="pndAlternarFeitas()">👁 Ver as concluídas</button>
+        </div>
+        <div id="pndFeitas" style="display:none"></div>
+      </div>
+    </div>
+
     <div class="adm-pag" id="admPagPerfis" style="display:none">
       <div class="grupo">
         <h2>🎭 Perfis de acesso</h2>
@@ -4331,6 +4375,7 @@ const colHistorico = db.collection("historico");
 const colPerfis = db.collection("perfis");   // nome amigável por usuário (id do doc = e-mail)
 const colPresenca = db.collection("presenca"); // "sinal de vida" de cada usuário logado (id do doc = e-mail)
 const colRecados = db.collection("recados");   // caixa de entrada: avisos e tarefas internas
+const colPendencias = db.collection("pendencias"); // v319 - o que depende do Tiago, com conversa e "concluido"
 const docPermEnvio = db.collection("config").doc("permissoesEnvio"); // quem pode enviar avisos/tarefas
 const docPermissoes = db.collection("config").doc("permissoes"); // {porUsuario:{email:{menuKey:bool}}} — quais menus cada usuário vê
 const docPerfisAcesso = db.collection("config").doc("perfisAcesso"); // {perfis:{id:{nome,menus:{key:true}}}} — perfis de acesso a menus
@@ -4437,6 +4482,11 @@ let presencaVisWired = false;
 const ONLINE_MS = 150000;              // online se visto nos últimos 2,5 min
 let recados = [];                      // avisos/tarefas da caixa de entrada
 let escutaRecados = null;
+/* v319 - a aba 📌 Pendencias */
+let pendencias = [];
+let escutaPendencias = null;
+let pndFiltro = "", pndMostrarFeitas = false, pndConcluindo = "", pndEscrevendo = "", pndMsg = "";
+let pndTxtTmp = {};
 let permissaoEnvio = {};               // emailLower -> true (pode enviar avisos/tarefas)
 let escutaPermEnvio = null;
 let eventos = [];                      // eventos do calendário cadastrados no app (coleção "eventos")
@@ -5169,6 +5219,7 @@ function aoMudarLogin(usuario){
     if (escutaPresenca){ escutaPresenca(); escutaPresenca = null; }
     if (heartbeatTimer){ clearInterval(heartbeatTimer); heartbeatTimer = null; }
     if (escutaRecados){ escutaRecados(); escutaRecados = null; }
+    if (escutaPendencias){ escutaPendencias(); escutaPendencias = null; }
     if (escutaPermEnvio){ escutaPermEnvio(); escutaPermEnvio = null; }
     if (escutaEventos){ escutaEventos(); escutaEventos = null; }
     if (escutaPermEventos){ escutaPermEventos(); escutaPermEventos = null; }
@@ -5698,6 +5749,9 @@ function presencaHtml(email){
    admin > excecao da pessoa > perfil > padrao.                                    */
 
 const ABAS_ADM = [
+  /* 🔑 A Pendencias vem PRIMEIRO e e' a aba padrao: desde a v319 e' por ela que ele abre o painel.
+     As outras quatro sao de configuracao, e configuracao se mexe quando muda alguma coisa. */
+  {k:"pend",    nome:"📌 Pendências",             pag:"admPagPendencias"},
   {k:"pessoas", nome:"👥 Pessoas",                pag:"admPagPessoas"},
   {k:"perfis",  nome:"🎭 Perfis de acesso",       pag:"admPagPerfis"},
   {k:"matriz",  nome:"🔎 Quem vê o quê", pag:"admPagMatriz"},
@@ -5715,7 +5769,7 @@ const PODERES_ADM = [
   {k:"descontos", nome:"✅ Conferir descontos (dizer o motivo)"},
   {k:"admin",   nome:"🛠 Administrador (vê tudo e edita permissões)"}
 ];
-let admAba = "pessoas";
+let admAba = "pend";   /* v319 - o painel abre nas Pendencias */
 let admFichaAberta = "";     // e-mail da ficha aberta (estado em variavel, nunca no DOM)
 let admBuscaTxt = "";
 let admFiltroPerfilSel = "";
@@ -5868,7 +5922,7 @@ function barraAbasAdm(){
     '<button class="doc-chip' + (admAba === a.k ? ' ativo' : '') + '" onclick="irParaAbaAdm(\'' + a.k + '\')">' + a.nome + '</button>').join("");
 }
 function irParaAbaAdm(k){
-  if (!ABAS_ADM.some(a => a.k === k)) k = "pessoas";
+  if (!ABAS_ADM.some(a => a.k === k)) k = "pend";
   admAba = k;
   ABAS_ADM.forEach(a => { const el = document.getElementById(a.pag); if (el) el.style.display = (a.k === k) ? "" : "none"; });
   barraAbasAdm();
@@ -5877,7 +5931,8 @@ function irParaAbaAdm(k){
 function renderAbaAdm(){
   const pa = document.getElementById("painelAdmin");
   if (!pa || !pa.classList.contains("aberto")) return;
-  if (admAba === "perfis")      renderPerfisAcesso();
+  if (admAba === "pend")        renderPendencias();          /* v319 */
+  else if (admAba === "perfis") renderPerfisAcesso();
   else if (admAba === "matriz") renderAdmMatriz();
   else if (admAba === "regras"){ renderMetaCaixa(); renderAvisoReceb(); }   /* v316 */
   else if (admAba === "ativ")   { popularSelectsAdmin(admEmails()); renderAtividadesFunc(); }
@@ -6584,6 +6639,11 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v319", data:"10/08/2026", tit:"\ud83d\udccc As pend\u00eancias sa\u00edram da Caixa de entrada e ganharam aba pr\u00f3pria", itens:[
+    {t:"n", h:"Nova aba <b>\ud83d\udccc Pend\u00eancias</b> no Painel Administrativo", d:"Pedido do Tiago: <i>\u201cminha caixa de entrada est\u00e1 ficando cheia de mensagens suas\u2026 que tal uma aba no painel administrativo com todas as pend\u00eancias do sistema e coisas que voc\u00ea pediu para eu verificar, com descri\u00e7\u00e3o e tudo?\u201d</i> Cada pend\u00eancia traz a <b>descri\u00e7\u00e3o inteira</b> e o n\u00famero que a motivou, separada em <b>travando</b>, <b>para resolver</b> e <b>quando der</b>. <b>\u2713 Conclu\u00eddo</b> tira da lista e guarda no hist\u00f3rico."},
+    {t:"n", h:"E d\u00e1 para conversar <b>dentro</b> de cada pend\u00eancia", d:"O bot\u00e3o <b>\ud83d\udcac Falar com o Claude</b> abre uma caixa por pend\u00eancia \u2014 a conversa fica guardada ali, ent\u00e3o daqui a tr\u00eas meses o <i>porqu\u00ea</i> ainda est\u00e1 do lado do <i>o qu\u00ea</i>. <b>O Claude n\u00e3o fica escutando</b>: ele l\u00ea o que est\u00e1 sem resposta quando uma conversa nova come\u00e7a, e a tela diz isso na cara, ao lado do campo de escrever."},
+    {t:"m", h:"A <b>Caixa de entrada</b> voltou a ser s\u00f3 da opera\u00e7\u00e3o", d:"Pend\u00eancia de investiga\u00e7\u00e3o n\u00e3o vai mais para l\u00e1. A Caixa de entrada fica com o que a equipe precisa ver: os vigias da sincroniza\u00e7\u00e3o, o fechamento do m\u00eas, os avisos de nota a lan\u00e7ar. <b>O bot\u00e3o do Painel Administrativo ganhou um n\u00famero</b> \u2014 e ele conta <b>s\u00f3 o que est\u00e1 travando</b>, nunca a lista inteira, porque aviso que vira paisagem \u00e9 aviso que ningu\u00e9m l\u00ea."}
+  ]},
   {v:"v318", data:"10/08/2026", tit:"\ud83d\uddbc\ufe0f O recebimento de combust\u00edvel agora sai como IMAGEM", itens:[
     {t:"n", h:"Bot\u00e3o <b>\ud83d\uddbc\ufe0f Enviar como imagem</b>, ao lado do Copiar", d:"Pedido do Tiago: <i>\u201calém de copiar a mensagem para colar no whatsapp devia ter a opção de enviar como foto para ficar mais fácil o entendimento, que nem você já faz em alguns outros menus como o Resumo do dia\u201d</i>. O cart\u00e3o sai com a logo, um bloco por tanque com os <b>litros</b>, a <b>hora</b>, a <b>altura da r\u00e9gua</b> e o estado da nota \u2014 e no rodap\u00e9 o total do posto. <b>No celular abre direto o compartilhamento</b>; no computador, baixa o arquivo."},
     {t:"m", h:"E ele reusa a MESMA pe\u00e7a do Resumo do dia", d:"Nada de cart\u00e3o novo: s\u00e3o as mesmas classes e o mesmo caminho de gera\u00e7\u00e3o que existem desde a v154, com as cores fixas claras \u2014 porque a imagem vai para o WhatsApp, onde n\u00e3o existe tema escuro. <b>Escrever um segundo cart\u00e3o com a mesma cara seria criar a pr\u00f3xima diverg\u00eancia.</b>"}
@@ -7889,6 +7949,18 @@ function iniciarSync(){
     atualizarBadgeCaixa();
     const pcx = document.getElementById("painelCaixa");
     if (pcx && pcx.classList.contains("aberto")) renderCaixa();
+  }, ()=>{});
+
+  // v319 - 📌 Pendencias (o que depende do Tiago). So admin ve, mas a escuta e' de todos:
+  // as REGRAS do Firestore decidem quem le, nao a tela.
+  escutaPendencias = colPendencias.onSnapshot(snap => {
+    const arr = [];
+    snap.forEach(doc => arr.push(Object.assign({ id: doc.id }, doc.data() || {})));
+    arr.sort((a,b) => msDeQuando(b.criadaEm) - msDeQuando(a.criadaEm));
+    pendencias = arr;
+    atualizarBadgePendencias();
+    const pAdmP = document.getElementById("painelAdmin");
+    if (pAdmP && pAdmP.classList.contains("aberto") && admAba === "pend") renderPendencias();
   }, ()=>{});
 
   // Quem pode enviar avisos/tarefas
@@ -14456,6 +14528,212 @@ async function rcbImagem(dia, nomePosto){
            : ("Não consegui gerar a imagem: " + (e && e.message ? e.message : e));
     renderRecebimento();
   }
+}
+
+/* ---- v319: 📌 Pendências — a aba que tira as minhas cobranças da Caixa de entrada ------------
+   PEDIDO DELE, palavra por palavra: "minha caixa de entrada está ficando cheia de mensagens suas.
+   que tal planejarmos algo tipo uma aba no painel administrativo com todas as pendências do
+   sistema e coisas que você pediu para eu verificar com descrição e tudo? aí quando eu marcar em
+   concluir você já entenderia que aquilo foi resolvido, e também uma caixa de mensagem pra eu ir
+   tratando desse assunto específico com você por lá."
+
+   🔑 NENHUMA PEÇA NOVA DE CARTÃO: reusa `rec-card`, `rec-topo`, `rec-tag`, `rec-titulo`,
+   `rec-texto`, `rec-meta`, `rec-acoes`, `rec-box` e `rec-obs` da Caixa de entrada (v188). Só os
+   balões da conversa são desenho novo — porque conversa é coisa que não existia em lugar nenhum.
+
+   🔴 E A DECISÃO DELE FOI "SUBSTITUI", NÃO "CONVIVE": pendência minha não vai mais para a
+   `recados`. A Caixa de entrada volta a ser o que era — vigias, fechamento, avisos para a equipe.
+   ⚠️ O preço disso ele aceitou sabendo: a aba NÃO toca o sino. O contrapeso é UM número no botão
+   do Painel Administrativo, e ele conta SÓ o que está travando — nunca a lista inteira, senão
+   vira paisagem (a regra da v248).
+
+   ⚠️ E a limitação que eu disse a ele ANTES de ele escolher, porque escolha sem ela seria
+   propaganda: EU NÃO FICO ESCUTANDO. O que ele escrever aqui só é lido quando uma sessão nossa
+   abrir e ler. Por isso o selo "💬 esperando o Claude ler" existe: ele é a minha lista de
+   afazeres na abertura da sessão, não uma promessa de resposta imediata. */
+
+const PND_URG = {
+  trava:  { ord:0, selo:"🔴 travando",   cls:"pnd-u0", tit:"🔴 Travando alguma coisa agora" },
+  normal: { ord:1, selo:"🟡 resolver",   cls:"pnd-u1", tit:"🟡 Para resolver" },
+  depois: { ord:2, selo:"🔵 quando der", cls:"pnd-u2", tit:"🔵 Quando der" }
+};
+/* 🔴 UM LUGAR SÓ decide o grau de uma pendência. A lista, o cabeçalho de cada bloco, o selo do
+   card e o número do botão do menu APENAS USAM — é a lição da v297, que custou seis lugares. */
+function pndGrau(p){ return PND_URG[(p && p.urgencia) || "normal"] || PND_URG.normal; }
+
+/* 🔴 E UM LUGAR SÓ decide se a bola está comigo. Isto é DERIVADO da conversa, nunca gravado:
+   campo `esperando` guardado no documento seria uma segunda verdade, e no dia em que ele
+   divergisse da conversa quem apareceria mentindo é a tela. */
+function pndEsperandoClaude(p){
+  const c = (p && Array.isArray(p.conversa)) ? p.conversa : [];
+  if (!c.length) return false;
+  return c[c.length - 1].quem !== "claude";
+}
+
+function pendenciasVisiveis(){
+  return (pendencias || []).filter(p => !pndFiltro || p.assunto === pndFiltro);
+}
+function pndAbertasTravando(){
+  return (pendencias || []).filter(p => !p.concluida && pndGrau(p).ord === 0).length;
+}
+function atualizarBadgePendencias(){
+  const b = document.getElementById("badgeAdmin");
+  if (!b) return;
+  const n = ehAdminAtual() ? pndAbertasTravando() : 0;
+  b.textContent = n; b.style.display = n ? "" : "none";
+}
+
+/* ----- ações ----- */
+function pndIrAssunto(a){ pndFiltro = (pndFiltro === a) ? "" : String(a || ""); renderPendencias(); }
+function pndAlternarFeitas(){
+  pndMostrarFeitas = !pndMostrarFeitas;
+  const b = document.getElementById("pndBtnFeitas");
+  if (b) b.textContent = pndMostrarFeitas ? "🙈 Esconder as concluídas" : "👁 Ver as concluídas";
+  const c = document.getElementById("pndFeitas");
+  if (c) c.style.display = pndMostrarFeitas ? "" : "none";
+  renderPendencias();
+}
+function pndConcluir(id){ pndConcluindo = String(id || ""); pndEscrevendo = ""; renderPendencias(); }
+function pndCancelar(){ pndConcluindo = ""; pndEscrevendo = ""; renderPendencias(); }
+function pndEscrever(id){ pndEscrevendo = String(id || ""); pndConcluindo = ""; renderPendencias(); }
+function pndTexto(id, v){ pndTxtTmp[id] = v; }
+
+function pndConfirmarConcluir(id){
+  const p = (pendencias || []).find(x => x.id === id); if (!p) return;
+  const obs = String(pndTxtTmp[id] || "").trim();
+  colPendencias.doc(id).set({
+    concluida: true, concluidaEm: Date.now(),
+    concluidaPor: usuarioAtual || "", concluidaNome: nomeUsuario || usuarioAtual || "",
+    obs: obs
+  }, { merge:true })
+  .then(() => {
+    delete pndTxtTmp[id]; pndConcluindo = "";
+    logAtividade({ acao:"concluiu", area:"Pendências", resumo:"Concluiu a pendência: " + (p.titulo || "") });
+  })
+  .catch(e => { pndMsg = "Não consegui marcar como concluída: " + (e && e.message ? e.message : e); renderPendencias(); });
+}
+function pndReabrir(id){
+  colPendencias.doc(id).set({ concluida:false, concluidaEm:0, concluidaPor:"", concluidaNome:"", obs:"" }, { merge:true })
+    .catch(()=>{});
+}
+function pndEnviar(id){
+  const txt = String(pndTxtTmp[id] || "").trim();
+  if (!txt){ pndMsg = "Escreva alguma coisa antes de enviar."; renderPendencias(); return; }
+  const msg = { quem:"tiago", nome: nomeUsuario || usuarioAtual || "", texto: txt, quando: Date.now() };
+  colPendencias.doc(id).update({ conversa: firebase.firestore.FieldValue.arrayUnion(msg) })
+    .then(() => { delete pndTxtTmp[id]; pndEscrevendo = ""; pndMsg = ""; })
+    .catch(e => { pndMsg = "Não consegui enviar: " + (e && e.message ? e.message : e); renderPendencias(); });
+}
+
+/* ----- desenho ----- */
+function pndConversaHtml(p){
+  const c = Array.isArray(p.conversa) ? p.conversa : [];
+  if (!c.length) return "";
+  return '<div class="pnd-conv">' + c.map(m => {
+    const meu = m.quem !== "claude";
+    return '<div class="pnd-bal ' + (meu ? "eu" : "claude") + '">' +
+             '<div class="pnd-bal-quem">' + escAttr(meu ? (m.nome || "Você") : "Claude") +
+               ' · ' + escAttr(fmtHaTempo(m.quando)) + '</div>' +
+             '<div class="pnd-bal-txt">' + escAttr(m.texto || "") + '</div>' +
+           '</div>';
+  }).join("") + '</div>';
+}
+
+function pndCardHtml(p, feita){
+  const g = pndGrau(p);
+  const ida = escAspas(p.id);
+  const esperando = !feita && pndEsperandoClaude(p);
+  let h = '<div class="rec-card' + (feita ? " feito" : "") + '">';
+  h += '<div class="rec-topo">' +
+         '<span class="rec-tag ' + g.cls + '">' + g.selo + '</span>' +
+         (p.assunto ? '<span class="rec-tag pnd-as">' + escAttr(p.assunto) + '</span>' : '') +
+         (esperando ? '<span class="rec-tag pnd-esp">💬 esperando o Claude ler</span>' : '') +
+         '<span class="rec-quando">' + escAttr(fmtHaTempo(p.criadaEm)) + '</span>' +
+       '</div>';
+  h += '<div class="rec-titulo">' + escAttr(p.titulo || "") + '</div>';
+  if (p.descricao) h += '<div class="rec-texto">' + escAttr(p.descricao) + '</div>';
+  if (p.origem) h += '<div class="rec-meta">' + escAttr(p.origem) + '</div>';
+  h += pndConversaHtml(p);
+  if (feita){
+    h += '<div class="rec-feito">✓ Concluída por ' + escAttr(p.concluidaNome || p.concluidaPor || "") +
+         ' ' + escAttr(fmtHaTempo(p.concluidaEm)) + '</div>';
+    if (p.obs) h += '<div class="rec-obs-feita">' + escAttr(p.obs) + '</div>';
+    h += '<div class="rec-acoes"><button class="btn-claro" onclick="pndReabrir(\'' + ida + '\')">↩︎ Reabrir</button></div>';
+    return h + '</div>';
+  }
+  if (pndConcluindo === p.id){
+    h += '<div class="rec-box"><div class="rec-box-tit">Como resolveu? (opcional — mas é o que eu leio para entender o que aconteceu)</div>' +
+         '<textarea class="rec-obs" rows="3" maxlength="800" placeholder="Ex.: liguei para o suporte, protocolo 4471, prometeram para quinta." oninput="pndTexto(\'' + ida + '\', this.value)">' +
+         escAttr(pndTxtTmp[p.id] || "") + '</textarea>' +
+         '<div class="rec-acoes"><button class="btn-verde" onclick="pndConfirmarConcluir(\'' + ida + '\')">✓ Concluir</button>' +
+         '<button class="btn-claro" onclick="pndCancelar()">Cancelar</button></div></div>';
+  } else if (pndEscrevendo === p.id){
+    h += '<div class="rec-box"><div class="rec-box-tit">Escrever para o Claude sobre esta pendência</div>' +
+         '<textarea class="rec-obs" rows="3" maxlength="1500" placeholder="Ex.: perguntei ao gerente e ele disse que é o que a bomba marcou mesmo." oninput="pndTexto(\'' + ida + '\', this.value)">' +
+         escAttr(pndTxtTmp[p.id] || "") + '</textarea>' +
+         '<div class="pnd-aviso">⚠️ O Claude não fica escutando: ele lê isto quando uma conversa nova começar.</div>' +
+         '<div class="rec-acoes"><button class="btn-verde" onclick="pndEnviar(\'' + ida + '\')">Enviar</button>' +
+         '<button class="btn-claro" onclick="pndCancelar()">Cancelar</button></div></div>';
+  } else {
+    h += '<div class="rec-acoes">' +
+           '<button class="btn-verde" onclick="pndConcluir(\'' + ida + '\')">✓ Concluído</button>' +
+           '<button class="btn-claro" onclick="pndEscrever(\'' + ida + '\')">💬 Falar com o Claude</button>' +
+         '</div>';
+  }
+  return h + '</div>';
+}
+
+function renderPendencias(){
+  const box = document.getElementById("pndLista"); if (!box) return;
+
+  /* os chips de assunto saem dos dados, nunca de uma lista escrita à mão — assunto novo aparece
+     sozinho no dia em que a primeira pendência dele nascer */
+  const assuntos = [];
+  (pendencias || []).forEach(p => { if (!p.concluida && p.assunto && assuntos.indexOf(p.assunto) < 0) assuntos.push(p.assunto); });
+  assuntos.sort();
+  const cf = document.getElementById("pndChips");
+  if (cf) cf.innerHTML = assuntos.length
+    ? ('<button class="doc-chip' + (pndFiltro ? "" : " ativo") + '" onclick="pndIrAssunto(\'\')">tudo</button>' +
+       assuntos.map(a => '<button class="doc-chip' + (pndFiltro === a ? " ativo" : "") + '" onclick="pndIrAssunto(\'' +
+         escAspas(a) + '\')">' + escAttr(a) + '</button>').join(""))
+    : "";
+
+  const vis = pendenciasVisiveis();
+  const abertas = vis.filter(p => !p.concluida);
+  const feitas  = vis.filter(p => p.concluida);
+
+  let h = "";
+  if (!abertas.length){
+    h = '<p class="nota-dash">' + (pndFiltro ? "Nada em aberto neste assunto." : "Nenhuma pendência em aberto. 🎉") + '</p>';
+  } else {
+    ["trava","normal","depois"].forEach(k => {
+      const grupo = abertas.filter(p => pndGrau(p) === PND_URG[k])
+                           .sort((a,b) => msDeQuando(b.criadaEm) - msDeQuando(a.criadaEm));
+      if (!grupo.length) return;
+      h += '<div class="pnd-sec">' + PND_URG[k].tit + ' <span class="pnd-n">' + grupo.length + '</span></div>';
+      h += grupo.map(p => pndCardHtml(p, false)).join("");
+    });
+  }
+  box.innerHTML = h;
+
+  const cnt = document.getElementById("pndContador");
+  if (cnt){
+    const esp = abertas.filter(pndEsperandoClaude).length;
+    cnt.textContent = abertas.length + (abertas.length === 1 ? " em aberto" : " em aberto") +
+      (esp ? (" · " + esp + " esperando o Claude ler") : "") +
+      (feitas.length ? (" · " + feitas.length + " concluída" + (feitas.length === 1 ? "" : "s")) : "");
+  }
+  const bf = document.getElementById("pndBtnFeitas");
+  if (bf) bf.style.display = feitas.length ? "" : "none";
+  const cff = document.getElementById("pndFeitas");
+  if (cff && pndMostrarFeitas){
+    cff.innerHTML = feitas.length
+      ? feitas.sort((a,b) => msDeQuando(b.concluidaEm) - msDeQuando(a.concluidaEm)).map(p => pndCardHtml(p, true)).join("")
+      : '<p class="nota-dash">Nada concluído ainda.</p>';
+  }
+  const m = document.getElementById("pndMsg");
+  if (m){ m.textContent = pndMsg || ""; m.style.display = pndMsg ? "" : "none"; }
+  atualizarBadgePendencias();
 }
 
 /* ---- a tela ---------------------------------------------------------------------------- */
