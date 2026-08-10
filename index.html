@@ -1175,6 +1175,11 @@
   .cot-selo.hoje{background:var(--verde-claro);color:var(--verde)}
   .cot-selo.velha{background:var(--erro-bg);color:var(--vermelho)}
   .cot-selo.vazia{background:var(--superficie-2);color:var(--cinza);border:1px dashed var(--borda)}
+  /* v323 - a pastilha que oferece REPETIR o preco do ultimo dia com registro */
+  .cot-delta.cot-repetir{background:none;border:1px dashed var(--borda);border-radius:7px;
+    color:var(--cinza);font-family:inherit;font-size:.64rem;font-weight:700;padding:1px 6px;
+    cursor:pointer;line-height:1.3}
+  .cot-delta.cot-repetir:hover{border-style:solid;color:var(--texto)}
   .cot-quem{font-size:.68rem;color:var(--cinza);margin-top:7px}
   .cot-controles{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:4px 0 16px}
   .cot-data-lbl{display:flex;align-items:center;gap:8px;font-weight:600;font-size:.9rem}
@@ -16240,7 +16245,8 @@ function cprVolumesDaCarga(carga){
 function cprComparar(vol){
   const combs = Object.keys(vol).filter(c => (vol[c] || 0) > 0);
   const dists = distsComp();
-  const doc = (cotacoesDia && cotacoesDia.dists) ? cotacoesDia.dists : {};
+  // v323 - so' entra distribuidora com cotacao lancada HOJE (ver cotDistsDoDia)
+  const doc = cotDistsDoDia(cotacoesDia, hojeISO(), false);
   const linhas = dists.map(nome => {
     const precos = (doc[nome] && doc[nome].precos) ? doc[nome].precos : {};
     let custoProd = 0, litros = 0, completo = combs.length > 0;
@@ -16673,9 +16679,18 @@ function cprHtmlOndeComprar(carga){
   if (!combs.length)
     return h + '<p class="nota-dash">Esta carga n\u00e3o tem produto compar\u00e1vel' +
       (vv.fora.length ? ' (' + vv.fora.map(escAttr).join(", ") + ' fica de fora \u2014 \u00e9 produto da Vibra)' : '') + '.</p>';
+  /* 🔴 v323 - ESTA TELA ESPERA A COTACAO DE HOJE. Antes ela lia o espelho inteiro e escrevia
+     a data do DOCUMENTO (que a rotina da Vibra reescreve toda manha), entao anunciava
+     "lançadas em 10/08" com sete blocos de 04/08 dentro. Sugestao de compra em cima de preco
+     velho e' pior que sugestao nenhuma: ela tem cara de conta feita. */
+  const cotHoje = cotDistsDoDia(cotacoesDia, hojeISO(), false);
+  if (!Object.keys(cotHoje).filter(n => !distForaComp(n)).length)
+    return h + '<p class="nota-dash">\u23f3 <b>Aguardando as cota\u00e7\u00f5es de hoje.</b> Enquanto nenhuma ' +
+      'distribuidora tiver pre\u00e7o lan\u00e7ado em <b>' + escAttr(fmtDataCurta(hojeISO())) + '</b>, esta tela ' +
+      'n\u00e3o aponta nenhuma \u2014 pre\u00e7o de outro dia n\u00e3o decide a compra de hoje. Lance no menu ' +
+      '<b>\ud83d\udcb2 Cota\u00e7\u00f5es do Dia</b>.</p>';
   const r = cprComparar(vv.vol);
-  const dia = (cotacoesDia && cotacoesDia.data) ? cotacoesDia.data : "";
-  h += '<p class="nota-dash">Pelas cota\u00e7\u00f5es lan\u00e7adas' + (dia ? ' em <b>' + escAttr(fmtDataCurta(dia)) + '</b>' : '') +
+  h += '<p class="nota-dash">Pelas cota\u00e7\u00f5es lan\u00e7adas <b>hoje (' + escAttr(fmtDataCurta(hojeISO())) + ')</b>' +
        ', mais o frete de cada distribuidora. A <b>Vibra fica fora</b> da compara\u00e7\u00e3o (\u00e9 exclusiva de Teresina)' +
        (vv.fora.length ? ', e ' + vv.fora.map(escAttr).join(", ") + ' tamb\u00e9m' : '') + '.</p>';
   if (!r.completos.length){
@@ -17896,6 +17911,28 @@ function voltarCotacoes(){
   const st = document.getElementById("cotStatus");
   if (st){ st.textContent = "Voltou ao último valor salvo"; st.className = "cot-status"; }
 }
+/* ================= v323 - COTACAO TEM DIA, E O DIA E' DE CADA BLOCO =================
+   🔴 O `config/cotacoesDia` e' um ESPELHO, e ele NUNCA vencia. A rotina da Vibra grava nele
+   todo dia preservando as outras distribuidoras (o certo para ela), e o efeito colateral era
+   carregar os blocos antigos para sempre. Em 10/08/2026 a tela de hoje mostrava sete
+   distribuidoras com "✓ lançada · Lançado por Tiago" e precos de 04/08 — e o 🛒 O que comprar
+   ja' abria com a distribuidora sugerida, decidindo carreta com preco de seis dias antes.
+   🔑 Nada no app olhava a DATA: so' se existia numero. Data do envelope com carta velha dentro.
+   👉 Daqui em diante quem manda e' o campo `data` DE CADA BLOCO, nunca o do documento. */
+function cotDia10(v){ return String(v || "").slice(0, 10); }
+function cotDistsDoDia(fonte, dia, semDataVale){
+  /* semDataVale: no documento `cotacoes/{dia}` o proprio id JA' e' o dia, entao bloco antigo
+     sem `data` pertence aquele dia. No ESPELHO nao: bloco sem data ali e' de dia desconhecido,
+     e dia desconhecido nao vira dia de hoje. */
+  const out = {}, alvo = cotDia10(dia);
+  Object.keys((fonte && fonte.dists) || {}).forEach(nome => {
+    const b = fonte.dists[nome];
+    if (!b || !b.precos || !Object.keys(b.precos).length) return;
+    const d = cotDia10(b.data);
+    if (d === alvo || (!d && semDataVale)) out[nome] = JSON.parse(JSON.stringify(b));
+  });
+  return out;
+}
 function carregarCotDia(){
   const dt = document.getElementById("cotData");
   const novaData = (dt && dt.value) || hojeISO();
@@ -17905,14 +17942,14 @@ function carregarCotDia(){
   if (st){ st.textContent = ""; st.className = "cot-status"; }
   carregarHistoricoAnterior(cotDataSel);   // busca o último registro anterior p/ mostrar a variação em centavos
   if (cotDataSel === hojeISO()){
-    cotEdit = JSON.parse(JSON.stringify(cotacoesDia && cotacoesDia.dists ? cotacoesDia : { dists:{} }));
-    if (!cotEdit.dists) cotEdit.dists = {};
+    // v323 - do espelho entra SO' o que foi lancado hoje (bloco sem data nao vale)
+    cotEdit = { dists: cotDistsDoDia(cotacoesDia, cotDataSel, false) };
     renderCotacoes();
     return;
   }
   db.collection("cotacoes").doc(cotDataSel).get().then(snap => {
-    cotEdit = (snap.exists && snap.data() && snap.data().dists) ? JSON.parse(JSON.stringify(snap.data())) : { dists:{} };
-    if (!cotEdit.dists) cotEdit.dists = {};
+    // v323 - aqui o id do documento JA' e' o dia, entao bloco sem data vale (dado antigo)
+    cotEdit = { dists: cotDistsDoDia(snap.exists ? snap.data() : null, cotDataSel, true) };
     renderCotacoes();
   }).catch(()=>{ cotEdit = { dists:{} }; renderCotacoes(); });
 }
@@ -17964,14 +18001,35 @@ function fmtDelta(v){
 // v181 - pastilha curta ao lado do preco; a frase inteira fica no "title" (passar o mouse)
 function cotDeltaHtml(nome, comb, valorAtual){
   const prev = (cotHistorico[nome] && cotHistorico[nome][comb]) ? cotHistorico[nome][comb] : null;
-  if (!prev || !(valorAtual > 0)) return '<span class="cot-delta"></span>';
-  const dif = Math.round((valorAtual - prev.valor) * 10000) / 10000;
+  if (!prev) return '<span class="cot-delta"></span>';
   const ref = fmtDataCurta(prev.data).slice(0,5);
+  /* 🔴 v323 - SEM preco lancado hoje, o ultimo preco vira REFERENCIA, nunca conteudo.
+     Antes o numero velho vinha dentro do campo, com selo de "lançada", e nao havia como saber
+     de que dia ele era. Agora ele mora na terceira coluna, cinza, dizendo o dia — e um clique
+     o traz para hoje, com o nome de quem clicou. 🔑 Reaproveitar e' uma DECISAO; herdar calado
+     nao e'. */
+  if (!(valorAtual > 0)){
+    if (cotDataSel !== hojeISO()) return '<span class="cot-delta"></span>';
+    return '<button class="cot-delta cot-repetir" title="Em ' + escAttr(ref) + ' foi R$ ' +
+      escAttr(fmtPrecoComp(prev.valor)) + ' \u2014 clique para usar este mesmo pre\u00e7o como cota\u00e7\u00e3o de hoje"' +
+      ' onclick="repetirPrecoCot(\'' + escAspas(nome) + '\',\'' + escAspas(comb) + '\')">\u21ba ' + ref + '</button>';
+  }
+  const dif = Math.round((valorAtual - prev.valor) * 10000) / 10000;
   if (Math.abs(dif) < 0.00005)
     return '<span class="cot-delta igual" title="igual ao preço de ' + ref + '">igual</span>';
   if (dif > 0)
     return '<span class="cot-delta subiu" title="R$ ' + fmtDelta(dif) + ' mais caro que ' + ref + '">▲ ' + fmtDelta(dif) + '</span>';
   return '<span class="cot-delta desceu" title="R$ ' + fmtDelta(dif) + ' mais barato que ' + ref + '">▼ ' + fmtDelta(dif) + '</span>';
+}
+/* v323 - traz o preco do ultimo dia com registro para HOJE, assinado por quem clicou */
+function repetirPrecoCot(dist, comb){
+  const prev = (cotHistorico[dist] && cotHistorico[dist][comb]) ? cotHistorico[dist][comb] : null;
+  if (!prev || !(prev.valor > 0)) return;
+  aplicarPrecoCot(dist, comb, prev.valor);
+  renderCotacoes();
+  const st = document.getElementById("cotStatus");
+  if (st){ st.textContent = "\u2713 pre\u00e7o de " + fmtDataCurta(prev.data).slice(0,5) +
+    " repetido como cota\u00e7\u00e3o de hoje"; st.className = "cot-status ok"; }
 }
 function cotMostraPodium(nome){ return String(nome).toLowerCase() === "vibra"; }
 function renderCotacoes(){
@@ -17995,7 +18053,9 @@ function renderCotacoes(){
     const temPreco = Object.keys(precos).length > 0;
     html += '<div class="comp-dist-card"><div class="comp-dist-head">' +
       '<span class="cot-dist-nome">'+nome+'</span>';
-    html += '<span class="cot-selo '+(temPreco?'hoje':'vazia')+'">'+(temPreco?'✓ lançada':'sem cotação')+'</span>';
+    // v323 - dizer O DIA no selo: "sem cotação" sozinho nao distinguia vazio de desatualizado
+    html += '<span class="cot-selo '+(temPreco?'hoje':'vazia')+'">'+
+      (temPreco?'✓ lançada':(ehHoje?'sem cotação hoje':'sem cotação'))+'</span>';
     html += '</div><div class="comp-precos cot-grid">';
     combustiveis.forEach(c => {
       // Gasolina Podium só aparece no card da Vibra
@@ -18039,7 +18099,7 @@ function renderCotacoes(){
   html += '</div>';
   html += '<p class="nota-dash" style="margin-top:14px">' +
     (ehHoje
-      ? 'O primeiro valor salva ao sair do campo. Depois, para mudar: ✏️ → digite → ✓ (ou ✕ para cancelar). A pastilha ao lado do preço compara com o último dia lançado — passe o mouse nela para ver de que dia.'
+      ? 'O primeiro valor salva ao sair do campo. Depois, para mudar: ✏️ → digite → ✓ (ou ✕ para cancelar). A pastilha ao lado do preço compara com o último dia lançado — passe o mouse nela para ver de que dia. <b>A cotação vale só no dia em que foi lançada:</b> onde ainda não há preço de hoje, a pastilha ↺ mostra o último dia com registro e repete aquele valor num clique.'
       : 'Você está vendo as cotações de <b>'+fmtDataCurta(cotDataSel)+'</b>. Para alterar um valor já salvo, toque em ✏️, digite e confirme em ✓.') +
     '</p>';
   cont.innerHTML = html;
@@ -18100,16 +18160,33 @@ function compartilharResumoCot(){
 }
 function persistirCotDia(){
   const data = cotDataSel || hojeISO();
-  const payload = { dists:{}, data: data, por: usuarioAtual || "" };
-  Object.keys((cotEdit && cotEdit.dists) || {}).forEach(nome => {
-    const precos = Object.assign({}, (cotEdit.dists[nome]||{}).precos || {});   // cópia própria
+  const dists = {};
+  const naTela = (cotEdit && cotEdit.dists) ? cotEdit.dists : {};
+  Object.keys(naTela).forEach(nome => {
+    const b = naTela[nome] || {};
+    const precos = Object.assign({}, b.precos || {});   // cópia própria
     if (Object.keys(precos).length){
-      payload.dists[nome] = { precos: precos, data: data, por: usuarioAtual || "" };
+      /* 🔴 v323 - O `por` E O `data` SAO DE CADA BLOCO, e este lugar NAO os inventa.
+         Antes, salvar UM preco reescrevia TODAS as distribuidoras da tela carimbando cada uma
+         com a data de hoje e o nome de quem salvou — inclusive as que a pessoa nunca tocou.
+         Com o espelho velho na tela, um unico lancamento levaria a cotacao de 04/08 para
+         dentro de `cotacoes/{hoje}` assinada por quem passou por ali, e as pastilhas de
+         variacao passariam a comparar preco consigo mesmo. */
+      dists[nome] = { precos: precos, data: data, por: b.por || "" };
     }
   });
+  if (data === hojeISO()){
+    /* 🔴 O espelho e o documento do dia tem MAIS DE UM DONO (a tela e a rotina da Vibra).
+       Gravar so' o que esta na tela apagaria o que chegou depois de a tela carregar. Entao:
+       distribuidora que a tela nem conhece e' preservada; a que ela conhece, a tela manda. */
+    const daNuvem = cotDistsDoDia(cotacoesDia, data, false);
+    Object.keys(daNuvem).forEach(n => { if (!(n in naTela)) dists[n] = daNuvem[n]; });
+  }
+  const payload = { dists: dists, data: data, por: usuarioAtual || "" };
   db.collection("cotacoes").doc(data).set(payload).catch(()=>{});
   if (data === hojeISO()){
-    const espelho = JSON.parse(JSON.stringify({ dists: payload.dists }));
+    // v323 - o espelho volta a gravar `data` (o set antigo mandava so' `dists` e o campo sumia)
+    const espelho = JSON.parse(JSON.stringify({ dists: dists, data: data, por: usuarioAtual || "" }));
     cotacoesDia = espelho;
     docCotacoes.set(espelho).catch(()=>{});
   }
@@ -18126,6 +18203,10 @@ function aplicarPrecoCot(dist, comb, v){
   const d = cotEdit.dists[dist] || (cotEdit.dists[dist] = { precos:{} });
   if (!d.precos) d.precos = {};
   if (v > 0) d.precos[comb] = v; else delete d.precos[comb];
+  /* v323 - QUEM TOCA E' QUEM ASSINA: este e' o UNICO lugar do app que escreve o `por` de um
+     bloco de cotacao. A data quem poe e' o persistirCotDia, que e' quem sabe de que dia e' a
+     tela — carimbar aqui tambem seria uma segunda fonte da mesma verdade, e a prova por
+     mutacao mostrou que ela nao muda nada (a 8a mutacao passou ilesa). */
   d.por = usuarioAtual || "";
   persistirCotDia();
 }
