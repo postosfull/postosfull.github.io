@@ -1895,6 +1895,16 @@
   .rec-tag.padm-un{background:rgba(14,124,134,.14);color:#0E7C86}
   .padm-prazo{font-size:.76rem;color:var(--cinza);margin-top:6px}
   .padm-prazo.venceu{color:#e11d48;font-weight:700}
+  /* v336 - a linha que a MAQUINA escreve no cartao. Ela existe porque a medicao de 11/08 achou
+     duas pendencias certas com o NUMERO podre ("quatro documentos de Caxias" quando ja eram cinco,
+     "1.623 afericoes" quando ja eram 1.645). 🔑 Numero escrito no texto envelhece sozinho; numero
+     medido na hora de desenhar, nao. */
+  .verif-linha{font-size:.76rem;color:var(--cinza);margin-top:6px}
+  .verif-linha b{color:var(--txt)}
+  .verif-linha.verif-nao{font-style:italic;opacity:.8}
+  /* ⚠️ sem cor literal: `#0E7C86` so' existe neste arquivo sobre FUNDO CLARO, e no tema
+     escuro ele fica quase invisivel. O destaque e' o peso, que funciona nos quatro temas. */
+  .verif-linha.verif-ok{color:var(--txt);font-weight:700}
   .padm-form-linha{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;margin:2px 0 4px}
   /* 🔴 ISTO NASCEU DA FOTO NO CELULAR, e nao de asserção nenhuma: com `flex-wrap` os seis chips
      de categoria mais os de unidade viravam CINCO FILEIRAS num aparelho de 390 px — quase meia
@@ -5451,6 +5461,12 @@ function aoMudarLogin(usuario){
     if (escutaPrecosVenda){ escutaPrecosVenda(); escutaPrecosVenda = null; }
     if (escutaCustosCompra){ escutaCustosCompra(); escutaCustosCompra = null; }   /* v261 */
     if (escutaTanquesNivel){ escutaTanquesNivel(); escutaTanquesNivel = null; tanquesNivel = null; }   /* v278 */
+    /* 🔴 v336 - as bandeiras do verificador VOLTAM AO ZERO no logout. Sem isto, a proxima pessoa
+       a entrar seria avaliada contra os dados da anterior, com as bandeiras dizendo "a fonte ja'
+       chegou" — e o fechamento automatico e' justamente o erro que ninguem ve acontecer. */
+    verifVisto = { arquivos:false, tanques:false, frota:false, abast:false };
+    Object.keys(verifJaGravou).forEach(k => delete verifJaGravou[k]);
+    arquivos = []; infAbastecimentos = []; infleetFrota = null;
     if (escutaRecebimentos){ escutaRecebimentos(); escutaRecebimentos = null; recebimentos = null; }   /* v316 */
     if (escutaAvisoReceb){ escutaAvisoReceb(); escutaAvisoReceb = null; avisoReceb = {}; }   /* v316 */
     if (escutaCombDia){ escutaCombDia(); escutaCombDia = null; combDia = null; vistoCombDia = false; }   /* v301 */
@@ -7139,6 +7155,11 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v336", data:"11/08/2026", tit:"\u2705 Pend\u00eancias: a lista agora se confere sozinha", itens:[
+    {t:"n", h:"A pend\u00eancia que a m\u00e1quina consegue conferir <b>se fecha sozinha</b>", d:"Algumas pend\u00eancias t\u00eam uma condi\u00e7\u00e3o que o pr\u00f3prio app sabe medir \u2014 por exemplo <b>\u201cum ve\u00edculo est\u00e1 sem motorista cadastrado\u201d</b> ou <b>\u201cainda h\u00e1 arquivo sem data de vencimento\u201d</b>. No dia em que a condi\u00e7\u00e3o deixar de valer, ela <b>vai para as resolvidas sozinha</b>, sem ningu\u00e9m clicar, e escreve <b>por que fechou</b>, com o n\u00famero e a data. <b>Seis pend\u00eancias da lista j\u00e1 nascem com essa confer\u00eancia ligada</b>; as outras continuam como sempre. Ela aparece como resolvida por <b>Verifica\u00e7\u00e3o autom\u00e1tica</b>, para n\u00e3o se confundir com o que voc\u00ea resolveu."},
+    {t:"n", h:"E o n\u00famero de dentro da pend\u00eancia passou a ser <b>medido na hora</b>", d:"Debaixo do texto aparece uma linha <b>\ud83d\udccf Medido agora</b> com a conta do momento (por exemplo <b>64 de 74 arquivos sem data de vencimento</b>). Antes o n\u00famero era o do dia em que a pend\u00eancia foi escrita, e envelhecia calado: duas da lista de hoje estavam certas com o n\u00famero errado."},
+    {t:"m", h:"O que ela <b>n\u00e3o</b> faz, de prop\u00f3sito", d:"<b>Nunca reabre</b> uma pend\u00eancia sozinha \u2014 e se voc\u00ea <b>reabrir na m\u00e3o</b>, a confer\u00eancia autom\u00e1tica daquela pend\u00eancia <b>desliga</b>, para a m\u00e1quina n\u00e3o teimar. Ela tamb\u00e9m <b>nunca fecha no escuro</b>: se a fonte do n\u00famero n\u00e3o responder, a linha diz <b>\u201cn\u00e3o deu para conferir agora\u201d</b> e a pend\u00eancia <b>continua aberta</b>. Fechar por engano some com a cobran\u00e7a da sua tela, e isso \u00e9 pior do que n\u00e3o fechar. A maioria das pend\u00eancias <b>continua sendo resolvida na m\u00e3o</b>, como sempre."}
+  ]},
   {v:"v335", data:"11/08/2026", tit:"\u2696\ufe0f Cota\u00e7\u00f5es do Dia: os cart\u00f5es voltaram a ficar alinhados", itens:[
     {t:"c", h:"O cart\u00e3o <b>sem cota\u00e7\u00e3o</b> jogava o campo de pre\u00e7o para a direita", d:"Cada cart\u00e3o media as colunas pelo <b>pr\u00f3prio</b> conte\u00fado. No cart\u00e3o em que nada foi lan\u00e7ado hoje n\u00e3o existe pastilha de varia\u00e7\u00e3o nenhuma, ent\u00e3o aquela coluna sumia e o campo escorregava <b>47px</b> para a direita \u2014 lado a lado, os cart\u00f5es da mesma linha ficavam desencontrados. <b>Agora o campo termina no mesmo lugar em todos</b>, tenha o cart\u00e3o pre\u00e7o lan\u00e7ado ou n\u00e3o."},
     {t:"m", h:"E a gasolina passou a se chamar <b>G. Comum</b> e <b>G. Aditivada</b> nesta tela", d:"Alinhar os cart\u00f5es custa largura, e com o nome inteiro <b>\u201cGasolina Aditivada\u201d</b> apareceria cortado como <b>\u201cGasolina Aditiv\u2026\u201d</b> em boa parte das telas. Com o r\u00f3tulo curto, <b>nenhum nome fica cortado em tela de computador</b> \u2014 medido de 1024 a 2560px, com a tela vazia, pela metade e toda lan\u00e7ada, e conferido no seu pr\u00f3prio Chrome. \u00c9 o mesmo r\u00f3tulo que o card <b>\u26fd Lucro por combust\u00edvel</b> j\u00e1 usa. <b>Diesel e Etanol n\u00e3o mudaram</b>, e <b>passar o mouse mostra o nome completo</b>."},
@@ -8761,6 +8782,8 @@ function iniciarSync(){
   // Arquivos (licenças/contratos) guardados no Storage — entram no menu unificado "Documentos"
   escutaArquivos = colArquivos.onSnapshot(snap => {
     const l = []; snap.forEach(d => l.push(Object.assign({ id: d.id }, d.data()))); arquivos = l;
+    if (!snap.metadata || !snap.metadata.fromCache) verifVisto.arquivos = true;   // v336
+    verifSincronizar();
     atualizarBadgeAvisos();
     const pv = document.getElementById("painelVencimentos");
     if (pv && pv.classList.contains("aberto")) renderVencimentos();
@@ -8920,6 +8943,8 @@ function iniciarSync(){
   /* v278 - o nivel de agora dos tanques (coletor do VPS, de hora em hora) */
   escutaTanquesNivel = docTanquesNivel.onSnapshot(snap => {
     tanquesNivel = snap.exists ? (snap.data() || {}) : {};
+    if (!snap.metadata || !snap.metadata.fromCache) verifVisto.tanques = true;    // v336
+    verifSincronizar();
     const pt = document.getElementById("painelTanquesNivel");
     if (pt && pt.classList.contains("aberto")) renderTanquesNivel();
   }, ()=>{ tanquesNivel = {}; });
@@ -9050,6 +9075,8 @@ function iniciarSync(){
   // APP Infleet — foto da frota e abastecimentos importados (Full Transportadora)
   escutaInfFrota = docInfleetFrota.onSnapshot(snap => {
     infleetFrota = snap.exists ? (snap.data() || null) : null;
+    if (!snap.metadata || !snap.metadata.fromCache) verifVisto.frota = true;      // v336
+    verifSincronizar();
     const pi = document.getElementById("painelInfleet");
     if (pi && pi.classList.contains("aberto")) renderInfleet();
     atualizarDashTransp();                     // v203
@@ -9059,6 +9086,8 @@ function iniciarSync(){
     snap.forEach(d => lista.push({ id: d.id, ...d.data() }));
     lista.sort((x,y)=>String(y.data||"").localeCompare(String(x.data||"")));
     infAbastecimentos = lista;
+    if (!snap.metadata || !snap.metadata.fromCache) verifVisto.abast = true;      // v336
+    verifSincronizar();
     atualizarDashTransp();                     // v203
     const pi = document.getElementById("painelInfleet");
     if (pi && pi.classList.contains("aberto")) renderInfleet();
@@ -15409,6 +15438,7 @@ function pndAbertasTravando(){
   return (pendencias || []).filter(p => !p.concluida && pndGrau(p).ord === 0).length;
 }
 function atualizarBadgePendencias(){
+  verifSincronizar();                                        // v336
   const b = document.getElementById("badgeAdmin");
   if (!b) return;
   const n = ehAdminAtual() ? pndAbertasTravando() : 0;
@@ -15445,7 +15475,8 @@ function pndConfirmarConcluir(id){
   .catch(e => { pndMsg = "Não consegui marcar como concluída: " + (e && e.message ? e.message : e); renderPendencias(); });
 }
 function pndReabrir(id){
-  colPendencias.doc(id).set({ concluida:false, concluidaEm:0, concluidaPor:"", concluidaNome:"", obs:"" }, { merge:true })
+  colPendencias.doc(id).set({ concluida:false, concluidaEm:0, concluidaPor:"", concluidaNome:"", obs:"",
+                              verifDesligado:true }, { merge:true })      // v336 - a saida do humano
     .catch(()=>{});
 }
 function pndEnviar(id){
@@ -15484,6 +15515,7 @@ function pndCardHtml(p, feita){
        '</div>';
   h += '<div class="rec-titulo">' + escAttr(p.titulo || "") + '</div>';
   if (p.descricao) h += '<div class="rec-texto">' + escAttr(p.descricao) + '</div>';
+  if (!feita) h += verifLinhaHtml(p);                        // v336
   if (p.origem) h += '<div class="rec-meta">' + escAttr(p.origem) + '</div>';
   h += pndConversaHtml(p);
   if (feita){
@@ -15596,6 +15628,214 @@ function renderPendencias(){
 /* 🔑 Duas escritas para a MESMA categoria, como AGENDAS_CAL já faz com `origem`/`curto`: o nome
    inteiro no filtro e no seletor, onde ele ensina; o curto no selo do cartão, onde a foto do
    celular mostrou "Documentos e licenças" quebrando em duas linhas dentro da pastilha. */
+/* ================== v336 - O VERIFICADOR: a pendencia que se fecha sozinha ==================
+   Pedido do Tiago em 11/08: "teria como esse painel verificar automaticamente quando algo ja foi
+   resolvido e a pendencia sumir sem os usuarios terem que fazer nada?" - depois de abrir a lista e
+   encontrar la' dentro a sonda de Dutra, que ele JA TINHA me confirmado como resolvida.
+
+   🔴 O QUE A MEDICAO ACHOU, E QUE MUDOU O DESENHO: a Caixa de entrada, que ele citou como exemplo,
+      NAO VERIFICA NADA. Ela so' esconde o que esta' com `concluida:true`. Quem faz o aviso morrer
+      e' QUEM ESCREVEU o aviso - o coletor grava num id fixo e, na rodada seguinte, se o problema
+      acabou, grava a conclusao no mesmo id.
+      🔑 A VERIFICACAO NAO MORA NO PAINEL: MORA JUNTO DE QUEM SABE QUAL ERA A CONDICAO.
+      👉 Por isso a pendencia de Dutra nao sumiu: ela nasceu de um TEXTO, nao de uma condicao. Nao
+         havia o que reavaliar. O que esta' aqui embaixo e' a condicao ganhando forma de dado.
+
+   🔴 AS TRES RESPOSTAS, E ESSA E' A PECA QUE IMPEDE O ESTRAGO. O verificador responde
+      `resolvido`, `aberto` ou `naosei` - e `naosei` NUNCA FECHA. Isso nao e' zelo: e' o resultado
+      de medir as 31 pendencias uma a uma em 11/08 e descobrir que a metade das fontes MENTE.
+        - `relatoriosLoja.itens` guarda so' os 30 MAIORES itens. Um contador ali olharia 30 de
+          1.821 e diria "resolvido" com toda a confianca.
+        - `aprazo_conv_*` esta' VAZIO. Um contador ali leria zero titulos vencidos e fecharia a
+          pendencia dos centavos.
+      🔑 FONTE VAZIA E' INDISTINGUIVEL DE PROBLEMA RESOLVIDO; FONTE TRUNCADA E' PIOR, PORQUE
+         RESPONDE COM CONFIANCA. Por isso `de === 0` (a fonte nao trouxe linha nenhuma) e' `naosei`,
+         e por isso SO ENTRA NESTE DICIONARIO fonte que o `iniciarSync` carrega INTEIRA.
+      ⚠️ Fechar errado e' INVISIVEL: a cobranca some da tela da gerente e ninguem descobre. E' o
+         lado caro do erro, e e' o unico motivo de este arquivo ser conservador.
+
+   🔴 E O MOLDE E' DE CASA, ja' cicatrizado: `sincronizarAvisoSemPerfil()`. De la' vem o id fixo, a
+      ASSINATURA que evita regravar a cada snapshot, o `concluidaPor:"app"` e - a peca que mais
+      custou - as BANDEIRAS de "a fonte ja' chegou?". Aquele defeito criava uma tarefa dizendo que
+      a equipe inteira estava sem perfil e a concluia meio segundo depois, porque perguntou antes
+      de o dado chegar. Aqui o mesmo erro fecharia uma cobranca de verdade.
+      📌 E vale o comentario de la', que e' o que autoriza qualquer sessao a gravar: "todas as
+         sessoes calculam a mesma lista a partir dos mesmos documentos, entao nao ha briga de
+         escrita". 👉 Por isso todo contador daqui e' FUNCAO PURA dos documentos - nada de
+         `Date.now()` dentro da conta, nada de estado de tela, nada de quem esta' logado.
+
+   🔴 NUNCA REABRE. Fechou, fechou. Pendencia que abre-fecha-abre e' o vermelho que vira paisagem
+      (v296/v248), e aqui e' pior: ela some da tela de quem tinha de resolver.
+
+   🛑 NUNCA `eval` NEM CONDICAO EM TEXTO LIVRE. O `index.html` e' pagina publica; "IA rodando
+      dentro do app" e' rejeitado desde 06/08. O documento guarda o NOME de um contador deste
+      dicionario e os parametros - nada mais.
+
+   Como se escreve num documento de `pendenciasAdm` ou `pendencias`:
+       verificador: { contador:"arquivosSemVencimento", alvo:0 }
+       verificador: { contador:"arquivosVencidos", params:{empresa:"caxias"}, alvo:0 }
+       verificador: { contador:"tanquesSemLeituraDeSonda", params:{posto:"Dutra"}, alvo:0 }
+   `alvo` default 0 e `quando` default "<=" ("resolvido quando a conta cair ate' o alvo").
+   `quando:">="` serve para o contrario ("resolvido quando passar de"). */
+
+let verifVisto = { arquivos:false, tanques:false, frota:false, abast:false };
+/* 🔴 REGISTRO DE QUEM JA' FOI GRAVADO, e nao assinatura do conjunto. A primeira versao guardava a
+   assinatura da LISTA inteira: cada vez que um saia da lista (porque acabou de fechar) a
+   assinatura mudava e TODOS os que sobravam eram regravados. Medido pelo revisor: 36 gravacoes
+   para 8 pendencias — N(N+1)/2. 🔑 Guarda tem de ser sobre a ACAO, nao sobre o conjunto. */
+const verifJaGravou = {};
+
+/* 🔴 SO ENTRA AQUI FONTE QUE O `iniciarSync` CARREGA INTEIRA. Cada uma devolve `null` enquanto o
+   snapshot nao chegou - e `null` vira `naosei`, nunca "resolvido". */
+const VERIF_FONTES = {
+  arquivos: () => verifVisto.arquivos ? (arquivos || []) : null,
+  frota:    () => verifVisto.frota ? (((infleetFrota || {}).veiculos) || []) : null,
+  abast:    () => verifVisto.abast ? (infAbastecimentos || []) : null,
+  /* 🔴 A FORMA E' `postos[nome].tanques[]`, e o revisor pegou isto: a primeira versao tratava
+     `postos[nome]` como se JA' fosse o array, entao `Object.assign({posto}, {tanques:[...]})`
+     virava um objeto com a chave `tanques` dentro, e o contador contava POSTOS achando que
+     contava tanques. 🔑 Forma de documento se LE do app que ja' usa (linha do `qualidade`
+     no Nivel dos tanques), nao se supoe. */
+  tanques:  () => {
+    if (!verifVisto.tanques) return null;
+    const P = (tanquesNivel || {}).postos || {};
+    const out = [];
+    Object.keys(P).forEach(posto => {
+      const v = P[posto] || {};
+      const arr = Array.isArray(v) ? v : (Array.isArray(v.tanques) ? v.tanques : []);
+      arr.forEach(t => { if (t && typeof t === "object") out.push(Object.assign({ __posto: posto }, t)); });
+    });
+    return out;
+  }
+};
+
+/* Cada contador devolve {n, de}: `n` e' o que ainda incomoda, `de` e' o tamanho da fonte.
+   🔑 `de` nao e' enfeite: e' ele que separa "nao ha mais nenhum" de "a fonte nao trouxe nada". */
+const VERIF_CONTADORES = {
+  arquivosSemVencimento: {
+    fonte:"arquivos", rotulo:"arquivos sem data de vencimento cadastrada",
+    conta: l => ({ n: l.filter(a => !a.vencimento).length, de: l.length })
+  },
+  arquivosVencidos: {
+    fonte:"arquivos", rotulo:"documentos vencidos",
+    conta: (l, par) => {
+      const emp = String((par && par.empresa) || "").toLowerCase();
+      const alvo = l.filter(a => a.vencimento && (!emp || String(a.empresa || "").toLowerCase().indexOf(emp) >= 0));
+      return { n: alvo.filter(a => String(a.vencimento) < hojeISO()).length, de: alvo.length };
+    }
+  },
+  abastecimentosSemKmPorLitro: {
+    fonte:"abast", rotulo:"abastecimentos sem km por litro",
+    conta: l => ({ n: l.filter(x => !x.kmPorLitro).length, de: l.length })
+  },
+  veiculosSemMotorista: {
+    fonte:"frota", rotulo:"veículos sem motorista no Infleet",
+    conta: l => ({ n: l.filter(v => !String(v.motorista || "").trim()).length, de: l.length })
+  },
+  /* 🔑 O acento e' o caso REAL que motivou (CLECIO x CLÉCIO): dois cadastros do mesmo motorista.
+     Comparar sem acento e sem espaco duplicado e' o que enxerga isso - comparar cru nao enxerga. */
+  motoristasComNomeParecido: {
+    fonte:"abast", rotulo:"motoristas cadastrados com dois nomes",
+    conta: l => {
+      const nomes = [], chaves = {};
+      l.forEach(x => { if (typeof x.motorista !== "string") return;      /* dado sujo nao vira nome */
+        const nm = x.motorista.trim(); if (nm && nomes.indexOf(nm) < 0) nomes.push(nm); });
+      nomes.forEach(nm => {
+        const k = nm.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").toUpperCase();
+        (chaves[k] = chaves[k] || []).push(nm);
+      });
+      /* ⚠️ `de` conta PESSOAS (chaves), nao cadastros: "1 de 3 motoristas" contaria o duplicado
+         como duas pessoas, e o rotulo fala de motorista. */
+      return { n: Object.keys(chaves).filter(k => chaves[k].length > 1).length, de: Object.keys(chaves).length };
+    }
+  },
+  /* 🔴 O contador que a pendencia da sonda de Dutra pedia desde o comeco. Ele conta TANQUE, nao
+     posto: uma sonda pode voltar em quatro tanques e continuar muda no quinto. */
+  tanquesSemLeituraDeSonda: {
+    fonte:"tanques", rotulo:"tanques sem leitura de sonda",
+    conta: (l, par) => {
+      const posto = String((par && par.posto) || "").toLowerCase();
+      const alvo = l.filter(t => !posto || String(t.__posto || "").toLowerCase() === posto);
+      /* 🔑 `qualidade === "medido"` e' o MESMO criterio que o Nivel dos tanques usa desde a v278.
+         Criterio novo aqui seria uma segunda verdade sobre a mesma pergunta. */
+      const n = alvo.filter(t => String(t.qualidade || "") !== "medido").length;
+      return { n: n, de: alvo.length };
+    }
+  }
+};
+
+/* devolve null (= nao sei) ou {n, de, rotulo} */
+function verifContar(v){
+  if (!v || typeof v !== "object") return null;
+  const def = VERIF_CONTADORES[v.contador];
+  if (!def) return null;                              /* contador que nao existe nao inventa resposta */
+  const fonte = VERIF_FONTES[def.fonte];
+  const dados = fonte ? fonte() : null;
+  if (!dados) return null;                            /* a fonte ainda nao respondeu */
+  let r;
+  try { r = def.conta(dados, v.params || {}); } catch(e){ return null; }
+  if (!r || typeof r.n !== "number" || typeof r.de !== "number") return null;
+  if (!r.de) return null;                             /* 🔴 fonte VAZIA nao e' problema resolvido */
+  return { n: r.n, de: r.de, rotulo: def.rotulo };
+}
+
+/* {estado:"resolvido"|"aberto"|"naosei", texto} */
+function verifAvaliar(p){
+  const v = p && p.verificador;
+  if (!v) return { estado:"semverificador", texto:"" };
+  const c = verifContar(v);
+  if (!c) return { estado:"naosei", texto:"não deu para conferir agora: a fonte não respondeu" };
+  const alvo = (typeof v.alvo === "number") ? v.alvo : 0;
+  const ok = (v.quando === ">=") ? (c.n >= alvo) : (c.n <= alvo);
+  const conta = fmtBR(c.n, 0) + " de " + fmtBR(c.de, 0) + " " + c.rotulo;
+  return { estado: ok ? "resolvido" : "aberto", texto: conta, n: c.n, de: c.de };
+}
+
+/* a linha do cartao. 🔑 Ela e' o beneficio que aparece TODO DIA: o numero deixa de ser o que
+   estava escrito no dia em que a pendencia nasceu e passa a ser o de agora. */
+function verifLinhaHtml(p){
+  if (p && p.verifDesligado)
+    return '<div class="verif-linha verif-nao">📏 A confer\u00eancia autom\u00e1tica desta pend\u00eancia foi desligada quando ela foi reaberta</div>';
+  const r = verifAvaliar(p);
+  if (r.estado === "semverificador") return "";
+  if (r.estado === "naosei")
+    return '<div class="verif-linha verif-nao">📏 ' + escAttr(r.texto) + '</div>';
+  if (r.estado === "resolvido")
+    return '<div class="verif-linha verif-ok">✅ A máquina não encontra mais o problema: ' + escAttr(r.texto) + '</div>';
+  return '<div class="verif-linha">📏 Medido agora: <b>' + escAttr(r.texto) + '</b></div>';
+}
+
+/* 🔴 O ESCRITOR. Fecha, nunca reabre; escreve o PORQUE; e a assinatura evita regravar a cada
+   snapshot. Qualquer sessao logada grava, como no `rec_sem_perfil` - o calculo e' o mesmo em
+   todas, entao nao ha briga. */
+function verifSincronizar(){
+  if (!usuarioAtual) return;
+  const fechar = [];
+  /* 🔴 SO FECHA O QUE ESTA SESSAO ENXERGA. Sem isto, uma gerente fecharia pendencia de unidade
+     que ela nem ve na tela — e a lista pessoal do Tiago (v319), que so' ele abre. E no dia em que
+     as Regras v2 subirem, a gravacao seria recusada e o `.catch` engoliria, calada. */
+  (typeof pendenciasAdm !== "undefined" ? pendenciasAdm : []).forEach(p => {
+    if (p && p.verificador && !p.concluida && !p.verifDesligado && padmVisivelParaMim(p) &&
+        verifAvaliar(p).estado === "resolvido") fechar.push(["padm", p]);
+  });
+  (typeof pendencias !== "undefined" ? pendencias : []).forEach(p => {
+    if (p && p.verificador && !p.concluida && !p.verifDesligado && ehAdminAtual() &&
+        verifAvaliar(p).estado === "resolvido") fechar.push(["pnd", p]);
+  });
+  fechar.forEach(par => {
+    const p = par[1], r = verifAvaliar(p);
+    const chave = par[0] + ":" + p.id;
+    if (verifJaGravou[chave]) return;                 /* ja' gravei este nesta sessao */
+    verifJaGravou[chave] = true;
+    const col = (par[0] === "padm") ? colPendenciasAdm : colPendencias;
+    col.doc(p.id).set({
+      concluida:true, concluidaEm: Date.now(),
+      concluidaPor:"app", concluidaNome:"Verificação automática",
+      obs:"Fechada sozinha em " + fmtDataCurta(hojeISO()) + ", depois de medir: " + r.texto + "."
+    }, { merge:true }).catch(()=>{});
+  });
+}
+
 const PADM_CAT = [
   {k:"doc",    nome:"📄 Documentos e licenças",   curto:"📄 Documentos"},
   {k:"fin",    nome:"💰 Financeiro",              curto:"💰 Financeiro"},
@@ -15666,6 +15906,7 @@ function padmAbertasCobrando(){
   return padmVisiveis().filter(p => !p.concluida && (padmAtrasada(p) || padmGrau(p).ord === 1)).length;
 }
 function atualizarBadgePendAdm(){
+  verifSincronizar();                                        // v336
   const b = document.getElementById("badgePendAdm");
   if (!b) return;
   const n = padmAbertasCobrando();
@@ -15718,7 +15959,12 @@ function padmConfirmarResolver(id){
 }
 function padmReabrir(id){
   if (!padmPodeAbrir()){ padmMsg = "Só quem abre pendência pode reabrir uma que já foi resolvida."; padmRender(); return; }
-  colPendenciasAdm.doc(id).set({ concluida:false, concluidaEm:0, concluidaPor:"", concluidaNome:"", obs:"" }, { merge:true })
+  /* 🔴 `verifDesligado:true` — SEM ISTO O REABRIR NAO FUNCIONA. O verificador reavaliaria a
+     condicao, continuaria achando "resolvido" e fecharia de novo em menos de um segundo: a pessoa
+     clica, a tela pisca e nada acontece. 🔑 "Nunca reabre sozinha" so' vale se a discordancia de
+     gente TAMBEM ficar gravada — senao a maquina tem a ultima palavra por teimosia. */
+  colPendenciasAdm.doc(id).set({ concluida:false, concluidaEm:0, concluidaPor:"", concluidaNome:"", obs:"",
+                                 verifDesligado:true }, { merge:true })
     .catch(()=>{});
 }
 /* 🔴 A CONVERSA ENTRA POR `arrayUnion`, NUNCA REESCREVENDO O ARRAY: duas pessoas gravando o
@@ -15851,6 +16097,7 @@ function padmCardHtml(p, feita){
        '</div>';
   h += '<div class="rec-titulo">' + escAttr(p.titulo || "") + '</div>';
   if (p.descricao) h += '<div class="rec-texto">' + escAttr(p.descricao) + '</div>';
+  if (!feita) h += verifLinhaHtml(p);                        // v336
   if (p.prazo) h += '<div class="padm-prazo' + (atr ? " venceu" : "") + '">' +
                     (atr ? "⏰ O prazo era " : "🗓 Prazo: ") + escAttr(fmtDataCurta(p.prazo)) + '</div>';
   const quem = (Array.isArray(p.para) && p.para.length)
