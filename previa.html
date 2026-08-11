@@ -7289,6 +7289,10 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v342", data:"11/08/2026", tit:"\ud83d\udcd8 As <b>Despesas Detalhadas</b> passam a abrir na <b>Competência</b>", itens:[
+    {t:"m", h:"Antes ela abria na Base caixa", d:"E a caixa hoje só tem <b>dois meses</b> nos postos (julho e agosto), enquanto a competência tem <b>sete</b> — a tela abria quase vazia. Agora ela abre na <b>\ud83d\udcd8 Competência</b>, que é a base que o contador usa, e <b>a \ud83d\udcb5 Base caixa está a um clique</b>, do lado."},
+    {t:"c", h:"Isso não quer dizer que a caixa esteja errada", d:"<b>Os dois números continuam sem bater, e nenhum dos dois está errado</b> — um conta pela data em que o dinheiro saiu, o outro pelo mês em que a despesa aconteceu. Mudou só por qual das duas a tela abre."}
+  ]},
   {v:"v341", data:"11/08/2026", tit:"\ud83d\udcb0 Nasceu o grupo <b>Financeiro</b> na barra \u2014 e dentro dele, a tela <b>\ud83d\udcb8 Despesas Detalhadas</b>", itens:[
     {t:"n", h:"O ano inteiro, por categoria e por tipo", d:"Uma tela s\u00f3 com os <b>doze meses nas colunas</b>. Clique numa categoria (<b>3.02 DESPESAS COMERCIAIS</b>, por exemplo) e ela <b>abre os tipos de dentro dela</b> \u2014 aluguel, energia, comiss\u00e3o \u2014 na mesma grade de meses. Em cima ficam os quatro n\u00fameros do ano, a <b>rosca</b> com o peso de cada categoria e o m\u00eas a m\u00eas, com o m\u00eas fora do padr\u00e3o marcado em vermelho."},
     {t:"n", h:"Escolha o posto \u2014 ou a loja", d:"O seletor de unidade est\u00e1 no topo e <b>troca sozinho de vocabul\u00e1rio</b>: nos Postos ele diz <b>Posto</b>, na Full Conveni\u00eancia ele diz <b>Loja</b>."},
@@ -12828,11 +12832,18 @@ function renderDespesas(){
    (a regra do projeto: numero certo > aviso explicito > bloco ausente > zero).            */
 
 const DSD_MES = ["JAN","FEV","MAR","ABR","MAI","JUN","JUL","AGO","SET","OUT","NOV","DEZ"];
+/* v342 - a COMPETENCIA passou a ser a primeira e a que abre. Pedido dele, e o motivo se mede:
+   a competencia tem SETE meses de 2026 e a caixa tem DOIS (o desp_ dos postos so' existe de
+   julho em diante - a carga historica de 03/08 cobriu so' as lojas). Tela que abre quase vazia
+   e' pior do que tela que abre na regua que o contador usa.
+   ⚠️ E o motivo NAO e' "a competencia esta certa e a caixa errada": a BULAS.despesas diz que os
+   dois numeros nao batem e nenhum dos dois esta errado. E' escolha de porta de entrada, so'.
+   ⏳ Quando o desp_ dos postos for preenchido para tras, vale reabrir esta decisao.          */
 const DSD_REGUAS = [
-  { k:"caixa", n:"💵 Base caixa",  sub:"pela data em que o dinheiro saiu" },
-  { k:"comp",  n:"📘 Competência", sub:"pelo mês em que a despesa aconteceu" }
+  { k:"comp",  n:"📘 Competência", sub:"pelo mês em que a despesa aconteceu" },
+  { k:"caixa", n:"💵 Base caixa",  sub:"pela data em que o dinheiro saiu" }
 ];
-let dsdAnoSel = "", dsdUnidSel = "todos", dsdRegua = "caixa", dsdComRet = true, dsdAberta = {};
+let dsdAnoSel = "", dsdUnidSel = "todos", dsdRegua = "comp", dsdComRet = true, dsdAberta = {};
 
 function dsdSig(){ return siglaEmpresa(empresa); }
 function dsdEhLoja(){ return dsdSig() === "conv"; }
