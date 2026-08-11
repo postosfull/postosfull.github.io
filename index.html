@@ -7206,6 +7206,10 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v339", data:"11/08/2026", tit:"\ud83d\udd24 Pend\u00eancias: dois acertos de texto na barra de filtros", itens:[
+    {t:"c", h:"O seletor de unidade mostrava <b>\u201cTodas as unidades\u201d duas vezes</b>", d:"Uma no come\u00e7o e outra no fim da lista \u2014 e as duas faziam <b>coisas diferentes</b>. A de cima quer dizer <b>n\u00e3o filtrar nada</b>; a de baixo \u00e9 um filtro de verdade, que mostra <b>s\u00f3 as pend\u00eancias que valem para todas as unidades</b> (as que atravessam a rede inteira). Agora a de cima se chama <b>\u201cQualquer unidade\u201d</b> e a de baixo continua <b>\u201cTodas as unidades\u201d</b>. Nada mudou no que cada uma faz \u2014 mudou o nome, para dar para escolher."},
+    {t:"m", h:"E a primeira aba virou <b>\u201cTudo\u201d</b>, com T mai\u00fasculo", d:"Ela era a \u00fanica da fileira come\u00e7ando com letra min\u00fascula, ao lado de <b>Urgente</b>, <b>Esta semana</b> e <b>Quando der</b>."}
+  ]},
   {v:"v338", data:"11/08/2026", tit:"\ud83e\uddf9 Pend\u00eancias: a barra de filtros ficou bem mais leve", itens:[
     {t:"m", h:"Eram <b>21 bot\u00f5es</b> em tr\u00eas fileiras; agora s\u00e3o as abas e <b>um bot\u00e3o</b>", d:"As <b>abas de prioridade</b> continuam onde estavam, com as palavras e o n\u00famero. As duas fileiras de baixo \u2014 <b>assunto</b> e <b>unidade</b> \u2014 se recolheram atr\u00e1s de <b>\u2699\ufe0f Filtrar por assunto ou unidade</b>, e viraram <b>dois seletores</b> em vez de dezessete bot\u00f5es. A primeira pend\u00eancia da lista subiu <b>37px no computador e 37px no celular</b> \u2014 quase uma linha inteira de tela devolvida."},
     {t:"n", h:"E o bot\u00e3o <b>diz o que est\u00e1 filtrado</b>, mesmo fechado", d:"Com um filtro aceso, o pr\u00f3prio bot\u00e3o fica <b>laranja</b> e escreve o que est\u00e1 valendo \u2014 por exemplo <b>\u2699\ufe0f \ud83d\udcc4 Documentos e licen\u00e7as \u00b7 Posto Full - Caxias</b> \u2014 com um <b>\u2715 limpar</b> ao lado. \ud83d\udd11 Esconder filtro \u00e9 seguro; esconder que <b>existe</b> filtro n\u00e3o \u00e9. Assim n\u00e3o d\u00e1 para ver tr\u00eas pend\u00eancias de trinta e achar que est\u00e1 tudo em dia."},
@@ -16239,7 +16243,7 @@ function padmRender(){
   if (cxUn && selU){
     if (uns.length > 1){
       cxUn.style.display = "";
-      selU.innerHTML = '<option value="">Todas as unidades</option>' +
+      selU.innerHTML = '<option value="">Qualquer unidade</option>' +
         uns.map(k => '<option value="' + escAttr(k) + '"' + (padmFiltroUn === k ? " selected" : "") + '>' +
           escAttr(padmNomeUnidade(k)) + '</option>').join("");
     } else {
@@ -16291,7 +16295,7 @@ function padmRender(){
   if (cp){
     if (blocosComGente.length > 1){
       cp.style.display = "";
-      cp.innerHTML = '<button class="doc-chip' + (padmFiltroPri ? "" : " ativo") + '" onclick="padmIrPri(\'\')">tudo' +
+      cp.innerHTML = '<button class="doc-chip' + (padmFiltroPri ? "" : " ativo") + '" onclick="padmIrPri(\'\')">Tudo' +
           '<span class="aba-n">' + abertasCU.length + '</span></button>' +
         blocosComGente.map(b => '<button class="doc-chip' + (padmFiltroPri === b.k ? " ativo" : "") +
           '" onclick="padmIrPri(\'' + escAspas(b.k) + '\')">' + escAttr(b.aba) +
