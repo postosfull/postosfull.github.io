@@ -1175,11 +1175,8 @@
   .cot-selo.hoje{background:var(--verde-claro);color:var(--verde)}
   .cot-selo.velha{background:var(--erro-bg);color:var(--vermelho)}
   .cot-selo.vazia{background:var(--superficie-2);color:var(--cinza);border:1px dashed var(--borda)}
-  /* v323 - a pastilha que oferece REPETIR o preco do ultimo dia com registro */
-  .cot-delta.cot-repetir{background:none;border:1px dashed var(--borda);border-radius:7px;
-    color:var(--cinza);font-family:inherit;font-size:.64rem;font-weight:700;padding:1px 6px;
-    cursor:pointer;line-height:1.3}
-  .cot-delta.cot-repetir:hover{border-style:solid;color:var(--texto)}
+  /* v334 - a pastilha "repetir o preco do ultimo dia" (v323) SAIU. Onde nao ha preco de hoje,
+     a terceira coluna fica vazia: o preco de outro dia nao se oferece sozinho. */
   .cot-quem{font-size:.68rem;color:var(--cinza);margin-top:7px}
   .cot-controles{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:4px 0 16px}
   .cot-data-lbl{display:flex;align-items:center;gap:8px;font-weight:600;font-size:.9rem}
@@ -7120,6 +7117,10 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v334", data:"11/08/2026", tit:"💲 Cota\u00e7\u00f5es do Dia: saiu a pastilha \u21ba que repetia o pre\u00e7o de outro dia", itens:[
+    {t:"m", h:"Onde n\u00e3o h\u00e1 pre\u00e7o de hoje, agora <b>n\u00e3o aparece mais nada</b>", d:"Ao lado de cada campo vazio havia uma pastilha cinza com o \u00faltimo dia em que aquele produto foi lan\u00e7ado (por exemplo <b>\u21ba 04/08</b>) e, num clique, ela copiava aquele pre\u00e7o para hoje. <b>Ela saiu.</b> Pre\u00e7o de combust\u00edvel quase nunca se repete de um dia para o outro, ent\u00e3o o bot\u00e3o aparecia em quase toda linha vazia: <b>enchia o cart\u00e3o e dava a entender que o pre\u00e7o de hoje j\u00e1 estava ali</b>."},
+    {t:"m", h:"O resto da tela continua igual", d:"O campo vazio, o \u2713 lan\u00e7ada, o \u270f\ufe0f para corrigir um valor j\u00e1 salvo e a compara\u00e7\u00e3o com o \u00faltimo dia (\u25b2 mais caro, \u25bc mais barato, igual) <b>n\u00e3o mudaram</b> \u2014 a compara\u00e7\u00e3o s\u00f3 aparece depois que existe pre\u00e7o de hoje para comparar, como sempre foi."}
+  ]},
   {v:"v333", data:"11/08/2026", tit:"💲 Cotações do Dia: os cartões da última linha esticavam", itens:[
     {t:"c", h:"As distribuidoras que sobravam na última linha ficavam <b>gigantes</b>", d:"Com oito distribuidoras cadastradas, as que sobravam na segunda linha (<b>Nimo</b>, <b>Larco</b> e <b>Fan</b>) se esticavam para preencher a linha inteira — cartões do <b>triplo</b> da largura dos de cima, com o preço jogado para a beirada da tela. <b>Agora todos têm a mesma largura</b>, esteja o cartão na primeira linha ou na última."},
     {t:"m", h:"E <b>quantos cabem por linha</b> continua exatamente como era", d:"A correção tira só o esticamento: quem já estava do tamanho certo não mexeu um pixel. <b>No celular nada muda</b> — continua um cartão por linha."}
@@ -18971,34 +18972,22 @@ function fmtDelta(v){
 function cotDeltaHtml(nome, comb, valorAtual){
   const prev = (cotHistorico[nome] && cotHistorico[nome][comb]) ? cotHistorico[nome][comb] : null;
   if (!prev) return '<span class="cot-delta"></span>';
+  /* 🔴 v334 - SEM preco lancado hoje, a terceira coluna fica VAZIA.
+     A v323 punha ali a pastilha "↺ 04/08": ela dizia o ultimo dia com registro e, num clique,
+     repetia aquele preco como cotacao de hoje. SAIU a pedido do dono. Preco de combustivel
+     quase nunca se repete de um dia para o outro, entao o botao aparecia em quase toda linha
+     vazia — poluia o cartao, e a equipe o lia como se o preco de hoje ja estivesse ali.
+     🔑 Atalho oferecido para um caso que quase nunca acontece nao e' atalho: e' ruido com
+     aparencia de dado. A comparacao com o ultimo dia CONTINUA (as pastilhas de subiu/desceu/igual,
+     logo abaixo) — so que depois que existe preco de hoje para comparar. */
+  if (!(valorAtual > 0)) return '<span class="cot-delta"></span>';
   const ref = fmtDataCurta(prev.data).slice(0,5);
-  /* 🔴 v323 - SEM preco lancado hoje, o ultimo preco vira REFERENCIA, nunca conteudo.
-     Antes o numero velho vinha dentro do campo, com selo de "lançada", e nao havia como saber
-     de que dia ele era. Agora ele mora na terceira coluna, cinza, dizendo o dia — e um clique
-     o traz para hoje, com o nome de quem clicou. 🔑 Reaproveitar e' uma DECISAO; herdar calado
-     nao e'. */
-  if (!(valorAtual > 0)){
-    if (cotDataSel !== hojeISO()) return '<span class="cot-delta"></span>';
-    return '<button class="cot-delta cot-repetir" title="Em ' + escAttr(ref) + ' foi R$ ' +
-      escAttr(fmtPrecoComp(prev.valor)) + ' \u2014 clique para usar este mesmo pre\u00e7o como cota\u00e7\u00e3o de hoje"' +
-      ' onclick="repetirPrecoCot(\'' + escAspas(nome) + '\',\'' + escAspas(comb) + '\')">\u21ba ' + ref + '</button>';
-  }
   const dif = Math.round((valorAtual - prev.valor) * 10000) / 10000;
   if (Math.abs(dif) < 0.00005)
     return '<span class="cot-delta igual" title="igual ao preço de ' + ref + '">igual</span>';
   if (dif > 0)
     return '<span class="cot-delta subiu" title="R$ ' + fmtDelta(dif) + ' mais caro que ' + ref + '">▲ ' + fmtDelta(dif) + '</span>';
   return '<span class="cot-delta desceu" title="R$ ' + fmtDelta(dif) + ' mais barato que ' + ref + '">▼ ' + fmtDelta(dif) + '</span>';
-}
-/* v323 - traz o preco do ultimo dia com registro para HOJE, assinado por quem clicou */
-function repetirPrecoCot(dist, comb){
-  const prev = (cotHistorico[dist] && cotHistorico[dist][comb]) ? cotHistorico[dist][comb] : null;
-  if (!prev || !(prev.valor > 0)) return;
-  aplicarPrecoCot(dist, comb, prev.valor);
-  renderCotacoes();
-  const st = document.getElementById("cotStatus");
-  if (st){ st.textContent = "\u2713 pre\u00e7o de " + fmtDataCurta(prev.data).slice(0,5) +
-    " repetido como cota\u00e7\u00e3o de hoje"; st.className = "cot-status ok"; }
 }
 function cotMostraPodium(nome){ return String(nome).toLowerCase() === "vibra"; }
 function renderCotacoes(){
@@ -19068,7 +19057,7 @@ function renderCotacoes(){
   html += '</div>';
   html += '<p class="nota-dash" style="margin-top:14px">' +
     (ehHoje
-      ? 'O primeiro valor salva ao sair do campo. Depois, para mudar: ✏️ → digite → ✓ (ou ✕ para cancelar). A pastilha ao lado do preço compara com o último dia lançado — passe o mouse nela para ver de que dia. <b>A cotação vale só no dia em que foi lançada:</b> onde ainda não há preço de hoje, a pastilha ↺ mostra o último dia com registro e repete aquele valor num clique.'
+      ? 'O primeiro valor salva ao sair do campo. Depois, para mudar: ✏️ → digite → ✓ (ou ✕ para cancelar). Depois de lançado, a pastilha ao lado do preço compara com o último dia — passe o mouse nela para ver de que dia. <b>A cotação vale só no dia em que foi lançada:</b> onde ainda não há preço de hoje não aparece pastilha nenhuma, e nada é trazido de outro dia — o preço de hoje se digita.'
       : 'Você está vendo as cotações de <b>'+fmtDataCurta(cotDataSel)+'</b>. Para alterar um valor já salvo, toque em ✏️, digite e confirme em ✓.') +
     '</p>';
   cont.innerHTML = html;
