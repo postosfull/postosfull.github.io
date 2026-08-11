@@ -7206,6 +7206,10 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v340", data:"11/08/2026", tit:"\ud83c\udff7\ufe0f Pend\u00eancias: o seletor de unidade ficou sem a linha que confundia", itens:[
+    {t:"c", h:"Saiu a op\u00e7\u00e3o <b>\u201cTodas as unidades\u201d</b> do meio da lista de unidades", d:"Ela n\u00e3o queria dizer <b>\u201cme mostre tudo\u201d</b>: queria dizer <b>\u201cme mostre s\u00f3 as pend\u00eancias que valem para a rede inteira\u201d</b> \u2014 aquelas que aparecem no cart\u00e3o com o selo <b>Todas</b>. Duas leituras para a mesma frase, dentro do mesmo seletor. <b>A linha saiu</b>, e a primeira op\u00e7\u00e3o voltou a se chamar <b>\u201cTodas as unidades\u201d</b>, que \u00e9 o que qualquer pessoa espera do padr\u00e3o de um filtro."},
+    {t:"m", h:"\u26a0\ufe0f As pend\u00eancias gerais <b>continuam na lista</b>", d:"O que saiu foi a linha do seletor, n\u00e3o as pend\u00eancias. As que valem para todas as unidades seguem aparecendo normalmente, com o selo <b>Todas</b> no cart\u00e3o \u2014 e agora s\u00e3o <b>9 das 30</b>. \ud83d\udd11 Quem escolhe um posto continua vendo <b>s\u00f3 o daquele posto</b>; para ver tudo de novo, \u00e9 <b>Todas as unidades</b> ou o <b>\u2715 limpar</b>."}
+  ]},
   {v:"v339", data:"11/08/2026", tit:"\ud83d\udd24 Pend\u00eancias: dois acertos de texto na barra de filtros", itens:[
     {t:"c", h:"O seletor de unidade mostrava <b>\u201cTodas as unidades\u201d duas vezes</b>", d:"Uma no come\u00e7o e outra no fim da lista \u2014 e as duas faziam <b>coisas diferentes</b>. A de cima quer dizer <b>n\u00e3o filtrar nada</b>; a de baixo \u00e9 um filtro de verdade, que mostra <b>s\u00f3 as pend\u00eancias que valem para todas as unidades</b> (as que atravessam a rede inteira). Agora a de cima se chama <b>\u201cQualquer unidade\u201d</b> e a de baixo continua <b>\u201cTodas as unidades\u201d</b>. Nada mudou no que cada uma faz \u2014 mudou o nome, para dar para escolher."},
     {t:"m", h:"E a primeira aba virou <b>\u201cTudo\u201d</b>, com T mai\u00fasculo", d:"Ela era a \u00fanica da fileira come\u00e7ando com letra min\u00fascula, ao lado de <b>Urgente</b>, <b>Esta semana</b> e <b>Quando der</b>."}
@@ -16231,25 +16235,35 @@ function padmRender(){
     cats.map(k => '<option value="' + escAttr(k) + '"' + (padmFiltroCat === k ? " selected" : "") + '>' +
       escAttr(padmNomeCat(k)) + '</option>').join("");
 
-  /* 🔑 O seletor de UNIDADE só existe para quem enxerga MAIS DE UMA. Para a gerente de um posto só,
-     ele seria um campo que não filtra nada — e campo que não faz nada ensina a ignorar campo. */
+  /* 🔴 v340 - A UNIDADE `todas` NAO E' MAIS OPCAO DO SELETOR, e a razao e' de linguagem, nao de
+     codigo. Ela quer dizer "esta pendencia vale para a rede inteira" (o selo `Todas` do cartao) —
+     mas, DENTRO DE UM FILTRO, "Todas as unidades" e' lido por qualquer pessoa como "nao filtrar".
+     Eram duas leituras da mesma frase, e nem o dono do app acertou qual era qual quando perguntado.
+     🔑 Quando um rotulo precisa de explicacao para ser entendido, o defeito e' o rotulo.
+     ⚠️ AS PENDENCIAS GERAIS NAO SUMIRAM: elas continuam na lista, com o selo `Todas` no cartao —
+     o que saiu foi a linha do seletor. */
   const uns = [];
-  vis.forEach(p => { if (!p.concluida){ const k = p.unidade || "todas"; if (uns.indexOf(k) < 0) uns.push(k); } });
-  /* ordem FIXA (a das unidades, com "todas" no fim) — se saísse na ordem dos dados, as opções
-     trocariam de lugar a cada pendência nova */
-  const ordUn = k => (k === "todas") ? 99 : UNIDADES_PADM.findIndex(u => u.k === k);
-  uns.sort((a, b) => ordUn(a) - ordUn(b));
+  vis.forEach(p => { if (!p.concluida){ const k = p.unidade || "todas"; if (k !== "todas" && uns.indexOf(k) < 0) uns.push(k); } });
+  /* ordem FIXA (a das unidades) — se saísse na ordem dos dados, as opções trocariam de lugar a
+     cada pendência nova */
+  uns.sort((a, b) => UNIDADES_PADM.findIndex(u => u.k === a) - UNIDADES_PADM.findIndex(u => u.k === b));
   const cxUn = document.getElementById("padmSelUnBox"), selU = document.getElementById("padmSelUn");
   if (cxUn && selU){
+    /* 🔑 O seletor só existe para quem enxerga MAIS DE UMA unidade de verdade. Para a gerente de um
+       posto só, ele seria um campo que quase não filtra — e campo que não faz nada ensina a
+       ignorar campo. */
     if (uns.length > 1){
       cxUn.style.display = "";
-      selU.innerHTML = '<option value="">Qualquer unidade</option>' +
+      selU.innerHTML = '<option value="">Todas as unidades</option>' +
         uns.map(k => '<option value="' + escAttr(k) + '"' + (padmFiltroUn === k ? " selected" : "") + '>' +
           escAttr(padmNomeUnidade(k)) + '</option>').join("");
     } else {
       cxUn.style.display = "none"; selU.innerHTML = "";
-      if (padmFiltroUn && uns.indexOf(padmFiltroUn) < 0) padmFiltroUn = "";
     }
+    /* ⚠️ vale sempre, e não só no ramo de cima: um filtro apontando para unidade que saiu da lista
+       (ou para a `todas`, que deixou de ser escolhível) deixaria a tela filtrada por algo que a
+       pessoa não tem como desfazer no seletor. */
+    if (padmFiltroUn && uns.indexOf(padmFiltroUn) < 0) padmFiltroUn = "";
   }
 
   /* 🔴 O BOTAO DIZ O QUE ESTA FILTRADO, e e' isto que impede "escondido" de virar "filtrado sem eu
@@ -16260,7 +16274,7 @@ function padmRender(){
   const cxF = document.getElementById("padmCaixaFiltros");
   if (lf && cxF){
     const temFiltro = !!(padmFiltroCat || padmFiltroUn);
-    const podeFiltrar = cats.length > 1 || uns.length > 1;
+    const podeFiltrar = cats.length > 1 || uns.length > 1;   /* `uns` ja' vem sem a `todas` */
     if (!podeFiltrar){
       lf.innerHTML = ""; cxF.style.display = "none";
       padmFiltroCat = ""; padmFiltroUn = ""; padmFiltrosAbertos = false;
