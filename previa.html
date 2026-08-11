@@ -2087,6 +2087,14 @@
   table.adm-mtz td.adm-nao{color:#C9C9C9;text-align:center}
   table.adm-mtz tr.adm-mtz-pod td{background:var(--superficie-2);background-image:linear-gradient(var(--superficie-2),var(--superficie-2))}
   .nota-dash.adm-alerta{color:#C62828}
+  /* v330 - o quadro das unidades. Reaproveita `rpz-tab`/`adm-mtz`; nasce aqui SO' a coluna do
+     rodape que acusa a unidade sem dono, porque acusar nao existia em tabela nenhuma. */
+  table.adm-uni td.adm-uni-cx{text-align:center}
+  table.adm-uni td.adm-uni-cx input{cursor:pointer}
+  table.adm-uni tr.adm-uni-pe td{background:var(--superficie-2);font-size:.72rem;color:var(--cinza);text-align:center}
+  table.adm-uni tr.adm-uni-pe td.adm-uni-orfa{color:#C62828;font-weight:700}
+  table.adm-uni td.adm-uni-nome{white-space:normal;min-width:150px}
+  .adm-uni-sem{color:#C62828;font-weight:700}
   .perfil-top{flex-wrap:wrap}
   .perfil-nome{min-width:140px}
   @media(max-width:760px){ .adm-cols{grid-template-columns:1fr} .adm-corpo-larga{grid-template-columns:1fr} .adm-pes-selos{margin-left:0} .adm-ficha-bts{margin-left:0} .adm-pod>span:first-child{min-width:0;flex:1 1 100%} }
@@ -4139,6 +4147,14 @@
         </select></label>
         <div id="admMatrizBox"></div>
       </div>
+      <!-- v330 - 🏢 O quadro das unidades. Mora AQUI, e nao numa aba nova, porque a pergunta que
+           ele responde e' a mesma desta aba: quem alcança o quê. Aba nova para cada quadro faz o
+           painel virar um armário de gavetas que ninguém abre. -->
+      <div class="grupo">
+        <h2>🏢 Quem responde por cada unidade</h2>
+        <p class="nota-dash">Decide o que cada pessoa enxerga no menu <b>✅ Pendências Administrativas</b>. Marque aqui mesmo — grava na hora, e é o mesmo campo que fica na ficha da pessoa.</p>
+        <div id="admUnidadesBox"></div>
+      </div>
     </div>
 
     <div class="adm-pag" id="admPagRegras" style="display:none">
@@ -6156,7 +6172,7 @@ function renderAbaAdm(){
   if (admAba === "pend")        renderPendencias();          /* v319 */
   if (admAba === "pessoas")     renderNovaPessoa();          /* v321 - enche o seletor de perfis */
   else if (admAba === "perfis") renderPerfisAcesso();
-  else if (admAba === "matriz") renderAdmMatriz();
+  else if (admAba === "matriz"){ renderAdmMatriz(); renderAdmUnidades(); }
   else if (admAba === "regras"){ renderMetaCaixa(); renderAvisoReceb(); }   /* v316 */
   else if (admAba === "ativ")   { popularSelectsAdmin(admEmails()); renderAtividadesFunc(); }
   else                          renderAdminUsuarios();
@@ -6613,6 +6629,94 @@ function setMenuPerfilEmp(id, sig, key, on){
 }
 
 /* ----- aba Quem ve o que ----- */
+/* ===================== v330 — 🏢 QUEM RESPONDE POR CADA UNIDADE =====================
+
+   🔴 O DEFEITO QUE ESTE QUADRO EXISTE PARA IMPEDIR, e ele aconteceu em 10/08: depois de carregar
+   as 31 pendências e liberar o menu para o perfil Gerente, as CINCO pendências da Transportadora
+   ficaram **sem ninguém que as enxergasse** — inclusive a 🔴 do certificado do IBAMA vencido em
+   abril. Só apareceu porque eu conferi por fora, no console.
+
+   🔑 A CONFERÊNCIA QUE VALE NÃO É "todo mundo tem unidade?" — É "toda unidade tem alguém?".
+   As duas parecem a mesma pergunta e não são: a primeira olha as PESSOAS e dá tudo certo mesmo
+   quando uma unidade inteira está órfã; a segunda olha o TRABALHO, que é o que fica parado.
+
+   ⚠️ E até esta versão a resposta só existia abrindo UMA FICHA DE CADA VEZ — doze fichas para
+   responder uma pergunta. Ninguém faz isso duas vezes. 👉 Pergunta que custa doze cliques é
+   pergunta que deixa de ser feita.
+
+   O quadro é EDITÁVEL de propósito: ver o buraco e não poder tapar no mesmo lugar seria mandar a
+   pessoa procurar a ficha — e o caminho da ficha continua valendo, porque é a MESMA gravação
+   (`setUnidadePessoa`), com a mesma guarda `podeMexerNaFicha` dentro. */
+
+/* 🔴 UM LUGAR SÓ decide se uma unidade está órfã, e o rodapé, o alerta e a suíte perguntam a ele. */
+function padmPessoasDaUnidade(k){
+  return admEmails().filter(e => !ehAdminEmail(e)
+    && menuPermitidoDe(e, "pendAdm", "postos")
+    && padmUnidadesDe(e).indexOf(k) >= 0);
+}
+function padmAbertasDaUnidade(k){
+  return (pendenciasAdm || []).filter(p => !p.concluida && (p.unidade || "todas") === k
+    && !(Array.isArray(p.para) && p.para.length)).length;
+}
+/* órfã = TEM trabalho parado e NÃO tem ninguém que o enxergue. Unidade vazia sem pendência
+   nenhuma não é problema — é só uma unidade sossegada. */
+function padmUnidadeOrfa(k){
+  return padmAbertasDaUnidade(k) > 0 && padmPessoasDaUnidade(k).length === 0;
+}
+
+function renderAdmUnidades(){
+  const box = document.getElementById("admUnidadesBox"); if (!box) return;
+  const pessoas = admEmails().filter(e => !ehAdminEmail(e))
+    .sort((a, b) => admNomeDe(a).localeCompare(admNomeDe(b), "pt-BR"));
+  if (!pessoas.length){ box.innerHTML = '<p class="nota-dash">Ninguém cadastrado ainda.</p>'; return; }
+
+  let h = '<div class="rpz-rola"><table class="rpz-tab adm-mtz adm-uni"><thead><tr><th>Pessoa</th>' +
+    UNIDADES_PADM.map(u => '<th>' + escAttr(u.curto) + '</th>').join("") + '</tr></thead><tbody>';
+
+  pessoas.forEach(e => {
+    const uni = padmUnidadesDe(e);
+    /* ⚠️ QUEM NÃO ENXERGA O MENU PRECISA APARECER ASSIM MESMO, e dizendo isso: foi exatamente o
+       caso da conta da Transportadora. Esconder a linha esconderia a solução junto com o problema. */
+    const ve = menuPermitidoDe(e, "pendAdm", "postos");
+    const a = aspAdm(e);
+    h += '<tr><td class="adm-uni-nome">' + escAttr(admNomeDe(e)) +
+         (ve ? "" : '<br><span class="adm-mini-nota adm-uni-sem">não vê o menu ✅</span>') + '</td>';
+    UNIDADES_PADM.forEach(u => {
+      h += '<td class="adm-uni-cx"><input type="checkbox" ' + (uni.indexOf(u.k) >= 0 ? 'checked ' : '') +
+           'title="' + escAttr(admNomeDe(e) + " responde por " + u.origem) + '" ' +
+           'onchange="setUnidadePessoa(\'' + a + '\', \'' + u.k + '\', this.checked)"></td>';
+    });
+    h += '</tr>';
+  });
+
+  /* o rodapé é o quadro inteiro: quantas pessoas e quanto trabalho parado, por unidade */
+  h += '<tr class="adm-uni-pe"><td>pessoas / pendências abertas</td>' +
+    UNIDADES_PADM.map(u => {
+      const n = padmPessoasDaUnidade(u.k).length, q = padmAbertasDaUnidade(u.k);
+      return '<td class="' + (padmUnidadeOrfa(u.k) ? "adm-uni-orfa" : "") + '">' +
+        (padmUnidadeOrfa(u.k) ? "🚩 " : "") + n + " / " + q + '</td>';
+    }).join("") + '</tr>';
+  h += '</tbody></table></div>';
+
+  const orfas = UNIDADES_PADM.filter(u => padmUnidadeOrfa(u.k));
+  if (orfas.length)
+    h += '<p class="nota-dash adm-alerta">🚩 <b>' + orfas.length +
+      (orfas.length === 1 ? ' unidade tem pendência aberta e ninguém que a enxergue' :
+                            ' unidades têm pendência aberta e ninguém que as enxergue') + ':</b> ' +
+      orfas.map(u => escAttr(u.origem) + " (" + padmAbertasDaUnidade(u.k) + ")").join(" · ") +
+      '. Marque alguém na linha dela — ou libere o menu ✅ Pendências Administrativas para quem já responde.</p>';
+  else
+    h += '<p class="nota-dash">✅ Toda unidade com pendência aberta tem pelo menos uma pessoa que a enxerga.</p>';
+
+  /* as de "todas as unidades" não têm coluna: elas aparecem para todo mundo que vê o menu */
+  const t = padmAbertasDaUnidade("todas");
+  if (t) h += '<p class="nota-dash">Fora do quadro: <b>' + t + '</b> pendência' + (t === 1 ? "" : "s") +
+    ' vale' + (t === 1 ? "" : "m") + ' para <b>todas as unidades</b> e aparece' + (t === 1 ? "" : "m") +
+    ' para quem enxerga o menu, tendo unidade marcada ou não.</p>';
+
+  box.innerHTML = h;
+}
+
 function renderAdmMatriz(){
   const box = document.getElementById("admMatrizBox"); if (!box) return;
   const sel = document.getElementById("admMtzEmp"); if (sel) admMtzEmp = sel.value || admMtzEmp;
@@ -6978,6 +7082,11 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v330", data:"10/08/2026", tit:"\ud83c\udfe2 Um quadro mostra quem responde por cada unidade \u2014 e acusa a unidade que ficou sem ningu\u00e9m", itens:[
+    {t:"n", h:"Est\u00e1 no Painel Administrativo, na aba \ud83d\udd0e Quem v\u00ea o qu\u00ea", d:"Um quadro com as pessoas nas linhas e as <b>sete unidades</b> nas colunas. D\u00e1 para <b>marcar e desmarcar ali mesmo</b> \u2014 grava na hora, e \u00e9 o mesmo campo que j\u00e1 existe na ficha de cada pessoa."},
+    {t:"n", h:"O rodap\u00e9 diz <b>quantas pessoas</b> e <b>quantas pend\u00eancias abertas</b> cada unidade tem", d:"E quando uma unidade tem pend\u00eancia aberta e <b>ningu\u00e9m que a enxergue</b>, ela aparece com \ud83d\udea9 em vermelho, com o aviso embaixo dizendo qual \u00e9 e quantas est\u00e3o paradas."},
+    {t:"c", h:"Por que isso nasceu", d:"Ao carregar as primeiras pend\u00eancias, <b>cinco da Transportadora ficaram sem ningu\u00e9m para v\u00ea-las</b> \u2014 uma delas urgente. Ningu\u00e9m reclamaria, porque n\u00e3o se reclama do que n\u00e3o se v\u00ea. A pergunta certa n\u00e3o \u00e9 \u201ctodo mundo tem unidade?\u201d, \u00e9 <b>\u201ctoda unidade tem algu\u00e9m?\u201d</b> \u2014 e at\u00e9 agora ela s\u00f3 podia ser respondida abrindo uma ficha de cada vez."}
+  ]},
   {v:"v329", data:"10/08/2026", tit:"\ud83d\udd27 Clientes: a ficha aparecia fora da tela \u2014 e agora mostra o aberto por posto", itens:[
     {t:"c", h:"Clicar num cliente parecia n\u00e3o fazer nada", d:"E o clique <b>sempre funcionou</b>: a ficha abria, s\u00f3 que <b>depois da lista inteira</b>. Com os clientes de verdade a lista tem <b>dezenas de linhas</b>, ent\u00e3o a ficha nascia muito abaixo da tela e ningu\u00e9m a via. Agora ela aparece <b>logo abaixo dos quatro n\u00fameros do topo</b>, sempre no mesmo lugar."},
     {t:"m", h:"E se ainda assim ela ficar fora da vista, a tela vai at\u00e9 ela", d:"Se voc\u00ea rolou at\u00e9 o fim da lista e clicou num cliente l\u00e1 embaixo, o app <b>traz a ficha para a vista</b> \u2014 e s\u00f3 quando ela n\u00e3o est\u00e1 vis\u00edvel, para n\u00e3o dar solavanco em quem j\u00e1 est\u00e1 olhando para ela."},
