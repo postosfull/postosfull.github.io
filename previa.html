@@ -4152,7 +4152,8 @@
            painel virar um armário de gavetas que ninguém abre. -->
       <div class="grupo">
         <h2>🏢 Quem responde por cada unidade</h2>
-        <p class="nota-dash">Decide o que cada pessoa enxerga no menu <b>✅ Pendências Administrativas</b>. Marque aqui mesmo — grava na hora, e é o mesmo campo que fica na ficha da pessoa.</p>
+        <p class="nota-dash">É a <b>marcação única</b>: o que a pessoa enxerga no menu <b>✅ Pendências Administrativas</b>, quem responde pela <b>conferência dos caixas</b> do posto, quem recebe o <b>aviso de recebimento de combustível</b> e o <b>aviso semanal</b>. Marque aqui e vale para tudo — grava na hora.</p>
+        <p class="nota-dash">Administradores não aparecem: eles já enxergam tudo, e <b>continuam recebendo os avisos</b> sem precisar marcar.</p>
         <div id="admUnidadesBox"></div>
       </div>
     </div>
@@ -5568,38 +5569,23 @@ function renderMetaCaixa(){
     '</div>';
   h += '<p class="nota-dash">Com a meta atual, o limite equivalente \u00e9 de <b>' + mcTxtDias(mcLimiteCorrido(), false) + '</b> na m\u00e9dia.</p>';
 
-  h += '<div class="pe-sub">Respons\u00e1veis por posto</div>';
-  if (!pessoas.length){
-    h += '<p class="nota-dash">Nenhum funcion\u00e1rio cadastrado ainda. Crie os usu\u00e1rios no quadro acima e eles aparecem aqui sozinhos.</p>';
-  } else {
-    h += '<div class="mc-grid">';
-    CXI_POSTOS.forEach(u => {
-      h += '<div class="mc-col"><h4>' + escAttr(u) + '</h4><div class="usr-perm-grid">';
-      pessoas.forEach(e => {
-        h += '<label class="usr-perm-item"><input type="checkbox" data-mcresp="' + escAttr(u) + '" value="' + escAttr(e) + '"' +
-             (mcMarcados(resp[u], e) ? ' checked' : '') +
-             ' onchange="setRespCaixaPessoa(\'' + escAspas(e) + '\', \'' + escAspas(u) + '\', this.checked)"> ' +
-             escAttr(mcNomeDe(e)) + '</label>';
-      });
-      h += '</div></div>';
-    });
-    h += '</div>';
-  }
-
-  h += '<div class="pe-sub">Quem recebe o aviso semanal</div>';
-  h += '<p class="nota-dash">O aviso vai \u00e0 Caixa de entrada nas segundas de manh\u00e3, com o tempo m\u00e9dio de cada posto e quem est\u00e1 fora da meta. Quem estiver marcado como respons\u00e1vel acima recebe s\u00f3 a parte do pr\u00f3prio posto.</p>';
-  if (!pessoas.length){
-    h += '<p class="nota-dash">\u2014</p>';
-  } else {
-    h += '<div class="usr-perm-grid">';
-    pessoas.forEach(e => {
-      h += '<label class="usr-perm-item"><input type="checkbox" data-mcaviso="1" value="' + escAttr(e) + '"' +
-           (mcMarcados(aviso, e) ? ' checked' : '') +
-           ' onchange="setAvisoCaixaPessoa(\'' + escAspas(e) + '\', this.checked)"> ' +
-           escAttr(mcNomeDe(e)) + '</label>';
-    });
-    h += '</div>';
-  }
+  /* 🔴 v332 - OS RESPONSAVEIS SAIRAM DAQUI. Eles nao foram apagados: passaram a ser DERIVADOS do
+     quadro 🏢 Quem responde por cada unidade, que virou a marcacao unica.
+     🔑 O motivo nao e' arrumacao: eram TRES quadros marcando a mesma coisa, e a medicao de 11/08
+     achou o preco disso — a Aldeide era responsavel pelo caixa de Dutra e nao respondia por Dutra
+     em nenhuma outra lista, e nao recebia o aviso semanal mesmo respondendo por Teresina.
+     👉 Marcacao repetida nao fica igual: ela se desencontra em silencio, e ninguem descobre
+     porque cada tela, sozinha, parece certa. */
+  h += '<div class="pe-sub">Quem acompanha cada posto</div>';
+  h += '<p class="nota-dash">Sai do quadro <b>🏢 Quem responde por cada unidade</b>, na aba <b>🔎 Quem vê o quê</b> — a mesma marcação que decide o menu <b>✅ Pendências Administrativas</b> e os avisos. Marque lá uma vez e vale para tudo.</p>';
+  h += '<div class="usr-perm-grid">';
+  CXI_POSTOS.forEach(u => {
+    const quem = mcRespDoPosto(u).map(e => mcNomeDe(e));
+    h += '<div class="usr-perm-item"><b>' + escAttr(u) + ':</b> ' +
+         (quem.length ? escAttr(quem.join(', ')) : '<span class="adm-uni-sem">ninguém</span>') + '</div>';
+  });
+  h += '</div>';
+  h += '<p class="nota-dash">O aviso semanal vai às segundas de manhã para quem responde por algum posto, mais os administradores.</p>';
 
   h += '<p class="nota-dash">\u2713 Tudo aqui \u00e9 salvo na hora \u2014 n\u00e3o existe bot\u00e3o de salvar.</p>';
   // a mensagem vive em mcMsg, e nao no DOM: o onSnapshot redesenha este quadro logo
@@ -6430,17 +6416,15 @@ function fichaPessoaHtml(e){
   h += '</div>';
   if (!uniPes.length) h += '<p class="nota-dash">⚠️ Sem unidade marcada, ela só enxerga as pendências abertas <b>no nome dela</b> e as que valem para <b>todas as unidades</b>.</p>';
 
-  /* caixas */
-  h += '<div class="adm-sec">🧾 Conferência dos caixas</div><div class="usr-perm-grid">';
-  const resp = (metaCaixa && metaCaixa.responsaveis) ? metaCaixa.responsaveis : {};
-  CXI_POSTOS.forEach(u => {
-    const on = Array.isArray(resp[u]) && resp[u].indexOf(e) >= 0;
-    h += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked ' : '') +
-         'onchange="setRespCaixaPessoa(\'' + a + '\', \'' + aspAdm(u) + '\', this.checked)"> Responsável por ' + escAttr(u) + '</label>';
-  });
-  const av = (metaCaixa && Array.isArray(metaCaixa.avisoPara)) ? metaCaixa.avisoPara : [];
-  h += '<label class="usr-perm-item"><input type="checkbox" ' + (av.indexOf(e) >= 0 ? 'checked ' : '') +
-       'onchange="setAvisoCaixaPessoa(\'' + a + '\', this.checked)"> 📥 Recebe o aviso semanal</label></div>';
+  /* 🔴 v332 - as caixas de "Responsável por X" e "Recebe o aviso semanal" SAIRAM DAQUI: elas
+     marcavam a mesma coisa que as unidades acima, e duas caixas para a mesma decisao se
+     desencontram sozinhas. Aqui agora se LE o que a marcacao de unidade produziu. */
+  const postosDela = padmPostosDe(e);
+  h += '<div class="adm-sec">🧾 Conferência dos caixas e avisos</div>';
+  h += '<p class="nota-dash">Sai das <b>unidades</b> marcadas acima: ' +
+       (postosDela.length
+         ? ('ela responde pelo caixa de <b>' + escAttr(postosDela.join(', ')) + '</b>, recebe o aviso de recebimento de combustível desses postos e o <b>aviso semanal</b>.')
+         : 'ela <b>não responde por nenhum posto</b>, então não entra na conferência dos caixas nem nos avisos.') + '</p>';
 
   /* notificacoes */
   const rawAvi = (permissoesTodos[e] && permissoesTodos[e].avisos) ? permissoesTodos[e].avisos : null;
@@ -6665,6 +6649,48 @@ function padmAbertasDaUnidade(k){
    nenhuma não é problema — é só uma unidade sossegada. */
 function padmUnidadeOrfa(k){
   return padmAbertasDaUnidade(k) > 0 && padmPessoasDaUnidade(k).length === 0;
+}
+
+/* ===================== v332 — UMA MARCACAO SO' =====================
+
+   🔴 A FONTE E' `config/unidadesEquipe`. Os outros documentos sao PROJECOES dela, reescritos a
+   cada mudanca:
+     • `metaCaixa.responsaveis` — quem responde pela conferencia do caixa de cada posto
+     • `metaCaixa.avisoPara`    — quem recebe o aviso semanal dos caixas
+     • `avisoRecebimento.porPosto` / `.tambem` — quem recebe o aviso de descarga sem nota
+
+   ⚠️ POR QUE ESPELHAR EM VEZ DE APAGAR: quem le esses documentos nao e' so' o app. O coletor do
+   VPS le `config/avisoRecebimento` para decidir a quem mandar o aviso. Parar de escrever ali
+   pareceria "simplificar" e na verdade CONGELARIA os destinatarios nos de hoje — calado, e so'
+   se descobre quando alguem reclamar que nao recebe mais.
+
+   🔑 A regra que fica: uma fonte que DECIDE pode ter quantas projecoes precisar; o que nao pode
+   existir e' um SEGUNDO EDITOR. Por isso as caixas de marcar sairam da aba Regras do app e da
+   ficha da pessoa — la' agora se LE, e marca-se num lugar so'. */
+
+const POSTO_DA_CHAVE = { ct:"Teresina", cc:"Caxias", cd:"Dutra" };
+function padmPostosDe(email){
+  return padmUnidadesDe(email).map(k => POSTO_DA_CHAVE[k]).filter(Boolean);
+}
+/* 🔴 UM LUGAR SO' responde "quem acompanha este posto", e as tres telas perguntam a ele. */
+function mcRespDoPosto(nomePosto){
+  return admEmails().filter(e => !ehAdminEmail(e) && padmPostosDe(e).indexOf(nomePosto) >= 0)
+    .sort((a, b) => admNomeDe(a).localeCompare(admNomeDe(b), "pt-BR"));
+}
+function espelharResponsabilidades(){
+  if (!ehAdminAtual() || !nuvemPronta) return;
+  const resp = {}, receb = {}, semanal = [];
+  CXI_POSTOS.forEach(u => { resp[u] = mcRespDoPosto(u).slice(); receb[u] = mcRespDoPosto(u).slice(); });
+  admEmails().filter(e => !ehAdminEmail(e) && padmPostosDe(e).length).forEach(e => semanal.push(e));
+  /* ⚠️ O ADMIN SAIU DA MARCACAO, NAO DO AVISO (decisao dele, 11/08). Ele nao precisa se marcar
+     porque ja' enxerga tudo — mas continuar recebendo e' outra coisa, e ele quis continuar. */
+  const admins = administradoresDoApp();
+  admins.forEach(e => { if (semanal.indexOf(e) < 0) semanal.push(e); });
+  const quando = new Date().toISOString();
+  metaCaixa = Object.assign({}, metaCaixa || {}, { responsaveis: resp, avisoPara: semanal });
+  docMetaCaixa.set({ responsaveis: resp, avisoPara: semanal, atualizadoEm: quando, por: usuarioAtual || "" }, { merge:true }).catch(()=>{});
+  avisoReceb = Object.assign({}, avisoReceb || {}, { porPosto: receb, tambem: admins });
+  docAvisoReceb.set({ porPosto: receb, tambem: admins, atualizadoEm: quando, por: usuarioAtual || "" }, { merge:true }).catch(()=>{});
 }
 
 function renderAdmUnidades(){
@@ -7085,6 +7111,12 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v332", data:"11/08/2026", tit:"\ud83c\udfe2 Uma marca\u00e7\u00e3o s\u00f3: quem responde pela unidade responde por tudo dela", itens:[
+    {t:"m", h:"Eram tr\u00eas quadros marcando a mesma coisa", d:"Unidades no quadro <b>\ud83c\udfe2 Quem responde por cada unidade</b>, respons\u00e1veis pelo caixa e destinat\u00e1rios do aviso de recebimento, cada um numa tela. <b>Agora \u00e9 um s\u00f3</b>: marcar a pessoa numa unidade j\u00e1 decide o que ela v\u00ea no menu <b>\u2705 Pend\u00eancias Administrativas</b>, se ela responde pela confer\u00eancia daquele caixa e quais avisos recebe."},
+    {t:"c", h:"E as marca\u00e7\u00f5es tinham se desencontrado", d:"Uma gerente estava marcada como respons\u00e1vel pelo caixa de um posto pelo qual n\u00e3o respondia em nenhuma outra lista \u2014 e <b>n\u00e3o recebia o aviso semanal</b>, mesmo respondendo por outro. <b>Marca\u00e7\u00e3o repetida n\u00e3o fica igual</b>: ela se desencontra sozinha, e cada tela, olhada em separado, parece certa."},
+    {t:"m", h:"Nas Regras do app e na ficha, agora se L\u00ca", d:"Os dois quadros continuam l\u00e1, mas <b>mostrando</b> quem acompanha cada posto em vez de pedir para marcar de novo. A meta em dias \u00fateis dos caixas continua onde estava."},
+    {t:"m", h:"Administradores n\u00e3o precisam mais se marcar", d:"Eles j\u00e1 enxergam tudo, ent\u00e3o sa\u00edram do quadro \u2014 e <b>continuam recebendo os avisos</b> de todos os postos, sem marca\u00e7\u00e3o nenhuma."}
+  ]},
   {v:"v331", data:"11/08/2026", tit:"\ud83c\udff7\ufe0f Os postos passaram a se chamar <b>Posto Teresina</b>, <b>Posto Caxias</b> e <b>Posto Dutra</b>", itens:[
     {t:"m", h:"Antes eles diziam s\u00f3 \u201cTeresina\u201d, \u201cCaxias\u201d e \u201cDutra\u201d", d:"E as lojas j\u00e1 diziam <b>Loja Teresina</b>. Lado a lado, o nome sem o tipo parecia a <b>pra\u00e7a inteira</b> em vez da unidade \u2014 principalmente nos filtros, onde os dois aparecem na mesma fileira."},
     {t:"m", h:"Mudou em tr\u00eas telas de uma vez", d:"Os cabe\u00e7alhos e as etiquetas do menu <b>\u2705 Pend\u00eancias Administrativas</b>, o quadro <b>\ud83c\udfe2 Quem responde por cada unidade</b> e os bot\u00f5es de filtro do <b>\ud83d\udcc5 Calend\u00e1rio</b>. <b>Nada do que j\u00e1 estava gravado mudou</b> \u2014 eventos, documentos e arquivos continuam ligados \u00e0s mesmas unidades."}
@@ -15745,7 +15777,10 @@ function setUnidadePessoa(email, k, on){
    deixar dez `set` espalhados para consertar depois. */
 function gravarUnidadesEquipe(nome){
   docUnidadesEquipe.set({ porUsuario: unidadesEquipe || {} })
-    .then(() => { avisoAdmin("msgAdminLista", "Unidades de " + (nome || "") + " atualizadas.", "ok"); renderAbaAdm(); })
+    /* 🔴 v332 - espelhar E' PARTE DE GRAVAR, e por isso mora aqui dentro: se fosse uma chamada a
+       mais em cada botao, o dia em que nascesse um botao novo nasceria com o espelho quebrado. */
+    .then(() => { espelharResponsabilidades();
+                  avisoAdmin("msgAdminLista", "Unidades de " + (nome || "") + " atualizadas — vale para o menu ✅, para a conferência dos caixas e para os avisos.", "ok"); renderAbaAdm(); })
     .catch(er => avisoAdmin("msgAdminLista", msgErro(er), "erro"));
 }
 
@@ -16197,31 +16232,20 @@ function renderAvisoReceb(){
     h += '<p class="nota-dash">Nenhum funcionário cadastrado ainda. Crie os usuários na aba ' +
          '<b>Pessoas</b> e eles aparecem aqui sozinhos.</p>';
   } else {
+    /* 🔴 v332 - a marcacao saiu daqui e passou a ser derivada do quadro unico (ver renderMetaCaixa).
+       ⚠️ O DOCUMENTO `config/avisoRecebimento` CONTINUA SENDO GRAVADO IGUAL: quem o le nao e' so'
+       o app — e' o coletor do VPS, que decide para quem vai o aviso de descarga sem nota. Parar de
+       escrever ali nao simplificaria nada: congelaria os destinatarios nos de hoje, calado. */
     h += '<div class="pe-sub">Quem recebe o aviso de cada posto</div>';
-    h += '<div class="mc-grid">';
-    CXI_POSTOS.forEach(u => {
-      h += '<div class="mc-col"><h4>' + escAttr(u) + '</h4><div class="usr-perm-grid">';
-      pessoas.forEach(e => {
-        h += '<label class="usr-perm-item"><input type="checkbox" value="' + escAttr(e) + '"' +
-             (arMarcado(porPosto[u], e) ? ' checked' : '') +
-             ' onchange="setAvisoRecebPosto(\'' + escAspas(e) + '\', \'' + escAspas(u) +
-             '\', this.checked)"> ' + escAttr(arNomeDe(e)) + '</label>';
-      });
-      h += '</div></div>';
-    });
-    h += '</div>';
-
-    h += '<div class="pe-sub">E quem recebe o de TODOS os postos</div>';
-    h += '<p class="nota-dash">Marque aqui quem acompanha a rede inteira. O dono do app recebe ' +
-         'sempre, mesmo sem estar marcado.</p>';
+    h += '<p class="nota-dash">Sai do quadro <b>🏢 Quem responde por cada unidade</b>, na aba <b>🔎 Quem vê o quê</b>. Marque lá uma vez e vale para tudo.</p>';
     h += '<div class="usr-perm-grid">';
-    pessoas.forEach(e => {
-      h += '<label class="usr-perm-item"><input type="checkbox" value="' + escAttr(e) + '"' +
-           (arMarcado(tambem, e) ? ' checked' : '') +
-           ' onchange="setAvisoRecebTambem(\'' + escAspas(e) + '\', this.checked)"> ' +
-           escAttr(arNomeDe(e)) + '</label>';
+    CXI_POSTOS.forEach(u => {
+      const quem = mcRespDoPosto(u).map(e => arNomeDe(e));
+      h += '<div class="usr-perm-item"><b>' + escAttr(u) + ':</b> ' +
+           (quem.length ? escAttr(quem.join(', ')) : '<span class="adm-uni-sem">ninguém</span>') + '</div>';
     });
     h += '</div>';
+    h += '<p class="nota-dash">Os administradores recebem o de todos os postos, sem precisar marcar.</p>';
   }
   h += '<p class="nota-dash">✓ Tudo aqui é salvo na hora — não existe botão de salvar. ' +
        'A mudança vale para o <b>próximo</b> aviso; a que já está na Caixa de entrada não muda de dono.</p>';
