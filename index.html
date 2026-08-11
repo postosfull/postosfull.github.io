@@ -2144,8 +2144,30 @@
   /* v181 — cada combustível vira UMA linha: nome | preço | variação.
      A grade fica no .comp-precos (e não em cada linha) para as colunas
      ficarem alinhadas entre os combustíveis do mesmo cartão. */
-  .cot-grid{display:grid;grid-template-columns:1fr auto auto;gap:5px 7px;align-items:center}
-  .cot-fnome{font-size:.76rem;color:var(--txt);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* 🔴 v335 - a TERCEIRA coluna tem PISO, e e' so' ela que precisa ter.
+     Com `auto`, a coluna da pastilha de variacao COLAPSAVA a zero no cartao que nao tinha nenhum
+     preco de hoje — e o campo daquele cartao escorregava para a direita, desencontrado dos
+     vizinhos da mesma linha. 📏 Medido: 47px de espalhamento entre tres cartoes lado a lado.
+     🔴 A PRIMEIRA TENTATIVA POS PISO NAS DUAS COLUNAS (`minmax(92px,auto)` na do campo) e o
+     revisor derrubou com numero: como `.cot-preco-campo` e' `justify-content:flex-end`, o
+     conteudo ja se ancora na BORDA DIREITA da coluna — quem decide onde o preco aparece e' so'
+     a coluna 3. O piso da coluna 2 nao movia nada e cobrava 14 a 27px do nome do combustivel,
+     fazendo "Gasolina Aditivada" virar "Gasolina Aditiv..." em 8 a 17 lugares.
+     🔑 Reservar espaco que nao alinha nada nao e' neutro: sai do nome do produto.
+     O 54 e' medido em Poppins, a fonte real: a maior pastilha possivel com um digito inteiro e
+     `▲ 0,4444` = 52,73px (varridos os 9.999 deltas). ⚠️ O 48 da primeira tentativa foi medido em
+     ARIAL por engano e ficava abaixo de 6.711 dos 9.999. E' PISO, nao teto: `minmax(...,auto)`
+     deixa crescer quando o campo entra em edicao ou a variacao passa de um digito. */
+  /* o vao entre colunas caiu de 7 para 6: no cartao mais estreito que a grade permite (258px,
+     o piso do `minmax` la' em cima) faltavam exatamente 2px para "G. Aditivada" caber, e sao
+     dois vaos. 📏 Medido: em 258px o rotulo cortava 2px; com 6, cabe. Vale so' nesta tela. */
+  .cot-grid{display:grid;grid-template-columns:1fr auto minmax(54px,auto);gap:5px 6px;align-items:center}
+  /* 🔴 v335 - .74rem, e o 0,02 tem numero atras: no cartao mais estreito que a grade produz
+     (258px) a coluna do nome mede 74px e "G. Aditivada" mede 73,57px com .76rem — 📏 0,43px de
+     folga, MEDIDO NO CHROME DO WINDOWS DELE, nao aqui. Com .74rem a folga vai a 2,36px.
+     🔑 Promessa de "nenhum nome cortado" que se apoia em meio pixel nao sobrevive a diferenca
+     de desenho de fonte entre um computador e outro — e o que decide nao e' a minha maquina. */
+  .cot-fnome{font-size:.74rem;color:var(--txt);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .cot-preco-campo{display:flex;align-items:center;gap:5px;justify-content:flex-end}
   .cot-preco-campo input{width:92px;max-width:92px;flex:0 0 auto;text-align:right;padding:5px 7px;font-size:.82rem}
   .cot-valor{font-size:.85rem;font-weight:700;color:var(--txt);font-variant-numeric:tabular-nums;white-space:nowrap;padding-right:2px}
@@ -7117,6 +7139,11 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v335", data:"11/08/2026", tit:"\u2696\ufe0f Cota\u00e7\u00f5es do Dia: os cart\u00f5es voltaram a ficar alinhados", itens:[
+    {t:"c", h:"O cart\u00e3o <b>sem cota\u00e7\u00e3o</b> jogava o campo de pre\u00e7o para a direita", d:"Cada cart\u00e3o media as colunas pelo <b>pr\u00f3prio</b> conte\u00fado. No cart\u00e3o em que nada foi lan\u00e7ado hoje n\u00e3o existe pastilha de varia\u00e7\u00e3o nenhuma, ent\u00e3o aquela coluna sumia e o campo escorregava <b>47px</b> para a direita \u2014 lado a lado, os cart\u00f5es da mesma linha ficavam desencontrados. <b>Agora o campo termina no mesmo lugar em todos</b>, tenha o cart\u00e3o pre\u00e7o lan\u00e7ado ou n\u00e3o."},
+    {t:"m", h:"E a gasolina passou a se chamar <b>G. Comum</b> e <b>G. Aditivada</b> nesta tela", d:"Alinhar os cart\u00f5es custa largura, e com o nome inteiro <b>\u201cGasolina Aditivada\u201d</b> apareceria cortado como <b>\u201cGasolina Aditiv\u2026\u201d</b> em boa parte das telas. Com o r\u00f3tulo curto, <b>nenhum nome fica cortado em tela de computador</b> \u2014 medido de 1024 a 2560px, com a tela vazia, pela metade e toda lan\u00e7ada, e conferido no seu pr\u00f3prio Chrome. \u00c9 o mesmo r\u00f3tulo que o card <b>\u26fd Lucro por combust\u00edvel</b> j\u00e1 usa. <b>Diesel e Etanol n\u00e3o mudaram</b>, e <b>passar o mouse mostra o nome completo</b>."},
+    {t:"m", h:"O resto continua igual", d:"<b>Mesma altura de cart\u00e3o e mesma quantidade por linha</b>, e no celular continua um cart\u00e3o por linha. Nada mudou no cadastro nem no que fica gravado \u2014 s\u00f3 o nome que aparece na tela. Quando voc\u00ea abre um pre\u00e7o para corrigir (\u270f\ufe0f), a coluna cresce para caber o \u2713 e o \u2715, como sempre."}
+  ]},
   {v:"v334", data:"11/08/2026", tit:"💲 Cota\u00e7\u00f5es do Dia: saiu a pastilha \u21ba que repetia o pre\u00e7o de outro dia", itens:[
     {t:"m", h:"Onde n\u00e3o h\u00e1 pre\u00e7o de hoje, agora <b>n\u00e3o aparece mais nada</b>", d:"Ao lado de cada campo vazio havia uma pastilha cinza com o \u00faltimo dia em que aquele produto foi lan\u00e7ado (por exemplo <b>\u21ba 04/08</b>) e, num clique, ela copiava aquele pre\u00e7o para hoje. <b>Ela saiu.</b> Pre\u00e7o de combust\u00edvel quase nunca se repete de um dia para o outro, ent\u00e3o o bot\u00e3o aparecia em quase toda linha vazia: <b>enchia o cart\u00e3o e dava a entender que o pre\u00e7o de hoje j\u00e1 estava ali</b>."},
     {t:"m", h:"O resto da tela continua igual", d:"O campo vazio, o \u2713 lan\u00e7ada, o \u270f\ufe0f para corrigir um valor j\u00e1 salvo e a compara\u00e7\u00e3o com o \u00faltimo dia (\u25b2 mais caro, \u25bc mais barato, igual) <b>n\u00e3o mudaram</b> \u2014 a compara\u00e7\u00e3o s\u00f3 aparece depois que existe pre\u00e7o de hoje para comparar, como sempre foi."}
@@ -19045,7 +19072,7 @@ function renderCotacoes(){
           '<button class="cot-btn cot-edit" title="Editar este preço" onclick="editarPreco(\''+en+'\',\''+ec+'\')">✏️</button>' +
         '</span>';
       }
-      html += '<span class="cot-fnome" title="'+escAttr(c)+'">'+c+'</span>' +
+      html += '<span class="cot-fnome" title="'+escAttr(c)+'">'+escAttr(cotRotulo(c))+'</span>' +
         campo + cotDeltaHtml(nome, c, p);
     });
     html += '</div>';
@@ -19087,6 +19114,22 @@ function resumoCotLinhas(){
     if (itens.length) grupos.push({ dist:nome, itens:itens });
   });
   return grupos;
+}
+/* 🔴 v335 - o ROTULO na tela de Cotacoes: "Gasolina Comum" aparece como "G. Comum".
+   Nasceu de um custo medido, nao de gosto: para os cartoes ALINHAREM, a coluna da variacao
+   passou a ocupar lugar mesmo vazia, e isso tirou largura do nome — "Gasolina Aditivada" virava
+   "Gasolina Aditiv..." em ate' 17 dos 40 rotulos da tela. 📏 Com o rotulo curto: ZERO cortados
+   em 1024, 1280, 1366, 1600, 1920 e 2560, nos tres momentos do dia (nada lancado, metade, tudo).
+   🔑 Rotulo que quebra ou some nao esta' comprido: esta' competindo por largura com o numero,
+   que e' o que a pessoa veio ler — e' a mesma frase da v308, que criou "G. Comum" no card de
+   Lucro por combustivel. Agora as duas telas falam igual.
+   ⚠️ NAO reusei `cbdRotuloFamilia` de proposito, mesmo ela tendo esta tabela: ela tambem troca
+   "Diesel S10" por "Diesel S-10", e renomear o diesel ninguem pediu. 🔑 Reuso que traz junto uma
+   mudanca que nao foi pedida nao e' reuso: e' uma segunda mudanca escondida na primeira.
+   🔴 So' o TEXTO muda. A chave continua sendo o nome do cadastro (`precos[c]`, `cotFieldId`,
+   a gravacao), e o nome inteiro continua no `title` — passar o mouse mostra. */
+function cotRotulo(c){
+  return String(c || "").trim().replace(/^Gasolina\s+/i, "G. ");
 }
 // nome curto do combust\u00edvel s\u00f3 para a mensagem do WhatsApp
 function combCurtoCot(c){
@@ -23060,7 +23103,7 @@ function renderCompCot(){
   html += '<div class="comp-grid-vol">';
   combustiveis.forEach(c => {
     const v = compCot.volumes[c] || 0;
-    html += '<div class="comp-vol-item"><div class="comp-vol-head"><label>'+c+'</label>' +
+    html += '<div class="comp-vol-item"><div class="comp-vol-head"><label>'+escAttr(cotRotulo(c))+'</label>' +
       '<button class="comp-vol-x" title="Tirar '+escAttr(c)+' deste pedido" onclick="excluirProdutoCompCot(\''+escAspas(c)+'\')">✕</button></div>' +
       '<input type="text" inputmode="numeric" value="'+(v?fmtBR(v,0):'')+'" placeholder="0" ' +
       'onchange="setVolumeCompCot(\''+escAspas(c)+'\', this.value)"></div>';
@@ -23069,7 +23112,7 @@ function renderCompCot(){
   if (excluidos.length){
     html += '<div class="comp-excluidos"><span>Fora deste pedido:</span>';
     excluidos.forEach(c => {
-      html += '<button class="comp-chip" title="Incluir '+escAttr(c)+' de volta" onclick="incluirProdutoCompCot(\''+escAspas(c)+'\')">+ '+c+'</button>';
+      html += '<button class="comp-chip" title="Incluir '+escAttr(c)+' de volta" onclick="incluirProdutoCompCot(\''+escAspas(c)+'\')">+ '+escAttr(cotRotulo(c))+'</button>';
     });
     html += '</div>';
   }
@@ -23219,7 +23262,7 @@ function atualizarResultadoCompCot(){
   html += '</tr></thead><tbody>';
   r.ativos.forEach(c => {
     const menor = Math.min.apply(null, ordenadas.map(d => d.sub[c]||0));
-    html += '<tr><td>'+c+'</td><td>'+fmtBR(compCot.volumes[c]||0,0)+'</td>';
+    html += '<tr><td>'+escAttr(cotRotulo(c))+'</td><td>'+fmtBR(compCot.volumes[c]||0,0)+'</td>';
     ordenadas.forEach(d => {
       const v = d.sub[c]||0;
       const cls = (ordenadas.length > 1 && v === menor) ? ' class="comp-melhor-prod"' : '';
