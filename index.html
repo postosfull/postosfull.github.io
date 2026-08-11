@@ -1929,6 +1929,31 @@
      seletor que nao existe NAO da erro — ela simplesmente nunca vale, e a pastilha ficaria
      invisivel no escuro sem ninguem perceber. */
   body.tema-escuro .doc-tools.padm-abas .aba-n{background:rgba(255,255,255,.16)}
+  /* v338 - o botao dos filtros e a caixa que ele abre */
+  .padm-linha-filtros{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 2px}
+  .padm-btn-filtros{display:inline-flex;align-items:center;gap:8px;background:var(--superficie-2);
+    border:1px solid var(--borda);border-radius:20px;padding:7px 14px;font-size:.86rem;
+    color:var(--txt);font-weight:600;cursor:pointer;font-family:inherit}
+  .padm-btn-filtros:hover{border-color:var(--borda-forte)}
+  /* 🔴 aceso, ele fica com a cor da marca: filtro ligado tem de ser visivel SEM abrir a caixa */
+  .padm-btn-filtros.aceso{background:var(--verde-claro);border-color:var(--verde);color:var(--verde)}
+  .padm-btn-filtros .seta{color:var(--cinza);font-size:.78rem}
+  .padm-btn-filtros.aceso .seta{color:var(--verde)}
+  .padm-limpar{background:none;border:0;color:var(--verde);font-family:inherit;font-size:.82rem;
+    font-weight:700;cursor:pointer;padding:6px 4px}
+  .padm-caixa-filtros{background:var(--superficie-2);border:1px solid var(--borda);border-radius:12px;
+    padding:10px 12px;margin:6px 0 2px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .padm-sel{display:flex;align-items:center;gap:6px;background:var(--superficie);
+    border:1px solid var(--borda);border-radius:20px;padding:2px 4px 2px 12px}
+  .padm-sel > span{font-size:.78rem;color:var(--cinza);font-weight:600}
+  .padm-sel select{background:transparent;border:0;color:var(--txt);font:inherit;font-size:.86rem;
+    padding:6px 4px;outline:none;max-width:200px}
+  /* no celular os dois seletores ocupam a largura toda, um embaixo do outro, sem apertar o texto */
+  @media (max-width:520px){
+    .padm-caixa-filtros{flex-direction:column;align-items:stretch}
+    .padm-sel{justify-content:space-between}
+    .padm-sel select{max-width:none;flex:1}
+  }
   .doc-tools.padm-chips::-webkit-scrollbar{display:none}
   .doc-tools.padm-chips .doc-chip{flex:0 0 auto}
   /* e o cabeçalho do cartão QUEBRA LINHA: sem isto os selos se espremiam e "há 15 min" saía
@@ -4306,8 +4331,16 @@
       <!-- v337 - as ABAS DE PRIORIDADE vem ANTES dos outros dois filtros, porque a pergunta
            "o que e' urgente?" vem antes de "de que assunto?". -->
       <div class="doc-tools padm-chips padm-abas" id="padmChipsPri" style="display:none"></div>
-      <div class="doc-tools padm-chips" id="padmChips"></div>
-      <div class="doc-tools padm-chips" id="padmChipsUn" style="display:none"></div>
+      <!-- v338 - ASSUNTO e UNIDADE saem das fileiras de chips. Eram 17 botoes em duas fileiras
+           permanentes; viraram UM botao que abre DOIS seletores. 🔴 O botao mostra o filtro aceso,
+           para "escondido" nunca virar "filtrado sem eu saber". -->
+      <div class="padm-linha-filtros" id="padmLinhaFiltros"></div>
+      <div class="padm-caixa-filtros" id="padmCaixaFiltros" style="display:none">
+        <label class="padm-sel" id="padmSelCatBox"><span>Assunto</span>
+          <select id="padmSelCat" onchange="padmIrCat(this.value)"></select></label>
+        <label class="padm-sel" id="padmSelUnBox"><span>Unidade</span>
+          <select id="padmSelUn" onchange="padmIrUn(this.value)"></select></label>
+      </div>
       <div class="msg-admin" id="padmMsg" style="display:none"></div>
       <div id="padmLista"></div>
       <div class="hist-rodape">
@@ -4696,6 +4729,7 @@ let escutaPendenciasAdm = null;
 let unidadesEquipe = {};            // emailLower -> [chave de unidade]
 let escutaUnidades = null;
 let padmFiltroCat = "", padmFiltroUn = "", padmFiltroPri = "", padmMostrarFeitas = false;
+let padmFiltrosAbertos = false;                       // v338 - a caixa de filtros comeca fechada
 let padmResolvendo = "", padmComentando = "", padmMsg = "";
 let padmTxtTmp = {};
 let pndFiltro = "", pndMostrarFeitas = false, pndConcluindo = "", pndEscrevendo = "", pndMsg = "";
@@ -7172,6 +7206,11 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v338", data:"11/08/2026", tit:"\ud83e\uddf9 Pend\u00eancias: a barra de filtros ficou bem mais leve", itens:[
+    {t:"m", h:"Eram <b>21 bot\u00f5es</b> em tr\u00eas fileiras; agora s\u00e3o as abas e <b>um bot\u00e3o</b>", d:"As <b>abas de prioridade</b> continuam onde estavam, com as palavras e o n\u00famero. As duas fileiras de baixo \u2014 <b>assunto</b> e <b>unidade</b> \u2014 se recolheram atr\u00e1s de <b>\u2699\ufe0f Filtrar por assunto ou unidade</b>, e viraram <b>dois seletores</b> em vez de dezessete bot\u00f5es. A primeira pend\u00eancia da lista subiu <b>37px no computador e 37px no celular</b> \u2014 quase uma linha inteira de tela devolvida."},
+    {t:"n", h:"E o bot\u00e3o <b>diz o que est\u00e1 filtrado</b>, mesmo fechado", d:"Com um filtro aceso, o pr\u00f3prio bot\u00e3o fica <b>laranja</b> e escreve o que est\u00e1 valendo \u2014 por exemplo <b>\u2699\ufe0f \ud83d\udcc4 Documentos e licen\u00e7as \u00b7 Posto Full - Caxias</b> \u2014 com um <b>\u2715 limpar</b> ao lado. \ud83d\udd11 Esconder filtro \u00e9 seguro; esconder que <b>existe</b> filtro n\u00e3o \u00e9. Assim n\u00e3o d\u00e1 para ver tr\u00eas pend\u00eancias de trinta e achar que est\u00e1 tudo em dia."},
+    {t:"m", h:"Detalhes que mudaram junto", d:"O menu <b>abre sempre com a caixa fechada</b> e em <b>tudo</b>. O seletor de <b>unidade s\u00f3 aparece</b> para quem responde por mais de uma, e o bot\u00e3o inteiro <b>some</b> quando n\u00e3o h\u00e1 o que filtrar. E, se a \u00faltima pend\u00eancia de um assunto for resolvida, o filtro daquele assunto <b>se desliga sozinho</b>, em vez de deixar a tela vazia."}
+  ]},
   {v:"v337", data:"11/08/2026", tit:"\ud83e\uddf7 Pend\u00eancias: abas por prioridade, e um erro de portugu\u00eas a menos", itens:[
     {t:"n", h:"Agora d\u00e1 para ver <b>s\u00f3 as urgentes</b>, com um toque", d:"Acima dos filtros de assunto e de unidade nasceu uma fileira de <b>abas por prioridade</b>, cada uma com <b>quantas pend\u00eancias tem dentro</b>: <b>tudo</b>, <b>\u23f0 Passou do prazo</b>, <b>\ud83d\udd34 Urgente</b>, <b>\ud83d\udfe1 Esta semana</b> e <b>\ud83d\udd35 Quando der</b>. Tocar numa mostra s\u00f3 aquela; tocar de novo na mesma volta para <b>tudo</b>. <b>Prioridade que n\u00e3o tem nenhuma pend\u00eancia n\u00e3o vira aba</b>, e no celular a aba escolhida se traz sozinha para a vista."},
     {t:"m", h:"O menu <b>sempre abre em tudo</b>, e as contas do alto n\u00e3o mudam", d:"A aba escolhida vale enquanto voc\u00ea est\u00e1 na tela: quando o menu \u00e9 aberto de novo, ele volta a mostrar a lista inteira. E <b>escolher uma aba n\u00e3o mexe</b> no resumo do alto nem no <b>n\u00famero do bot\u00e3o</b> \u2014 os dois continuam falando da sua lista toda, sen\u00e3o pareceria que as outras pend\u00eancias sumiram. Com uma aba escolhida, o cabe\u00e7alho do bloco sai da lista: a aba j\u00e1 diz o nome e o n\u00famero."},
@@ -15946,12 +15985,17 @@ function alternarPendAdm(){
   /* 🔴 v337 - ABRIR O MENU SEMPRE MOSTRA A LISTA INTEIRA. Sem isto a aba escolhida de manha
      sobreviveria a tarde inteira, e a pessoa abriria o menu vendo meia lista sem saber por que.
      ⚠️ Vale SO' para a aba: os filtros de assunto e de unidade continuam como sempre foram. */
-  if (aberto){ padmFiltroPri = ""; padmRender(); }
+  if (aberto){ padmFiltroPri = ""; padmFiltrosAbertos = false; padmRender(); }
 }
 
 /* ----- ações ----- */
-function padmIrCat(k){ padmFiltroCat = (padmFiltroCat === k) ? "" : String(k || ""); padmRender(); }
-function padmIrUn(k){ padmFiltroUn = (padmFiltroUn === k) ? "" : String(k || ""); padmRender(); }
+/* 🔴 v338 - ESTES DOIS VIRARAM "ESCOLHER", E NAO MAIS "ALTERNAR". O gesto de tocar de novo para
+   desmarcar fazia sentido no chip; num seletor ele seria armadilha — escolher outra vez o que ja'
+   esta' escolhido apagaria o filtro, em silencio. Quem limpa agora e' o botao "limpar". */
+function padmIrCat(k){ padmFiltroCat = String(k || ""); padmRender(); }
+function padmIrUn(k){ padmFiltroUn = String(k || ""); padmRender(); }
+function padmLimparFiltros(){ padmFiltroCat = ""; padmFiltroUn = ""; padmRender(); }
+function padmAlternarFiltros(){ padmFiltrosAbertos = !padmFiltrosAbertos; padmRender(); }
 /* v337 - a aba de prioridade. Clicar na aba ja' aberta volta para "tudo": e' o mesmo gesto dos
    outros dois filtros, e evita a aba que nao tem como desmarcar. */
 function padmIrPri(k){ padmFiltroPri = (padmFiltroPri === k) ? "" : String(k || ""); padmRender(); }
@@ -16170,36 +16214,62 @@ function padmRender(){
 
   const vis = padmVisiveis();
 
-  /* os chips saem dos DADOS, na ordem da lista de categorias — categoria que ninguém usou não
-     vira botão vazio, e a ordem não muda conforme quem abre a tela */
+  /* as opções saem dos DADOS, na ordem da lista de categorias — assunto que ninguém usou não vira
+     opção morta, e a ordem não muda conforme quem abre a tela */
   const cats = [];
   vis.forEach(p => { if (!p.concluida){ const k = p.categoria || "outros"; if (cats.indexOf(k) < 0) cats.push(k); } });
   cats.sort((a, b) => PADM_CAT.findIndex(x => x.k === a) - PADM_CAT.findIndex(x => x.k === b));
-  const cc = document.getElementById("padmChips");
-  if (cc) cc.innerHTML = cats.length
-    ? ('<button class="doc-chip' + (padmFiltroCat ? "" : " ativo") + '" onclick="padmIrCat(\'\')">tudo</button>' +
-       cats.map(k => '<button class="doc-chip' + (padmFiltroCat === k ? " ativo" : "") + '" onclick="padmIrCat(\'' +
-         escAspas(k) + '\')">' + escAttr(padmNomeCat(k)) + '</button>').join(""))
-    : "";
+  /* ⚠️ se o assunto escolhido sumiu da lista (a última pendência dele foi resolvida), o filtro se
+     desliga — senão a tela ficaria vazia com um seletor apontando para o que não existe mais */
+  if (padmFiltroCat && cats.indexOf(padmFiltroCat) < 0) padmFiltroCat = "";
+  const selC = document.getElementById("padmSelCat");
+  if (selC) selC.innerHTML = '<option value="">Todos os assuntos</option>' +
+    cats.map(k => '<option value="' + escAttr(k) + '"' + (padmFiltroCat === k ? " selected" : "") + '>' +
+      escAttr(padmNomeCat(k)) + '</option>').join("");
 
-  /* 🔑 O chip de UNIDADE só aparece para quem enxerga MAIS DE UMA. Para a gerente de um posto só,
-     ele seria um botão que não filtra nada — e botão que não faz nada ensina a ignorar botão. */
+  /* 🔑 O seletor de UNIDADE só existe para quem enxerga MAIS DE UMA. Para a gerente de um posto só,
+     ele seria um campo que não filtra nada — e campo que não faz nada ensina a ignorar campo. */
   const uns = [];
   vis.forEach(p => { if (!p.concluida){ const k = p.unidade || "todas"; if (uns.indexOf(k) < 0) uns.push(k); } });
-  /* ordem FIXA (a das unidades, com "todas" no fim) — se saísse na ordem dos dados, os botões
-     trocariam de lugar a cada pendência nova, e botão que anda o dedo não acerta */
+  /* ordem FIXA (a das unidades, com "todas" no fim) — se saísse na ordem dos dados, as opções
+     trocariam de lugar a cada pendência nova */
   const ordUn = k => (k === "todas") ? 99 : UNIDADES_PADM.findIndex(u => u.k === k);
   uns.sort((a, b) => ordUn(a) - ordUn(b));
-  const cu = document.getElementById("padmChipsUn");
-  if (cu){
+  const cxUn = document.getElementById("padmSelUnBox"), selU = document.getElementById("padmSelUn");
+  if (cxUn && selU){
     if (uns.length > 1){
-      cu.style.display = "";
-      cu.innerHTML = '<button class="doc-chip' + (padmFiltroUn ? "" : " ativo") + '" onclick="padmIrUn(\'\')">tudo</button>' +
-        uns.map(k => '<button class="doc-chip' + (padmFiltroUn === k ? " ativo" : "") + '" onclick="padmIrUn(\'' +
-          escAspas(k) + '\')">' + escAttr(padmCurtoUnidade(k)) + '</button>').join("");
+      cxUn.style.display = "";
+      selU.innerHTML = '<option value="">Todas as unidades</option>' +
+        uns.map(k => '<option value="' + escAttr(k) + '"' + (padmFiltroUn === k ? " selected" : "") + '>' +
+          escAttr(padmNomeUnidade(k)) + '</option>').join("");
     } else {
-      cu.style.display = "none"; cu.innerHTML = "";
+      cxUn.style.display = "none"; selU.innerHTML = "";
       if (padmFiltroUn && uns.indexOf(padmFiltroUn) < 0) padmFiltroUn = "";
+    }
+  }
+
+  /* 🔴 O BOTAO DIZ O QUE ESTA FILTRADO, e e' isto que impede "escondido" de virar "filtrado sem eu
+     saber": com a caixa fechada e um assunto aceso, o proprio botao mostra o nome e fica na cor da
+     marca. Sem isso, a gerente abriria o menu, veria tres pendencias de trinta e nao teria como
+     desconfiar. */
+  const lf = document.getElementById("padmLinhaFiltros");
+  const cxF = document.getElementById("padmCaixaFiltros");
+  if (lf && cxF){
+    const temFiltro = !!(padmFiltroCat || padmFiltroUn);
+    const podeFiltrar = cats.length > 1 || uns.length > 1;
+    if (!podeFiltrar){
+      lf.innerHTML = ""; cxF.style.display = "none";
+      padmFiltroCat = ""; padmFiltroUn = ""; padmFiltrosAbertos = false;
+    } else {
+      const partes = [];
+      if (padmFiltroCat) partes.push(padmNomeCat(padmFiltroCat));
+      if (padmFiltroUn)  partes.push(padmNomeUnidade(padmFiltroUn));
+      lf.innerHTML =
+        '<button class="padm-btn-filtros' + (temFiltro ? " aceso" : "") + '" onclick="padmAlternarFiltros()">' +
+          '\u2699\ufe0f ' + escAttr(temFiltro ? partes.join(" \u00b7 ") : "Filtrar por assunto ou unidade") +
+          ' <span class="seta">' + (padmFiltrosAbertos ? "\u25b4" : "\u25be") + '</span></button>' +
+        (temFiltro ? '<button class="padm-limpar" onclick="padmLimparFiltros()">\u2715 limpar</button>' : "");
+      cxF.style.display = padmFiltrosAbertos ? "" : "none";
     }
   }
 
