@@ -3375,6 +3375,62 @@
     #painelAfericoes .evo-filtros .afer-data{flex:1 1 calc(50% - 6px);min-width:0}
   }
 
+  /* ===================== v341 - DESPESAS DETALHADAS =====================
+     🔑 NENHUMA COR EM HEX SOLTO NO DESENHO. A paleta das fatias mora em variavel, porque a
+     primeira delas e' a cor da MARCA: nos Postos ela e' laranja e na Transportadora, dourada.
+     Hex literal aqui deixaria a Transportadora laranja no meio do dourado - e' o defeito que
+     ja tem 34 casos neste CSS, e nao vale a pena criar o 35o.
+     As outras sete sao as mesmas cores que o ICO_COR e o DRE_SERIES ja usam, para a tela nova
+     nao inventar um arco-iris proprio. */
+  :root{
+    --dsd-c1:var(--verde); --dsd-c2:#0E7C86; --dsd-c3:#008457; --dsd-c4:#F5C211;
+    --dsd-c5:#C62828;      --dsd-c6:#2E7BC4; --dsd-c7:#8E5AA8; --dsd-c8:#6D6D6D;
+  }
+  body.tema-escuro{
+    --dsd-c2:#3FB3BD; --dsd-c3:#2FBE86; --dsd-c4:#FFD84D;
+    --dsd-c5:#FF6B6B; --dsd-c6:#6BAAE8; --dsd-c7:#BE92D4; --dsd-c8:#A0A0A0;
+  }
+  .rel-kpi small{display:block;font-size:.68rem;color:var(--cinza);margin-top:3px;line-height:1.35;font-weight:500}
+  .ana-resumo.dsd-aviso{font-size:.85rem}
+
+  /* a rosca: primeira do app. viewBox manda na altura, nunca um height em px (licao da v301) */
+  .dsd-donut{display:flex;flex-wrap:wrap;align-items:center;gap:18px;background:var(--superficie-2);border:1px solid var(--borda);border-radius:10px;padding:14px}
+  .dsd-rosca{flex:0 0 190px;width:190px;max-width:100%;height:auto}
+  .dsd-trilho{stroke:var(--borda)}
+  .dsd-fatia{animation:dsdGira .5s cubic-bezier(.22,1,.36,1) backwards}
+  @keyframes dsdGira{from{opacity:0;stroke-width:8}to{opacity:1;stroke-width:22}}
+  .dsd-leg{flex:1 1 220px;min-width:0;display:flex;flex-direction:column;gap:3px}
+  .dsd-leg-l{display:flex;align-items:center;gap:7px;font-size:.76rem;min-width:0}
+  .dsd-leg-q{flex:0 0 11px;width:11px;height:11px;border-radius:3px;display:inline-block}
+  .dsd-leg-n{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--txt)}
+  .dsd-leg-v{flex:0 0 46px;text-align:right;font-variant-numeric:tabular-nums;color:var(--cinza);font-weight:600}
+
+  /* a tabela de 15 colunas: a coluna do nome fica presa ao rolar de lado, senao o valor de
+     novembro nao diz de que categoria ele e' */
+  .dsd-tab th:first-child,.dsd-tab td:first-child{position:sticky;left:0;z-index:1;background:var(--superficie);background-image:linear-gradient(var(--superficie),var(--superficie));min-width:200px;max-width:260px}
+  /* z-index 3: o thead do app ja e' sticky com z-index 2 (linha ~645). A quina - a celula que e'
+     sticky nas DUAS direcoes - tem de ficar acima das duas, senao as colunas de mes passam por
+     cima do "Categoria / tipo" quando a tabela rola de lado. */
+  .dsd-tab thead th:first-child{background:var(--thead-bg);background-image:linear-gradient(var(--thead-bg),var(--thead-bg));z-index:3}
+  .dsd-tab th.dsd-vazio{opacity:.42}
+  .dsd-tab td{font-variant-numeric:tabular-nums}
+  .dsd-seta{display:inline-block;width:9px;color:var(--cinza)}
+  .dsd-cont{font-size:.72rem;color:var(--cinza);font-weight:400}
+  .dsd-tot{font-weight:700;white-space:nowrap}
+  /* ⚠️ fundo de <tr>/<td> vai SEMPRE no par background + background-image (armadilha da v186:
+     o modo escuro forcado do Chrome apaga o background sozinho, mas nao apaga o gradiente) */
+  tr.dsd-filha>td{background:var(--linha-par);background-image:linear-gradient(var(--linha-par),var(--linha-par));font-size:.76rem}
+  tr.dsd-filha>td:first-child{background:var(--linha-par);background-image:linear-gradient(var(--linha-par),var(--linha-par))}
+  .dsd-rec{padding-left:22px !important;color:var(--cinza)}
+  /* ⚠️ a coluna congelada precisa REPETIR a zebra e o hover: como ela tem fundo proprio (senao o
+     texto das outras colunas passaria por baixo dela), ela nao herda o nth-child nem o :hover da
+     linha - e o realce acenderia em toda a linha MENOS na celula onde o mouse esta. */
+  tr.dsd-pai>td:first-child{background:var(--superficie);background-image:linear-gradient(var(--superficie),var(--superficie))}
+  .dsd-tab tbody tr:nth-child(even)>td:first-child{background:var(--linha-par);background-image:linear-gradient(var(--linha-par),var(--linha-par))}
+  tr.dsd-pai.rpz-cli-on>td:first-child,
+  tr.dsd-pai:hover>td:first-child{background:var(--superficie-2);background-image:linear-gradient(var(--superficie-2),var(--superficie-2))}
+  @media (max-width:700px){ .dsd-rosca{flex:0 0 150px;width:150px} .dsd-tab th:first-child,.dsd-tab td:first-child{min-width:150px} }
+  @media (prefers-reduced-motion:reduce){ .dsd-fatia{animation:none} }
 </style>
 </head>
 <body>
@@ -3450,6 +3506,8 @@
       <!-- v290 - Relatorios + Financeiro viraram UM menu so: "Relatorios Adaptive" -->
       <button class="btn-claro" id="btnRelPosto" onclick="alternarRelatorios()"><span class="mi">📑</span><span class="mt">Relatórios Adaptive</span></button>
       <button class="btn-claro" id="btnDre" onclick="alternarDre()"><span class="mi">📉</span><span class="mt">DRE</span></button>
+      <!-- v341 - Despesas Detalhadas: o ano inteiro, por categoria e tipo -->
+      <button class="btn-claro" id="btnDespesasDet" onclick="alternarDespesasDet()"><span class="mi">💸</span><span class="mt">Despesas Detalhadas</span></button>
       <!-- v312 - as Afericoes: o teste do bico, com periodo livre -->
       <button class="btn-claro" id="btnAfericoes" onclick="alternarAfericoes()"><span class="mi">📏</span><span class="mt">Aferições</span></button>
       <button class="btn-claro" id="btnClientes" onclick="alternarClientes()"><span class="mi">🧾</span><span class="mt">Clientes</span></button>
@@ -3842,6 +3900,29 @@
         <div class="desc-campo"><label>Retiradas de sócios</label><select id="dspRet" onchange="dspComRet=(this.value==='1');renderDespesas()"><option value="1">Incluir</option><option value="0">Tirar da conta</option></select></div>
       </div>
       <div id="dspBox"></div>
+    </div>
+  </div>
+
+  <!-- ===================== v341 - DESPESAS DETALHADAS =====================
+       O ano inteiro, por CATEGORIA e por TIPO, com os doze meses nas colunas.
+       Duas reguas, e a chave em cima diz qual esta valendo:
+         CAIXA        = relatoriosPetros/desp_{sig}_{unidade}_{AAAA-MM}, pela data em que o
+                        dinheiro SAIU. Traz categoria + codigo + tipo.
+         COMPETENCIA  = despesasAno[ano][ramo][Unidade], pelo mes em que a despesa ACONTECEU.
+                        Traz so' o TIPO - a categoria vem do de-para montado da outra fonte.
+       🔑 Os dois numeros NAO batem, e nenhum dos dois esta errado - a BULAS.despesas ja dizia
+       isso. Por isso a tela nunca mistura as duas: uma regua por vez, escrita na cara. -->
+  <div class="config" id="painelDespesasDet">
+    <div class="grupo">
+      <div class="rel-topo"><h2 id="dsdTitulo">💸 Despesas Detalhadas</h2><div class="rel-topo-bts"></div></div>
+      <p class="nota-dash">Para onde foi o dinheiro no ano, por categoria e por tipo. Clique numa categoria para abrir os tipos dentro dela.</p>
+      <div class="doc-tools" id="dsdRegua"></div>
+      <div class="evo-filtros">
+        <div class="desc-campo"><label>Ano</label><select id="dsdAno" onchange="dsdAnoSel=this.value;renderDespesasDet()"></select></div>
+        <div class="desc-campo"><label id="dsdUnidLbl">Posto</label><select id="dsdUnid" onchange="dsdUnidSel=this.value;renderDespesasDet()"></select></div>
+        <div class="desc-campo"><label>Retiradas de sócios</label><select id="dsdRet" onchange="dsdComRet=(this.value==='1');renderDespesasDet()"><option value="1">Incluir</option><option value="0">Tirar da conta</option></select></div>
+      </div>
+      <div id="dsdBox"></div>
     </div>
   </div>
 
@@ -5267,13 +5348,15 @@ const ICO_SVG = {
   g_transp:"<path d='M2.6 6.4h10.6v9.4H2.6z'/><path d='M13.2 9.6h3.6l3 3.2v3h-6.6z'/><circle cx='7' cy='18' r='1.9'/><circle cx='17.4' cy='18' r='1.9'/>",
   g_org:"<path d='M3.2 18.6V6.2a1.6 1.6 0 0 1 1.6-1.6h4.2l2.2 2.6h7.2a1.6 1.6 0 0 1 1.6 1.6v9.8a1.6 1.6 0 0 1-1.6 1.6H4.8a1.6 1.6 0 0 1-1.6-1.6z'/>",
   empresa:"<path d='M3.6 20.4h16.8'/><path d='M5.4 20.4V6.2L12 3.6l6.6 2.6v14.2'/><path d='M9.6 20.4v-4.4h4.8v4.4'/><path d='M9.4 9.2h1.2M13.4 9.2h1.2M9.4 12.6h1.2M13.4 12.6h1.2'/>",
+  g_finan:"<ellipse cx='12' cy='6.6' rx='7' ry='2.8'/><path d='M5 6.6v4.4c0 1.55 3.13 2.8 7 2.8s7-1.25 7-2.8V6.6'/><path d='M5 11v4.4c0 1.55 3.13 2.8 7 2.8s7-1.25 7-2.8V11'/>",
+  despesasDet:"<path d='M5.4 3.4h13.2v17.2l-2.2-1.5-2.2 1.5-2.2-1.5-2.2 1.5-2.2-1.5z'/><path d='M8.8 8.2h6.4'/><path d='M8.8 11.6h6.4'/><path d='M8.8 15h3.4'/>",
   g_ajustes:"<circle cx='12' cy='12' r='3.1'/><path d='M19.1 14.6a1.5 1.5 0 0 0 .3 1.7l.1.1a1.9 1.9 0 1 1-2.6 2.6l-.1-.1a1.5 1.5 0 0 0-2.6 1v.2a1.9 1.9 0 0 1-3.7 0v-.1a1.5 1.5 0 0 0-2.6-1l-.1.1a1.9 1.9 0 1 1-2.6-2.6l.1-.1a1.5 1.5 0 0 0-1-2.6h-.2a1.9 1.9 0 1 1 0-3.7h.1a1.5 1.5 0 0 0 1-2.6l-.1-.1a1.9 1.9 0 1 1 2.6-2.6l.1.1a1.5 1.5 0 0 0 1.7.3h.1a1.5 1.5 0 0 0 .9-1.4v-.2a1.9 1.9 0 0 1 3.7 0v.1a1.5 1.5 0 0 0 2.6 1l.1-.1a1.9 1.9 0 1 1 2.6 2.6l-.1.1a1.5 1.5 0 0 0 1 2.6h.2a1.9 1.9 0 0 1 0 3.7h-.1a1.5 1.5 0 0 0-1.4.9z'/>"
 };
-const ICO_BTN = {btnComprar:"comprar",btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnTanquesNivel:"tanquesNivel",btnRecebimento:"recebimento",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnDre:"dre",btnAfericoes:"afericoes",btnClientes:"clientes",btnAnalise:"analise",btnRelLoja:"relLoja",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnPendAdm:"pendAdm",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
-const ICO_GRP = {dia:"g_dia",analise:"g_analise",transp:"g_transp",org:"g_org",ajustes:"g_ajustes"};
+const ICO_BTN = {btnComprar:"comprar",btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnTanquesNivel:"tanquesNivel",btnRecebimento:"recebimento",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnDre:"dre",btnDespesasDet:"despesasDet",btnAfericoes:"afericoes",btnClientes:"clientes",btnAnalise:"analise",btnRelLoja:"relLoja",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnPendAdm:"pendAdm",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
+const ICO_GRP = {dia:"g_dia",analise:"g_analise",finan:"g_finan",transp:"g_transp",org:"g_org",ajustes:"g_ajustes"};   /* v341 */
 /* 🔑 cor por GRUPO, tirada da paleta do MIV (laranja da marca + verde e dourado Petrobras).
    Assim a cor diz de que familia e' o menu, em vez de ser arco-iris. */
-const ICO_COR = {soltos:["#FE7030","254,112,48"],dia:["#FE7030","254,112,48"],analise:["#008457","0,132,87"],transp:["#F5C211","245,194,17"],org:["#0E7C86","14,124,134"],ajustes:["#6D6D6D","109,109,109"],soltosFim:["#F5C211","245,194,17"]};
+const ICO_COR = {soltos:["#FE7030","254,112,48"],dia:["#FE7030","254,112,48"],analise:["#008457","0,132,87"],finan:["#7A5CA8","122,92,168"],transp:["#F5C211","245,194,17"],org:["#0E7C86","14,124,134"],ajustes:["#6D6D6D","109,109,109"],soltosFim:["#F5C211","245,194,17"]};
 const CHAVE_TEMA_ICONES = "pf_tema_icones";
 let temaIcones = "classico";
 
@@ -7206,6 +7289,14 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v341", data:"11/08/2026", tit:"\ud83d\udcb0 Nasceu o grupo <b>Financeiro</b> na barra \u2014 e dentro dele, a tela <b>\ud83d\udcb8 Despesas Detalhadas</b>", itens:[
+    {t:"n", h:"O ano inteiro, por categoria e por tipo", d:"Uma tela s\u00f3 com os <b>doze meses nas colunas</b>. Clique numa categoria (<b>3.02 DESPESAS COMERCIAIS</b>, por exemplo) e ela <b>abre os tipos de dentro dela</b> \u2014 aluguel, energia, comiss\u00e3o \u2014 na mesma grade de meses. Em cima ficam os quatro n\u00fameros do ano, a <b>rosca</b> com o peso de cada categoria e o m\u00eas a m\u00eas, com o m\u00eas fora do padr\u00e3o marcado em vermelho."},
+    {t:"n", h:"Escolha o posto \u2014 ou a loja", d:"O seletor de unidade est\u00e1 no topo e <b>troca sozinho de vocabul\u00e1rio</b>: nos Postos ele diz <b>Posto</b>, na Full Conveni\u00eancia ele diz <b>Loja</b>."},
+    {t:"n", h:"\ud83d\udd11 Duas r\u00e9guas, e a tela diz qual est\u00e1 valendo", d:"<b>\ud83d\udcb5 Base caixa</b> conta pela data em que o dinheiro <b>saiu</b>. <b>\ud83d\udcd8 Compet\u00eancia</b> conta pelo m\u00eas em que a despesa <b>aconteceu</b>. <b>Os dois n\u00fameros n\u00e3o batem, e nenhum dos dois est\u00e1 errado</b> \u2014 o app j\u00e1 dizia isso na bula da tela de Despesas. Por isso ela nunca soma as duas: uma por vez, com o nome escrito em cima."},
+    {t:"c", h:"E ela avisa de quais meses ela tem dado", d:"Hoje a base <b>caixa</b> dos postos s\u00f3 tem <b>julho e agosto</b>; a das lojas vai de <b>janeiro a agosto</b>. M\u00eas sem dado aparece como <b>\u201c\u2014\u201d</b>, <b>nunca como zero</b> \u2014 e o <b>% do faturamento</b> compara com o faturamento <b>dos mesmos meses</b>, sen\u00e3o dois meses de despesa divididos por um ano de venda dariam um n\u00famero \u00f3timo e sem sentido."},
+    {t:"m", h:"O <b>\ud83d\udcc9 DRE</b> saiu da An\u00e1lise e foi para o Financeiro", d:"Os dois moram no grupo novo, nos Postos e nas Lojas. <b>Nada do que estava gravado mudou</b>, e a tela <b>\ud83d\udcc5 Despesas do ano</b> dentro dos Relat\u00f3rios Adaptive continua onde estava."},
+    {t:"c", h:"Quem enxerga a tela nova", d:"Ela nasce com <b>permiss\u00e3o pr\u00f3pria</b>, ent\u00e3o por enquanto s\u00f3 quem \u00e9 administrador a v\u00ea. Para liberar para mais gente, \u00e9 marcar o menu <b>Despesas Detalhadas</b> na ficha de cada pessoa, no Painel Administrativo."}
+  ]},
   {v:"v340", data:"11/08/2026", tit:"\ud83c\udff7\ufe0f Pend\u00eancias: o seletor de unidade ficou sem a linha que confundia", itens:[
     {t:"c", h:"Saiu a op\u00e7\u00e3o <b>\u201cTodas as unidades\u201d</b> do meio da lista de unidades", d:"Ela n\u00e3o queria dizer <b>\u201cme mostre tudo\u201d</b>: queria dizer <b>\u201cme mostre s\u00f3 as pend\u00eancias que valem para a rede inteira\u201d</b> \u2014 aquelas que aparecem no cart\u00e3o com o selo <b>Todas</b>. Duas leituras para a mesma frase, dentro do mesmo seletor. <b>A linha saiu</b>, e a primeira op\u00e7\u00e3o voltou a se chamar <b>\u201cTodas as unidades\u201d</b>, que \u00e9 o que qualquer pessoa espera do padr\u00e3o de um filtro."},
     {t:"m", h:"\u26a0\ufe0f As pend\u00eancias gerais <b>continuam na lista</b>", d:"O que saiu foi a linha do seletor, n\u00e3o as pend\u00eancias. As que valem para todas as unidades seguem aparecendo normalmente, com o selo <b>Todas</b> no cart\u00e3o \u2014 e agora s\u00e3o <b>9 das 30</b>. \ud83d\udd11 Quem escolhe um posto continua vendo <b>s\u00f3 o daquele posto</b>; para ver tudo de novo, \u00e9 <b>Todas as unidades</b> ou o <b>\u2715 limpar</b>."}
@@ -8744,6 +8835,8 @@ function iniciarSync(){
     const m = {}; snap.forEach(d => m[d.id] = Object.assign({ id: d.id }, d.data())); despesasAno = m;
     const p = document.getElementById("painelDespesas");
     if (p && p.classList.contains("aberto")) renderDespesas();
+    const pdd = document.getElementById("painelDespesasDet"); // v341 - a regua Competencia le esta colecao
+    if (pdd && pdd.classList.contains("aberto")) renderDespesasDet();
     atualizarDashConv();                                     // v198
   }, ()=>{});
 
@@ -8821,6 +8914,8 @@ function iniciarSync(){
       popularSelectDescMesCliente(); renderDescontosMes(); }   // v286 - o periodo le a mesma colecao
     const pdp = document.getElementById("painelDespesas");
     if (pdp && pdp.classList.contains("aberto")) renderDespesas();
+    const pdd = document.getElementById("painelDespesasDet"); // v341 - senao a tela fica no esqueleto para sempre
+    if (pdd && pdd.classList.contains("aberto")) renderDespesasDet();
     atualizarDashConv();                                     // v198
     atualizarDashPostos();                                   // v200
   }, ()=>{});
@@ -9528,6 +9623,13 @@ const MENUS_APP = [
      menuPermitidoDe("relPosto") faz OR com "financeiro", "relPetros" e "despesas". */
   {key:"relPosto",    btn:"btnRelPosto",    pan:"painelRelPosto",    emp:"postos|conv", nome:"Relatórios Adaptive"},
   {key:"dre",         btn:"btnDre",         pan:"painelDre",         emp:"postos|conv", nome:"DRE"},   /* v281 */
+  /* v341 - Despesas Detalhadas. A chave e' "despesasDet" e NAO "despesas" DE PROPOSITO:
+     "despesas" sobrevive em menuPermitidoDe() como chave de compatibilidade da v207 e faz OR
+     com "financeiro" nos DOIS sentidos - quem tem financeiro ganharia esta tela de graca, e
+     quem ganhasse esta tela levaria os Relatorios Adaptive junto. Chave nova, permissao limpa.
+     ⚠️ E "despDet" tambem esta' fora: e' o nome de um CAMPO de dado dos relatorios
+     (CAMPOS_LISTA_REL), e um grep atras do menu voltaria sujo. */
+  {key:"despesasDet", btn:"btnDespesasDet", pan:"painelDespesasDet", emp:"postos|conv", nome:"Despesas Detalhadas"},   /* v341 */
   {key:"afericoes",   btn:"btnAfericoes",   pan:"painelAfericoes",   emp:"postos", nome:"Aferições"},   /* v312 */
   {key:"infleet",     btn:"btnInfleet",     pan:"painelInfleet",     emp:"transp", nome:"APP Infleet"},
   {key:"comprar",     btn:"btnComprar",     pan:"painelComprar",     emp:"transp", nome:"O que comprar"},   /* v308 */
@@ -9560,7 +9662,8 @@ const MENUS_APP = [
 const GRUPOS_MENU = [
   {key:"soltos",  nome:"",               icone:"",       itens:["dash"]},
   {key:"dia",     nome:"Dia a dia",      icone:"\ud83d\udd01", itens:["resumoDia","tanquesNivel","recebimento","registros","descontos","simular"]},
-  {key:"analise", nome:"Análise",        icone:"\ud83d\udcca", itens:["relPosto","dre","afericoes","clientes","analise","relLoja","ifood"]},
+  {key:"analise", nome:"Análise",        icone:"\ud83d\udcca", itens:["relPosto","afericoes","clientes","analise","relLoja","ifood"]},
+  {key:"finan",   nome:"Financeiro",     icone:"\ud83d\udcb0", itens:["despesasDet","dre"]},   /* v341 - o DRE saiu da Analise e veio para ca' */
   {key:"transp",  nome:"Transportadora", icone:"\ud83d\ude9a", itens:["infleet","comprar","pedido","cotacoes","puxadas"]},
   {key:"org",     nome:"Organização",    icone:"\ud83d\udcc1", itens:["calendario","vencimentos","caixa","pendAdm"]},   /* v251 - o 🗂 ninguem reconhecia */
   {key:"ajustes", nome:"Ajustes",        icone:"\u2699",        itens:["conta","config","usuarios"]},
@@ -9719,12 +9822,39 @@ function grupoFabricaDoMenu(k){
   const g = GRUPOS_MENU.find(x => x.itens.indexOf(k) >= 0);
   return g ? g.key : GRUPO_SOLTOS;
 }
+/* ===================== v341 - GRUPO DE FABRICA NOVO NUMA BARRA JA CONGELADA =====================
+   🔴 MEDIDO EM 11/08, no Firestore de producao: config/ordemMenus.listaGrupos.postos EXISTE e tem
+   QUATRO grupos (dia, analise, org, ajustes) - o Tiago apagou o "Transportadora" de la'. Assim que
+   ele mexe em grupo uma vez, materializarGrupos() CONGELA a lista, e a partir dai' NADA no app
+   trazia um grupo de fabrica criado depois: gruposDaEmpresa devolvia so' o que esta gravado,
+   grupoDoMenu nao achava a chave nova e mandava o menu para GRUPO_SOLTOS.
+   👉 Sem estas linhas, o grupo "Financeiro" NAO apareceria nos Postos, e o DRE e as Despesas
+   Detalhadas apareceriam soltos no TOPO da barra, acima do Dashboard, sem titulo.
+   🔑 A mescla e' EXPLICITA, chave por chave. Mesclar todos os grupos de fabrica que faltassem
+   RESSUSCITARIA o "Transportadora" que ele apagou de proposito - apagar tem de continuar valendo.
+   🔴 E ELA TEM DE ENTRAR NO materializarGrupos() TAMBEM, senao o grupo novo existe na TELA e nao
+   existe na LISTA GRAVADA - e ai' renomear, mover e apagar o Financeiro pelo "Personalizar a barra"
+   nao fariam NADA, os tres em silencio (o find devolve undefined e as tres funcoes saem no `return`).
+   👉 E' por isso que o materializarGrupos ganhou a mescla na v341: e' la' que a lista nasce.       */
+const GRUPOS_NOVOS = ["finan"];   // v341
+function mesclarGruposNovos(base){
+  const tem = {}; base.forEach(g => { tem[g.key] = true; });
+  const fab = GRUPOS_MENU.filter(g => !ehGrupoSolto(g.key));
+  GRUPOS_NOVOS.forEach(k => {
+    if (tem[k]) return;
+    const f = fab.find(g => g.key === k);
+    if (!f) return;                                  // chave que ja saiu do GRUPOS_MENU: ignora
+    const i = fab.findIndex(g => g.key === k);       // a posicao que ele tem na lista de fabrica
+    base.splice(Math.max(0, Math.min(i, base.length)), 0, { key:f.key, nome:f.nome, icone:f.icone });
+  });
+  return base;                                       // 🔑 base JA e' copia (filter+map), nunca a origem
+}
 // lista de grupos que vale nesta empresa: a que ele montou, ou a de fabrica
 function gruposDaEmpresa(sig){
   const s = sig || siglaEmpresa(empresa);
   const cfg = (listaGrupos && listaGrupos[s]) ? listaGrupos[s] : null;
   const base = (cfg && cfg.length)
-    ? cfg.filter(g => g && g.key && !ehGrupoSolto(g.key)).map(g => ({ key:g.key, nome:g.nome||"Grupo", icone:g.icone||"\ud83d\udcc2" }))
+    ? mesclarGruposNovos(cfg.filter(g => g && g.key && !ehGrupoSolto(g.key)).map(g => ({ key:g.key, nome:g.nome||"Grupo", icone:g.icone||"\ud83d\udcc2" })))
     : GRUPOS_MENU.filter(g => !ehGrupoSolto(g.key)).map(g => ({ key:g.key, nome:g.nome, icone:g.icone }));
   // v246 - o do topo abre a lista e o do FIM a fecha: os dois sao fixos e nao entram na listaGrupos
   return [{ key:GRUPO_SOLTOS, nome:"", icone:"", fixo:true }]
@@ -9753,7 +9883,16 @@ function moverMenuGrupo(k, g){
 }
 // a primeira mexida nos grupos congela a lista de fabrica como ponto de partida
 function materializarGrupos(s){
-  if (listaGrupos[s] && listaGrupos[s].length) return;
+  if (listaGrupos[s] && listaGrupos[s].length){
+    /* v341 - a lista dele ja existe, e o `return` de antes parava aqui. So' que um grupo de
+       FABRICA criado depois da materializacao nunca entrava nela: ele aparecia na barra (pela
+       mescla do gruposDaEmpresa) e NAO existia na lista gravada. Resultado: renomear, mover e
+       apagar esse grupo pelo "Personalizar a barra" saiam todos no `return` de `if (!alvo)` e
+       `if (i < 0)` - tres cliques mortos, sem mensagem nenhuma.
+       🔑 Botao que nao faz nada e nao avisa e' pior que botao que nao existe. */
+    mesclarGruposNovos(listaGrupos[s]);
+    return;
+  }
   listaGrupos[s] = gruposDaEmpresa(s).filter(g => !ehGrupoSolto(g.key))
                                      .map(g => ({ key:g.key, nome:g.nome, icone:g.icone }));
 }
@@ -12666,6 +12805,382 @@ function renderDespesas(){
 
   h += '<p class="ana-rodape">Atualizado ' + escAttr(d.atualizadoEm ? String(d.atualizadoEm).slice(0,10).split("-").reverse().join("/") : "—") + '. Fonte: Demonstrativo de Resultado Detalhado Mês a Mês (Petros).</p>';
   box.innerHTML = h;
+}
+
+/* ===================== v341 - DESPESAS DETALHADAS =====================
+   A tela que o Tiago pediu olhando o GASview: o ANO inteiro, por CATEGORIA e por TIPO,
+   com os doze meses nas colunas e a categoria abrindo os tipos dentro dela.
+
+   🔴 A DECISAO QUE MANDA NESTA TELA E' A REGUA, e ela e' explicita porque o app JA TINHA
+   a advertencia escrita em BULAS.despesas: "a tela Pagamentos usa a data em que o titulo
+   foi liquidado, entao os dois numeros nao batem, e nenhum dos dois esta errado".
+     CAIXA       -> relatoriosPetros/desp_{sig}_{unidade}_{AAAA-MM}. Linha:
+                    [categoria, codigo, tipo, valor]. Ex.: ["3.01 DESPESAS COM FUNCIONARIOS",
+                    "3.01.02", "SALARIOS", 2680]. E' pela data em que o dinheiro SAIU.
+     COMPETENCIA -> despesasAno[ano][ramo][Unidade].categorias[] = {nome(=TIPO), total, meses[12]}.
+                    E' pelo mes em que a despesa ACONTECEU, e e' a base que o contador usa.
+   🔑 Uma regua por vez, e o nome dela fica escrito na tela. A tela NUNCA soma as duas.
+
+   🔴 E O SEGUNDO ACHADO, medido no Firestore em 11/08: o desp_ dos POSTOS so' existe de
+   julho/2026 em diante (6 documentos), enquanto o das LOJAS vai de janeiro a agosto (24).
+   👉 Por isso a tela desenha os meses SEM DOCUMENTO como "—" e diz, em cima da tabela,
+   quais meses ela realmente tem. Zero no lugar de "nao sei" seria a mentira mais cara aqui
+   (a regra do projeto: numero certo > aviso explicito > bloco ausente > zero).            */
+
+const DSD_MES = ["JAN","FEV","MAR","ABR","MAI","JUN","JUL","AGO","SET","OUT","NOV","DEZ"];
+const DSD_REGUAS = [
+  { k:"caixa", n:"💵 Base caixa",  sub:"pela data em que o dinheiro saiu" },
+  { k:"comp",  n:"📘 Competência", sub:"pelo mês em que a despesa aconteceu" }
+];
+let dsdAnoSel = "", dsdUnidSel = "todos", dsdRegua = "caixa", dsdComRet = true, dsdAberta = {};
+
+function dsdSig(){ return siglaEmpresa(empresa); }
+function dsdEhLoja(){ return dsdSig() === "conv"; }
+function dsdPalUnid(){ return dsdEhLoja() ? "Loja" : "Posto"; }
+function dsdRamo(){ return dsdEhLoja() ? "conveniencias" : "postos"; }
+/* O de-para de unidade nao se escreve de novo: o UNIDADES_REL (chave "teresina" -> nome
+   "Teresina") ja e' exatamente a ponte entre as duas fontes, porque o despesasAno indexa por
+   NOME e o id do desp_ indexa por CHAVE. O finUnidNome faz o caminho de ida; o DESC_PET_UN
+   (v282) faz o de volta, e nenhum dos dois precisou de copia. */
+function dsdNomeDaChave(k){ return finUnidNome(k); }
+function dsdUnidadesSel(){ return (dsdUnidSel === "todos") ? UNIDADES_REL.map(u => u.chave) : [dsdUnidSel]; }
+function dsdMesId(ano, m){ return ano + "-" + (m < 9 ? "0" : "") + (m + 1); }
+
+/* compacto SEM "R$", porque sao doze colunas. O dreCompacto (v281) ja resolve o sinal
+   negativo, mas traz o "R$" - aqui a moeda esta no cabecalho, nao em cada celula.       */
+function dsdComp(v){
+  const a = Math.abs(Number(v) || 0), sinal = (Number(v) < 0) ? "-" : "";
+  if (a >= 1e6) return sinal + fmtBR(a / 1e6, 1) + " mi";
+  if (a >= 1e3) return sinal + fmtBR(a / 1e3, 0) + " mil";
+  return sinal + fmtBR(a, 0);
+}
+
+function dsdAnosDisponiveis(){
+  const set = {};
+  const pre = "desp_" + dsdSig() + "_";
+  Object.keys(relPetros || {}).forEach(k => {
+    if (String(k).indexOf(pre) !== 0) return;
+    const per = String(k).split("_").pop();
+    if (/^\d{4}-\d{2}$/.test(per)) set[per.slice(0, 4)] = 1;
+  });
+  const P = (despesasAno || {});
+  Object.keys(P).forEach(a => {
+    if (!/^\d{4}$/.test(a)) return;
+    const r = (P[a] || {})[dsdRamo()];
+    if (r && Object.keys(r).length) set[a] = 1;      // so' conta o ano que tem dado DESTE ramo
+  });
+  return Object.keys(set).sort().reverse();
+}
+
+/* O de-para TIPO -> CATEGORIA. A competencia so' guarda o tipo ("SALARIOS"); a categoria
+   ("3.01 DESPESAS COM FUNCIONARIOS") so' existe na fonte de caixa. Este mapa e' o que faz
+   o accordion funcionar NAS DUAS reguas.
+   🔑 Ele varre TODAS as siglas de proposito: o plano de contas e' o mesmo do grupo, e a
+   loja tem oito meses de desp_ enquanto o posto tem dois - um tipo que so' aparece na loja
+   ainda assim classifica o posto. Tipo que ninguem classificou cai em "SEM CATEGORIA", que
+   aparece na tela como uma categoria de verdade, para nao sumir com dinheiro.            */
+/* 🔴 A NORMALIZACAO NAO E' ENFEITE, E ELA FOI MEDIDA CONTRA O FIRESTORE. Os dois relatorios
+   escrevem o MESMO tipo com pontuacao diferente: o de caixa manda "TSC - FERIAS" e o de
+   competencia manda "TSC FERIAS". Sem tirar acento e pontuacao, SETE tipos caiam em
+   "SEM CATEGORIA" - o balde ia a 35,1% do ano nos postos, com cara de buraco no plano de
+   contas quando era so' um hifen. Com ela, cai para 14,3%.                                  */
+function dsdNorm(t){
+  return String(t || "").toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^A-Z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+}
+function dsdMapaCategoria(){
+  const m = {}, porNome = {};
+  Object.keys(relPetros || {}).forEach(k => {
+    if (String(k).indexOf("desp_") !== 0) return;
+    const ls = rpzLista(relPetros[k]);
+    if (!Array.isArray(ls)) return;
+    ls.forEach(r => {
+      if (!Array.isArray(r)) return;
+      const t = dsdNorm(rpzTxt(r[2] || "")), c = rpzTxt(r[0] || "").trim();
+      if (!c) return;
+      if (t && !m[t]) m[t] = c;
+      /* 2a passada: a categoria SEM o codigo na frente ("3.06 DESPESAS FINANCEIRAS" ->
+         "DESPESAS FINANCEIRAS"). O relatorio de competencia as vezes manda uma linha que e' o
+         nome do GRUPO, nao de um tipo dentro dele - e sem isto ela cai em SEM CATEGORIA
+         carregando R$ 343 mil, que e' dinheiro que o app SABE onde por.                     */
+      const nu = dsdNorm(c.replace(/^[\d.\s-]+/, ""));
+      if (nu && !porNome[nu]) porNome[nu] = c;
+    });
+  });
+  Object.keys(porNome).forEach(k => { if (!m[k]) m[k] = porNome[k]; });
+  return m;
+}
+
+/* Junta tudo num so' formato, venha de onde vier:
+   { cats:[{nome, cod, total, meses[12], tipos:[{nome, total, meses[12]}]}], total, porMes[12],
+     mesTem[12], nTipos, fonteFalha }                                                      */
+function dsdMontar(){
+  const ano = dsdAnoSel, sig = dsdSig(), uns = dsdUnidadesSel();
+  const cats = {}, porMes = new Array(12).fill(0), mesTem = new Array(12).fill(false);
+  let total = 0;
+
+  function por(cat, cod, tipo, m, v){
+    if (!v) return;
+    if (!cats[cat]) cats[cat] = { nome:cat, cod:cod || "", total:0, meses:new Array(12).fill(0), tipos:{} };
+    const C = cats[cat];
+    if (!C.cod && cod) C.cod = cod;
+    C.total += v; C.meses[m] += v;
+    if (!C.tipos[tipo]) C.tipos[tipo] = { nome:tipo, total:0, meses:new Array(12).fill(0) };
+    C.tipos[tipo].total += v; C.tipos[tipo].meses[m] += v;
+    porMes[m] += v; total += v;
+  }
+
+  if (dsdRegua === "caixa"){
+    uns.forEach(u => {
+      for (let m = 0; m < 12; m++){
+        const doc = relPetros["desp_" + sig + "_" + u + "_" + dsdMesId(ano, m)];
+        if (!doc) continue;
+        mesTem[m] = true;                       // 🔑 o mes "tem dado" porque o DOCUMENTO existe,
+        const ls = rpzLista(doc);               //    nao porque a soma deu diferente de zero
+        if (!Array.isArray(ls)) continue;
+        ls.forEach(r => {
+          if (!Array.isArray(r)) return;
+          const tipo = rpzTxt(r[2] || "").trim() || "SEM TIPO";
+          if (!dsdComRet && dspRetirada(tipo)) return;
+          por(rpzTxt(r[0] || "").trim() || "SEM CATEGORIA", rpzTxt(r[1] || "").trim(), tipo, m, Number(r[3]) || 0);
+        });
+      }
+    });
+  } else {
+    const mapa = dsdMapaCategoria();
+    const P = ((despesasAno || {})[ano] || {})[dsdRamo()] || {};
+    uns.forEach(u => {
+      const lst = ((P[dsdNomeDaChave(u)] || {}).categorias) || [];
+      lst.forEach(c => {
+        const tipo = rpzTxt(c.nome || "").trim() || "SEM TIPO";
+        if (!dsdComRet && dspRetirada(tipo)) return;
+        const cat = mapa[dsdNorm(tipo)] || "SEM CATEGORIA";
+        const ms = c.meses || [];
+        for (let m = 0; m < 12; m++) por(cat, "", tipo, m, Number(ms[m]) || 0);
+      });
+    });
+    /* ⚠️ A competencia NAO tem um documento por mes: ela e' um vetor de doze posicoes com zero
+       no que ainda nao aconteceu. Entao aqui "tem dado" so' pode ser medido pelo valor - e por
+       isso um mes real de despesa ZERO aparece como "—". E' impreciso, e a tela DIZ isso.   */
+    for (let m = 0; m < 12; m++) if (porMes[m] !== 0) mesTem[m] = true;
+  }
+
+  const lista = Object.keys(cats).map(k => cats[k]).sort((a, b) => b.total - a.total);
+  let nTipos = 0;
+  lista.forEach(c => {
+    c.tipos = Object.keys(c.tipos).map(k => c.tipos[k]).sort((a, b) => b.total - a.total);
+    nTipos += c.tipos.length;
+  });
+  return { cats:lista, total:total, porMes:porMes, mesTem:mesTem, nTipos:nTipos };
+}
+
+/* O faturamento sai do anomes_{sig}_{unidade}_{AAAA} (v212): vcomb + vprod, com as outras
+   receitas FORA do divisor - a mesma definicao da v202/v233, para as telas do app nao
+   contarem historias diferentes.
+   🔴 E ele soma SO' OS MESES QUE TEM DESPESA. Dividir dois meses de despesa por doze meses de
+   faturamento daria um "% do faturamento" que parece otimo e nao quer dizer nada - e' o caso
+   real dos Postos hoje, que so' tem julho e agosto de desp_.                               */
+function dsdFaturamento(mesTem){
+  let tot = 0, achou = false;
+  dsdUnidadesSel().forEach(u => {
+    const doc = relPetros["anomes_" + dsdSig() + "_" + u + "_" + dsdAnoSel];
+    if (!doc) return;
+    const D = rpzLista(doc);
+    if (!D || typeof D !== "object" || Array.isArray(D)) return;
+    achou = true;
+    const vc = D.vcomb || [], vp = D.vprod || [];
+    for (let m = 0; m < 12; m++) if (mesTem[m]) tot += (Number(vc[m]) || 0) + (Number(vp[m]) || 0);
+  });
+  return achou ? tot : null;
+}
+
+/* A ROSCA. E' a primeira do app - nao existe conic-gradient, donut nem biblioteca de grafico
+   em lugar nenhum do index.html (medido: Chart.js, D3, ApexCharts, Highcharts, ECharts e
+   Plotly = zero). O metodo e' o mesmo que a DRE da v301 ja usa para desenhar as linhas:
+   stroke-dasharray num <circle> com fill:none.
+   🔑 A altura sai da PROPORCAO do viewBox, nunca de um height em px (licao da v301).
+   🔑 E as cores saem de var(--dsd-c1..8), nunca de hex literal: hex solto aqui deixaria a
+   Transportadora laranja no meio do dourado - o defeito que ja tem 34 casos no CSS.       */
+function dsdRosca(fatias){
+  const R = 52, C = 2 * Math.PI * R;
+  let off = 0;
+  let s = '<svg class="dsd-rosca" viewBox="0 0 140 140" role="img" aria-label="Participação de cada categoria no total do ano">';
+  s += '<circle class="dsd-trilho" cx="70" cy="70" r="' + R + '" fill="none" stroke-width="22"/>';
+  s += '<g transform="rotate(-90 70 70)">';
+  fatias.forEach((f, i) => {
+    const len = C * f.p;
+    s += '<circle class="dsd-fatia" cx="70" cy="70" r="' + R + '" fill="none" stroke="var(--dsd-c' + ((i % 8) + 1) + ')"' +
+         ' stroke-width="22" stroke-dasharray="' + len.toFixed(2) + ' ' + (C - len).toFixed(2) + '"' +
+         ' stroke-dashoffset="' + (-off).toFixed(2) + '" style="animation-delay:' + (i * .07).toFixed(2) + 's">' +
+         '<title>' + escAttr(f.nome) + ' — R$ ' + fmtBR(f.v, 2) + ' (' + fmtBR(f.p * 100, 1) + '%)</title></circle>';
+    off += len;
+  });
+  s += '</g></svg>';
+  return s;
+}
+
+function dsdAbrirCat(nome){
+  dsdAberta[nome] = !dsdAberta[nome];
+  renderDespesasDet();
+}
+function dsdIrRegua(k){
+  if (dsdRegua === k) return;
+  dsdRegua = k; dsdAberta = {};
+  renderDespesasDet();
+}
+
+function renderDespesasDet(){
+  const box = document.getElementById("dsdBox");
+  if (!box) return;
+  const eh = dsdEhLoja();
+  /* 🔴 "ainda nao chegou" e "nao existe" sao DUAS coisas, e a tela tem de ter dois desenhos.
+     Sem esta guarda, abrir o menu antes de o onSnapshot responder faz a tela afirmar
+     "ainda nao ha despesas gravadas" - uma negativa categorica sobre um dado que ela nao tem.
+     E' a guarda que as telas de Clientes, Descontos e DRE ja usam desde a v249.              */
+  if (!vistoRelPetros){ box.innerHTML = esqueletoCaixa(5); return; }
+  const tit = document.getElementById("dsdTitulo");
+  if (tit) tit.textContent = eh ? "💸 Despesas Detalhadas das lojas" : "💸 Despesas Detalhadas dos postos";
+  const lbl = document.getElementById("dsdUnidLbl");
+  if (lbl) lbl.textContent = dsdPalUnid();
+
+  const chips = document.getElementById("dsdRegua");
+  if (chips) chips.innerHTML = DSD_REGUAS.map(r =>
+    '<button class="doc-chip' + (dsdRegua === r.k ? ' ativo' : '') + '" onclick="dsdIrRegua(\'' + r.k + '\')" title="' + escAttr(r.sub) + '">' + r.n + '</button>').join("");
+
+  const anos = dsdAnosDisponiveis();
+  const linha = document.querySelector("#painelDespesasDet .evo-filtros");
+  const selA = document.getElementById("dsdAno"), selU = document.getElementById("dsdUnid"), selR = document.getElementById("dsdRet");
+  if (!anos.length){
+    if (linha) linha.style.display = "none";
+    box.innerHTML = '<div class="ana-vazio">Ainda não há despesas gravadas para ' + (eh ? "as lojas" : "os postos") + '.<br>Elas vêm dos relatórios do Petros.</div>';
+    return;
+  }
+  if (linha) linha.style.display = "";
+  if (!dsdAnoSel || anos.indexOf(dsdAnoSel) < 0) dsdAnoSel = anos[0];
+  if (selA) selA.innerHTML = anos.map(a => '<option value="' + a + '"' + (a === dsdAnoSel ? " selected" : "") + '>' + a + '</option>').join("");
+  if (selU) selU.innerHTML = '<option value="todos"' + (dsdUnidSel === "todos" ? " selected" : "") + '>' + (eh ? "Todas as lojas" : "Todos os postos") + '</option>' +
+      UNIDADES_REL.map(u => '<option value="' + escAttr(u.chave) + '"' + (u.chave === dsdUnidSel ? " selected" : "") + '>' + escAttr(u.nome) + '</option>').join("");
+  if (selR) selR.value = dsdComRet ? "1" : "0";
+
+  const D = dsdMontar();
+  const nomeRegua = (DSD_REGUAS.find(r => r.k === dsdRegua) || {}).n || "";
+  const subRegua  = (DSD_REGUAS.find(r => r.k === dsdRegua) || {}).sub || "";
+
+  if (!D.cats.length){
+    box.innerHTML = '<div class="ana-vazio">Nenhuma despesa em ' + escAttr(dsdAnoSel) + ' nesta régua (' + escAttr(subRegua) + ').' +
+      (dsdRegua === "caixa" ? '<br>Experimente a régua <b>Competência</b>: ela costuma ter mais meses.' : '') + '</div>';
+    return;
+  }
+
+  const meses = D.mesTem.map((t, i) => t ? DSD_MES[i] : null).filter(Boolean);
+  const semCat = D.cats.find(c => c.nome === "SEM CATEGORIA");
+  const fat = dsdFaturamento(D.mesTem);
+  const maior = D.cats[0];
+
+  let h = '';
+
+  /* o aviso de cobertura vem ANTES de tudo: e' o que impede alguem de comparar um ano cheio
+     com dois meses e achar que a despesa caiu. */
+  h += '<div class="ana-resumo dsd-aviso"><b>' + escAttr(nomeRegua) + '</b> — ' + escAttr(subRegua) + '. ' +
+       'Com dado em <b>' + meses.length + '</b> ' + (meses.length === 1 ? 'mês' : 'meses') + ' de ' + escAttr(dsdAnoSel) + ': ' + escAttr(meses.join(", ")) + '.' +
+       (dsdRegua === "caixa"
+         ? ' Mês sem documento aparece como “—”, nunca como zero.'
+         : ' Aqui o mês é considerado sem dado quando a soma dá zero — então um mês real de despesa zero também aparece como “—”.') +
+       (semCat ? ' <b>' + fmtR$0(semCat.total) + '</b> caíram em <b>SEM CATEGORIA</b>: são linhas que o relatório de competência já entrega agrupadas (as “OUTRAS (N tipos)”) ou tipos que ainda não apareceram na fonte de caixa, que é de onde vem a categoria.' : '') +
+       '</div>';
+
+  // ---- os quatro cartoes, no padrao .rel-kpi (v281), que e' o desta familia de telas
+  h += '<div class="rel-kpis">';
+  h += '<div class="rel-kpi"><span>Despesas ' + escAttr(dsdAnoSel) + '</span><b>' + fmtR$0(D.total) + '</b></div>';
+  h += '<div class="rel-kpi"><span>% do faturamento</span><b>' +
+       ((fat > 0 && D.total > 0) ? fmtPctRel(D.total / fat * 100, 1) : "—") + '</b>' +
+       '<small>' + (fat ? 'Faturamento ' + fmtR$0(fat) + ' nos mesmos meses' : 'sem faturamento gravado para comparar') + '</small></div>';
+  h += '<div class="rel-kpi"><span>Maior categoria</span><b>' + (maior.total > 0 ? fmtR$0(maior.total) : "—") + '</b><small>' + escAttr(maior.total > 0 ? maior.nome : "sem categoria positiva no período") + '</small></div>';
+  h += '<div class="rel-kpi"><span>Categorias</span><b>' + D.cats.length + '</b><small>' + D.nTipos + ' tipos</small></div>';
+  h += '</div>';
+
+  // ---- a rosca e a legenda
+  /* 🔑 O DIVISOR DA ROSCA E' A SOMA DAS FATIAS POSITIVAS, nao o total. Estorno entra no
+     relatorio como valor negativo: com A=+300 e B=-100 o total e' 200, a fatia de A daria 150%
+     e o stroke-dasharray sairia NEGATIVO - o navegador descarta a lista inteira e pinta o anel
+     cheio, sem erro nenhum no console. E com A=+100 e B=-100 o total e' zero e a rosca sumiria
+     em branco. Somando so' o que e' positivo, a rosca sempre fecha 360 graus.                */
+  const positivas = D.cats.filter(c => c.total > 0);
+  const totPos = positivas.reduce((a, c) => a + c.total, 0);
+  const fatias = totPos > 0 ? positivas.map(c => ({ nome:c.nome, v:c.total, p:c.total / totPos })) : [];
+  if (fatias.length){
+    h += '<h3 class="cxi-sub">Participação de cada categoria no total</h3>';
+    if (totPos - D.total > 0.01) h += '<p class="nota-dash">A rosca divide pelo que foi <b>gasto</b> (' + fmtR$0(totPos) + '). O total da tela é menor porque há estorno lançado como valor negativo.</p>';
+    h += '<div class="dsd-donut">' + dsdRosca(fatias) +
+         '<div class="dsd-leg">' + fatias.map((f, i) =>
+           '<div class="dsd-leg-l"><span class="dsd-leg-q" style="background:var(--dsd-c' + ((i % 8) + 1) + ')"></span>' +
+           '<span class="dsd-leg-n" title="' + escAttr(f.nome) + '">' + escAttr(f.nome) + '</span>' +
+           '<span class="dsd-leg-v">' + fmtBR(f.p * 100, 1) + '%</span></div>').join("") + '</div></div>';
+  }
+
+  // ---- as barras por mes, no .cxi- que a tela velha ja usa (e mantendo a marca de pico)
+  /* 🔑 a media e' DOS OUTROS meses, nunca com o proprio dentro - e' a mesma conta do
+     renderDespesas() desde a v185. Com o proprio mes na media, JUL 100 e AGO 200 dao media 150
+     e o pico nao acende; sem ele, a media e' 100 e acende. Duas telas do mesmo app nao podem
+     responder coisas opostas com o mesmo dado.                                              */
+  const cheios = D.porMes.map((v, i) => D.mesTem[i] ? { v:v, i:i } : null).filter(Boolean);
+  function dsdEhPico(i){
+    if (cheios.length < 2) return false;
+    const outros = cheios.filter(x => x.i !== i);
+    const m = outros.reduce((a, x) => a + x.v, 0) / outros.length;
+    return m > 0 && D.porMes[i] > m * 1.4;
+  }
+  const temPico = cheios.some(x => dsdEhPico(x.i));
+  const maxM = Math.max.apply(null, D.porMes.concat([1]));
+  h += '<h3 class="cxi-sub">Mês a mês (R$)</h3><div class="cxi-graf">';
+  for (let m = 0; m < 12; m++){
+    if (!D.mesTem[m]) continue;
+    const v = D.porMes[m], pico = dsdEhPico(m);
+    h += '<div class="cxi-par"><span class="cxi-q">' + DSD_MES[m] + '</span>' +
+         '<span class="cxi-wrap"><span class="cxi-bar' + (pico ? ' cxi-bar-alerta' : '') + '" style="width:' + (v / maxM * 100).toFixed(1) + '%"></span></span>' +
+         '<span class="cxi-v' + (pico ? ' cxi-v-alerta' : '') + '">' + dsdComp(v) + '</span></div>';
+  }
+  h += '</div>';
+  if (temPico){
+    h += '<p class="nota-dash">O mês marcado em vermelho passou 40% da média dos outros. Quando um lançamento que vale o ano inteiro cai num mês só, aquele mês parece péssimo e os vizinhos parecem bons demais.</p>';
+  }
+
+  // ---- a tabela: categoria abre os tipos, os doze meses nas colunas
+  h += '<h3 class="cxi-sub">Detalhamento por categoria e tipo</h3>';
+  h += '<div class="rpz-rola"><table class="rpz-tab dsd-tab"><thead><tr><th>Categoria / tipo</th>' +
+       DSD_MES.map((m, i) => '<th class="rpz-r' + (D.mesTem[i] ? '' : ' dsd-vazio') + '">' + m + '</th>').join("") +
+       '<th class="rpz-r">Total</th><th class="rpz-r">%</th></tr></thead><tbody>';
+  D.cats.forEach(c => {
+    const ab = !!dsdAberta[c.nome];
+    h += '<tr class="rpz-cli dsd-pai' + (ab ? ' rpz-cli-on' : '') + '" onclick="dsdAbrirCat(' + JSON.stringify(c.nome).replace(/"/g, "&quot;") + ')">' +
+         '<td class="rpz-nome"><span class="dsd-seta">' + (ab ? "⌄" : "›") + '</span> <b>' + escAttr(c.nome) + '</b> <span class="dsd-cont">(' + c.tipos.length + ')</span></td>' +
+         c.meses.map((v, i) => '<td class="rpz-r">' + (v ? dsdComp(v) : "—") + '</td>').join("") +
+         '<td class="rpz-r dsd-tot" title="R$ ' + fmtBR(c.total, 2) + '">' + fmtR$0(c.total) + '</td>' +
+         '<td class="rpz-r">' + (D.total > 0 ? fmtBR(c.total / D.total * 100, 1) + "%" : "—") + '</td></tr>';
+    if (!ab) return;
+    c.tipos.forEach(t => {
+      h += '<tr class="dsd-filha"><td class="rpz-nome dsd-rec">' + escAttr(t.nome) + '</td>' +
+           t.meses.map(v => '<td class="rpz-r">' + (v ? dsdComp(v) : "—") + '</td>').join("") +
+           '<td class="rpz-r dsd-tot" title="R$ ' + fmtBR(t.total, 2) + '">' + fmtR$0(t.total) + '</td>' +
+           '<td class="rpz-r">' + (D.total > 0 ? fmtBR(t.total / D.total * 100, 1) + "%" : "—") + '</td></tr>';
+    });
+  });
+  h += '</tbody></table></div>';
+
+  if (!dsdComRet) h += '<p class="nota-dash">As retiradas de sócios estão fora desta conta.</p>';
+  h += '<p class="ana-rodape">Fonte: ' + (dsdRegua === "caixa"
+        ? 'relatório “Despesas Pagas no Período por Tipo” do Petros, um documento por mês e por unidade.'
+        : 'relatório “Demonstrativo de Resultado Detalhado Mês a Mês” do Petros, um documento por ano e por unidade.') +
+       ' O “% do faturamento” usa vendas de combustível + loja, com as outras receitas fora do divisor (regra da v202).</p>';
+
+  box.innerHTML = h;
+}
+
+function alternarDespesasDet(){
+  const aberto = abrirPainelExclusivo("painelDespesasDet");
+  const b = document.getElementById("btnDespesasDet");
+  if (b) b.classList.toggle("ativo", aberto);
+  if (aberto) renderDespesasDet();
 }
 
 function alternarAnalise(){
