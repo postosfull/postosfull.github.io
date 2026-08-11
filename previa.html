@@ -2124,8 +2124,17 @@
     border:1px solid var(--borda);border-radius:6px;padding:8px;font-size:.9rem;
     background:var(--superficie);color:var(--txt);width:100%;
   }
-  .comp-dists{display:flex;flex-wrap:wrap;gap:10px}
-  .comp-dist-card{flex:1 1 258px;border:1px solid var(--borda);border-radius:10px;padding:10px 12px;background:var(--superficie-2)}
+  /* v333 - GRADE, nao flex-wrap. 🔴 Com `flex:1 1 258px` a ULTIMA linha ESTICA: as tres
+     distribuidoras que sobravam (Nimo, Larco, Fan) viravam cartoes do TRIPLO da largura
+     dos de cima (MEDIDO em 1920: 6 de 287px em cima, 2 de 881px embaixo = 3,07x).
+     🔑 `auto-fill` reserva as colunas que sobram VAZIAS, entao quem esta na ultima linha
+     fica com a MESMA largura de quem esta em cima. 🔑 O 258px e' o MESMO numero do
+     `flex-basis` antigo de proposito: assim a contagem de cartoes por linha nao muda em
+     largura nenhuma — o unico efeito e' o esticamento sumir.
+     ⚠️ O `min(258px,100%)` e' o que segura o celular: coluna fixa de 258px estoura tela
+     mais estreita que isso. */
+  .comp-dists{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(258px,100%),1fr));gap:10px}
+  .comp-dist-card{border:1px solid var(--borda);border-radius:10px;padding:10px 12px;background:var(--superficie-2)}
   .comp-dist-head{display:flex;gap:8px;align-items:center;margin-bottom:7px;border-bottom:1px solid var(--borda);padding-bottom:6px}
   .comp-dist-nome{font-weight:600}
   select.comp-dist-nome{cursor:pointer;min-width:0;flex:1 1 auto}
@@ -7111,6 +7120,10 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v333", data:"11/08/2026", tit:"💲 Cotações do Dia: os cartões da última linha esticavam", itens:[
+    {t:"c", h:"As distribuidoras que sobravam na última linha ficavam <b>gigantes</b>", d:"Com oito distribuidoras cadastradas, as que sobravam na segunda linha (<b>Nimo</b>, <b>Larco</b> e <b>Fan</b>) se esticavam para preencher a linha inteira — cartões do <b>triplo</b> da largura dos de cima, com o preço jogado para a beirada da tela. <b>Agora todos têm a mesma largura</b>, esteja o cartão na primeira linha ou na última."},
+    {t:"m", h:"E <b>quantos cabem por linha</b> continua exatamente como era", d:"A correção tira só o esticamento: quem já estava do tamanho certo não mexeu um pixel. <b>No celular nada muda</b> — continua um cartão por linha."}
+  ]},
   {v:"v332", data:"11/08/2026", tit:"\ud83c\udfe2 Uma marca\u00e7\u00e3o s\u00f3: quem responde pela unidade responde por tudo dela", itens:[
     {t:"m", h:"Eram tr\u00eas quadros marcando a mesma coisa", d:"Unidades no quadro <b>\ud83c\udfe2 Quem responde por cada unidade</b>, respons\u00e1veis pelo caixa e destinat\u00e1rios do aviso de recebimento, cada um numa tela. <b>Agora \u00e9 um s\u00f3</b>: marcar a pessoa numa unidade j\u00e1 decide o que ela v\u00ea no menu <b>\u2705 Pend\u00eancias Administrativas</b>, se ela responde pela confer\u00eancia daquele caixa e quais avisos recebe."},
     {t:"c", h:"E as marca\u00e7\u00f5es tinham se desencontrado", d:"Uma gerente estava marcada como respons\u00e1vel pelo caixa de um posto pelo qual n\u00e3o respondia em nenhuma outra lista \u2014 e <b>n\u00e3o recebia o aviso semanal</b>, mesmo respondendo por outro. <b>Marca\u00e7\u00e3o repetida n\u00e3o fica igual</b>: ela se desencontra sozinha, e cada tela, olhada em separado, parece certa."},
