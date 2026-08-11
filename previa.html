@@ -1915,6 +1915,20 @@
      `.doc-tools{flex-wrap:wrap}` mora mais abaixo no arquivo, ele venceria — a primeira foto do
      celular saiu com as tres fileiras intactas e a regra nova sem efeito nenhum, calada. */
   .doc-tools.padm-chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+  /* v337 - a ABA e' um chip com peso: ela e' o filtro que manda, e os outros dois refinam.
+     ⚠️ O numero vai DENTRO da aba, numa pastilha, e nao solto: solto ele encosta no rotulo da aba
+     seguinte e as duas viram uma coisa so' na tela do celular. */
+  .doc-tools.padm-abas{margin-bottom:2px}
+  .doc-tools.padm-abas .doc-chip{font-weight:600}
+  .doc-tools.padm-abas .aba-n{
+    display:inline-block;min-width:16px;margin-left:6px;padding:0 5px;border-radius:20px;
+    background:rgba(0,0,0,.12);font-size:.78em;font-weight:700;line-height:1.6;text-align:center
+  }
+  .doc-tools.padm-abas .doc-chip.ativo .aba-n{background:rgba(255,255,255,.28)}
+  /* ⚠️ `body.tema-escuro` e nao `body.escuro`: a classe do tema deste app e' essa. Regra com
+     seletor que nao existe NAO da erro — ela simplesmente nunca vale, e a pastilha ficaria
+     invisivel no escuro sem ninguem perceber. */
+  body.tema-escuro .doc-tools.padm-abas .aba-n{background:rgba(255,255,255,.16)}
   .doc-tools.padm-chips::-webkit-scrollbar{display:none}
   .doc-tools.padm-chips .doc-chip{flex:0 0 auto}
   /* e o cabeçalho do cartão QUEBRA LINHA: sem isto os selos se espremiam e "há 15 min" saía
@@ -4289,6 +4303,9 @@
            primeira pendência para fora da tela — foi o que a foto da v319 mostrou. -->
       <p class="nota-dash">O que está pendente na sua unidade, do mais urgente para o que pode esperar.</p>
       <div class="pnd-topo"><span class="pnd-cont" id="padmContador"></span></div>
+      <!-- v337 - as ABAS DE PRIORIDADE vem ANTES dos outros dois filtros, porque a pergunta
+           "o que e' urgente?" vem antes de "de que assunto?". -->
+      <div class="doc-tools padm-chips padm-abas" id="padmChipsPri" style="display:none"></div>
       <div class="doc-tools padm-chips" id="padmChips"></div>
       <div class="doc-tools padm-chips" id="padmChipsUn" style="display:none"></div>
       <div class="msg-admin" id="padmMsg" style="display:none"></div>
@@ -4678,7 +4695,7 @@ let pendenciasAdm = [];
 let escutaPendenciasAdm = null;
 let unidadesEquipe = {};            // emailLower -> [chave de unidade]
 let escutaUnidades = null;
-let padmFiltroCat = "", padmFiltroUn = "", padmMostrarFeitas = false;
+let padmFiltroCat = "", padmFiltroUn = "", padmFiltroPri = "", padmMostrarFeitas = false;
 let padmResolvendo = "", padmComentando = "", padmMsg = "";
 let padmTxtTmp = {};
 let pndFiltro = "", pndMostrarFeitas = false, pndConcluindo = "", pndEscrevendo = "", pndMsg = "";
@@ -7155,6 +7172,11 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v337", data:"11/08/2026", tit:"\ud83e\uddf7 Pend\u00eancias: abas por prioridade, e um erro de portugu\u00eas a menos", itens:[
+    {t:"n", h:"Agora d\u00e1 para ver <b>s\u00f3 as urgentes</b>, com um toque", d:"Acima dos filtros de assunto e de unidade nasceu uma fileira de <b>abas por prioridade</b>, cada uma com <b>quantas pend\u00eancias tem dentro</b>: <b>tudo</b>, <b>\u23f0 Passou do prazo</b>, <b>\ud83d\udd34 Urgente</b>, <b>\ud83d\udfe1 Esta semana</b> e <b>\ud83d\udd35 Quando der</b>. Tocar numa mostra s\u00f3 aquela; tocar de novo na mesma volta para <b>tudo</b>. <b>Prioridade que n\u00e3o tem nenhuma pend\u00eancia n\u00e3o vira aba</b>, e no celular a aba escolhida se traz sozinha para a vista."},
+    {t:"m", h:"O menu <b>sempre abre em tudo</b>, e as contas do alto n\u00e3o mudam", d:"A aba escolhida vale enquanto voc\u00ea est\u00e1 na tela: quando o menu \u00e9 aberto de novo, ele volta a mostrar a lista inteira. E <b>escolher uma aba n\u00e3o mexe</b> no resumo do alto nem no <b>n\u00famero do bot\u00e3o</b> \u2014 os dois continuam falando da sua lista toda, sen\u00e3o pareceria que as outras pend\u00eancias sumiram. Com uma aba escolhida, o cabe\u00e7alho do bloco sai da lista: a aba j\u00e1 diz o nome e o n\u00famero."},
+    {t:"c", h:"E o resumo dizia <b>\u201c2 passou do prazo\u201d</b>", d:"Faltava o plural, e o app <b>nunca</b> pluralizava esse peda\u00e7o. Agora \u00e9 <b>\u201c2 passaram do prazo\u201d</b> \u2014 e continua <b>\u201c1 passou do prazo\u201d</b> quando \u00e9 uma s\u00f3. O erro s\u00f3 apareceu porque o guia impresso das pend\u00eancias foi conferido, frase por frase, contra a tela."}
+  ]},
   {v:"v336", data:"11/08/2026", tit:"\u2705 Pend\u00eancias: a lista agora se confere sozinha", itens:[
     {t:"n", h:"A pend\u00eancia que a m\u00e1quina consegue conferir <b>se fecha sozinha</b>", d:"Algumas pend\u00eancias t\u00eam uma condi\u00e7\u00e3o que o pr\u00f3prio app sabe medir \u2014 por exemplo <b>\u201cum ve\u00edculo est\u00e1 sem motorista cadastrado\u201d</b> ou <b>\u201cainda h\u00e1 arquivo sem data de vencimento\u201d</b>. No dia em que a condi\u00e7\u00e3o deixar de valer, ela <b>vai para as resolvidas sozinha</b>, sem ningu\u00e9m clicar, e escreve <b>por que fechou</b>, com o n\u00famero e a data. <b>Seis pend\u00eancias da lista j\u00e1 nascem com essa confer\u00eancia ligada</b>; as outras continuam como sempre. Ela aparece como resolvida por <b>Verifica\u00e7\u00e3o autom\u00e1tica</b>, para n\u00e3o se confundir com o que voc\u00ea resolveu."},
     {t:"n", h:"E o n\u00famero de dentro da pend\u00eancia passou a ser <b>medido na hora</b>", d:"Debaixo do texto aparece uma linha <b>\ud83d\udccf Medido agora</b> com a conta do momento (por exemplo <b>64 de 74 arquivos sem data de vencimento</b>). Antes o n\u00famero era o do dia em que a pend\u00eancia foi escrita, e envelhecia calado: duas da lista de hoje estavam certas com o n\u00famero errado."},
@@ -15854,11 +15876,11 @@ function padmCurtoCat(k){ return padmCat(k).curto; }
 /* 🔴 UM LUGAR SÓ decide o grau — o selo do cartão, o cabeçalho do bloco, a ordem da lista e o
    número do botão APENAS USAM. É a lição da v297, que custou seis lugares, e da v319. */
 const PADM_URG = {
-  urgente: { ord:1, selo:"🔴 urgente",     cls:"padm-u0", tit:"🔴 Urgente" },
-  semana:  { ord:2, selo:"🟡 esta semana", cls:"padm-u1", tit:"🟡 Esta semana" },
-  depois:  { ord:3, selo:"🔵 quando der",  cls:"padm-u2", tit:"🔵 Quando der" }
+  urgente: { k:"urgente",  ord:1, selo:"🔴 urgente",     cls:"padm-u0", tit:"🔴 Urgente",         aba:"🔴 Urgente" },
+  semana:  { k:"semana",   ord:2, selo:"🟡 esta semana", cls:"padm-u1", tit:"🟡 Esta semana",     aba:"🟡 Esta semana" },
+  depois:  { k:"depois",   ord:3, selo:"🔵 quando der",  cls:"padm-u2", tit:"🔵 Quando der",      aba:"🔵 Quando der" }
 };
-const PADM_ATRASO = { ord:0, selo:"⏰ atrasada", cls:"padm-atr", tit:"⏰ Passou do prazo" };
+const PADM_ATRASO = { k:"atrasada", ord:0, selo:"⏰ atrasada", cls:"padm-atr", tit:"⏰ Passou do prazo", aba:"⏰ Passou do prazo" };
 const PADM_BLOCOS = [PADM_ATRASO, PADM_URG.urgente, PADM_URG.semana, PADM_URG.depois];
 
 function padmGrau(p){ return PADM_URG[(p && p.urgencia) || "semana"] || PADM_URG.semana; }
@@ -15921,12 +15943,18 @@ function alternarPendAdm(){
   const aberto = abrirPainelExclusivo("painelPendAdm");
   const b = document.getElementById("btnPendAdm");
   if (b) b.classList.toggle("ativo", aberto);
-  if (aberto) padmRender();
+  /* 🔴 v337 - ABRIR O MENU SEMPRE MOSTRA A LISTA INTEIRA. Sem isto a aba escolhida de manha
+     sobreviveria a tarde inteira, e a pessoa abriria o menu vendo meia lista sem saber por que.
+     ⚠️ Vale SO' para a aba: os filtros de assunto e de unidade continuam como sempre foram. */
+  if (aberto){ padmFiltroPri = ""; padmRender(); }
 }
 
 /* ----- ações ----- */
 function padmIrCat(k){ padmFiltroCat = (padmFiltroCat === k) ? "" : String(k || ""); padmRender(); }
 function padmIrUn(k){ padmFiltroUn = (padmFiltroUn === k) ? "" : String(k || ""); padmRender(); }
+/* v337 - a aba de prioridade. Clicar na aba ja' aberta volta para "tudo": e' o mesmo gesto dos
+   outros dois filtros, e evita a aba que nao tem como desmarcar. */
+function padmIrPri(k){ padmFiltroPri = (padmFiltroPri === k) ? "" : String(k || ""); padmRender(); }
 function padmAlternarFeitas(){
   padmMostrarFeitas = !padmMostrarFeitas;
   const b = document.getElementById("padmBtnFeitas");
@@ -16177,8 +16205,39 @@ function padmRender(){
 
   const dentro = p => (!padmFiltroCat || (p.categoria || "outros") === padmFiltroCat) &&
                       (!padmFiltroUn  || (p.unidade  || "todas")  === padmFiltroUn);
-  const abertas = vis.filter(p => !p.concluida && dentro(p));
-  const feitas  = vis.filter(p =>  p.concluida && dentro(p));
+  /* 🔴 DUAS LISTAS, E A DIFERENCA IMPORTA. `abertasCU` e' o que sobra depois do assunto e da
+     unidade; e' dela que saem os NUMEROS DAS ABAS e o resumo do alto. `abertas` e' o que a tela
+     mostra, ja' com a aba escolhida. Se as abas contassem depois da propria aba, cada uma mostraria
+     o proprio numero e zero em todas as outras — a fileira viraria enfeite. */
+  const abertasCU = vis.filter(p => !p.concluida && dentro(p));
+  const feitas    = vis.filter(p =>  p.concluida && dentro(p));
+
+  /* as ABAS saem de PADM_BLOCOS, que ja' e' quem decide a ordem e o rotulo — a aba so' USA.
+     🔑 Bloco sem nenhuma pendencia nao vira aba: aba com zero e' botao que nao faz nada, e botao
+     que nao faz nada ensina a ignorar botao (a mesma regra do chip de unidade). */
+  const blocosComGente = PADM_BLOCOS.filter(b => abertasCU.some(p => padmBloco(p) === b));
+  if (padmFiltroPri && !blocosComGente.some(b => b.k === padmFiltroPri)) padmFiltroPri = "";
+  const cp = document.getElementById("padmChipsPri");
+  if (cp){
+    if (blocosComGente.length > 1){
+      cp.style.display = "";
+      cp.innerHTML = '<button class="doc-chip' + (padmFiltroPri ? "" : " ativo") + '" onclick="padmIrPri(\'\')">tudo' +
+          '<span class="aba-n">' + abertasCU.length + '</span></button>' +
+        blocosComGente.map(b => '<button class="doc-chip' + (padmFiltroPri === b.k ? " ativo" : "") +
+          '" onclick="padmIrPri(\'' + escAspas(b.k) + '\')">' + escAttr(b.aba) +
+          '<span class="aba-n">' + abertasCU.filter(p => padmBloco(p) === b).length + '</span></button>').join("");
+      /* 🔴 A FILEIRA ROLA DE LADO, entao a aba escolhida pode ficar FORA da tela num aparelho de
+         390 px — a pessoa toca, a lista muda e ela nao ve qual aba ficou acesa. Trazer a ativa
+         para dentro da vista custa uma linha e resolve. */
+      const at = cp.querySelector(".doc-chip.ativo");
+      if (at && cp.scrollWidth > cp.clientWidth){
+        const alvo = at.offsetLeft - (cp.clientWidth - at.offsetWidth) / 2;
+        cp.scrollLeft = Math.max(0, alvo);
+      }
+    } else { cp.style.display = "none"; cp.innerHTML = ""; padmFiltroPri = ""; }
+  }
+
+  const abertas = padmFiltroPri ? abertasCU.filter(p => padmBloco(p).k === padmFiltroPri) : abertasCU;
 
   /* ⚠️ ISTO FICA NO TOPO, SEMPRE, PARA QUEM NÃO TEM UNIDADE — e não só quando a lista está vazia.
      🔑 Uma lista curta é indistinguível de uma lista curta POR ESTAR CEGA: sem este aviso, quem
@@ -16189,7 +16248,10 @@ function padmRender(){
     ? '<p class="nota-dash">⚠️ Você ainda não está ligada a nenhuma unidade, então esta lista só mostra o que for aberto <b>no seu nome</b> e o que vale para <b>todas as unidades</b>. Peça ao administrador para marcar a sua unidade.</p>'
     : "";
   if (!abertas.length){
-    h += '<p class="nota-dash">' + ((padmFiltroCat || padmFiltroUn) ? "Nada em aberto com este filtro." : "Nenhuma pendência em aberto. 🎉") + '</p>';
+    h += '<p class="nota-dash">' + /* ⚠️ a ABA nao entra nesta conta, e isso e' medido: ela se desliga sozinha quando o bloco dela
+                   fica sem ninguem, entao aba escolhida com lista vazia nao existe. Por um dia a condicao
+                   teve `|| padmFiltroPri` aqui — e a mutacao que o apagava nao reprovava nada. */
+                ((padmFiltroCat || padmFiltroUn) ? "Nada em aberto com este filtro." : "Nenhuma pendência em aberto. 🎉") + '</p>';
   } else {
     PADM_BLOCOS.forEach(b => {
       const grupo = abertas.filter(p => padmBloco(p) === b)
@@ -16199,7 +16261,10 @@ function padmRender(){
           return msDeQuando(c.criadaEm) - msDeQuando(a.criadaEm);
         });
       if (!grupo.length) return;
-      h += '<div class="pnd-sec">' + b.tit + ' <span class="pnd-n">' + grupo.length + '</span></div>';
+      /* v337 - com uma aba escolhida o cabecalho do bloco seria ECO: a aba acima ja' diz o nome e o
+         numero, e repetir custa uma linha de tela justo em quem so' tem 390 px. */
+      if (!padmFiltroPri)
+        h += '<div class="pnd-sec">' + b.tit + ' <span class="pnd-n">' + grupo.length + '</span></div>';
       h += grupo.map(p => padmCardHtml(p, false)).join("");
     });
   }
@@ -16207,9 +16272,13 @@ function padmRender(){
 
   const cnt = document.getElementById("padmContador");
   if (cnt){
-    const atrasadas = abertas.filter(padmAtrasada).length;
-    cnt.textContent = abertas.length + " em aberto" +
-      (atrasadas ? (" · " + atrasadas + " passou do prazo") : "") +
+    /* 🔴 v337 - "2 passou do prazo" foi um defeito de VERDADE, e ele so' apareceu quando um guia
+       impresso para as gerentes foi conferido contra a tela: o app nunca pluralizava este pedaco.
+       🔑 Texto que so' erra no plural passa despercebido enquanto o numero e' 1 — e o numero e' 1
+       na maior parte dos dias. */
+    const atrasadas = abertasCU.filter(padmAtrasada).length;
+    cnt.textContent = abertasCU.length + " em aberto" +
+      (atrasadas ? (" · " + atrasadas + (atrasadas === 1 ? " passou" : " passaram") + " do prazo") : "") +
       (feitas.length ? (" · " + feitas.length + " resolvida" + (feitas.length === 1 ? "" : "s")) : "");
   }
   const bf = document.getElementById("padmBtnFeitas");
