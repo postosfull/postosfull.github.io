@@ -3911,8 +3911,9 @@
        Duas reguas, e a chave em cima diz qual esta valendo:
          CAIXA        = relatoriosPetros/desp_{sig}_{unidade}_{AAAA-MM}, pela data em que o
                         dinheiro SAIU. Traz categoria + codigo + tipo.
-         COMPETENCIA  = despesasAno[ano][ramo][Unidade], pelo mes em que a despesa ACONTECEU.
-                        Traz so' o TIPO - a categoria vem do de-para montado da outra fonte.
+         COMPETENCIA  = relatoriosPetros/dre_{sig}_{unidade}_{AAAA-MM}, campo `despDet`, pelo mes
+                        em que a despesa ACONTECEU. Linha: [grupo, categoria, tipo, valor].
+                        v345 - era o `despesasAno`, que estava orfao, subcontado e sem categoria.
        🔑 Os dois numeros NAO batem, e nenhum dos dois esta errado - a BULAS.despesas ja dizia
        isso. Por isso a tela nunca mistura as duas: uma regua por vez, escrita na cara. -->
   <div class="config" id="painelDespesasDet">
@@ -7292,6 +7293,13 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v345", data:"12/08/2026", tit:"\ud83d\udcd8 A r\u00e9gua <b>Compet\u00eancia</b> trocou de fonte \u2014 e ficou <b>certa, viva e com 2025 junto</b>", itens:[
+    {t:"c", h:"A fonte antiga tinha tr\u00eas defeitos ao mesmo tempo", d:"Ela era <b>\u00f3rf\u00e3</b> (nenhum coletor do servidor gravava, estava parada em <b>29/07</b>), era <b>subcontada</b> (vinha de um relat\u00f3rio que subconta uma categoria) e <b>n\u00e3o trazia a categoria</b> \u2014 ela precisava ser adivinhada. <b>Julho l\u00e1 dizia R$ 637 mil; o certo eram R$ 746 mil.</b>"},
+    {t:"n", h:"Agora ela l\u00ea o DRE Consolidado, que \u00e9 a base certa", d:"O mesmo lugar de onde sai o <b>\ud83d\udcc9 DRE</b>, gravado pelo coletor <b>tr\u00eas vezes por dia</b>. A categoria vem <b>pronta</b>, e a confer\u00eancia contra o gr\u00e1fico do ano fecha com <b>R$ 6</b> de diferen\u00e7a em oito meses."},
+    {t:"n", h:"E 2025 apareceu", d:"S\u00e3o <b>20 meses</b> gravados no lugar dos 8 de antes. D\u00e1 para comparar o ano passado com este, categoria por categoria."},
+    {t:"m", h:"O balde <b>SEM CATEGORIA</b> sumiu", d:"Ele existia porque a fonte velha n\u00e3o dizia a categoria e a tela tinha de deduzir. <b>Agora n\u00e3o sobra nenhuma linha sem categoria.</b>"},
+    {t:"c", h:"\ud83d\udd11 A pergunta certa n\u00e3o era quem ia passar a gravar aquilo", d:"Era <b>se aquilo j\u00e1 n\u00e3o estava gravado em outro lugar, melhor</b>. Estava \u2014 desde a v281, no mesmo documento que alimenta o DRE. <b>Trocar a fonte apagou o problema em vez de consert\u00e1-lo</b>, e apagou junto as tr\u00eas fun\u00e7\u00f5es que existiam s\u00f3 para remendar a fonte velha."}
+  ]},
   {v:"v344", data:"12/08/2026", tit:"\ud83e\uddef O aviso das <b>Despesas Detalhadas</b> parou de <b>escolher a causa</b> da diferença", itens:[
     {t:"c", h:"O n\u00famero estava certo; a explica\u00e7\u00e3o ao lado dele, n\u00e3o", d:"A v343 dizia que a diferen\u00e7a contra o relat\u00f3rio recoletado era <b>toda</b> despesa lan\u00e7ada depois do fechamento. <b>Parte dela \u00e9 outra coisa:</b> o relat\u00f3rio recoletado <b>corrige uma subcontagem da categoria 3.10</b> nos meses antigos, e este detalhamento n\u00e3o tem essa corre\u00e7\u00e3o."},
     {t:"m", h:"Agora ela mostra as duas causas e n\u00e3o escolhe", d:"A diferen\u00e7a continua na tela, m\u00eas a m\u00eas, com o valor. O que saiu foi a <b>afirma\u00e7\u00e3o</b> de por que ela existe. <b>Nos dois casos o total daqui est\u00e1 subestimado</b> \u2014 s\u00f3 n\u00e3o d\u00e1 para dizer por qual dos dois motivos."},
@@ -12835,8 +12843,10 @@ function renderDespesas(){
      CAIXA       -> relatoriosPetros/desp_{sig}_{unidade}_{AAAA-MM}. Linha:
                     [categoria, codigo, tipo, valor]. Ex.: ["3.01 DESPESAS COM FUNCIONARIOS",
                     "3.01.02", "SALARIOS", 2680]. E' pela data em que o dinheiro SAIU.
-     COMPETENCIA -> despesasAno[ano][ramo][Unidade].categorias[] = {nome(=TIPO), total, meses[12]}.
-                    E' pelo mes em que a despesa ACONTECEU, e e' a base que o contador usa.
+     COMPETENCIA -> dre_{sig}_{unidade}_{AAAA-MM}, campo `despDet` = [grupo, categoria, tipo, valor].
+                    Vem do DRE Consolidado (`f_obtem_dre`), que o `estado-do-projeto.md` chama de
+                    A BASE CORRETA DA DESPESA. E' pelo mes em que a despesa ACONTECEU.
+                    🔴 v345 - ela lia o `despesasAno` ate' 12/08. Ver a lapide mais abaixo.
    🔑 Uma regua por vez, e o nome dela fica escrito na tela. A tela NUNCA soma as duas.
 
    🔴 E O SEGUNDO ACHADO, medido no Firestore em 11/08: o desp_ dos POSTOS so' existe de
@@ -12867,7 +12877,6 @@ function dsdRamo(){ return dsdEhLoja() ? "conveniencias" : "postos"; }
    "Teresina") ja e' exatamente a ponte entre as duas fontes, porque o despesasAno indexa por
    NOME e o id do desp_ indexa por CHAVE. O finUnidNome faz o caminho de ida; o DESC_PET_UN
    (v282) faz o de volta, e nenhum dos dois precisou de copia. */
-function dsdNomeDaChave(k){ return finUnidNome(k); }
 function dsdUnidadesSel(){ return (dsdUnidSel === "todos") ? UNIDADES_REL.map(u => u.chave) : [dsdUnidSel]; }
 function dsdMesId(ano, m){ return ano + "-" + (m < 9 ? "0" : "") + (m + 1); }
 
@@ -12880,24 +12889,31 @@ function dsdComp(v){
   return sinal + fmtBR(a, 0);
 }
 
+/* v345 - o tipo de documento de cada regua. As duas passaram a ter a MESMA forma: um documento
+   por unidade e por mes, com `atualizadoEm` dentro. E' isso que faz o aviso de idade servir para
+   as duas sem caso especial.                                                                  */
+function dsdTipoDoc(){ return dsdRegua === "caixa" ? "desp" : "dre"; }
 function dsdAnosDisponiveis(){
   const set = {};
-  const pre = "desp_" + dsdSig() + "_";
+  const pre = dsdTipoDoc() + "_" + dsdSig() + "_";
   Object.keys(relPetros || {}).forEach(k => {
     if (String(k).indexOf(pre) !== 0) return;
     const per = String(k).split("_").pop();
     if (/^\d{4}-\d{2}$/.test(per)) set[per.slice(0, 4)] = 1;
   });
-  const P = (despesasAno || {});
-  Object.keys(P).forEach(a => {
-    if (!/^\d{4}$/.test(a)) return;
-    const r = (P[a] || {})[dsdRamo()];
-    if (r && Object.keys(r).length) set[a] = 1;      // so' conta o ano que tem dado DESTE ramo
-  });
   return Object.keys(set).sort().reverse();
 }
 
-/* O de-para TIPO -> CATEGORIA. A competencia so' guarda o tipo ("SALARIOS"); a categoria
+/* 🪦 v345 - MORREU AQUI o de-para TIPO -> CATEGORIA (`dsdNorm` + `dsdMapaCategoria`) e o
+   `dsdNomeDaChave`. Eles existiam SO' para consertar um defeito da fonte antiga: o `despesasAno`
+   guardava o tipo sem a categoria, e a categoria tinha de ser adivinhada da outra fonte — com
+   normalizacao de acento e hifen, porque "TSC - FERIAS" e "TSC FERIAS" sao o mesmo tipo escrito
+   de dois jeitos, e sem isso R$ 1,26 milhao caia num balde chamado "SEM CATEGORIA".
+   👉 O `dre_*.despDet` traz a categoria PRONTA. 🔑 Trocar a fonte apagou o problema em vez de
+   conserta-lo — e apagou junto as tres funcoes que existiam so' para conserta-lo.
+   ⚠️ Nao ressuscite isto sem antes olhar se a fonte nova ja' nao resolve.
+   (o texto abaixo fica de registro do que elas faziam)
+   O de-para TIPO -> CATEGORIA. A competencia so' guarda o tipo ("SALARIOS"); a categoria
    ("3.01 DESPESAS COM FUNCIONARIOS") so' existe na fonte de caixa. Este mapa e' o que faz
    o accordion funcionar NAS DUAS reguas.
    🔑 Ele varre TODAS as siglas de proposito: o plano de contas e' o mesmo do grupo, e a
@@ -12909,33 +12925,6 @@ function dsdAnosDisponiveis(){
    competencia manda "TSC FERIAS". Sem tirar acento e pontuacao, SETE tipos caiam em
    "SEM CATEGORIA" - o balde ia a 35,1% do ano nos postos, com cara de buraco no plano de
    contas quando era so' um hifen. Com ela, cai para 14,3%.                                  */
-function dsdNorm(t){
-  return String(t || "").toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^A-Z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
-}
-function dsdMapaCategoria(){
-  const m = {}, porNome = {};
-  Object.keys(relPetros || {}).forEach(k => {
-    if (String(k).indexOf("desp_") !== 0) return;
-    const ls = rpzLista(relPetros[k]);
-    if (!Array.isArray(ls)) return;
-    ls.forEach(r => {
-      if (!Array.isArray(r)) return;
-      const t = dsdNorm(rpzTxt(r[2] || "")), c = rpzTxt(r[0] || "").trim();
-      if (!c) return;
-      if (t && !m[t]) m[t] = c;
-      /* 2a passada: a categoria SEM o codigo na frente ("3.06 DESPESAS FINANCEIRAS" ->
-         "DESPESAS FINANCEIRAS"). O relatorio de competencia as vezes manda uma linha que e' o
-         nome do GRUPO, nao de um tipo dentro dele - e sem isto ela cai em SEM CATEGORIA
-         carregando R$ 343 mil, que e' dinheiro que o app SABE onde por.                     */
-      const nu = dsdNorm(c.replace(/^[\d.\s-]+/, ""));
-      if (nu && !porNome[nu]) porNome[nu] = c;
-    });
-  });
-  Object.keys(porNome).forEach(k => { if (!m[k]) m[k] = porNome[k]; });
-  return m;
-}
-
 /* Junta tudo num so' formato, venha de onde vier:
    { cats:[{nome, cod, total, meses[12], tipos:[{nome, total, meses[12]}]}], total, porMes[12],
      mesTem[12], nTipos, fonteFalha }                                                      */
@@ -12973,22 +12962,40 @@ function dsdMontar(){
       }
     });
   } else {
-    const mapa = dsdMapaCategoria();
-    const P = ((despesasAno || {})[ano] || {})[dsdRamo()] || {};
+    /* ===================== v345 - A COMPETENCIA TROCOU DE FONTE =====================
+       Ela lia `despesasAno`, e o `despesasAno` tinha TRES defeitos de uma vez:
+         1. 🔴 ORFAO - `grep -l despesasAno *.mjs` no VPS volta VAZIO. Nenhum coletor grava.
+            Ele era `por:"coleta manual (Claude)"`, de 29/07, e julho la' dizia 637.096 quando
+            o certo eram 746.407.
+         2. 🔴 SUBCONTADO - ele vem do bloco `Despesas` do "Mes a Mes-GR", que subconta a
+            categoria 3.10. O `estado-do-projeto.md` ja' dizia: **a base correta da despesa e' o
+            DRE Consolidado, NAO o Mes a Mes**.
+         3. 🔴 SEM CATEGORIA - ele so' guarda o TIPO, e a categoria tinha de ser adivinhada por um
+            de-para montado da outra fonte, com normalizacao de acento e hifen para nao perder
+            R$ 1,26 milhao num balde chamado "SEM CATEGORIA".
+       👉 O `dre_{sig}_{unidade}_{AAAA-MM}` ja' gravava `despDet` = [grupo, categoria, tipo, valor],
+       vindo do DRE Consolidado, escrito pelo `coletor-vps`, com uma trava no coletor provando que
+       Σ despDet = Σ desp. 🎯 **Medido em 12/08: ele bate AO REAL com o `anomes` nos oito meses**
+       (604.364 · 540.485 · 564.923 · 885.019 · 893.244 · 716.129 · 746.407 · 145.416).
+       E vem com 2025 junto: 20 meses gravados, contra os 8 do `despesasAno`.
+       🔑 A pergunta certa nao era "quem vai passar a gravar isso" — era "isso ja' nao esta gravado
+       em outro lugar, melhor?". Estava, desde a v281.                                          */
     uns.forEach(u => {
-      const lst = ((P[dsdNomeDaChave(u)] || {}).categorias) || [];
-      lst.forEach(c => {
-        const tipo = rpzTxt(c.nome || "").trim() || "SEM TIPO";
-        if (!dsdComRet && dspRetirada(tipo)) return;
-        const cat = mapa[dsdNorm(tipo)] || "SEM CATEGORIA";
-        const ms = c.meses || [];
-        for (let m = 0; m < 12; m++) por(cat, "", tipo, m, Number(ms[m]) || 0);
-      });
+      for (let m = 0; m < 12; m++){
+        const doc = relPetros["dre_" + sig + "_" + u + "_" + dsdMesId(ano, m)];
+        if (!doc) continue;
+        quando.push({ m:m, un:u, em:String(doc.atualizadoEm || ""), por:String(doc.por || "") });
+        mesTem[m] = true;
+        const D = rpzLista(doc);
+        if (!D || typeof D !== "object" || Array.isArray(D)) continue;   // o dre_ devolve OBJETO
+        (D.despDet || []).forEach(r => {
+          if (!Array.isArray(r)) return;
+          const tipo = rpzTxt(r[2] || "").trim() || "SEM TIPO";
+          if (!dsdComRet && dspRetirada(tipo)) return;
+          por(rpzTxt(r[1] || "").trim() || "SEM CATEGORIA", "", tipo, m, Number(r[3]) || 0);
+        });
+      }
     });
-    /* ⚠️ A competencia NAO tem um documento por mes: ela e' um vetor de doze posicoes com zero
-       no que ainda nao aconteceu. Entao aqui "tem dado" so' pode ser medido pelo valor - e por
-       isso um mes real de despesa ZERO aparece como "—". E' impreciso, e a tela DIZ isso.   */
-    for (let m = 0; m < 12; m++) if (porMes[m] !== 0) mesTem[m] = true;
   }
 
   const lista = Object.keys(cats).map(k => cats[k]).sort((a, b) => b.total - a.total);
@@ -13159,63 +13166,39 @@ function renderDespesasDet(){
        (semCat ? ' <b>' + fmtR$0(semCat.total) + '</b> caíram em <b>SEM CATEGORIA</b>: são linhas que o relatório de competência já entrega agrupadas (as “OUTRAS (N tipos)”) ou tipos que ainda não apareceram na fonte de caixa, que é de onde vem a categoria.' : '') +
        '</div>';
 
-  /* ---------- v343: a idade do que está na tela, e a denúncia do buraco ---------- */
+  /* ---------- v345: a idade do que está na tela — a MESMA conta para as duas réguas ----------
+     Desde que a competência passou a ler o `dre_*` (v345), as duas fontes têm a mesma forma: um
+     documento por unidade e por mês, com `atualizadoEm` dentro. 🔑 Isso apagou o caso especial: a
+     pergunta "este mês foi fotografado antes de acabar?" agora vale para as duas, e se responde
+     com duas datas que o próprio documento carrega.
+     A competência ganha ainda a conferência contra o `anomes` — que hoje dá ZERO, e é justamente
+     por isso que ela fica: **prova contínua de que a fonte nova está certa.**                  */
   let av = '';
+  const dias = {};
+  (D.quando || []).forEach(q => { const d = dsdDia(q.em); if (d && (!dias[q.m] || d > dias[q.m])) dias[q.m] = d; });
+  const velhos = Object.keys(dias).map(Number).filter(m => dsdFotoAntesDoFim(m, dias[m]))
+                   .sort((a, b) => a - b).map(m => DSD_MES[m] + " (" + dsdDataBR(dias[m]) + ")");
+  const maisNovo = Object.keys(dias).map(k => dias[k]).sort().pop();
+  let extra = '';
   if (dsdRegua === "comp"){
-    const quandoC = dsdDia(((despesasAno || {})[dsdAnoSel] || {}).atualizadoEm);
     const anom = dsdAnomesDesp();
-    let falta = 0, mesesAtras = [];
-    if (anom){
-      for (let m = 0; m < 12; m++){
-        const d = (anom[m] || 0) - (D.porMes[m] || 0);
-        if (d > 1) { falta += d; mesesAtras.push(DSD_MES[m] + " +" + dsdComp(d)); }
-      }
-    }
-    av += '<div class="ana-resumo dsd-idade' + (falta > 0 ? ' dsd-idade-alerta' : '') + '">' +
-          '<b>Coletado em ' + escAttr(dsdDataBR(quandoC)) + '.</b> ';
-    if (falta > 0){
-      /* 🔴 v344 - A CAUSA SAIU DAQUI, E A LIÇÃO É DA FAMÍLIA MAIS CARA DO PROJETO: número certo,
-         causa errada. A v343 escrevia que a diferença toda era "despesa que continua chegando depois
-         que o mês fecha". A diferença é REAL e está medida — mas a explicação era chute com cara de
-         medição, e o cabeçalho do `dre-anomes.mjs` já tinha a outra metade escrita desde 06/08:
-         o `desp` do `anomes` NÃO sai do bloco `Despesas` do Mês a Mês, porque ele SUBCONTA a
-         categoria 3.10; o coletor corrige isso com uma consulta extra ao `f_obtem_dre`.
-         👉 Medido lá: Teresina, abril, 205.365,64 no bloco contra 262.879,88 corrigido — R$ 57.514.
-         Os três postos deram R$ 131.356 em abril, o que cabe quase inteiro nessa explicação.
-         🔑 E o mesmo texto diz que JULHO E AGOSTO batem exato pelos dois caminhos — que é justamente
-         onde o lançamento tardio se sustenta. 👉 A tela mostra a diferença e NÃO ESCOLHE a causa. */
-      av += 'O mesmo relatório, na versão que é recoletada três vezes por dia, já soma <b>' + fmtR$0(falta) +
-            '</b> a mais neste ano — <b>' + fmtBR(D.total ? falta / D.total * 100 : 0, 1) + '%</b>: ' +
-            escAttr(mesesAtras.join(" · ")) + '. ' +
-            '🔑 <b>São duas causas possíveis, e esta tela não sabe separar as duas.</b> Uma é despesa lançada ' +
-            '<b>depois</b> de o mês fechar — a conciliação de caixa e banco não sai no mesmo dia, e a coleta deste ' +
-            'detalhamento é de uma foto só. A outra é que o relatório recoletado <b>corrige uma subcontagem da ' +
-            'categoria 3.10</b> nos meses antigos, que este detalhamento não tem. ' +
-            '<b>Nos dois casos o total por mês aqui está subestimado</b> — só não dá para dizer por qual dos dois motivos.';
-    } else if (anom){
-      av += 'Confere com o total do relatório recoletado hoje — <b>sem diferença</b>.';
-    } else {
-      av += 'Não há como comparar: falta o relatório do ano para estas unidades.';
-    }
-    av += '</div>';
-  } else {
-    const dias = {};
-    (D.quando || []).forEach(q => { const d = dsdDia(q.em); if (d && (!dias[q.m] || d > dias[q.m])) dias[q.m] = d; });
-    const velhos = Object.keys(dias).map(Number).filter(m => dsdFotoAntesDoFim(m, dias[m]))
-                     .sort((a, b) => a - b).map(m => DSD_MES[m] + " (" + dsdDataBR(dias[m]) + ")");
-    const maisNovo = Object.keys(dias).map(k => dias[k]).sort().pop();
-    av += '<div class="ana-resumo dsd-idade' + (velhos.length ? ' dsd-idade-alerta' : '') + '">' +
-          '<b>Coleta mais recente: ' + escAttr(dsdDataBR(maisNovo)) + '.</b> ';
-    if (velhos.length){
-      av += '<b>' + velhos.length + ' ' + (velhos.length === 1 ? 'mês foi fotografado' : 'meses foram fotografados') +
-            ' antes de acabar</b> — ' + escAttr(velhos.join(", ")) + '. ' +
-            '🔑 Despesa continua sendo lançada depois que o mês fecha, então esses meses <b>estão subestimados</b> ' +
-            'e não vão se corrigir sozinhos: a coleta só refaz o mês corrente.';
-    } else {
-      av += 'Nenhum mês foi fotografado antes de acabar.';
-    }
-    av += '</div>';
+    let dif = 0;
+    if (anom) for (let m = 0; m < 12; m++) if (D.mesTem[m]) dif += Math.abs((anom[m] || 0) - (D.porMes[m] || 0));
+    if (anom && dif > 1) extra = ' ⚠️ Contra o total do mesmo relatório na versão do gráfico anual há <b>' +
+        fmtR$0(dif) + '</b> de diferença — <b>vale conferir antes de usar este número</b>.';
+    else if (anom) extra = ' ✅ Confere com o total do relatório do gráfico anual, <b>sem diferença</b>.';
   }
+  av += '<div class="ana-resumo dsd-idade' + (velhos.length ? ' dsd-idade-alerta' : '') + '">' +
+        '<b>Coleta mais recente: ' + escAttr(dsdDataBR(maisNovo)) + '.</b> ';
+  if (velhos.length){
+    av += '<b>' + velhos.length + ' ' + (velhos.length === 1 ? 'mês foi fotografado' : 'meses foram fotografados') +
+          ' antes de acabar</b> — ' + escAttr(velhos.join(", ")) + '. ' +
+          '🔑 Despesa continua sendo lançada depois que o mês fecha, então esses meses <b>estão subestimados</b> ' +
+          'e não vão se corrigir sozinhos: a coleta só refaz o mês corrente.';
+  } else {
+    av += 'Nenhum mês foi fotografado antes de acabar.';
+  }
+  av += extra + '</div>';
   h += av;
 
   // ---- os quatro cartoes, no padrao .rel-kpi (v281), que e' o desta familia de telas
