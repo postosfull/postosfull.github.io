@@ -1186,8 +1186,11 @@
   .cot-status.pend{color:var(--vermelho)}
   /* Resultado no período (Petros) no topo do Dashboard */
   .pet-sec{margin-bottom:26px}
-  .pet-bloco{border:1px solid var(--borda);border-radius:12px;padding:14px;background:var(--superficie);margin-bottom:14px}
-  .pet-bloco-tit{font-family:"Oswald","Poppins",sans-serif;font-size:.95rem;text-transform:uppercase;letter-spacing:.5px;color:var(--txt);margin-bottom:10px}
+  /* v351 - saíram .pet-bloco e .pet-bloco-tit: a moldura da empresa e o rótulo dela.
+     Nenhum outro lugar do app usava as duas classes (medido: 7 LINHAS, 9 ocorrências da
+     string — a linha da regra e a que montava o bloco têm duas cada, porque
+     `pet-bloco-tit` contém `pet-bloco`. ⚠️ `grep -c` conta linha, `grep -o | wc -l` conta
+     ocorrência: aqui as duas contas existem e não são a mesma). */
   /* grade: todos os cards SEMPRE do mesmo tamanho (o último não estica mais) */
   .pet-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
   .pet-card{border:1px solid var(--borda);border-radius:10px;padding:12px 14px;background:var(--superficie-2)}
@@ -3110,18 +3113,19 @@
   .rel-kpis > .rel-kpi:nth-child(7){animation-delay:.26s}
   .rel-kpis > .rel-kpi:nth-child(n+8){animation-delay:.30s}
 
-  /* ---------- 5b. os quadros do Dashboard e os blocos ---------- */
-  .pet-card,.pet-bloco{
+  /* ---------- 5b. os quadros do Dashboard ---------- */
+  /* v351 - .pet-bloco saiu destes três seletores junto com a moldura da empresa. */
+  .pet-card{
     position:relative;overflow:hidden;border-radius:14px;
     background-image:linear-gradient(152deg, var(--superficie) 0%, var(--superficie-2) 100%);
     box-shadow:var(--sombra-1);
     transition:transform .18s cubic-bezier(.22,1,.36,1), box-shadow .18s ease, border-color .18s ease;
   }
-  .pet-card::before,.pet-bloco::before{
+  .pet-card::before{
     content:"";position:absolute;left:0;right:0;top:0;height:2px;
     background-image:linear-gradient(90deg, var(--verde) 0%, rgba(var(--verde-rgb),.10) 62%, transparent 100%);
   }
-  .pet-card:hover,.pet-bloco:hover{ transform:translateY(-2px);box-shadow:var(--sombra-2);border-color:rgba(var(--verde-rgb),.32) }
+  .pet-card:hover{ transform:translateY(-2px);box-shadow:var(--sombra-2);border-color:rgba(var(--verde-rgb),.32) }
   .pet-card{ padding:14px 15px 13px }
   .pet-card h4{ letter-spacing:.7px }
   .pet-l b{ font-variant-numeric:tabular-nums }
@@ -7400,6 +7404,10 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v351", data:"12/08/2026", tit:"🏁 O card <b>Vendas do dia</b> perdeu a <b>caixa dentro da caixa</b>", itens:[
+    {t:"m", h:"Saiu a moldura com o nome da empresa", d:"Dentro do card <b>Vendas do dia</b> havia uma segunda caixa, com borda e fundo próprios, escrita <b>⛽ Postos Full</b> nos postos e <b>🛒 Full Conveniência</b> na loja — e dentro dela os cartões de Teresina, Caxias e Dutra. Era <b>card dentro de card</b>. A moldura e o rótulo saíram: os três cartões agora nascem direto embaixo do título. 🔑 De qual empresa é a tela <b>a logomarca do cabeçalho já diz</b> — ela troca sozinha entre Postos Full e Full Conveniência. O rótulo aqui dentro custava uma moldura inteira para repetir o que o alto da tela já dizia."},
+    {t:"m", h:"Os cartões passaram a ocupar a largura inteira do card", d:"Sem o recuo da moldura, o primeiro cartão <b>alinha com a barra laranja do título</b>, como os outros blocos do Dashboard — conferido em <b>139 larguras de tela</b>, do celular ao monitor largo, nos dois tamanhos de card: <b>zero</b> desalinhadas. ⚠️ A largura de cada cartão <b>depende da tela</b>: no computador com o card inteiro eles ganham 10px, no celular ganham 30px, e nas larguras em que o espaço devolvido faz caber <b>mais um cartão por linha</b> eles ficam mais estreitos. A tela <b>nunca ficou mais alta</b>: em <b>420</b> medições ela encolheu sempre, de <b>67px</b> a <b>208px</b>. <b>Nenhum número mudou.</b>"}
+  ]},
   {v:"v350", data:"12/08/2026", tit:"\ud83d\udcd0 As barras da <b>evolu\u00e7\u00e3o mensal</b> ficaram <b>mais finas</b> \u2014 e as marcas do eixo, <b>redondas</b>", itens:[
     {t:"m", h:"A barra afinou de <b>0,76 para 0,60</b> da coluna", d:"Compara\u00e7\u00e3o dele com a tela de refer\u00eancia: <i>\u201cas barras de l\u00e1 s\u00e3o um pouco mais estreitas, fica mais agrad\u00e1vel aos olhos\u201d</i>. Medido na foto: l\u00e1 a barra ocupa <b>0,60</b> da coluna; aqui ocupava <b>0,76</b>. \ud83d\udd11 O que muda a apar\u00eancia \u00e9 a <b>propor\u00e7\u00e3o</b>, n\u00e3o a largura em pixels \u2014 ent\u00e3o vale igual no monitor e no celular."},
     {t:"c", h:"\ud83d\udd11 E o eixo parou de escrever n\u00famero quebrado", d:"Ele escolhia um <b>topo</b> e dividia por quatro, ent\u00e3o as marcas saíam <b>375 mil \u00b7 750 mil \u00b7 1,1 mi \u00b7 1,5 mi</b> \u2014 e a de <b>1,125 milh\u00e3o</b> aparecia escrita como <b>1,1 mi</b>, ou seja <b>a marca mentia sobre a pr\u00f3pria linha</b>. Agora ele escolhe o <b>passo</b>, e o topo \u00e9 consequ\u00eancia: as marcas caem sempre em n\u00famero redondo."},
@@ -25677,7 +25685,11 @@ function renderPetrosResumo(){
   const corLucroDia = v => ((+v || 0) < 0 ? "rpz-neg" : "rpz-pos");
 
   if (soLojas){
-    html += '<div class="pet-bloco"><h4 class="pet-bloco-tit">🛒 Full Conveniência</h4><div class="pet-grid">';
+    /* v351 - saiu a moldura .pet-bloco e o rotulo da empresa. Pedido do Tiago em 12/08:
+       "fica parecendo que tem 1 card dentro do outro". O nome da empresa ja' esta' no
+       cabecalho do app e no seletor do topo - repeti-lo aqui custava uma moldura inteira
+       para dizer o que a tela ja' dizia. O <h3 class="comp-tit"> continua sendo o titulo. */
+    html += '<div class="pet-grid">';
     ordem.forEach(n => {
       const d = (p.conveniencias||{})[n]; if (!d) return;
       const cd = temDespesa(d);                                  // v220
@@ -25686,9 +25698,9 @@ function renderPetrosResumo(){
         '<div class="pet-l"><span>'+(cd ? 'Lucro Líquido' : 'Lucro Bruto')+bul('lucroDia')+'</span><b class="'+corLucroDia(d.lucroLiquido)+'">R$ '+fmtBR(d.lucroLiquido||0,2)+'</b></div>' +   /* v256 */
         '</div></div>';
     });
-    html += '</div></div>';
+    html += '</div>';   /* v351 - um </div> so': a .pet-bloco nao existe mais */
   } else {
-    html += '<div class="pet-bloco"><h4 class="pet-bloco-tit">⛽ Postos Full</h4><div class="pet-grid">';
+    html += '<div class="pet-grid">';   /* v351 - ver o comentario no ramo das lojas */
     ordem.forEach(n => {
       const d = (p.postos||{})[n]; if (!d) return;
       const cd = temDespesa(d);                                  // v220
@@ -25702,7 +25714,7 @@ function renderPetrosResumo(){
             '<div class="pet-l"><span>Lucro Bruto/L'+bul('lucroDiaL')+'</span><b class="'+corLucroDia(d.lucroBrutoL)+'">R$ '+fmtBR(d.lucroBrutoL||0,4)+'</b></div>'   /* v257 */) +
         '</div></div>';
     });
-    html += '</div></div>';
+    html += '</div>';   /* v351 - um </div> so': a .pet-bloco nao existe mais */
   }
   html += '<p class="pet-info">' +
     (p.atualizadoEm ? '🔄 Atualizado em ' + fmtDataHora(new Date(p.atualizadoEm)) + ' • ' : '') +
