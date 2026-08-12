@@ -2720,7 +2720,7 @@
   .bul-tit{display:block;font-size:.8rem;color:var(--txt);margin-bottom:4px}
   .bul-txt{margin:0;font-size:.78rem;line-height:1.5;color:var(--cinza);
     text-transform:none;letter-spacing:0;font-weight:400}
-  @media print{ .bul-i,.bul-card{display:none !important} }
+  @media print{ .bul-i,.bul-card,i.dsd-i{display:none !important} .dsd-fx{border-color:#999;color:#000} }
 
   /* ===================== v258 - O SIMULADOR JA' VEM PREENCHIDO =====================
      Duas peças novas: a linha que diz DE ONDE veio cada número (e de QUANDO), e o par
@@ -3400,9 +3400,63 @@
      navegador. Abaixo de 980px cada um ocupa a largura inteira, um embaixo do outro. */
   .dsd-dois{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:stretch;margin-bottom:4px}
   .dsd-col{display:flex;flex-direction:column;min-width:0}
-  .dsd-col > .cxi-sub{margin-top:14px}
-  .dsd-col > .dsd-donut,.dsd-col > .dsd-cx{flex:1 1 auto}
-  .dsd-cx{background:var(--superficie-2);border:1px solid var(--borda);border-radius:10px;padding:14px;display:flex;align-items:center}
+  .dsd-col > .dsd-cartao{flex:1 1 auto}
+
+  /* ===================== v349 - O TITULO MORA DENTRO DO CARTAO =====================
+     Pedido dele olhando o GASview: titulo, subtitulo e um "i" DENTRO do cartao, com a
+     explicacao aparecendo ao passar o mouse. Antes o titulo era um <h3 class="cxi-sub">
+     solto ACIMA do cartao - o que fazia o cartao parecer um desenho sem legenda. */
+  .dsd-cartao{background:var(--superficie-2);border:1px solid var(--borda);border-radius:10px;
+    display:flex;flex-direction:column;overflow:hidden;min-width:0}
+  .dsd-cab{padding:13px 14px 11px;border-bottom:1px solid var(--borda)}
+  .dsd-cab h3{margin:0;font-size:.95rem;font-weight:700;color:var(--txt);line-height:1.3}
+  .dsd-cab p{margin:3px 0 0;font-size:.78rem;color:var(--cinza);line-height:1.4}
+  .dsd-corpo{flex:1 1 auto;padding:14px;display:flex;align-items:center;min-width:0}
+  .dsd-corpo > .dsd-vbar{flex:1 1 auto;min-width:0}
+
+  /* o "i" que abre no MOUSE. 🔑 A APARENCIA e' a da bula da v253 (`.bul-i`), de proposito:
+     o app ja tinha UM jeito de desenhar "tem explicacao aqui", e inventar um segundo
+     deixaria a mesma casa com dois idiomas. O que muda e' a MECANICA - aquele abre no
+     clique e escreve num cartao fixo; este usa o balao da v348, que abre no passar do
+     mouse E no toque. 👉 Se um dia valer generalizar, e' o `bul()` que ganha hover. */
+  /* 🔴 O ELEMENTO E' <i>, E O SELETOR CARREGA O NOME DA TAG DE PROPOSITO. Na primeira
+     tentativa isto era um <span class="dsd-i">, e o `.rel-kpi span{display:block}` da linha
+     1226 GANHOU dele POR ESPECIFICIDADE: (0,1,1) contra (0,1,0). ⚠️ Nao foi ordem — trocar a
+     ordem nao teria salvado. E o "i" caiu para a linha de baixo do rotulo.
+     🔑 **Classe solta perde para regra de descendente que ja existia** — e isso nao da erro
+     nenhum, so' desalinha.
+     👉 `<i>` nao casa com nenhum `span` de ninguem, e o `i.dsd-i` empata em peso com
+     qualquer `.familia i` que apareça depois. */
+  i.dsd-i{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;
+    margin-left:5px;vertical-align:middle;border:1px solid var(--borda);border-radius:999px;
+    font-size:.58rem;font-weight:700;font-style:italic;line-height:1;color:var(--cinza);
+    opacity:.72;flex:0 0 auto;cursor:help;text-transform:none;letter-spacing:0}
+  i.dsd-i:hover,i.dsd-i:focus-visible{opacity:1;color:var(--txt);border-color:var(--cinza)}
+  /* ⚠️ o DESENHO tem 14px; o ALVO DO DEDO tem 30. Sem isto o "i" e' um alvo de 14x14 num
+     aparelho de toque - da' para ver e nao da' para acertar. */
+  i.dsd-i{position:relative}
+  i.dsd-i::after{content:"";position:absolute;top:-8px;right:-8px;bottom:-8px;left:-8px}
+  .evo-tip .dsd-p{margin:0;white-space:normal;font-weight:400;color:var(--cinza);line-height:1.5}
+
+  /* ===================== v349 - A TIRA DISCRETA =====================
+     Duas faixas grandes (a da regua e a da idade da coleta) viravam a primeira coisa da
+     tela todo dia, mesmo quando nao havia nada de errado. 🔑 **Aviso que aparece sempre
+     vira paisagem** - a mesma regra do alarme da v346. Agora, quando esta tudo bem, a
+     informacao mora em pastilhas pequenas com o "i"; quando NAO esta, a faixa vermelha
+     volta por extenso. 👉 Discreto e' o padrao; alto e' a excecao. */
+  .dsd-tira{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin:10px 0 14px}
+  .dsd-fx{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;
+    border:1px solid var(--borda);background:var(--superficie-2);
+    font-size:.74rem;color:var(--cinza);white-space:nowrap;line-height:1.5;cursor:help}
+  .dsd-fx b{color:var(--txt);font-weight:600}
+  /* 🔴 A PASTILHA TEM DE PARECER QUE RESPONDE ALGUMA COISA. Na primeira tentativa ela era um
+     <span> cinza sem cursor, sem hover e sem o "i" — tres das cinco informacoes que sairam da
+     tela ficaram atras de um rotulo que parecia morto, e no celular nada sugeria tocar.
+     🔑 **Informacao escondida atras de um elemento sem afordancia e' informacao apagada.** */
+  .dsd-fx:hover,.dsd-fx:focus-visible{border-color:var(--cinza);color:var(--txt)}
+  .dsd-fx:focus-visible,i.dsd-i:focus-visible{outline:2px solid var(--verde);outline-offset:2px}
+  .dsd-fx-alerta{border-color:var(--vermelho);color:var(--vermelho)}
+  .dsd-fx-alerta b{color:var(--vermelho)}
   /* 🔑 a altura sai da PROPORCAO do viewBox; um height em px faz o grafico brigar com a coluna.
      ⚠️ v348, MEDIDO: o `max-height:340px` que estava aqui era a causa das DUAS coisas erradas.
      Com `preserveAspectRatio="none"` ele esticava as letras do eixo (1,38x mais largas num
@@ -3442,13 +3496,14 @@
      `closest(".evo-wrap")` para decidir se o clique foi "dentro do grafico dele", e um clique
      aqui passaria a contar la'. Hoje seria inofensivo, e por isso mesmo ninguem lembraria. */
   .dsd-wrap{position:relative}
-  .dsd-cx > .dsd-wrap{flex:1 1 auto;min-width:0}
   /* ⚠️ invertido de proposito: despesa que SOBE e' noticia ruim, entao vai em vermelho. */
   .evo-tip .dsd-cima{color:var(--vermelho);font-weight:700}
   .evo-tip .dsd-baixo{color:#18a558;font-weight:700}
   @media (max-width:980px){ .dsd-dois{grid-template-columns:1fr} }
-  /* a rosca: primeira do app. viewBox manda na altura, nunca um height em px (licao da v301) */
-  .dsd-donut{display:flex;flex-wrap:wrap;align-items:center;gap:18px;background:var(--superficie-2);border:1px solid var(--borda);border-radius:10px;padding:14px}
+  /* a rosca: primeira do app. viewBox manda na altura, nunca um height em px (licao da v301)
+     ⚠️ v349: o fundo, a borda e o padding SAIRAM daqui e foram para o `.dsd-cartao`/`.dsd-corpo`.
+     Se ficassem, o cartao teria duas bordas, uma dentro da outra. */
+  .dsd-donut{display:flex;flex-wrap:wrap;align-items:center;gap:18px;width:100%;min-width:0}
   .dsd-rosca{flex:0 0 190px;width:190px;max-width:100%;height:auto}
   .dsd-trilho{stroke:var(--borda)}
   .dsd-fatia{animation:dsdGira .5s cubic-bezier(.22,1,.36,1) backwards}
@@ -3484,6 +3539,7 @@
   tr.dsd-pai.rpz-cli-on>td:first-child,
   tr.dsd-pai:hover>td:first-child{background:var(--superficie-2);background-image:linear-gradient(var(--superficie-2),var(--superficie-2))}
   @media (max-width:700px){ .dsd-rosca{flex:0 0 150px;width:150px} .dsd-tab th:first-child,.dsd-tab td:first-child{min-width:150px} }
+  @media (max-width:560px){ .dsd-fx{white-space:normal} }
   @media (prefers-reduced-motion:reduce){ .dsd-fatia{animation:none} }
 </style>
 </head>
@@ -7344,6 +7400,13 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v349", data:"12/08/2026", tit:"\u2139\ufe0f As <b>Despesas Detalhadas</b> ganharam o <b>\u201ci\u201d</b> que explica cada n\u00famero \u2014 e os dois avisos gritados viraram <b>pastilha</b>", itens:[
+    {t:"n", h:"Um <b>i</b> em cada cart\u00e3o e em cada gr\u00e1fico", d:"Pedido dele olhando a tela de refer\u00eancia. Passe o mouse (ou toque, no celular) e ele diz <b>o que aquele n\u00famero \u00e9</b> e <b>de onde ele vem</b> \u2014 inclusive a regra do <b>% do faturamento</b>, que compara <b>s\u00f3 os meses em que h\u00e1 despesa</b>, porque o ano inteiro de venda contra meio ano de despesa daria um n\u00famero bonito e falso."},
+    {t:"m", h:"O t\u00edtulo passou para <b>dentro</b> do cart\u00e3o", d:"Antes ele ficava solto acima, e o cart\u00e3o parecia um desenho sem legenda. Agora tem <b>t\u00edtulo, subt\u00edtulo e o i</b>, um risco separando, e o gr\u00e1fico embaixo."},
+    {t:"c", h:"\ud83d\udd11 As duas faixas coloridas viraram pastilhas pequenas", d:"A da r\u00e9gua e a da idade da coleta eram a <b>primeira coisa da tela todo dia</b>, mesmo quando n\u00e3o havia nada de errado. <b>Aviso que aparece sempre vira paisagem.</b> Agora a faixa s\u00f3 nasce quando alguma coisa <b>pede a\u00e7\u00e3o</b>: m\u00eas faltando, m\u00eas fotografado antes de acabar, ou diferen\u00e7a contra o gr\u00e1fico anual. O resto \u2014 a r\u00e9gua, a data da coleta, a confer\u00eancia que fecha e o <b>sem categoria</b> \u2014 virou pastilha com o <b>i</b>. Discreto \u00e9 o padr\u00e3o; alto \u00e9 a exce\u00e7\u00e3o."},
+    {t:"c", h:"E a ressalva do <b>m\u00eas sem documento</b> parou de aparecer \u00e0 toa", d:"Ela avisava que m\u00eas sem documento sai como <b>\u201c\u2014\u201d</b> \u2014 <b>todo dia, inclusive hoje, com os oito meses de 2026 completos</b>. Agora ela s\u00f3 aparece quando falta m\u00eas de verdade, e a\u00ed ela <b>nomeia os meses</b>, numa pastilha vermelha <b>e</b> no aviso por extenso. \u26a0\ufe0f <b>O m\u00eas corrente nunca conta como falta:</b> no dia 1\u00ba ele ainda n\u00e3o tem lan\u00e7amento, e um alerta que acende todo primeiro do m\u00eas ensina a ignorar o alerta."},
+    {t:"c", h:"\ud83d\udd11 E o aviso que mais importava quase foi parar <b>dentro do i</b>", d:"Na primeira vers\u00e3o desta tela, o <b>m\u00eas faltando</b> ficava escrito s\u00f3 no bal\u00e3o \u2014 e a tela com um buraco em junho ficava <b>id\u00eantica</b> \u00e0 de um ano inteiro, tirando o n\u00famero <b>7</b> no lugar do <b>8</b>. <b>Ningu\u00e9m que abre a tela sabe que o esperado era oito.</b> O revisor derrubou: <b>o que pede a\u00e7\u00e3o fica na tela; o que est\u00e1 certo \u00e9 que vai para o i.</b>"}
+  ]},
   {v:"v348", data:"12/08/2026", tit:"\ud83c\udfa8 As barras da <b>evolu\u00e7\u00e3o mensal</b> ganharam <b>degrad\u00ea</b> \u2014 e o mouse virou uma ficha do m\u00eas", itens:[
     {t:"m", h:"A barra escurece de cima para baixo", d:"Compara\u00e7\u00e3o dele com a tela de refer\u00eancia: as de l\u00e1 estavam mais bonitas. <b>A cor \u00e9 a mesma de sempre</b> \u2014 o que mudou \u00e9 que ela vai <b>desbotando at\u00e9 a base</b>. O m\u00eas fora do padr\u00e3o continua vermelho, com o mesmo degrad\u00ea."},
     {t:"n", h:"Passar o mouse mostra uma ficha, e n\u00e3o s\u00f3 um n\u00famero", d:"Al\u00e9m do <b>valor ao centavo</b>, ela diz <b>quanto aquele m\u00eas pesa no ano</b> e <b>se subiu ou caiu contra o m\u00eas anterior</b> \u2014 em vermelho quando sobe, porque em despesa <b>subir \u00e9 not\u00edcia ruim</b>. E ela pula o m\u00eas <b>vazio</b> na compara\u00e7\u00e3o: comparar julho com um junho que nunca foi lan\u00e7ado inventaria uma alta de 100%."},
@@ -13255,7 +13318,11 @@ function dsdLigarTips(){
   const box = document.getElementById("dsdBox");
   if (!box) return;
   box.querySelectorAll(".dsd-wrap").forEach(wrap => {
-    const tip = wrap.querySelector(".dsd-tip");
+    /* ⚠️ `:scope >` e nao um descendente qualquer. MEDIDO: hoje os quatro `.dsd-wrap` da tela
+       sao IRMAOS, entao isto ainda nao conserta nada — e' amarra preventiva. Desde a v349 o
+       wrap e' o CARTAO inteiro, e o primeiro que aninhar um dentro do outro faria o de fora
+       sequestrar o balao do de dentro, calado. */
+    const tip = wrap.querySelector(":scope > .dsd-tip");
     if (!tip) return;
     const mostrar = (ev) => {
       const alvo = (ev.target && ev.target.closest) ? ev.target.closest("[data-tip]") : null;
@@ -13275,6 +13342,15 @@ function dsdLigarTips(){
     wrap.addEventListener("mousemove", mostrar);
     wrap.addEventListener("pointerdown", mostrar);
     wrap.addEventListener("mouseleave", () => { tip.style.display = "none"; });
+    /* ⚠️ o `tabindex` nao serve de nada sem isto: quem chega pelo Tab nao tem ponteiro, entao
+       o balao nasce ancorado no PROPRIO elemento, e nao na posicao do mouse. */
+    wrap.addEventListener("focusin", (ev) => {
+      const alvo = ev.target && ev.target.closest ? ev.target.closest("[data-tip]") : null;
+      if (!alvo) return;
+      const r = alvo.getBoundingClientRect();
+      mostrar({ target: alvo, clientX: r.left + r.width / 2, clientY: r.bottom });
+    });
+    wrap.addEventListener("focusout", () => { tip.style.display = "none"; });
   });
   /* ⚠️ ESTA e' a quarta peca, e ela nao e' enfeite: no CELULAR o `mouseleave` NUNCA dispara.
      Sem ela, o toque numa barra deixava o balao prese na tela ate' o proximo toque DENTRO do
@@ -13289,6 +13365,43 @@ function dsdLigarTips(){
       document.querySelectorAll(".dsd-tip").forEach(t => { t.style.display = "none"; });
     });
   }
+}
+/* ===================== v349 - O "i" COM A EXPLICACAO =====================
+   🔑 O texto viaja em `data-tip`, DUAS vezes escapado: o de dentro transforma o texto do
+   dono em letra literal (categoria com `&` ou `<b>` nao vira marcacao), e o de fora prende
+   tudo dentro do atributo. O par decodificacao-de-atributo -> innerHTML devolve exatamente
+   o que se quis. Medido na v348 com `PESSOAL & "ENCARGOS" <b>injecao</b>`: sai como texto.
+   ⚠️ E o `title=` do navegador NAO entra junto: dois baloes no mesmo elemento e' o defeito
+   que a v348 acabou de tirar da rosca. Quem responde por leitor de tela e' o `aria-label`. */
+function dsdI(tit, txt){
+  const html = '<b>' + escAttr(tit) + '</b><p class="dsd-p">' + escAttr(txt) + '</p>';
+  return '<i class="dsd-i" tabindex="0" role="button" aria-label="' + escAttr(tit + ": " + txt) + '" data-tip="' + escAttr(html) + '">i</i>';
+}
+/* A pastilha da tira. 🔑 Ela carrega o MESMO "i" dos cartoes, e nao so' por enfeite: sem ele
+   ninguem descobre que ha' texto ali. E carrega `tabindex`+`aria-label` porque o que ela guarda
+   antes era texto corrido dentro de uma faixa — quem le por leitor de tela nao pode perder isso
+   so' porque o texto mudou de lugar. */
+function dsdFx(texto, tit, txt, alerta){
+  return '<span class="dsd-fx' + (alerta ? ' dsd-fx-alerta' : '') + '" tabindex="0" role="button"' +
+         ' aria-label="' + escAttr(tit + ": " + txt) + '"' +
+         ' data-tip="' + escAttr('<b>' + escAttr(tit) + '</b><p class="dsd-p">' + escAttr(txt) + '</p>') + '">' +
+         texto + '<i class="dsd-i" aria-hidden="true">i</i></span>';
+}
+/* Os meses que FALTAM de verdade - e nao a ressalva generica que a tela dava todo dia.
+   🔑 O mes CORRENTE nunca conta como falta: no dia 1o ele legitimamente ainda nao tem
+   lancamento, e um aviso que acende todo primeiro do mes ensina a ignorar o aviso.
+   Ano passado conta os doze; ano corrente conta ate' o mes anterior. */
+function dsdMesesFaltando(mesTem, ano){
+  const hoje = new Date();
+  /* ⚠️ ano FUTURO devolve lista vazia: um ano que ainda nao aconteceu nao "esta faltando" mes
+     nenhum, e sem esta linha ele acusaria onze. */
+  if (Number(ano) > hoje.getFullYear()) return [];
+  const fim = (String(ano) === String(hoje.getFullYear())) ? hoje.getMonth() - 1 : 11;
+  const prim = mesTem.indexOf(true);
+  if (prim < 0) return [];
+  const f = [];
+  for (let m = prim; m <= fim; m++) if (!mesTem[m]) f.push(DSD_MES[m]);
+  return f;
 }
 function dsdAbrirCat(nome){
   dsdAberta[nome] = !dsdAberta[nome];
@@ -13350,17 +13463,33 @@ function renderDespesasDet(){
 
   let h = '';
 
-  /* o aviso de cobertura vem ANTES de tudo: e' o que impede alguem de comparar um ano cheio
-     com dois meses e achar que a despesa caiu. */
-  h += '<div class="ana-resumo dsd-aviso"><b>' + escAttr(nomeRegua) + '</b> — ' + escAttr(subRegua) + '. ' +
-       'Com dado em <b>' + meses.length + '</b> ' + (meses.length === 1 ? 'mês' : 'meses') + ' de ' + escAttr(dsdAnoSel) + ': ' + escAttr(meses.join(", ")) + '.' +
-       /* v346 - este texto era diferente por regua porque a competencia antiga NAO tinha documento
-          por mes: ela era um vetor de doze posicoes, e "tem dado" so' podia ser medido pelo valor.
-          Desde a v345 as duas leem um documento por mes, entao a frase passou a ser a mesma - e a
-          ressalva antiga virou mentira, que e' pior do que nao ter ressalva. */
-       ' Mês sem documento aparece como “—”, nunca como zero.' +
-       (semCat ? ' <b>' + fmtR$0(semCat.total) + '</b> caíram em <b>SEM CATEGORIA</b>: são linhas que o relatório de competência já entrega agrupadas (as “OUTRAS (N tipos)”) ou tipos que ainda não apareceram na fonte de caixa, que é de onde vem a categoria.' : '') +
-       '</div>';
+  /* ---------- v349: a cobertura virou PASTILHA ----------
+     O aviso de cobertura continua sendo o que impede alguem de comparar um ano cheio com
+     dois meses e achar que a despesa caiu — mas ele nao precisa ser a maior coisa da tela
+     todo dia. 🔑 A ressalva do "mes sem documento" era o caso mais claro: ela aparecia
+     SEMPRE, inclusive quando nao faltava um mes sequer (em 12/08/2026, JAN a AGO, oito de
+     oito). **Ressalva que nunca corresponde a nada ensina a nao ler a ressalva.**
+     👉 Agora ela so' existe quando falta mes de verdade — e aí ela NOMEIA os meses, em vez
+     de descrever o mecanismo. */
+  const faltando = dsdMesesFaltando(D.mesTem, dsdAnoSel);
+  let tira = '';
+  tira += dsdFx('<b>' + escAttr(nomeRegua) + '</b> · ' + meses.length + (meses.length === 1 ? ' mês' : ' meses'),
+                nomeRegua.replace(/^[^A-Za-zÀ-ú]+/, ""),
+                subRegua.charAt(0).toUpperCase() + subRegua.slice(1) +
+                ". Com dado em " + meses.length + (meses.length === 1 ? " mês" : " meses") + " de " + dsdAnoSel + ": " + meses.join(", ") + ".");
+  /* 🔴 O MES QUE FALTA NAO MORA NO HOVER. A primeira versao da v349 pos esta frase dentro do
+     `data-tip` da pastilha da regua — e a tela com um buraco de junho ficava IDENTICA a de um
+     ano inteiro, tirando o numero "7" no lugar do "8". 🔑 **Ninguem que abre a tela sabe que o
+     esperado era oito**, entao "· 7 meses" nao avisa coisa nenhuma.
+     👉 A regra que eu mesmo escrevi tres linhas acima vale aqui: DISCRETO E' O PADRAO, ALTO E'
+     A EXCECAO — e mes faltando e' a excecao. Pastilha vermelha na tira E a linha por extenso
+     na faixa, que ja e' condicional. ⚠️ E "Faltam" no plural: a versao anterior dizia "Falta
+     JUL, AGO, SET". */
+  if (faltando.length){
+    tira += dsdFx((faltando.length === 1 ? '⚠️ Falta <b>' : '⚠️ Faltam <b>') + escAttr(faltando.join(", ")) + '</b>',
+                  "Mês sem documento",
+                  "Estes meses estão entre o primeiro mês com lançamento e o mês passado, e não têm documento gravado nesta régua — não é despesa zero, é ausência de dado. Na tabela eles aparecem como “—”, nunca como zero, e o total do ano está incompleto por causa deles.", true);
+  }
 
   /* ---------- v345: a idade do que está na tela — a MESMA conta para as duas réguas ----------
      Desde que a competência passou a ler o `dre_*` (v345), as duas fontes têm a mesma forma: um
@@ -13369,13 +13498,12 @@ function renderDespesasDet(){
      com duas datas que o próprio documento carrega.
      A competência ganha ainda a conferência contra o `anomes` — que hoje dá ZERO, e é justamente
      por isso que ela fica: **prova contínua de que a fonte nova está certa.**                  */
-  let av = '';
   const dias = {};
   (D.quando || []).forEach(q => { const d = dsdDia(q.em); if (d && (!dias[q.m] || d > dias[q.m])) dias[q.m] = d; });
   const velhos = Object.keys(dias).map(Number).filter(m => dsdFotoAntesDoFim(m, dias[m]))
                    .sort((a, b) => a - b).map(m => DSD_MES[m] + " (" + dsdDataBR(dias[m]) + ")");
   const maisNovo = Object.keys(dias).map(k => dias[k]).sort().pop();
-  let extra = '';
+  let extraAlerta = '', extraOk = false;
   if (dsdRegua === "comp"){
     const anom = dsdAnomesDesp();
     let dif = 0;
@@ -13386,32 +13514,72 @@ function renderDespesasDet(){
        escrita no projeto. 👉 O piso e' o maior entre R$ 100 e um MILESIMO do total: ele deixa
        passar o arredondamento e continua pegando qualquer divergencia que valha uma conferida. */
     const piso = Math.max(100, (D.total || 0) * 0.001);
-    if (anom && dif > piso) extra = ' ⚠️ Contra o total do mesmo relatório na versão do gráfico anual há <b>' +
+    if (anom && dif > piso) extraAlerta = '⚠️ Contra o total do mesmo relatório na versão do gráfico anual há <b>' +
         fmtR$0(dif) + '</b> de diferença — <b>vale conferir antes de usar este número</b>.';
-    else if (anom) extra = ' ✅ Confere com o total do relatório do gráfico anual.';
+    else if (anom) extraOk = true;
   }
-  av += '<div class="ana-resumo dsd-idade' + (velhos.length ? ' dsd-idade-alerta' : '') + '">' +
-        '<b>Coleta mais recente: ' + escAttr(dsdDataBR(maisNovo)) + '.</b> ';
-  if (velhos.length){
-    av += '<b>' + velhos.length + ' ' + (velhos.length === 1 ? 'mês foi fotografado' : 'meses foram fotografados') +
-          ' antes de acabar</b> — ' + escAttr(velhos.join(", ")) + '. ' +
-          '🔑 Despesa continua sendo lançada depois que o mês fecha, então esses meses <b>estão subestimados</b> ' +
-          'e não vão se corrigir sozinhos: a coleta só refaz o mês corrente.';
-  } else {
-    av += 'Nenhum mês foi fotografado antes de acabar.';
+  /* 🔑 v349 - A REGRA: DISCRETO E' O PADRAO, ALTO E' A EXCECAO.
+     Quando esta tudo bem, a idade da coleta e a conferencia moram em pastilha com "i".
+     Quando NAO esta — mes fotografado antes de acabar, ou divergencia contra o grafico
+     anual — a faixa vermelha volta POR EXTENSO. ⚠️ Esconder o problema atras de um hover
+     seria trocar um defeito (aviso que vira paisagem) por outro pior (aviso que ninguem
+     ve). O que foi para o hover foi o "esta tudo certo", que e' o que aparecia sempre. */
+  /* ⚠️ a frase "Nenhum mês foi fotografado antes de acabar" tinha sumido DE VEZ na primeira
+     versao da v349: o texto passou a explicar o MECANISMO e nunca respondia a pergunta.
+     🔑 Explicar como uma coisa pode dar errado, sem dizer se hoje deu, deixa a preocupacao e
+     tira a resposta. */
+  tira += dsdFx('⏱ Coletado em <b>' + escAttr(dsdDataBR(maisNovo)) + '</b>',
+                "De quando é este número",
+                "A data da coleta mais recente entre os meses da tela. Despesa continua sendo lançada depois que o mês fecha — as funcionárias não conciliam caixa e banco no mesmo dia — então um mês fotografado no dia em que ele acabou fica subestimado. A coleta refaz o mês corrente e o anterior todo dia, às 5h27. " +
+                (velhos.length ? "Aqui há " + velhos.length + (velhos.length === 1 ? " mês nessa situação, e ele está listado no aviso abaixo." : " meses nessa situação, e eles estão listados no aviso abaixo.")
+                               : "Nenhum mês desta tela foi fotografado antes de acabar."));
+  if (extraOk) tira += dsdFx('✅ Confere com o gráfico anual', "Conferência contra a outra fonte",
+                "O total desta tela contra o total do MESMO relatório na versão que alimenta o gráfico anual. São dois caminhos diferentes até o mesmo número — quando os dois fecham, o número está provado por duas fontes, não por uma.");
+  /* ⚠️ SEM CATEGORIA e' PASTILHA, nao faixa. Ele descreve como a fonte agrupa linha — nao e'
+     defeito. Deixando-o disparar a faixa, bastaria ele existir em todo ano para a faixa voltar
+     a aparecer todo dia, e a v349 teria empurrado o bloco para baixo em vez de resolver.
+     🔑 A pergunta que separa os dois: "isto pede alguma acao?". SEM CATEGORIA nao pede. */
+  if (semCat) tira += dsdFx('💠 <b>' + fmtR$0(semCat.total) + '</b> sem categoria', "Sem categoria",
+                "Linhas que o relatório já entrega agrupadas (as “OUTRAS (N tipos)”) ou tipos que ainda não apareceram na fonte de caixa, que é de onde vem a categoria. O valor está no total do ano; o que falta é o nome do grupo, não o dinheiro.");
+  h += '<div class="dsd-wrap"><div class="dsd-tira">' + tira + '</div><div class="evo-tip dsd-tip"></div></div>';
+
+  /* 🔑 A FAIXA E' SO' PARA O QUE PEDE ACAO — e por isso ela pode ser alta sem virar paisagem. */
+  if (velhos.length || extraAlerta || faltando.length){
+    let al = '<div class="ana-resumo dsd-idade' + ((velhos.length || faltando.length) ? ' dsd-idade-alerta' : '') + '">';
+    if (faltando.length){
+      al += (faltando.length === 1 ? '<b>Falta o mês de ' : '<b>Faltam os meses de ') + escAttr(faltando.join(", ")) +
+            '</b> nesta régua — não há documento gravado, e isso <b>não é despesa zero</b>: é ausência de dado. ' +
+            'O total do ano está incompleto por causa deles, e na tabela eles aparecem como “—”. ';
+    }
+    if (velhos.length){
+      al += '<b>' + velhos.length + ' ' + (velhos.length === 1 ? 'mês foi fotografado' : 'meses foram fotografados') +
+            ' antes de acabar</b> — ' + escAttr(velhos.join(", ")) + '. ' +
+            '🔑 Despesa continua sendo lançada depois que o mês fecha, então esses meses <b>estão subestimados</b> ' +
+            'e não vão se corrigir sozinhos: a coleta só refaz o mês corrente. ';
+    }
+    if (extraAlerta) al += extraAlerta + ' ';
+    h += al + '</div>';
   }
-  av += extra + '</div>';
-  h += av;
 
   // ---- os quatro cartoes, no padrao .rel-kpi (v281), que e' o desta familia de telas
-  h += '<div class="rel-kpis">';
-  h += '<div class="rel-kpi"><span>Despesas ' + escAttr(dsdAnoSel) + '</span><b>' + fmtR$0(D.total) + '</b></div>';
-  h += '<div class="rel-kpi"><span>% do faturamento</span><b>' +
+  /* v349 - cada cartao ganhou o "i". Pedido dele: "esses cards de cima todos tem o i com a
+     informacao ao passar o mouse por cima, vamos implementar tambem".                       */
+  h += '<div class="dsd-wrap"><div class="rel-kpis">';
+  h += '<div class="rel-kpi"><span>Despesas ' + escAttr(dsdAnoSel) +
+       dsdI("Despesas " + dsdAnoSel, "Tudo o que esta régua contabilizou no ano, somando as unidades escolhidas no filtro. É o mesmo número que a coluna Total da tabela lá embaixo fecha. Estorno entra como valor negativo e abate.") +
+       '</span><b>' + fmtR$0(D.total) + '</b></div>';
+  h += '<div class="rel-kpi"><span>% do faturamento' +
+       dsdI("% do faturamento", "Quanto a despesa representa das vendas de combustível mais loja, NOS MESMOS MESES em que há despesa — comparar o ano inteiro de venda com meio ano de despesa daria um número bonito e falso. As outras receitas ficam de fora do divisor, pela regra da v202.") +
+       '</span><b>' +
        ((fat > 0 && D.total > 0) ? fmtPctRel(D.total / fat * 100, 1) : "—") + '</b>' +
        '<small>' + (fat ? 'Faturamento ' + fmtR$0(fat) + ' nos mesmos meses' : 'sem faturamento gravado para comparar') + '</small></div>';
-  h += '<div class="rel-kpi"><span>Maior categoria</span><b>' + (maior.total > 0 ? fmtR$0(maior.total) : "—") + '</b><small>' + escAttr(maior.total > 0 ? maior.nome : "sem categoria positiva no período") + '</small></div>';
-  h += '<div class="rel-kpi"><span>Categorias</span><b>' + D.cats.length + '</b><small>' + D.nTipos + ' tipos</small></div>';
-  h += '</div>';
+  h += '<div class="rel-kpi"><span>Maior categoria' +
+       dsdI("Maior categoria", "A categoria de despesa que mais pesou no período e quanto ela custou. É por onde vale a pena começar a olhar quando quiser cortar gasto.") +
+       '</span><b>' + (maior.total > 0 ? fmtR$0(maior.total) : "—") + '</b><small>' + escAttr(maior.total > 0 ? maior.nome : "sem categoria positiva no período") + '</small></div>';
+  h += '<div class="rel-kpi"><span>Categorias' +
+       dsdI("Categorias e tipos", "Quantos grupos do seu plano de contas apareceram no ano, e quantos tipos existem dentro deles. Na tabela abaixo, clicar numa categoria abre os tipos dela.") +
+       '</span><b>' + D.cats.length + '</b><small>' + D.nTipos + ' tipos</small></div>';
+  h += '</div><div class="evo-tip dsd-tip"></div></div>';
 
   // ---- a rosca e a legenda
   /* 🔑 O DIVISOR DA ROSCA E' A SOMA DAS FATIAS POSITIVAS, nao o total. Estorno entra no
@@ -13438,22 +13606,37 @@ function renderDespesasDet(){
 
   /* v347 - os dois graficos LADO A LADO, e um embaixo do outro quando a tela estreita.
      A quebra e' do CSS (`.dsd-dois`), nao do JS: quem decide se cabe e' o navegador. */
+  /* v349 - o titulo, o subtitulo e o "i" DENTRO do cartao. O `.dsd-wrap` embrulha o cartao
+     INTEIRO, e nao so' o desenho: senao o balao do "i" do cabecalho nao teria onde nascer. */
+  const cabRosca = '<div class="dsd-cab"><h3>Despesas por categoria — ' + escAttr(dsdAnoSel) +
+        dsdI("Despesas por categoria", "Como as despesas do ano se dividem entre os grupos do seu plano de contas. A fatia mostra o peso de cada grupo no total — por onde começar a cortar.") +
+        '</h3><p>Participação de cada categoria no total</p></div>';
+  const cabBarras = '<div class="dsd-cab"><h3>Evolução mensal — ' + escAttr(dsdAnoSel) +
+        dsdI("Evolução mensal", "Quanto de despesa caiu em cada mês do ano. " +
+             (dsdRegua === "caixa"
+               ? "Conta pela data em que o dinheiro SAIU, então mês com muita conta vencendo junto aparece mais alto."
+               : "Conta pelo mês em que a despesa ACONTECEU, independente de quando foi paga.")) +
+        '</h3><p>Total de despesas por mês, em R$ · ' + escAttr(subRegua) + '</p></div>';
+
   h += '<div class="dsd-dois">';
-  h += '<div class="dsd-col"><h3 class="cxi-sub">Participação de cada categoria no total</h3>' +
+  h += '<div class="dsd-col"><div class="dsd-cartao dsd-wrap">' + cabRosca +
        (fatias.length
-         ? ((totPos - D.total > 0.01 ? '<p class="nota-dash">A rosca divide pelo que foi <b>gasto</b> (' + fmtR$0(totPos) + '). O total da tela é menor porque há estorno lançado como valor negativo.</p>' : '') +
-            '<div class="dsd-donut dsd-wrap">' + dsdRosca(fatias) +
+         ? ('<div class="dsd-corpo"><div class="dsd-donut">' + dsdRosca(fatias) +
             '<div class="dsd-leg">' + fatias.map((f, i) =>
               '<div class="dsd-leg-l"><span class="dsd-leg-q" style="background:var(--dsd-c' + ((i % 8) + 1) + ')"></span>' +
               '<span class="dsd-leg-n" title="' + escAttr(f.nome) + '">' + escAttr(f.nome) + '</span>' +
-              '<span class="dsd-leg-v">' + fmtBR(f.p * 100, 1) + '%</span></div>').join("") + '</div>' +
-            '<div class="evo-tip dsd-tip"></div></div>')
-         : '<div class="dsd-cx"><p class="nota-dash">Sem categoria com valor positivo no período.</p></div>') +
-       '</div>';
-  h += '<div class="dsd-col"><h3 class="cxi-sub">Mês a mês (R$)</h3>' +
-       '<div class="dsd-cx"><div class="dsd-wrap">' + dsdBarrasVert(D, dsdEhPico) +
-       '<div class="evo-tip dsd-tip"></div></div></div></div>';
+              '<span class="dsd-leg-v">' + fmtBR(f.p * 100, 1) + '%</span></div>').join("") + '</div></div></div>')
+         : '<div class="dsd-corpo"><p class="nota-dash">Sem categoria com valor positivo no período.</p></div>') +
+       '<div class="evo-tip dsd-tip"></div></div></div>';
+  h += '<div class="dsd-col"><div class="dsd-cartao dsd-wrap">' + cabBarras +
+       '<div class="dsd-corpo">' + dsdBarrasVert(D, dsdEhPico) + '</div>' +
+       '<div class="evo-tip dsd-tip"></div></div></div>';
   h += '</div>';
+  /* ⚠️ `fatias.length &&`: sem ele, um ano em que TODAS as categorias fossem negativas emitiria
+     "a rosca divide pelo que foi gasto (R$ 0)" ao lado de um cartao que diz que nao ha rosca. */
+  if (fatias.length && totPos - D.total > 0.01){
+    h += '<p class="nota-dash">A rosca divide pelo que foi <b>gasto</b> (' + fmtR$0(totPos) + '). O total da tela é menor porque há estorno lançado como valor negativo.</p>';
+  }
   if (temPico){
     h += '<p class="nota-dash">O mês marcado em vermelho passou 40% da média dos outros. Quando um lançamento que vale o ano inteiro cai num mês só, aquele mês parece péssimo e os vizinhos parecem bons demais.</p>';
   }
