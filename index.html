@@ -4503,6 +4503,14 @@
         </div>
       </div>
     </div>
+
+    <div class="adm-pag" id="admPagSinc" style="display:none">
+      <div class="grupo">
+        <h2>📡 Avisos do Petros</h2>
+        <p class="nota-dash">Recados do tipo <b>mensagem</b> que o Petros devolve durante a sincronização. Eles <b>não impedem a venda</b>, e o suporte do Petros orienta ignorá-los — por isso ficam aqui, e não no cartão do selo de frescor, que é de quem opera. O que <b>trava</b> (unidade parada, atraso no envio) continua no cartão do selo, lá em cima. A lista se atualiza sozinha a cada leitura do Petros.</p>
+        <div id="admSincBox"></div>
+      </div>
+    </div>
   </div>
 
   <div class="config" id="painelCaixa">
@@ -4912,6 +4920,7 @@ let frcCardAberto = false;
 /* v265 - o estado da sincronizacao das unidades, gravado pelo coletor do VPS de 5 em 5 min.
    AUSENTE nao e' VAZIO: enquanto a nuvem nao responder, o selo nao afirma nada sobre isso. */
 let sincDoc = null;
+let sincFalhou = false;   /* v355 - a leitura FALHOU e' diferente de "li e nao ha aviso" */
 let vistoSinc = false;
 let frcTimer = null;
 const FRC_CORTE = 9;        /* a partir desta hora, dia util sem rodada vira problema (a rodada
@@ -6276,20 +6285,31 @@ function presencaHtml(email){
 }
 
 /* ===================== v216 - Painel Administrativo unificado ===================== */
-/* Cinco abas: Pessoas, Perfis de acesso, Quem ve o que, Regras do app e Atividades.
+/* As abas vivem em ABAS_ADM, logo abaixo - NAO se conta abas neste comentario: numero
+   escrito a mao ao lado de lista que cresce e' o proximo numero errado do arquivo (ja errou
+   duas vezes aqui, com "cinco" quando eram seis e depois sete).
    A permissao passa a ter DUAS dimensoes (empresa x menu) e os poderes deixam de
    morar em quadros separados. Regra unica de decisao:
    admin > excecao da pessoa > perfil > padrao.                                    */
 
 const ABAS_ADM = [
   /* 🔑 A Pendencias vem PRIMEIRO e e' a aba padrao: desde a v319 e' por ela que ele abre o painel.
-     As outras quatro sao de configuracao, e configuracao se mexe quando muda alguma coisa. */
+     As de configuracao se mexem quando muda alguma coisa. */
   {k:"pend",    nome:"📌 Pendências",             pag:"admPagPendencias"},
   {k:"pessoas", nome:"👥 Pessoas",                pag:"admPagPessoas"},
   {k:"perfis",  nome:"🎭 Perfis de acesso",       pag:"admPagPerfis"},
   {k:"matriz",  nome:"🔎 Quem vê o quê", pag:"admPagMatriz"},
   {k:"regras",  nome:"⚙️ Regras do app",          pag:"admPagRegras"},
-  {k:"ativ",    nome:"📜 Atividades",             pag:"admPagAtividades"}
+  {k:"ativ",    nome:"📜 Atividades",             pag:"admPagAtividades"},
+  /* 🆕 v355 - os avisos leves do Petros SAIRAM do cartao do selo de frescor e vieram para ca'.
+     🔑 Eles nao impedem a venda e o proprio suporte do Petros manda ignorar - mas aviso que a
+     equipe ve sem poder resolver e' exatamente o que ensina a ignorar aviso. Aqui eles
+     continuam consultaveis por quem administra, sem ocupar a tela de quem opera.
+     ⚠️ O NOME E' "Avisos do Petros", igual ao <h2> da pagina: a mesma tela nao pode ter dois
+     nomes (v335). E NAO e' "Sincronizacao" de proposito - a tela COMPLETA de sincronizacao e'
+     uma pendencia aberta que esta aba nao faz, e batizar a aba com o nome dela faria a proxima
+     sessao ler a pendencia como concluida. */
+  {k:"sinc",    nome:"📡 Avisos do Petros",       pag:"admPagSinc"}
 ];
 const EMPRESAS_ADM = [
   {sig:"postos", chave:"postos",         nome:"⛽ Postos Full",                cls:"adm-e1"},
@@ -6487,7 +6507,57 @@ function renderAbaAdm(){
   else if (admAba === "matriz"){ renderAdmMatriz(); renderAdmUnidades(); }
   else if (admAba === "regras"){ renderMetaCaixa(); renderAvisoReceb(); }   /* v316 */
   else if (admAba === "ativ")   { popularSelectsAdmin(admEmails()); renderAtividadesFunc(); }
+  else if (admAba === "sinc")   renderAdmSinc();             /* v355 */
   else                          renderAdminUsuarios();
+}
+
+/* ----- aba 📡 Avisos do Petros (v355): os avisos leves que sairam do cartao do selo -----------------------------------
+   🔴 O BLOCO NASCEU NO CARTAO DO SELO DE FRESCOR e foi mudado de lugar, nao apagado: o texto e'
+   o mesmo, a fonte e' a mesma (`config/sincronizacao`, via frcSinc()), so' o lugar mudou.
+   🔑 O que decidiu foi a natureza do aviso: ele nao pede acao de ninguem. Aviso que a operacao
+   nao pode resolver, na tela da operacao, e' ruido - e ruido diario ensina a ignorar o vermelho
+   que importa (a licao das v296/v316). O que TRAVA continua no cartao, porque la' ele muda a cor
+   do selo; isto aqui nunca mudou cor nenhuma.
+   ⚠️ Nao ha `atualizadoEm` proprio destas mensagens - o carimbo e' o do documento inteiro. */
+/* 🔴 O CARTAO SE REDESENHA SOZINHO A CADA LEITURA DO PETROS (`atualizarSeloFrescor` chama
+   `renderFrcCard` quando ele esta aberto). Mudar o bloco de lugar sem esta funcao trocaria uma
+   lista VIVA por uma FOTO: com a aba aberta, o coletor reescreve o documento de 5 em 5 minutos e
+   a tela continuaria mostrando o aviso de meia hora atras, com o carimbo envelhecendo na cara de
+   quem le. 🔑 Peca que muda de lugar leva junto o que ela SABIA FAZER. */
+function admSincAoVivo(){
+  const pa = document.getElementById("painelAdmin");
+  if (pa && pa.classList.contains("aberto") && admAba === "sinc") renderAdmSinc();
+}
+function renderAdmSinc(){
+  const box = document.getElementById("admSincBox"); if (!box) return;
+  /* 🔴 ENQUANTO A NUVEM NAO RESPONDEU, A ABA NAO AFIRMA NADA. Sem esta guarda ela escreve
+     "Nenhum aviso do Petros" antes da primeira leitura - indistinguivel de "medi e nao ha".
+     E' a mesma regra do selo de frescor, que so aparece quando `e.sabido`. */
+  if (!vistoSinc){ box.innerHTML = '<p class="nota-dash">Lendo os avisos do Petros…</p>'; return; }
+  /* 🔴 E "TENTEI E FALHEI" NAO PODE DAR A MESMA FRASE DE "LI E NAO HA AVISO". O callback de erro
+     marca `vistoSinc` para nao prender o selo, e sem esta linha a aba passaria direto da guarda
+     acima e afirmaria "Nenhum aviso" em cima de uma leitura que nao aconteceu. */
+  if (sincFalhou){ box.innerHTML = '<p class="nota-dash">Não consegui ler os avisos do Petros agora. Assim que a leitura voltar, eles aparecem aqui.</p>'; return; }
+  const s = frcSinc();
+  const leves = (s.mensagens || []).filter(m => m && !m.grave);
+  /* 🔴 IDADE ILEGIVEL NAO VIRA "AGORA". O `|| "agora"` que estava aqui transformava
+     "nao consegui ler a hora" em "acabei de ler o Petros" - carimbo que mente quando nao sabe e'
+     a irma do RELOAD do cron e do log de zero byte. Sem hora legivel, sem carimbo. */
+  const idade = frcIdadeMin(s.atualizadoEm);
+  const carimbo = (idade === null) ? ""
+    : '<p class="frc-res">Lido do Petros ' + escAttr(frcQuantoFaz(idade)) + '.</p>';
+  if (!leves.length){
+    box.innerHTML = '<p class="nota-dash">Nenhum aviso do Petros no momento.</p>' + carimbo;
+    return;
+  }
+  box.innerHTML = '<div class="frc-lista"><span class="frc-lista-tit">' +
+    (leves.length === 1 ? '1 aviso' : leves.length + ' avisos') + ' (não impedem a venda)</span>' +
+    leves.map(m => {
+      const q = frcQuantoFaz(frcIdadeMin(m.quando));
+      return '<div class="frc-it"><span class="frc-it-p">' + escAttr(frcRotuloUnidade(m)) + '</span>' +
+             (q ? '<span class="frc-un-ok">' + q + '</span>' : '') +
+             '<span class="frc-it-d">' + escAttr(m.detalhe || "") + '</span></div>';
+    }).join("") + '</div>' + carimbo;
 }
 
 /* ----- aba Pessoas ----- */
@@ -7437,6 +7507,12 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v355", data:"12/08/2026", tit:"📡 Os <b>avisos do Petros</b> que não impedem a venda saíram do cartão do selo e viraram uma aba do Painel Administrativo", itens:[
+    {t:"c", h:"Era um aviso que quem lia não tinha como resolver", d:"O cartão que abre no <b>selo de frescor</b> (a pastilha com a hora, no topo) trazia um bloco <b>Avisos do Petros (não impedem a venda)</b> — as mensagens do tipo <b>mensagem</b> que o ERP devolve durante a sincronização, como <i>\"Não foi encontrado nenhum Concentrador TEF cadastrado para o terminal\"</i>. <b>Quem disse para ignorá-las foi o suporte do Petros</b>, e o Tiago trouxe o recado. 🔑 <b>Aviso que a operação não pode resolver, na tela da operação, ensina a ignorar aviso</b> — inclusive o vermelho que importa."},
+    {t:"m", h:"Agora eles moram no Painel Administrativo, na aba 📡 Avisos do Petros", d:"O bloco <b>não foi apagado, foi mudado de lugar</b>: o mesmo texto, a mesma unidade, a mesma hora de cada aviso, e a lista <b>continua se atualizando sozinha</b> a cada leitura do Petros, como fazia dentro do cartão. Quem administra confere quando quiser; quem opera não esbarra mais neles. ⚠️ Na prática isso quer dizer que os avisos <b>deixam de aparecer para quem não é administrador</b> — o botão do Painel Administrativo só aparece para admin."},
+    {t:"m", h:"O que continua no cartão do selo é o que trava", d:"<b>Unidades que pararam de enviar</b>, <b>quando cada unidade enviou dado</b> e os passos da rotina seguem exatamente onde estavam. Esses, sim, mudam a cor do selo — os avisos que saíram <b>nunca mudaram cor nenhuma</b>."},
+    {t:"m", h:"⚠️ O custo, medido: no celular a tira de abas do painel ganhou uma linha", d:"São <b>sete abas</b> agora, e no celular elas quebram em mais uma linha: 📏 medido em <b>390px</b> (iPhone 12/13/14/15), a tira passou de <b>109 para 148px</b> — <b>+39px</b> empurrando para baixo o conteúdo de <b>todas</b> as abas, inclusive a 📌 Pendências, que é por onde o painel abre. Em 320px é o mesmo +39px. No computador depende da largura da janela: 📏 <b>acima de 1.100px os sete chips continuam numa linha só</b>; <b>de 1.095px para baixo</b> a tira ganha a mesma linha a mais (<b>31 → 70px</b>) — na v354 isso só acontecia abaixo de <b>930px</b>. Medido em onze larguras, de 320 a 1.440px."}
+  ]},
   {v:"v354", data:"12/08/2026", tit:"📱 No <b>celular</b>, o cartão do sino voltou a caber na tela — sem cortar nome nenhum", itens:[
     {t:"c", h:"O ✓ de ontem tinha encolhido a lista, e a conta foi paga em altura", d:"O <b>✓</b> que entrou na v353 ocupa <b>37,84px</b> de cada linha. No computador isso foi pago alargando o cartão; <b>no celular não havia de onde tirar</b>, porque ali o cartão já é a tela inteira. A saída da v353 foi descer a <b>unidade</b> (Pres. Dutra, Full Transportadora) para uma segunda linha: os nomes ficaram inteiros, mas cada aviso passou de <b>34 para 55px</b> — e o cartão começou a pedir rolagem com seis avisos."},
     {t:"m", h:"Agora a unidade não aparece no celular, e tudo cabe de novo", d:"De <b>560px de largura para baixo</b> a pastilha da unidade fica escondida, e o aviso volta para <b>uma linha de 37px</b> — 3px a mais que os 34 da v352, que são o próprio ✓. 📏 Medido num iPhone SE/8 (390×667) com 8 avisos: <b>os 7 itens cabem sem rolar</b> (eram 5) e <b>nenhum nome fica cortado</b> (na v352 eram 4 de 6, e com o ✓ novo seriam mais). <b>No computador a TELA não muda</b> — a unidade continua ali, do lado direito de cada linha."},
@@ -9112,11 +9188,19 @@ function iniciarSync(){
      reescrito de 5 em 5 minutos pelo coletor do VPS. */
   escutaSinc = docSinc.onSnapshot(snap => {
     sincDoc = snap.exists ? (snap.data() || null) : null;
-    vistoSinc = true;
+    vistoSinc = true; sincFalhou = false;
     atualizarSeloFrescor();
-  }, ()=>{ vistoSinc = true; atualizarSeloFrescor(); });
+    admSincAoVivo();                                       /* v355 */
+  }, ()=>{ vistoSinc = true; sincFalhou = true; atualizarSeloFrescor(); admSincAoVivo(); });
   /* o selo tambem envelhece sozinho: quem deixa a pagina aberta a manha inteira
-     atravessa a hora de corte e a virada do dia */
+     atravessa a hora de corte e a virada do dia.
+     📏 v355 - A ABA NAO PRECISA ENTRAR AQUI, E ISSO FOI MEDIDO. Dois revisores pediram
+     `admSincAoVivo()` neste timer, com o argumento de que a aba ficaria congelada quando o
+     coletor morresse (sem documento novo, o tempo passa e nada redesenha). A medicao com relogio
+     falso mostrou que ela envelhece assim mesmo: o `iniciarPresenca` (6232) ja redesenha o painel
+     administrativo INTEIRO de 45 em 45 segundos. A linha extra passava a mutacao M20 sem que
+     nenhuma assercao mudasse - era codigo sobrando. 🔑 Conserto que nao muda nenhuma medicao nao
+     e' conserto: e' peca a mais para a proxima versao sustentar. */
   if (!frcTimer) frcTimer = setInterval(atualizarSeloFrescor, 5*60*1000);
 
   // v191 - relatorios do Petros
@@ -21192,19 +21276,12 @@ function renderFrcCard(){
                '</div>';
       }).join("") + '</div>';
   }
-  const leves = s.mensagens.filter(m => m && !m.grave);
-  if (leves.length){
-    /* 🔴 DE QUEM e' e DE QUANDO e'. Sem isso, o aviso obriga a pessoa a ir conferir em outro
-       sistema para saber se ainda vale - e a resposta la' e' confusa, porque a lista do Petros
-       so' conta "Erros" e estes sao "Mensagem". */
-    h += '<div class="frc-lista"><span class="frc-lista-tit">Avisos do Petros (n\u00e3o impedem a venda)</span>' +
-      leves.map(m => {
-        const q = frcQuantoFaz(frcIdadeMin(m.quando));
-        return '<div class="frc-it"><span class="frc-it-p">' + escAttr(frcRotuloUnidade(m)) + '</span>' +
-               (q ? '<span class="frc-un-ok">' + q + '</span>' : '') +
-               '<span class="frc-it-d">' + escAttr(m.detalhe || "") + '</span></div>';
-      }).join("") + '</div>';
-  }
+  /* 🆕 v355 - o bloco "Avisos do Petros (nao impedem a venda)" SAIU DAQUI e virou a aba
+     📡 Avisos do Petros do Painel Administrativo (`renderAdmSinc`). 🔑 O cartao do selo responde
+     "os numeros de hoje chegaram?"; estas mensagens nunca responderam isso - elas nao mudam a
+     cor do selo, nao pedem acao, e o suporte do Petros manda ignorar. ⚠️ A FONTE CONTINUA A
+     MESMA (`frcSinc()`), entao NAO ha coleta a apagar - a regra "tela que sai leva a coleta
+     junto" nao se aplica aqui, porque o cartao segue lendo o mesmo documento. */
   corpo.innerHTML = h;
 }
 
