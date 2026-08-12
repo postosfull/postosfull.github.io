@@ -3396,6 +3396,24 @@
   .ana-resumo.dsd-idade{font-size:.82rem;margin-top:-4px}
   .ana-resumo.dsd-idade-alerta{border-left-color:var(--vermelho)}
 
+  /* v347 - os dois graficos lado a lado. A quebra e' do CSS, nao do JS: quem sabe se cabe e' o
+     navegador. Abaixo de 980px cada um ocupa a largura inteira, um embaixo do outro. */
+  .dsd-dois{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:stretch;margin-bottom:4px}
+  .dsd-col{display:flex;flex-direction:column;min-width:0}
+  .dsd-col > .cxi-sub{margin-top:14px}
+  .dsd-col > .dsd-donut,.dsd-col > .dsd-cx{flex:1 1 auto}
+  .dsd-cx{background:var(--superficie-2);border:1px solid var(--borda);border-radius:10px;padding:14px;display:flex;align-items:center}
+  /* 🔑 a altura sai da PROPORCAO do viewBox; um height em px faria o grafico brigar com a coluna */
+  /* ⚠️ `meet` e nao `none`: este grafico tem ROTULO DE EIXO, e o `none` do `.dre-svg` estica o
+     texto quando o max-height entra. O `.evo-svg` (v-antiga) ja' usa `meet` + max-height - e' o
+     padrao certo para grafico com texto dentro. */
+  .dsd-vbar{width:100%;height:auto;max-height:340px;display:block}
+  .dsd-grade{stroke:var(--borda);stroke-width:1}
+  .dsd-eixo{fill:var(--cinza);font-size:12px;font-family:inherit}
+  .dsd-eixo-off{opacity:.42}
+  .dsd-vb{fill:var(--verde)}
+  .dsd-vb-alerta{fill:var(--vermelho)}
+  @media (max-width:980px){ .dsd-dois{grid-template-columns:1fr} }
   /* a rosca: primeira do app. viewBox manda na altura, nunca um height em px (licao da v301) */
   .dsd-donut{display:flex;flex-wrap:wrap;align-items:center;gap:18px;background:var(--superficie-2);border:1px solid var(--borda);border-radius:10px;padding:14px}
   .dsd-rosca{flex:0 0 190px;width:190px;max-width:100%;height:auto}
@@ -7293,6 +7311,11 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v347", data:"12/08/2026", tit:"\ud83d\udcca A <b>evolu\u00e7\u00e3o mensal</b> ficou <b>em p\u00e9</b>, ao lado da rosca", itens:[
+    {t:"m", h:"As barras eram deitadas, uma embaixo da outra", d:"Pedido dele: <b>em p\u00e9 e ao lado</b> da <b>Participa\u00e7\u00e3o de cada categoria</b>, como na tela que serviu de refer\u00eancia. Os <b>doze meses</b> aparecem sempre \u2014 m\u00eas que some do eixo faz o ano parecer menor do que \u00e9. O que muda \u00e9 a barra existir ou n\u00e3o."},
+    {t:"n", h:"E ela desce sozinha no celular", d:"Enquanto couber, os dois ficam <b>lado a lado</b>. Quando a tela estreita, o de baixo <b>vai para baixo</b> e cada um ocupa a largura inteira."},
+    {t:"m", h:"A marca do m\u00eas fora do padr\u00e3o continua", d:"O m\u00eas que passa 40% da m\u00e9dia <b>dos outros</b> segue em vermelho, e passar o mouse em cima de qualquer barra mostra o valor <b>ao centavo</b>."}
+  ]},
   {v:"v346", data:"12/08/2026", tit:"\ud83d\udd07 Dois textos da tela de <b>Despesas</b> que passaram a mentir depois da v345", itens:[
     {t:"c", h:"O alarme disparava por R$ 6", d:"A confer\u00eancia contra o gr\u00e1fico anual pedia <b>\u201cvale conferir antes de usar este n\u00famero\u201d</b> por causa de <b>R$ 6 em R$ 5,09 milh\u00f5es</b> \u2014 arredondamento de centavo somado em 802 linhas. <b>Alarme que dispara sempre n\u00e3o \u00e9 alarme.</b> Agora ele s\u00f3 acende acima de R$ 100 ou de um mil\u00e9simo do total."},
     {t:"m", h:"E a ressalva do \u201cm\u00eas sem dado\u201d ficou velha", d:"A Compet\u00eancia avisava que um m\u00eas de despesa <b>zero</b> apareceria como <b>\u201c\u2014\u201d</b>, porque a fonte antiga n\u00e3o tinha documento por m\u00eas. <b>Desde a v345 ela tem</b> \u2014 a ressalva deixou de valer, e ressalva que n\u00e3o vale mais \u00e9 pior do que ressalva nenhuma."}
@@ -13100,6 +13123,46 @@ function dsdRosca(fatias){
   return s;
 }
 
+/* ===================== v347 - AS BARRAS VERTICAIS, EM SVG NA MAO =====================
+   Pedido dele olhando o GASview: a evolucao mensal em pe', AO LADO da rosca, e caindo para baixo
+   quando a tela estreita. As barras eram horizontais (`cxi-bar`), que e' o padrao das telas antigas
+   e nao cabe lado a lado com nada.
+   🔑 Mesmo metodo da rosca: SVG escrito a mao, sem biblioteca. A altura sai da PROPORCAO do
+   viewBox, nunca de um height em px - e' o que faz o grafico acompanhar a coluna que o segura.
+   🔑 E os DOZE meses aparecem sempre, mesmo vazios: mes que some do eixo faz o ano parecer menor
+   do que e'. O que muda e' a barra existir ou nao.                                            */
+function dsdPassoEixo(max){
+  const bruto = (max || 1) / 4;
+  const p = Math.pow(10, Math.floor(Math.log10(bruto)));
+  const n = bruto / p;
+  return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * p;
+}
+function dsdBarrasVert(D, ehPico){
+  const W = 560, H = 300, L = 58, R = 10, T = 12, B = 30;
+  const larg = W - L - R, alt = H - T - B;
+  const max = Math.max.apply(null, D.porMes.concat([0]));
+  const passo = dsdPassoEixo(max);
+  const topo = Math.max(passo, Math.ceil(max / passo) * passo);
+  const col = larg / 12, gap = Math.min(10, col * 0.28), bw = col - gap;
+  let s = '<svg class="dsd-vbar" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img" aria-label="Total de despesas por mês">';
+  for (let i = 0; i <= 4; i++){
+    const v = topo * i / 4, y = T + alt - alt * i / 4;
+    s += '<line class="dsd-grade" x1="' + L + '" y1="' + y.toFixed(1) + '" x2="' + (W - R) + '" y2="' + y.toFixed(1) + '"/>' +
+         '<text class="dsd-eixo" x="' + (L - 8) + '" y="' + (y + 4).toFixed(1) + '" text-anchor="end">' + escAttr(dsdComp(v)) + '</text>';
+  }
+  for (let m = 0; m < 12; m++){
+    const x = L + col * m + gap / 2, meio = x + bw / 2;
+    s += '<text class="dsd-eixo' + (D.mesTem[m] ? '' : ' dsd-eixo-off') + '" x="' + meio.toFixed(1) + '" y="' + (H - 9) + '" text-anchor="middle">' +
+         DSD_MES[m].charAt(0) + DSD_MES[m].slice(1).toLowerCase() + '</text>';
+    if (!D.mesTem[m]) continue;
+    const v = D.porMes[m];
+    const hb = topo > 0 ? Math.max(1.5, alt * (v / topo)) : 1.5;
+    s += '<rect class="dsd-vb' + (ehPico(m) ? ' dsd-vb-alerta' : '') + '" x="' + x.toFixed(1) + '" y="' + (T + alt - hb).toFixed(1) +
+         '" width="' + bw.toFixed(1) + '" height="' + hb.toFixed(1) + '" rx="2">' +
+         '<title>' + DSD_MES[m] + ' — R$ ' + fmtBR(v, 2) + '</title></rect>';
+  }
+  return s + '</svg>';
+}
 function dsdAbrirCat(nome){
   dsdAberta[nome] = !dsdAberta[nome];
   renderDespesasDet();
@@ -13232,18 +13295,8 @@ function renderDespesasDet(){
   const positivas = D.cats.filter(c => c.total > 0);
   const totPos = positivas.reduce((a, c) => a + c.total, 0);
   const fatias = totPos > 0 ? positivas.map(c => ({ nome:c.nome, v:c.total, p:c.total / totPos })) : [];
-  if (fatias.length){
-    h += '<h3 class="cxi-sub">Participação de cada categoria no total</h3>';
-    if (totPos - D.total > 0.01) h += '<p class="nota-dash">A rosca divide pelo que foi <b>gasto</b> (' + fmtR$0(totPos) + '). O total da tela é menor porque há estorno lançado como valor negativo.</p>';
-    h += '<div class="dsd-donut">' + dsdRosca(fatias) +
-         '<div class="dsd-leg">' + fatias.map((f, i) =>
-           '<div class="dsd-leg-l"><span class="dsd-leg-q" style="background:var(--dsd-c' + ((i % 8) + 1) + ')"></span>' +
-           '<span class="dsd-leg-n" title="' + escAttr(f.nome) + '">' + escAttr(f.nome) + '</span>' +
-           '<span class="dsd-leg-v">' + fmtBR(f.p * 100, 1) + '%</span></div>').join("") + '</div></div>';
-  }
 
-  // ---- as barras por mes, no .cxi- que a tela velha ja usa (e mantendo a marca de pico)
-  /* 🔑 a media e' DOS OUTROS meses, nunca com o proprio dentro - e' a mesma conta do
+  /* 🔑 a media do pico e' DOS OUTROS meses, nunca com o proprio dentro - e' a mesma conta do
      renderDespesas() desde a v185. Com o proprio mes na media, JUL 100 e AGO 200 dao media 150
      e o pico nao acende; sem ele, a media e' 100 e acende. Duas telas do mesmo app nao podem
      responder coisas opostas com o mesmo dado.                                              */
@@ -13255,15 +13308,22 @@ function renderDespesasDet(){
     return m > 0 && D.porMes[i] > m * 1.4;
   }
   const temPico = cheios.some(x => dsdEhPico(x.i));
-  const maxM = Math.max.apply(null, D.porMes.concat([1]));
-  h += '<h3 class="cxi-sub">Mês a mês (R$)</h3><div class="cxi-graf">';
-  for (let m = 0; m < 12; m++){
-    if (!D.mesTem[m]) continue;
-    const v = D.porMes[m], pico = dsdEhPico(m);
-    h += '<div class="cxi-par"><span class="cxi-q">' + DSD_MES[m] + '</span>' +
-         '<span class="cxi-wrap"><span class="cxi-bar' + (pico ? ' cxi-bar-alerta' : '') + '" style="width:' + (v / maxM * 100).toFixed(1) + '%"></span></span>' +
-         '<span class="cxi-v' + (pico ? ' cxi-v-alerta' : '') + '">' + dsdComp(v) + '</span></div>';
-  }
+
+  /* v347 - os dois graficos LADO A LADO, e um embaixo do outro quando a tela estreita.
+     A quebra e' do CSS (`.dsd-dois`), nao do JS: quem decide se cabe e' o navegador. */
+  h += '<div class="dsd-dois">';
+  h += '<div class="dsd-col"><h3 class="cxi-sub">Participação de cada categoria no total</h3>' +
+       (fatias.length
+         ? ((totPos - D.total > 0.01 ? '<p class="nota-dash">A rosca divide pelo que foi <b>gasto</b> (' + fmtR$0(totPos) + '). O total da tela é menor porque há estorno lançado como valor negativo.</p>' : '') +
+            '<div class="dsd-donut">' + dsdRosca(fatias) +
+            '<div class="dsd-leg">' + fatias.map((f, i) =>
+              '<div class="dsd-leg-l"><span class="dsd-leg-q" style="background:var(--dsd-c' + ((i % 8) + 1) + ')"></span>' +
+              '<span class="dsd-leg-n" title="' + escAttr(f.nome) + '">' + escAttr(f.nome) + '</span>' +
+              '<span class="dsd-leg-v">' + fmtBR(f.p * 100, 1) + '%</span></div>').join("") + '</div></div>')
+         : '<div class="dsd-cx"><p class="nota-dash">Sem categoria com valor positivo no período.</p></div>') +
+       '</div>';
+  h += '<div class="dsd-col"><h3 class="cxi-sub">Mês a mês (R$)</h3>' +
+       '<div class="dsd-cx">' + dsdBarrasVert(D, dsdEhPico) + '</div></div>';
   h += '</div>';
   if (temPico){
     h += '<p class="nota-dash">O mês marcado em vermelho passou 40% da média dos outros. Quando um lançamento que vale o ano inteiro cai num mês só, aquele mês parece péssimo e os vizinhos parecem bons demais.</p>';
