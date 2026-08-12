@@ -3392,6 +3392,9 @@
   }
   .rel-kpi small{display:block;font-size:.68rem;color:var(--cinza);margin-top:3px;line-height:1.35;font-weight:500}
   .ana-resumo.dsd-aviso{font-size:.85rem}
+  /* v343 - a caixa da idade. O alerta usa var(--vermelho), nunca hex, para acompanhar a empresa. */
+  .ana-resumo.dsd-idade{font-size:.82rem;margin-top:-4px}
+  .ana-resumo.dsd-idade-alerta{border-left-color:var(--vermelho)}
 
   /* a rosca: primeira do app. viewBox manda na altura, nunca um height em px (licao da v301) */
   .dsd-donut{display:flex;flex-wrap:wrap;align-items:center;gap:18px;background:var(--superficie-2);border:1px solid var(--borda);border-radius:10px;padding:14px}
@@ -7289,6 +7292,12 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v343", data:"12/08/2026", tit:"\u23f1\ufe0f As <b>Despesas Detalhadas</b> passam a dizer <b>de quando é o número</b> \u2014 e a acusar o que falta", itens:[
+    {t:"c", h:"Despesa n\u00e3o para de chegar quando o m\u00eas fecha", d:"As meninas continuam lan\u00e7ando depois do fim do m\u00eas, porque a concilia\u00e7\u00e3o de caixa e banco n\u00e3o sai no mesmo dia. <b>A coleta refazia s\u00f3 o m\u00eas corrente</b>, ent\u00e3o cada m\u00eas ficava congelado na foto do dia 30 \u2014 e o n\u00famero envelhecia <b>calado</b>."},
+    {t:"n", h:"Agora a tela mostra a data da coleta", d:"Em cima dos n\u00fameros, em toda r\u00e9gua: <b>quando aquilo foi coletado</b>. E na <b>\ud83d\udcb5 Base caixa</b> ela aponta com nome e data <b>os meses que foram fotografados antes de acabar</b> \u2014 aqueles n\u00e3o v\u00e3o se corrigir sozinhos."},
+    {t:"n", h:"E na Compet\u00eancia ela acusa o quanto falta", d:"O mesmo relat\u00f3rio existe numa vers\u00e3o <b>recoletada tr\u00eas vezes por dia</b>. A tela compara os dois e escreve a diferen\u00e7a, m\u00eas a m\u00eas. <b>Na medi\u00e7\u00e3o de hoje faltavam R$ 474.772 no ano \u2014 9,3%</b>, com abril e julho em torno de <b>17%</b> e agosto ainda zerado."},
+    {t:"m", h:"\ud83d\udd11 Ela n\u00e3o inventa n\u00famero \u2014 ela denuncia o buraco", d:"O detalhamento por categoria e tipo continua sendo o que foi coletado. O conserto de verdade \u00e9 no coletor, que precisa <b>refazer os meses anteriores</b>, e n\u00e3o s\u00f3 o corrente. At\u00e9 l\u00e1, <b>ningu\u00e9m mais l\u00ea um n\u00famero velho achando que \u00e9 o de hoje</b>."}
+  ]},
   {v:"v342", data:"11/08/2026", tit:"\ud83d\udcd8 As <b>Despesas Detalhadas</b> passam a abrir na <b>Competência</b>", itens:[
     {t:"m", h:"Antes ela abria na Base caixa", d:"E a caixa hoje só tem <b>dois meses</b> nos postos (julho e agosto), enquanto a competência tem <b>sete</b> — a tela abria quase vazia. Agora ela abre na <b>\ud83d\udcd8 Competência</b>, que é a base que o contador usa, e <b>a \ud83d\udcb5 Base caixa está a um clique</b>, do lado."},
     {t:"c", h:"Isso não quer dizer que a caixa esteja errada", d:"<b>Os dois números continuam sem bater, e nenhum dos dois está errado</b> — um conta pela data em que o dinheiro saiu, o outro pelo mês em que a despesa aconteceu. Mudou só por qual das duas a tela abre."}
@@ -12927,7 +12936,7 @@ function dsdMapaCategoria(){
      mesTem[12], nTipos, fonteFalha }                                                      */
 function dsdMontar(){
   const ano = dsdAnoSel, sig = dsdSig(), uns = dsdUnidadesSel();
-  const cats = {}, porMes = new Array(12).fill(0), mesTem = new Array(12).fill(false);
+  const cats = {}, porMes = new Array(12).fill(0), mesTem = new Array(12).fill(false), quando = [];
   let total = 0;
 
   function por(cat, cod, tipo, m, v){
@@ -12946,6 +12955,7 @@ function dsdMontar(){
       for (let m = 0; m < 12; m++){
         const doc = relPetros["desp_" + sig + "_" + u + "_" + dsdMesId(ano, m)];
         if (!doc) continue;
+        quando.push({ m:m, un:u, em:String(doc.atualizadoEm || ""), por:String(doc.por || "") });   // v343
         mesTem[m] = true;                       // 🔑 o mes "tem dado" porque o DOCUMENTO existe,
         const ls = rpzLista(doc);               //    nao porque a soma deu diferente de zero
         if (!Array.isArray(ls)) continue;
@@ -12982,7 +12992,7 @@ function dsdMontar(){
     c.tipos = Object.keys(c.tipos).map(k => c.tipos[k]).sort((a, b) => b.total - a.total);
     nTipos += c.tipos.length;
   });
-  return { cats:lista, total:total, porMes:porMes, mesTem:mesTem, nTipos:nTipos };
+  return { cats:lista, total:total, porMes:porMes, mesTem:mesTem, nTipos:nTipos, quando:quando };
 }
 
 /* O faturamento sai do anomes_{sig}_{unidade}_{AAAA} (v212): vcomb + vprod, com as outras
@@ -12991,6 +13001,50 @@ function dsdMontar(){
    🔴 E ele soma SO' OS MESES QUE TEM DESPESA. Dividir dois meses de despesa por doze meses de
    faturamento daria um "% do faturamento" que parece otimo e nao quer dizer nada - e' o caso
    real dos Postos hoje, que so' tem julho e agosto de desp_.                               */
+/* ===================== v343 - A TELA PASSOU A DIZER A IDADE DO QUE MOSTRA =====================
+   🔴 O QUE OBRIGOU ISTO, e foi o Tiago quem apontou: **as funcionárias continuam lançando despesa
+   depois de o mês fechar**, porque a conciliação de caixa e banco não sai no mesmo dia. Então
+   despesa não é como venda: ela CONTINUA CHEGANDO semanas depois. Um coletor que só coleta o MÊS
+   CORRENTE congela cada mês na foto do dia 30 — e o número fica errado para sempre, calado.
+   🔴 E a medição de 12/08 mostrou que já estava acontecendo, nos dois lados:
+     - `despesasAno` (a régua COMPETÊNCIA) está com `por:"coleta manual (Claude)"` e parado em
+       **29/07**. Comparado com o `anomes_*`, que é recoletado 3×/dia e cobre o ano inteiro, faltavam
+       **R$ 474.772 no ano (9,3%)** — abril **−17,4%**, julho **−17,2%**, agosto **zerado**.
+     - `desp_postos_2026-07` foi escrito em **30/07**, ANTES de o mês acabar, e nunca mais tocado.
+   🔑 Enquanto o coletor não ganha janela móvel, a tela NÃO PODE calar isso. Ela não inventa número:
+   ela mostra a idade e DENUNCIA a diferença contra a fonte fresca.                              */
+
+/* o total de despesa por mês pelo `anomes_{sig}_{unidade}_{AAAA}` — mesma família de relatório da
+   competência, mas recoletado 3×/dia pelo dre-anomes.mjs e cobrindo o ano inteiro. Serve de RÉGUA
+   da régua: ele não tem categoria nem tipo, então não substitui a tela - só denuncia o buraco.  */
+function dsdAnomesDesp(){
+  const out = new Array(12).fill(0);
+  let achou = false;
+  dsdUnidadesSel().forEach(u => {
+    const doc = relPetros["anomes_" + dsdSig() + "_" + u + "_" + dsdAnoSel];
+    if (!doc) return;
+    const D = rpzLista(doc);
+    if (!D || typeof D !== "object" || Array.isArray(D)) return;
+    achou = true;
+    const x = D.desp || [];
+    for (let m = 0; m < 12; m++) out[m] += Number(x[m]) || 0;
+  });
+  return achou ? out : null;
+}
+function dsdDia(iso){ const t = String(iso || "").slice(0, 10); return /^\d{4}-\d{2}-\d{2}$/.test(t) ? t : ""; }
+function dsdDataBR(iso){ const d = dsdDia(iso); return d ? d.split("-").reverse().join("/") : "—"; }
+function dsdMesCorrente(){ const h = new Date(); return h.getFullYear() + "-" + (h.getMonth() < 9 ? "0" : "") + (h.getMonth() + 1); }
+/* 🔑 "fotografado antes de o mês acabar" é uma pergunta que se responde com DUAS datas que o próprio
+   documento carrega — não precisa de palpite: a data da coleta contra o último dia do mês que ele
+   descreve. Só vale para mês que já passou; no mês corrente isso é o normal.                    */
+function dsdFotoAntesDoFim(mes, em){
+  const per = dsdMesId(dsdAnoSel, mes);
+  if (per >= dsdMesCorrente()) return false;
+  const d = dsdDia(em);
+  if (!d) return false;
+  const ultimo = new Date(Number(dsdAnoSel), mes + 1, 0).getDate();
+  return d < (per + "-" + (ultimo < 10 ? "0" : "") + ultimo);
+}
 function dsdFaturamento(mesTem){
   let tot = 0, achou = false;
   dsdUnidadesSel().forEach(u => {
@@ -13099,6 +13153,52 @@ function renderDespesasDet(){
          : ' Aqui o mês é considerado sem dado quando a soma dá zero — então um mês real de despesa zero também aparece como “—”.') +
        (semCat ? ' <b>' + fmtR$0(semCat.total) + '</b> caíram em <b>SEM CATEGORIA</b>: são linhas que o relatório de competência já entrega agrupadas (as “OUTRAS (N tipos)”) ou tipos que ainda não apareceram na fonte de caixa, que é de onde vem a categoria.' : '') +
        '</div>';
+
+  /* ---------- v343: a idade do que está na tela, e a denúncia do buraco ---------- */
+  let av = '';
+  if (dsdRegua === "comp"){
+    const quandoC = dsdDia(((despesasAno || {})[dsdAnoSel] || {}).atualizadoEm);
+    const anom = dsdAnomesDesp();
+    let falta = 0, mesesAtras = [];
+    if (anom){
+      for (let m = 0; m < 12; m++){
+        const d = (anom[m] || 0) - (D.porMes[m] || 0);
+        if (d > 1) { falta += d; mesesAtras.push(DSD_MES[m] + " +" + dsdComp(d)); }
+      }
+    }
+    av += '<div class="ana-resumo dsd-idade' + (falta > 0 ? ' dsd-idade-alerta' : '') + '">' +
+          '<b>Coletado em ' + escAttr(dsdDataBR(quandoC)) + '.</b> ';
+    if (falta > 0){
+      av += 'O mesmo relatório, na versão que é recoletada três vezes por dia, já soma <b>' + fmtR$0(falta) +
+            '</b> a mais neste ano — <b>' + fmtBR(D.total ? falta / D.total * 100 : 0, 1) + '%</b>. ' +
+            'É despesa que já foi lançada e que <b>este detalhamento ainda não tem</b>: ' + escAttr(mesesAtras.join(" · ")) + '. ' +
+            '🔑 Despesa continua chegando depois que o mês fecha — a conciliação de caixa e banco não sai no mesmo dia — ' +
+            'e a coleta desta tela ainda é de uma foto só. <b>Os totais por mês estão subestimados nessa medida.</b>';
+    } else if (anom){
+      av += 'Confere com o total do relatório recoletado hoje — <b>sem diferença</b>.';
+    } else {
+      av += 'Não há como comparar: falta o relatório do ano para estas unidades.';
+    }
+    av += '</div>';
+  } else {
+    const dias = {};
+    (D.quando || []).forEach(q => { const d = dsdDia(q.em); if (d && (!dias[q.m] || d > dias[q.m])) dias[q.m] = d; });
+    const velhos = Object.keys(dias).map(Number).filter(m => dsdFotoAntesDoFim(m, dias[m]))
+                     .sort((a, b) => a - b).map(m => DSD_MES[m] + " (" + dsdDataBR(dias[m]) + ")");
+    const maisNovo = Object.keys(dias).map(k => dias[k]).sort().pop();
+    av += '<div class="ana-resumo dsd-idade' + (velhos.length ? ' dsd-idade-alerta' : '') + '">' +
+          '<b>Coleta mais recente: ' + escAttr(dsdDataBR(maisNovo)) + '.</b> ';
+    if (velhos.length){
+      av += '<b>' + velhos.length + ' ' + (velhos.length === 1 ? 'mês foi fotografado' : 'meses foram fotografados') +
+            ' antes de acabar</b> — ' + escAttr(velhos.join(", ")) + '. ' +
+            '🔑 Despesa continua sendo lançada depois que o mês fecha, então esses meses <b>estão subestimados</b> ' +
+            'e não vão se corrigir sozinhos: a coleta só refaz o mês corrente.';
+    } else {
+      av += 'Nenhum mês foi fotografado antes de acabar.';
+    }
+    av += '</div>';
+  }
+  h += av;
 
   // ---- os quatro cartoes, no padrao .rel-kpi (v281), que e' o desta familia de telas
   h += '<div class="rel-kpis">';
