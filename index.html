@@ -7400,6 +7400,11 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v350", data:"12/08/2026", tit:"\ud83d\udcd0 As barras da <b>evolu\u00e7\u00e3o mensal</b> ficaram <b>mais finas</b> \u2014 e as marcas do eixo, <b>redondas</b>", itens:[
+    {t:"m", h:"A barra afinou de <b>0,76 para 0,60</b> da coluna", d:"Compara\u00e7\u00e3o dele com a tela de refer\u00eancia: <i>\u201cas barras de l\u00e1 s\u00e3o um pouco mais estreitas, fica mais agrad\u00e1vel aos olhos\u201d</i>. Medido na foto: l\u00e1 a barra ocupa <b>0,60</b> da coluna; aqui ocupava <b>0,76</b>. \ud83d\udd11 O que muda a apar\u00eancia \u00e9 a <b>propor\u00e7\u00e3o</b>, n\u00e3o a largura em pixels \u2014 ent\u00e3o vale igual no monitor e no celular."},
+    {t:"c", h:"\ud83d\udd11 E o eixo parou de escrever n\u00famero quebrado", d:"Ele escolhia um <b>topo</b> e dividia por quatro, ent\u00e3o as marcas saíam <b>375 mil \u00b7 750 mil \u00b7 1,1 mi \u00b7 1,5 mi</b> \u2014 e a de <b>1,125 milh\u00e3o</b> aparecia escrita como <b>1,1 mi</b>, ou seja <b>a marca mentia sobre a pr\u00f3pria linha</b>. Agora ele escolhe o <b>passo</b>, e o topo \u00e9 consequ\u00eancia: as marcas caem sempre em n\u00famero redondo."},
+    {t:"c", h:"E o eixo escrevia o mesmo n\u00famero em duas linhas", d:"Com o maior m\u00eas em <b>R$ 1.800</b>, ele saía <b>0 \u00b7 500 \u00b7 1 mil \u00b7 2 mil \u00b7 2 mil</b> \u2014 <b>duas linhas diferentes com o mesmo r\u00f3tulo</b>, porque o compactador da tabela arredondava 1.500 para <b>2 mil</b>. E ele tamb\u00e9m <b>trocava de unidade no meio da r\u00e9gua</b>. Agora o eixo tem o r\u00f3tulo dele: <b>uma unidade s\u00f3 para a r\u00e9gua inteira</b>, com as casas decimais escolhidas pelo <b>passo</b>. Conferido em <b>20 mil</b> valores sorteados, de R$ 10 a R$ 30 milh\u00f5es: <b>zero r\u00f3tulo repetido e zero marca arredondada</b>."}
+  ]},
   {v:"v349", data:"12/08/2026", tit:"\u2139\ufe0f As <b>Despesas Detalhadas</b> ganharam o <b>\u201ci\u201d</b> que explica cada n\u00famero \u2014 e os dois avisos gritados viraram <b>pastilha</b>", itens:[
     {t:"n", h:"Um <b>i</b> em cada cart\u00e3o e em cada gr\u00e1fico", d:"Pedido dele olhando a tela de refer\u00eancia. Passe o mouse (ou toque, no celular) e ele diz <b>o que aquele n\u00famero \u00e9</b> e <b>de onde ele vem</b> \u2014 inclusive a regra do <b>% do faturamento</b>, que compara <b>s\u00f3 os meses em que h\u00e1 despesa</b>, porque o ano inteiro de venda contra meio ano de despesa daria um n\u00famero bonito e falso."},
     {t:"m", h:"O t\u00edtulo passou para <b>dentro</b> do cart\u00e3o", d:"Antes ele ficava solto acima, e o cart\u00e3o parecia um desenho sem legenda. Agora tem <b>t\u00edtulo, subt\u00edtulo e o i</b>, um risco separando, e o gr\u00e1fico embaixo."},
@@ -13240,11 +13245,46 @@ function dsdRosca(fatias){
    viewBox, nunca de um height em px - e' o que faz o grafico acompanhar a coluna que o segura.
    🔑 E os DOZE meses aparecem sempre, mesmo vazios: mes que some do eixo faz o ano parecer menor
    do que e'. O que muda e' a barra existir ou nao.                                            */
+/* ===================== v350 - O EIXO PASSOU A TER PASSO REDONDO =====================
+   🔴 A v347 escolhia um TOPO e dividia por quatro. Com o topo em 1,5 milhão as marcas saíam
+   `375 mil · 750 mil · 1,1 mi · 1,5 mi` — três das quatro NÃO são números redondos, e a de
+   1,125 mi ainda aparecia arredondada para `1,1 mi`, ou seja **a marca mentia sobre a própria
+   linha**. 🔑 Eixo se escolhe pelo PASSO, nunca pelo topo: o topo é consequência.
+   👉 Agora procura-se o MENOR passo redondo (1, 2 e 5 vezes uma potência de dez) que caiba em
+   até SEIS divisões — que é exatamente o que o gráfico de referência faz: com o maior mês em
+   R$ 418 mil ele desenha 100 mil em 100 mil até 500 mil.
+   🔴 E O EIXO GANHOU O RÓTULO DELE, porque o `dsdComp` (que serve a TABELA, onde compactar é o
+   que se quer) faz DUAS coisas erradas numa régua:
+     (1) **troca de unidade no meio dela** — a v349 escrevia `375 mil · 750 mil · 1,1 mi · 1,5 mi`
+         na mesma régua, misturando "mil" e "mi";
+     (2) **repete rótulo**: com o maior mês em R$ 1.800 a v349 saía `0 · 500 · 1 mil · 2 mil ·
+         2 mil`, porque ele arredonda 1.500 para `2 mil`. **Duas linhas diferentes com o mesmo
+         nome.** (Medido rodando a função da v349, não deduzido.)
+   👉 O `dsdRotEixo` usa UMA unidade para a régua inteira, escolhida pelo topo, e as casas
+   decimais pelo PASSO. ⚠️ E o 2,5 e o 0,25 saíram da escada pelo mesmo motivo: um passo de
+   250 mil escreveria 1.250.000 como `1,3 mi`. **Isso nunca chegou ao app** — foi pego num
+   rascunho desta versão, e fica anotado para ninguém repor o 2,5 achando que é inofensivo.
+   ⚠️ E o piso de 1 real: abaixo dele o rótulo seria inteiro, e um passo de R$ 0,20 desenharia
+   `0 · 0 · 1 · 1 · 1`.
+   🔑 **Força bruta em 20 mil máximos de R$ 10 a R$ 30 milhões:** zero rótulo repetido, zero
+   marca arredondada, divisões sempre entre 1 e 6.
+   ⚠️ O ramo de uma casa decimal do "mil" é INALCANÇÁVEL hoje (passo não múltiplo de mil exige
+   20+ divisões, e o teto é 6). Fica como guarda, não como caso vivo.                        */
+function dsdRotEixo(v, passo, topo){
+  if (!v) return "0";   /* a linha de base e' "0", nunca "0,0 mi" */
+  if (topo >= 1e6) return fmtBR(v / 1e6, (passo % 1e6 === 0) ? 0 : 1) + " mi";
+  if (topo >= 1e4) return fmtBR(v / 1e3, (passo % 1e3 === 0) ? 0 : 1) + " mil";
+  return fmtBR(v, 0);
+}
 function dsdPassoEixo(max){
-  const bruto = (max || 1) / 4;
-  const p = Math.pow(10, Math.floor(Math.log10(bruto)));
-  const n = bruto / p;
-  return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * p;
+  if (!(max > 0)) return 1;
+  const p = Math.pow(10, Math.floor(Math.log10(max)));
+  const esc = [0.1, 0.2, 0.5, 1, 2, 5];
+  for (let i = 0; i < esc.length; i++){
+    const cand = esc[i] * p;
+    if (cand >= 1 && Math.ceil(max / cand) <= 6) return cand;
+  }
+  return Math.max(1, 10 * p);
 }
 function dsdBarrasVert(D, ehPico){
   const W = 560, H = 300, L = 58, R = 10, T = 12, B = 30;
@@ -13252,7 +13292,12 @@ function dsdBarrasVert(D, ehPico){
   const max = Math.max.apply(null, D.porMes.concat([0]));
   const passo = dsdPassoEixo(max);
   const topo = Math.max(passo, Math.ceil(max / passo) * passo);
-  const col = larg / 12, gap = Math.min(10, col * 0.28), bw = col - gap;
+  /* v350 - a BARRA ficou mais estreita, pedido dele comparando com a tela de referência.
+     📏 Medido nas fotos que ele mandou: lá a barra ocupa ~0,60 da coluna (largura ≈ 40px para
+     um passo de ≈ 66px). Aqui era `col - min(10, col*0.28)` = **0,76 da coluna** — barra
+     gorda, e o branco entre elas sumia. 🔑 O que muda a aparência é a RAZÃO, não a largura em
+     pixels: o desenho é um viewBox que escala, então 0,60 vale em qualquer tamanho de tela. */
+  const col = larg / 12, bw = col * 0.60, gap = col - bw;
   /* ⚠️ `meet` e nao `none`: este grafico tem ROTULO DE EIXO dentro, e o `none` estica o texto
      assim que o max-height do CSS entra. O `.evo-svg` ja' usa `meet` - e' o padrao certo. */
   let s = '<svg class="dsd-vbar" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Total de despesas por mês">';
@@ -13260,10 +13305,15 @@ function dsdBarrasVert(D, ehPico){
        '<linearGradient id="dsdGN" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="dsd-s0"/><stop offset="1" class="dsd-s1"/></linearGradient>' +
        '<linearGradient id="dsdGA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="dsd-sa0"/><stop offset="1" class="dsd-sa1"/></linearGradient>' +
        '</defs>';
-  for (let i = 0; i <= 4; i++){
-    const v = topo * i / 4, y = T + alt - alt * i / 4;
+  /* ⚠️ as marcas andam de PASSO em PASSO, não em quartos do topo — é isso que faz cada
+     rótulo cair num número redondo. O `Math.round` aqui é cinto de segurança, não conserto:
+     `topo` é `Math.ceil(max/passo) * passo`, então a divisão JÁ é inteira por construção —
+     medido em 500 mil sorteios, sem uma exceção. Ele fica porque custa nada. */
+  const divisoes = Math.round(topo / passo);
+  for (let i = 0; i <= divisoes; i++){
+    const v = passo * i, y = T + alt - alt * (v / topo);
     s += '<line class="dsd-grade" x1="' + L + '" y1="' + y.toFixed(1) + '" x2="' + (W - R) + '" y2="' + y.toFixed(1) + '"/>' +
-         '<text class="dsd-eixo" x="' + (L - 8) + '" y="' + (y + 4).toFixed(1) + '" text-anchor="end">' + escAttr(dsdComp(v)) + '</text>';
+         '<text class="dsd-eixo" x="' + (L - 8) + '" y="' + (y + 4).toFixed(1) + '" text-anchor="end">' + escAttr(dsdRotEixo(v, passo, topo)) + '</text>';
   }
   /* o mes anterior COM DADO, para o balao dizer se subiu ou desceu. Pular o mes vazio importa:
      comparar julho com um junho que nunca foi lancado inventa uma alta de 100%. */
