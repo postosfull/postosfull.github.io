@@ -2508,28 +2508,25 @@
     .header-sino,.header-tema{width:32px;height:32px}
     .hdr-av{width:26px;height:26px;flex:0 0 26px}
     .sino-card{top:54px;right:8px;left:8px;width:auto}
-    /* 🔴 v353 - AQUI E' O CONSERTO DO CELULAR, e ele nao pode ser largura: abaixo de 560px
-       o cartao JA E' a tela inteira (`width:auto`), entao nao ha de onde tirar os 37,84px
-       que o ✓ novo ocupa. Em vez de espremer o nome, a UNIDADE desce para a linha de
-       baixo e devolve a largura dela inteira ao titulo - o mesmo desenho que a tela de
-       Avisos usava no `.avi-quem`. 🔑 Quando nao ha largura sobrando, o que se reorganiza
-       e' a ORDEM, nao o tamanho da letra. */
-    /* ⚠️ `:not(.caixa)` NAO e' capricho: a primeira versao destas regras valia para TODO
-       `.sino-it`, e os itens da Caixa de entrada - que nao tem ✓ e portanto nao perderam
-       largura nenhuma - pagavam +18px de altura cada um, de graca. 🔑 Quem nao pagou o
-       custo nao paga o conserto. */
-    .sino-it:not(.caixa){flex-wrap:wrap;row-gap:2px}
-    /* ⚠️ `flex-basis:0` e' o que prende o ✓ na PRIMEIRA linha. Com o `auto` que o titulo
-       herda, ele pede a largura do proprio texto; como aqui a linha pode quebrar, o
-       navegador prefere QUEBRAR a encolher - e a foto pegou o ✓ sozinho numa linha so'
-       dele, num item de nome comprido. Com base zero o titulo ocupa o que sobra e volta a
-       encolher com reticencias. 🔑 A medicao dizia que o nome coube; so a FOTO mostrou
-       onde o botao tinha ido parar. */
-    .sino-it:not(.caixa) .sino-t{flex:1 1 0}
-    .sino-it:not(.caixa) .sino-o{order:3;flex-basis:100%;width:100%;padding-left:0}
-    /* (aqui esteve um `.sino-ok{order:2}`. O revisor provou, medindo os quatro filhos pixel
-       a pixel com e sem ele, que nao movia NADA: a ordem do DOM ja e' q,t,o,ok e o `order:3`
-       da unidade basta. 🔑 Regra que nao muda um pixel envelhece parecendo intencao.) */
+    /* 🔴 v354 - O CONSERTO DO CELULAR, ESCOLHIDO POR ELE SOBRE QUATRO SAIDAS MEDIDAS.
+       Abaixo de 560px o cartao JA E' a tela inteira (`width:auto`), entao nao ha largura de
+       onde tirar os 37,84px que o ✓ ocupa. A v353 resolveu descendo a UNIDADE para a linha
+       de baixo: os nomes ficaram inteiros, mas cada aviso subiu de 34 para 55px e o cartao
+       passou a pedir rolagem cedo. 📏 Medido em 390x667 com 8 avisos:
+
+         A (v353)              55px | 5 de 7 sem rolar | 0 de 6 nomes cortados
+         B (voltar a v352)     37px | 7 de 7           | 6 de 6 cortados
+         C (duas linhas justas)47px | 6 de 7           | 0 de 6
+         D (esta, escolhida)   37px | 7 de 7           | 0 de 6
+
+       ⚠️ E foi tentada uma quinta - ENCURTAR a unidade ("Posto Full Caxias" -> "Caxias"),
+       que foi o que ele escolheu na v335: NAO resolve, 4 dos 6 nomes continuam cortados.
+       🔑 A unica saida que ganha nos tres numeros e' a que TIRA a peca, nao a que a espreme.
+       ⚠️ `:not(.caixa)` porque os itens da Caixa nao tem ✓, nao perderam largura, e portanto
+       nao pagam o conserto - e o "ha 5h" deles usa esta mesma classe.
+       💡 Sem quebra de linha nao e' preciso mexer em `flex-wrap`, `order` nem `flex-basis`:
+       o `.sino-it` ja e' nowrap e o `.sino-t` ja encolhe com reticencias. Sobra UMA regra. */
+    .sino-it:not(.caixa) .sino-o{display:none}
   }
   /* ===== v250d - OS ITENS DA COMUNICACAO VISUAL DO MIV =====
      MIV recebido em 05/08/2026. Ele nomeia TRES itens (paginas 16 a 18), e nao "enfeites":
@@ -7440,6 +7437,12 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v354", data:"12/08/2026", tit:"📱 No <b>celular</b>, o cartão do sino voltou a caber na tela — sem cortar nome nenhum", itens:[
+    {t:"c", h:"O ✓ de ontem tinha encolhido a lista, e a conta foi paga em altura", d:"O <b>✓</b> que entrou na v353 ocupa <b>37,84px</b> de cada linha. No computador isso foi pago alargando o cartão; <b>no celular não havia de onde tirar</b>, porque ali o cartão já é a tela inteira. A saída da v353 foi descer a <b>unidade</b> (Pres. Dutra, Full Transportadora) para uma segunda linha: os nomes ficaram inteiros, mas cada aviso passou de <b>34 para 55px</b> — e o cartão começou a pedir rolagem com seis avisos."},
+    {t:"m", h:"Agora a unidade não aparece no celular, e tudo cabe de novo", d:"De <b>560px de largura para baixo</b> a pastilha da unidade fica escondida, e o aviso volta para <b>uma linha de 37px</b> — 3px a mais que os 34 da v352, que são o próprio ✓. 📏 Medido num iPhone SE/8 (390×667) com 8 avisos: <b>os 7 itens cabem sem rolar</b> (eram 5) e <b>nenhum nome fica cortado</b> (na v352 eram 4 de 6, e com o ✓ novo seriam mais). <b>No computador a TELA não muda</b> — a unidade continua ali, do lado direito de cada linha."},
+    {t:"m", h:"⚠️ E o que você perde no celular, dito na cara", d:"Deixa de dar para ver, <b>na lista</b>, de qual unidade é cada vencimento. Onde isso pesa de verdade: <b>dois postos com um documento de mesmo nome vencendo no mesmo dia ficam iguais na tela do celular</b> — por exemplo dois \"Alvará de funcionamento\", um de Teresina e outro de Caxias. 👉 Para saber de quem é, o <b>🗓️ Calendário</b> separa por cor e o <b>📁 Documentos</b> tem o filtro <b>📂 Por unidade</b>. 🔑 <b>Recurso que sai da tela tem de dizer por onde a pessoa passa a enxergar aquilo.</b>"},
+    {t:"m", h:"E no computador ela ganhou uma dica", d:"Parar o mouse em cima do nome passou a mostrar <b>o nome completo e a unidade</b> juntos — antes mostrava só o nome. É a única coisa que mudou no computador nesta versão. 🔑 <b>Peça que sai da tela não pode sair do dado junto.</b>"}
+  ]},
   {v:"v353", data:"12/08/2026", tit:"🔔 A tela <b>Notificações</b> saiu: o <b>sino</b> passou a resolver, e não só a avisar", itens:[
     {t:"c", h:"Existiam dois lugares mostrando a mesma lista, e um deles quase ninguém achava", d:"O cartão do sino e a tela <b>Notificações</b> liam <b>exatamente a mesma fonte</b>. Só que a tela <b>nunca teve botão na barra lateral</b> nem aparecia na busca: a única porta dela era o botão <b>📅 Avisos</b> dentro do próprio cartão do sino. E o texto dela ainda dizia que os avisos vinham <b>das agendas Google dos postos</b> — o que deixou de ser a história completa quando o app ganhou <b>🗓️ Calendário</b> e <b>📁 Documentos</b> próprios. 🔑 <b>Dois lugares para a mesma lista não é escolha: é um deles desatualizado.</b>"},
     {t:"n", h:"O ✓ agora é ali mesmo, no sino", d:"Cada aviso de vencimento no cartão do sino ganhou um <b>✓</b> à direita. Um toque e ele sai da lista e da bolinha vermelha — <b>sem trocar de tela</b>, exatamente como você já espiava sem sair de onde estava. Antes, para dispensar um aviso era preciso ir até a tela Notificações; era o único lugar do app que fazia isso. ⚠️ <b>O cartão mostra seis por vez</b> (é assim desde que ele nasceu), então o ✓ vale para os <b>seis primeiros</b> — ao dispensar um, o próximo entra no lugar e ganha o dele. Se houver mais de seis, o rodapé diz quantos ficaram."},
@@ -20859,9 +20862,13 @@ function renderSinoCard(){
     h += '<div class="sino-sec">\ud83d\udcc5 Avisos de vencimento</div>';
     pend.slice(0, SINO_TOPO).forEach((e, i) => {
       const d = sinoRotuloData(e);
+      /* v354 - a unidade entra no `title` porque no celular a pastilha dela fica escondida
+         (ver o CSS da faixa de 560px). 🔑 Peca que some da TELA nao pode sumir do DOM junto:
+         quem passa o mouse no computador continua lendo, e o dado nao vira invisivel. */
+      const dica = (e.titulo || "") + (e.origem ? "  ·  " + e.origem : "");
       h += '<div class="sino-it ' + d.cls + '">' +
            '<span class="sino-q">' + escAttr(d.rot) + '</span>' +
-           '<span class="sino-t" title="' + escAttr(e.titulo || "") + '">' + escAttr(e.titulo || "") + '</span>' +
+           '<span class="sino-t" title="' + escAttr(dica) + '">' + escAttr(e.titulo || "") + '</span>' +
            (e.origem ? '<span class="sino-o">' + escAttr(e.origem) + '</span>' : '') +
            /* o `event.stopPropagation()` NAO e' enfeite: sem ele o clique sobe ate o
               `_sinoCliqueFora` depois de o botao ja ter sido apagado pelo redesenho, e o
