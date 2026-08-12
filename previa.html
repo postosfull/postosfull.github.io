@@ -7404,6 +7404,12 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v352", data:"12/08/2026", tit:"💵 O <b>Lucro Bruto</b> do card <b>Vendas do dia</b> agora é o lucro bruto <b>de verdade</b>", itens:[
+    {t:"c", h:"O rótulo dizia Bruto, mas o número não era", d:"O card mostrava um número que vinha do Petros como <b>lucro líquido</b> e apenas <b>trocava o nome</b> conforme a despesa do dia estivesse lançada ou não. Só que lucro líquido é o bruto <b>mais as outras receitas</b> (bonificação, aluguel, juros), <b>menos as despesas</b> e <b>mais a variação de estoque</b> — então <b>o rótulo trocava e o número não</b>. 📏 Medido em 12/08: a loja de <b>Teresina</b> estava com despesa <b>zero</b> e mesmo assim o campo escrito \"Lucro Bruto\" mostrava <b>R$ 1.285,59</b>, quando o lucro bruto era <b>R$ 922,35</b>. Os <b>R$ 363,24</b> de diferença são <b>outras receitas e variação de estoque</b> — o documento que o servidor grava traz as duas somadas, então não dá para dizer quanto é de cada uma."},
+    {t:"m", h:"⚠️ Por isso o número da loja DIMINUIU — e não é queda de resultado", d:"Onde havia outras receitas embutidas, o valor na tela cai. <b>A loja não vendeu menos e não lucrou menos:</b> o card passou a mostrar só a venda menos o custo do que foi vendido, que é o que a palavra <b>bruto</b> significa. O que ficou de fora não sumiu: continua no <b>lucro líquido</b>, no card <b>Resultado do mês</b> e nos menus <b>📑 Relatórios Adaptive</b> e <b>📉 DRE</b>, onde as <b>Outras receitas</b> aparecem em linha própria. 👉 O \"i\" ao lado do número explica o que entra e o que fica de fora."},
+    {t:"m", h:"O rótulo parou de trocar sozinho", d:"Antes, no dia em que a despesa entrava, o campo virava <b>Lucro Líquido</b> naquela unidade — e era comum ver <b>uma loja dizendo Líquido e as outras duas Bruto</b> lado a lado, sem ninguém entender por quê. Agora as três dizem sempre <b>Lucro Bruto</b>, e ficam comparáveis entre si. Nos postos vale o mesmo: <b>Volume</b>, <b>Lucro Bruto</b> e <b>Lucro Bruto/L</b>, fixos."},
+    {t:"n", h:"E quando o número não vier, aparece travessão", d:"Se a coleta do servidor não trouxer o lucro bruto de uma unidade <b>e não houver como recompô-lo</b> dos outros números daquela mesma unidade, o card mostra <b>—</b> em vez de repetir o número antigo ou escrever R$ 0,00. Nos <b>postos</b> quase sempre há como recompor, porque o lucro bruto por litro e o volume vêm juntos; nas <b>lojas</b> não há, e ali o travessão aparece. 🔑 <b>Número errado se parece com dado; travessão se parece com o que é: falta de dado.</b>"}
+  ]},
   {v:"v351", data:"12/08/2026", tit:"🏁 O card <b>Vendas do dia</b> perdeu a <b>caixa dentro da caixa</b>", itens:[
     {t:"m", h:"Saiu a moldura com o nome da empresa", d:"Dentro do card <b>Vendas do dia</b> havia uma segunda caixa, com borda e fundo próprios, escrita <b>⛽ Postos Full</b> nos postos e <b>🛒 Full Conveniência</b> na loja — e dentro dela os cartões de Teresina, Caxias e Dutra. Era <b>card dentro de card</b>. A moldura e o rótulo saíram: os três cartões agora nascem direto embaixo do título. 🔑 De qual empresa é a tela <b>a logomarca do cabeçalho já diz</b> — ela troca sozinha entre Postos Full e Full Conveniência. O rótulo aqui dentro custava uma moldura inteira para repetir o que o alto da tela já dizia."},
     {t:"m", h:"Os cartões passaram a ocupar a largura inteira do card", d:"Sem o recuo da moldura, o primeiro cartão <b>alinha com a barra laranja do título</b>, como os outros blocos do Dashboard — conferido em <b>139 larguras de tela</b>, do celular ao monitor largo, nos dois tamanhos de card: <b>zero</b> desalinhadas. ⚠️ A largura de cada cartão <b>depende da tela</b>: no computador com o card inteiro eles ganham 10px, no celular ganham 30px, e nas larguras em que o espaço devolvido faz caber <b>mais um cartão por linha</b> eles ficam mais estreitos. A tela <b>nunca ficou mais alta</b>: em <b>420</b> medições ela encolheu sempre, de <b>67px</b> a <b>208px</b>. <b>Nenhum número mudou.</b>"}
@@ -21214,10 +21220,11 @@ const BULAS = {
     d:"De cada R$ 100 vendidos, quanto sobrou no fim. \u00c9 o lucro l\u00edquido dividido pelas vendas de combust\u00edvel e de loja. As outras receitas ficam FORA da conta de baixo \u2014 por isso este n\u00famero \u00e9 menor do que o de quem soma tudo no divisor." },
   lucroLitro: { t:"Lucro l\u00edquido por litro",
     d:"Quanto sobrou, em reais, em cada litro vendido. S\u00f3 aparece quando os litros do m\u00eas j\u00e1 foram coletados; sem eles vira travess\u00e3o, em vez de dividir por um n\u00famero que n\u00e3o existe." },
-  lucroDia: { t:"O lucro do dia",
-    d:"O lucro do dia, do jeito que o Petros entrega at\u00e9 agora. Enquanto as despesas do dia n\u00e3o est\u00e3o lan\u00e7adas, ele \u00e9 BRUTO \u2014 e o pr\u00f3prio r\u00f3tulo troca para Lucro L\u00edquido sozinho, no dia em que elas entram." },
-  lucroDiaL: { t:"Lucro por litro do dia",
-    d:"O lucro do dia dividido pelos litros vendidos no dia. Serve para comparar postos de tamanhos diferentes: quem vendeu menos litros pode estar ganhando mais em cada um deles." },
+  /* v352 - a bula `lucroDia` saiu junto com o r\u00f3tulo que trocava sozinho. O card Vendas do
+     dia usa agora a bula `lucroBruto`, que \u00e9 a mesma do Resultado do m\u00eas: duas telas que
+     mostram o mesmo n\u00famero passam a explic\u00e1-lo com as mesmas palavras. */
+  lucroDiaL: { t:"Lucro bruto por litro do dia",
+    d:"O lucro BRUTO do dia dividido pelos litros vendidos no dia. Serve para comparar postos de tamanhos diferentes: quem vendeu menos litros pode estar ganhando mais em cada um deles. As outras receitas n\u00e3o entram, do mesmo jeito que no Lucro Bruto acima." },
   margemReposicao: { t:"Margem de reposi\u00e7\u00e3o",
     d:"Pre\u00e7o de tabela menos o \u00daLTIMO custo de compra, dividido pelo pre\u00e7o de tabela. \u00c9 a margem de quem vai repor o produto hoje, e serve para decidir PRE\u00c7O. \u00c9 diferente da margem do Resultado do m\u00eas, que usa o custo m\u00e9dio do que j\u00e1 foi vendido e serve para medir RESULTADO. A loja que aparece como a melhor muda de uma conta para a outra." },
   recebido: { t:"Recebido no per\u00edodo",
@@ -25655,29 +25662,43 @@ function renderPetrosResumo(){
   }
   const ordem = ["Teresina","Caxias","Pres Dutra"];       // ordem escolhida pelo Tiago
   const rotulo = n => n === "Pres Dutra" ? "Dutra" : n;
-  /* v220 - o dia ja tem despesa lancada?
-     De manha o Adaptive ainda nao tem despesa do dia: as colunas Despesas e Despesas/L
-     voltam zeradas e o "lucro liquido" e' o lucro BRUTO com outro nome. Chamar aquilo de
-     liquido e' mentir para quem le. Agora quem decide e' o dado.
-     1a escolha: os campos despesas / despesasL que a rotina copia do Petros.
-     Reserva (enquanto a rotina antiga nao for trocada): se lucro bruto/L e lucro
-     liquido/L sao o mesmo numero, e' porque a despesa ainda nao entrou.
-     v223: o AVISO "Despesas do dia - ainda nao lancadas" saiu (pedido do Tiago em 02/08 - o
-     caixa nunca fecha no mesmo dia, entao o aviso aparecia todo dia e so virou ruido). A
-     escolha do rotulo pelo dado continua: se um dia a despesa entrar, volta o Lucro Liquido. */
-  const temDespesa = d => {
-    if (typeof d.despesas  === "number") return d.despesas  > 0;
-    if (typeof d.despesasL === "number") return d.despesasL > 0;
-    if (typeof d.lucroBrutoL === "number" && typeof d.lucroLiquidoL === "number")
-      return Math.abs(d.lucroBrutoL - d.lucroLiquidoL) > 0.00005;
-    return true;                       // sem informacao nenhuma, mantem o texto de antes
+  /* 🔴 v352 - O CARD MOSTRA O LUCRO BRUTO, E AGORA ELE E' O LUCRO BRUTO DE VERDADE.
+     Ate a v351 o card mostrava o campo `lucroLiquido` e TROCAVA O ROTULO sozinho (v220):
+     sem despesa lancada ele escrevia "Lucro Bruto", com despesa escrevia "Lucro Liquido".
+     O rotulo estava honesto, mas o NUMERO nunca foi bruto: `lucroLiquido` = bruto
+     + outras receitas - despesas + variacao de estoque. 📏 Medido em 12/08: a loja de
+     Teresina tinha despesa ZERO e mesmo assim o "Lucro Bruto" da tela dizia R$ 1.285,59
+     contra R$ 922,35 de bruto real - R$ 363,24 de OUTRAS RECEITAS entravam no numero que
+     a tela chamava de bruto. 🔑 O rotulo trocava; o numero, nao.
+     ✅ O coletor `painel.mjs` passou a gravar `lucroBruto` nos dois ramos em 12/08 - ele ja'
+     calculava esse valor para chegar ao liquido, so' nao o gravava. Pedido do Tiago:
+     "seria mais facil voce apenas mostrar o lucro bruto mesmo", depois de ver o numero cair.
+     🔴 SEM O CAMPO, TRAVESSAO - NUNCA O NUMERO ANTIGO. Se o VPS for reinstalado sem o patch,
+     o campo some; cair de volta no `lucroLiquido` seria repor a mentira que esta versao
+     conserta, calada. Nos POSTOS ha uma reserva (o bruto por litro x o volume, dois campos da
+     mesma fonte); nas LOJAS nao ha reserva nenhuma, e ai o travessao e' a unica resposta.
+     📏 A reserva e' EXATA, e isso foi MEDIDO no documento em 12/08, nao suposto: o Firestore
+     guarda `lucroBrutoL` com 16 casas (0.7429074605231464), nao com as 4 que a TELA mostra,
+     e a multiplicacao devolve o bruto com erro ZERO nos tres postos. ⚠️ Um documento deste
+     projeto chegou a dizer "4 casas, erra ate R$ 0,13" - era chute meu, e o revisor da v352
+     o usou como prova contra esta reserva. 🔑 Numero escrito sem medicao vira "fonte" na
+     boca do proximo leitor. 🔑 E o principio: numero errado se parece com dado; travessao se
+     parece com o que e' - falta de dado. */
+  const brutoDaUnidade = d => {
+    if (typeof d.lucroBruto === "number") return d.lucroBruto;
+    if (typeof d.lucroBrutoL === "number" && typeof d.volume === "number" && d.volume > 0)
+      return d.lucroBrutoL * d.volume;   // reserva so' dos postos
+    return null;                         // loja sem o campo novo: travessao
   };
 
   /* v256 - O LUCRO DO DIA GANHA A MESMA COR DO CARD "RESULTADO DO MES".
      As classes e as cores ja existiam (.pet-l b.rpz-pos = #18a558, .pet-l b.rpz-neg = #c0392b,
      postas na v198 pela licao da v197): o que faltava era o card do topo usa-las.
-     Vale para os POSTOS e para as CONVENIENCIAS, e vale tambem quando o rotulo ainda e'
-     "Lucro Bruto" - o numero e' o mesmo, so' o nome dele muda (v220).
+     Vale para os POSTOS e para as CONVENIENCIAS.
+     ⚠️ v352 - a frase que estava aqui ("o numero e' o mesmo, so' o nome dele muda", v220)
+     MORREU: o rotulo nao troca mais, e o numero passou a ser outro (o bruto, nao o liquido).
+     🔑 Comentario que descreve o comportamento anterior sobrevive a versao que o desfaz e
+     vira a explicacao errada com cara de oficial - o revisor da v352 achou este aqui.
      v257 - AS LINHAS POR LITRO TAMBEM. O card Resultado do mes ja' colore o lucro liquido
      POR LITRO desde a v202; aqui elas ficavam cinzas. Quem NAO ganha cor e' o VOLUME (e as
      "Vendas" da loja): quantidade e faturamento nao sao resultado, e card com tudo colorido
@@ -25692,10 +25713,14 @@ function renderPetrosResumo(){
     html += '<div class="pet-grid">';
     ordem.forEach(n => {
       const d = (p.conveniencias||{})[n]; if (!d) return;
-      const cd = temDespesa(d);                                  // v220
+      const lb = brutoDaUnidade(d);                              // v352
       html += '<div class="pet-card"><h4>'+rotulo(n)+'</h4><div class="pet-linhas">' +
         '<div class="pet-l"><span>Vendas'+bul('vendas')+'</span><b>R$ '+fmtBR(d.outros||0,2)+'</b></div>' +
-        '<div class="pet-l"><span>'+(cd ? 'Lucro Líquido' : 'Lucro Bruto')+bul('lucroDia')+'</span><b class="'+corLucroDia(d.lucroLiquido)+'">R$ '+fmtBR(d.lucroLiquido||0,2)+'</b></div>' +   /* v256 */
+        '<div class="pet-l"><span>Lucro Bruto'+bul('lucroBruto')+'</span>' +
+          (lb === null
+            ? '<b class="cbd-nada">\u2014</b>'
+            : '<b class="'+corLucroDia(lb)+'">R$ '+fmtBR(lb,2)+'</b>') +   /* v256 - a cor fica */
+        '</div>' +
         '</div></div>';
     });
     html += '</div>';   /* v351 - um </div> so': a .pet-bloco nao existe mais */
@@ -25703,15 +25728,19 @@ function renderPetrosResumo(){
     html += '<div class="pet-grid">';   /* v351 - ver o comentario no ramo das lojas */
     ordem.forEach(n => {
       const d = (p.postos||{})[n]; if (!d) return;
-      const cd = temDespesa(d);                                  // v220
+      const lb = brutoDaUnidade(d);                              // v352
       html += '<div class="pet-card"><h4>'+rotulo(n)+'</h4><div class="pet-linhas">' +
         '<div class="pet-l"><span>Volume'+bul('volume')+'</span><b>'+fmtBR(d.volume||0,0)+' L</b></div>' +
-        (cd
-          ? '<div class="pet-l"><span>Lucro Líquido'+bul('lucroDia')+'</span><b class="'+corLucroDia(d.lucroLiquido)+'">R$ '+fmtBR(d.lucroLiquido||0,2)+'</b></div>' +   /* v256 */
-            '<div class="pet-l"><span>Lucro Bruto/L'+bul('lucroDiaL')+'</span><b class="'+corLucroDia(d.lucroBrutoL)+'">R$ '+fmtBR(d.lucroBrutoL||0,4)+'</b></div>'   /* v257 */ +
-            '<div class="pet-l"><span>Lucro Líquido/L'+bul('lucroDiaL')+'</span><b class="'+corLucroDia(d.lucroLiquidoL)+'">R$ '+fmtBR(d.lucroLiquidoL||0,4)+'</b></div>'   /* v257 */
-          : '<div class="pet-l"><span>Lucro Bruto'+bul('lucroDia')+'</span><b class="'+corLucroDia(d.lucroLiquido)+'">R$ '+fmtBR(d.lucroLiquido||0,2)+'</b></div>' +   /* v256 */
-            '<div class="pet-l"><span>Lucro Bruto/L'+bul('lucroDiaL')+'</span><b class="'+corLucroDia(d.lucroBrutoL)+'">R$ '+fmtBR(d.lucroBrutoL||0,4)+'</b></div>'   /* v257 */) +
+        '<div class="pet-l"><span>Lucro Bruto'+bul('lucroBruto')+'</span>' +
+          (lb === null
+            ? '<b class="cbd-nada">\u2014</b>'
+            : '<b class="'+corLucroDia(lb)+'">R$ '+fmtBR(lb,2)+'</b>') +   /* v256 */
+        '</div>' +
+        '<div class="pet-l"><span>Lucro Bruto/L'+bul('lucroDiaL')+'</span>' +
+          (typeof d.lucroBrutoL === "number"
+            ? '<b class="'+corLucroDia(d.lucroBrutoL)+'">R$ '+fmtBR(d.lucroBrutoL,4)+'</b>'
+            : '<b class="cbd-nada">\u2014</b>') +   /* v257 */
+        '</div>' +
         '</div></div>';
     });
     html += '</div>';   /* v351 - um </div> so': a .pet-bloco nao existe mais */
