@@ -1802,29 +1802,18 @@
   .placa-linha{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 0}
   .placa-linha b{font-size:1rem}
   .placa-linha select{border:1px solid var(--borda);border-radius:6px;padding:7px;font-size:.85rem;background:var(--superficie);color:var(--txt)}
-  /* Notificações (avisos das agendas) */
+  /* v353 - a lista de eventos do CALENDARIO. Estas regras nasceram na tela de Avisos, que
+     saiu nesta versao; ficaram porque `renderCalendario()` as reusa (a lista do mes).
+     🔑 As outras 15 (.vencido, .perto, .avi-ok, .feito, .avi-reabrir, .avi-quem,
+     .avi-busca-feitos, .avi-toggle-feitos, .avi-feitos) saíram junto com a tela: nenhum
+     seletor delas sobrou no arquivo. */
   .avi-lista{display:flex;flex-direction:column;gap:8px;margin-top:10px}
   .avi-item{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid var(--borda);border-radius:10px;padding:10px 12px;background:var(--superficie-2)}
   .avi-data{font-size:.72rem;font-weight:700;border-radius:20px;padding:3px 10px;white-space:nowrap;background:var(--superficie);border:1px solid var(--borda);color:var(--cinza)}
-  .avi-item.vencido{border-color:var(--vermelho)}
-  .avi-item.vencido .avi-data{background:var(--erro-bg);color:var(--vermelho);border-color:transparent}
   .avi-item.hoje{border-color:var(--vermelho)}
   .avi-item.hoje .avi-data{background:var(--vermelho);color:#fff;border-color:transparent}
-  .avi-item.perto .avi-data{background:var(--verde-claro);color:var(--verde);border-color:transparent}
   .avi-tit{font-size:.9rem;color:var(--txt);flex:1 1 auto}
   .avi-origem{font-size:.7rem;font-weight:600;color:var(--cinza);border:1px dashed var(--borda);border-radius:20px;padding:2px 8px}
-  .avi-ok{background:var(--verde-claro);color:var(--verde);border:1px solid transparent;border-radius:20px;padding:5px 12px;font-size:.74rem;font-weight:700;cursor:pointer;white-space:nowrap;flex:0 0 auto}
-  .avi-ok:hover{background:var(--verde);color:#fff}
-  .avi-item.feito{opacity:.6}
-  .avi-item.feito .avi-tit{text-decoration:line-through}
-  .avi-item.feito .avi-data{background:var(--verde-claro);color:var(--verde);border-color:transparent}
-  .avi-reabrir{background:transparent;color:var(--cinza);border:1px solid var(--borda);border-radius:20px;padding:5px 10px;font-size:.72rem;font-weight:600;cursor:pointer;white-space:nowrap;flex:0 0 auto}
-  .avi-reabrir:hover{border-color:var(--verde);color:var(--verde)}
-  .avi-quem{flex-basis:100%;width:100%;font-size:.7rem;color:var(--cinza);margin-top:1px}
-  .avi-busca-feitos{width:100%;margin-top:6px;padding:8px 10px;border:1px solid var(--borda);border-radius:8px;background:var(--superficie-2);color:var(--txt);font-size:.82rem;box-sizing:border-box}
-  .avi-toggle-feitos{background:transparent;border:none;color:var(--cinza);font-size:.8rem;font-weight:600;cursor:pointer;padding:10px 2px 4px;margin-top:6px;text-align:left}
-  .avi-toggle-feitos:hover{color:var(--txt)}
-  .avi-feitos{margin-top:4px;max-height:360px;overflow:auto;padding-right:2px}
   /* Calendário */
   .cal-topo{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
   .cal-mes{font-family:"Oswald","Poppins",sans-serif;font-size:1.05rem;font-weight:600;color:var(--txt);min-width:160px;text-align:center}
@@ -2341,7 +2330,10 @@
   }
 
   /* ===== Avisos push ===== */
-  .push-box{margin-bottom:16px;padding-bottom:14px;border-bottom:1px dashed var(--borda)}
+  /* v353 - a caixa mudou de casa (saiu da tela Avisos, entrou em Minha conta) e virou o
+     ULTIMO bloco do grupo. O separador tracejado de baixo servia para apartar a caixa do
+     conteudo que vinha depois; ali nao vem nada depois. */
+  .push-box{margin-top:4px}
   #btnAtivarPush{width:100%;max-width:360px}
   #btnAtivarPush.ativo{border-color:var(--verde);color:var(--verde)}
   .push-status{margin-top:8px;min-height:1em}
@@ -2441,8 +2433,18 @@
   /* ===== v250b - O CARD DO SINO =====
      Espiar nao e' navegar: o sino deixou de TROCAR a tela e virou um cartao flutuante por
      cima do que ja estava aberto. Clicar fora fecha e a pessoa continua onde estava. */
+  /* v353 - 380px viraram 418px, e o numero NAO e' escolhido no olho: o ✓ novo tirou
+     37,84px da coluna do titulo - que sao o botao (28,84) + o `gap:9px` do `.sino-it`, e
+     por isso o valor e' o MESMO em qualquer largura. Os nomes cortados subiam de 3 para 5
+     em 6; 418 = 380 + 38 devolve exatamente o que o botao tomou.
+     ⚠️ E este alargamento SO VALE DE 561px PARA CIMA: abaixo disso a media query manda
+     `width:auto` e o cartao e' a tela. O conserto do celular esta LA, e nao aqui - o
+     revisor derrubou a primeira versao deste comentario, que dizia "largura fixa" e
+     dava a compensacao como universal quando ela nao cobria nenhum celular.
+     🔑 Recurso novo que encolhe o conteudo ao lado nao e' neutro - a conta se paga na
+     largura, nao no nome do produto. */
   .sino-card{position:fixed;top:58px;right:12px;z-index:95;
-    width:min(380px, calc(100vw - 20px));max-height:min(70vh, 560px);
+    width:min(418px, calc(100vw - 20px));max-height:min(70vh, 560px);
     display:flex;flex-direction:column;overflow:hidden;
     background:var(--superficie);background-image:linear-gradient(var(--superficie),var(--superficie));
     border:1px solid var(--borda);border-radius:12px;box-shadow:0 16px 44px rgba(0,0,0,.45)}
@@ -2472,6 +2474,12 @@
             color:var(--cinza);padding:9px 14px 5px;background:var(--superficie-2)}
   .sino-it.caixa{border-left-color:var(--verde)}
   .sino-it.caixa .sino-q{color:var(--verde)}
+  /* v353 - o ✓ que dispensa o aviso de vencimento, agora DENTRO do cartao. Ate a v352 ele
+     so' existia na tela de Avisos, que saiu; sem ele, um aviso ficava na bolinha vermelha
+     ate 14 dias depois de vencer sem ninguem poder tirar. */
+  .sino-ok{flex:0 0 auto;background:var(--verde-claro);color:var(--verde);border:1px solid transparent;
+           border-radius:20px;padding:3px 9px;font-size:.66rem;font-weight:700;cursor:pointer;white-space:nowrap}
+  .sino-ok:hover{background:var(--verde);color:#fff}
 
   /* no celular a barra lateral e' gaveta e vive aberta: o bloco tem de aparecer */
   @media (max-width:640px){
@@ -2500,6 +2508,28 @@
     .header-sino,.header-tema{width:32px;height:32px}
     .hdr-av{width:26px;height:26px;flex:0 0 26px}
     .sino-card{top:54px;right:8px;left:8px;width:auto}
+    /* 🔴 v353 - AQUI E' O CONSERTO DO CELULAR, e ele nao pode ser largura: abaixo de 560px
+       o cartao JA E' a tela inteira (`width:auto`), entao nao ha de onde tirar os 37,84px
+       que o ✓ novo ocupa. Em vez de espremer o nome, a UNIDADE desce para a linha de
+       baixo e devolve a largura dela inteira ao titulo - o mesmo desenho que a tela de
+       Avisos usava no `.avi-quem`. 🔑 Quando nao ha largura sobrando, o que se reorganiza
+       e' a ORDEM, nao o tamanho da letra. */
+    /* ⚠️ `:not(.caixa)` NAO e' capricho: a primeira versao destas regras valia para TODO
+       `.sino-it`, e os itens da Caixa de entrada - que nao tem ✓ e portanto nao perderam
+       largura nenhuma - pagavam +18px de altura cada um, de graca. 🔑 Quem nao pagou o
+       custo nao paga o conserto. */
+    .sino-it:not(.caixa){flex-wrap:wrap;row-gap:2px}
+    /* ⚠️ `flex-basis:0` e' o que prende o ✓ na PRIMEIRA linha. Com o `auto` que o titulo
+       herda, ele pede a largura do proprio texto; como aqui a linha pode quebrar, o
+       navegador prefere QUEBRAR a encolher - e a foto pegou o ✓ sozinho numa linha so'
+       dele, num item de nome comprido. Com base zero o titulo ocupa o que sobra e volta a
+       encolher com reticencias. 🔑 A medicao dizia que o nome coube; so a FOTO mostrou
+       onde o botao tinha ido parar. */
+    .sino-it:not(.caixa) .sino-t{flex:1 1 0}
+    .sino-it:not(.caixa) .sino-o{order:3;flex-basis:100%;width:100%;padding-left:0}
+    /* (aqui esteve um `.sino-ok{order:2}`. O revisor provou, medindo os quatro filhos pixel
+       a pixel com e sem ele, que nao movia NADA: a ordem do DOM ja e' q,t,o,ok e o `order:3`
+       da unidade basta. 🔑 Regra que nao muda um pixel envelhece parecendo intencao.) */
   }
   /* ===== v250d - OS ITENS DA COMUNICACAO VISUAL DO MIV =====
      MIV recebido em 05/08/2026. Ele nomeia TRES itens (paginas 16 a 18), e nao "enfeites":
@@ -3657,7 +3687,6 @@
     <div class="sino-corpo" id="sinoCorpo"></div>
     <div class="sino-pe">
       <button class="btn-claro" onclick="abrirCaixaDoSino()">📥 Caixa de entrada</button>
-      <button class="btn-claro" onclick="abrirAvisosDoSino()">📅 Avisos</button>
     </div>
   </div>
 
@@ -3976,17 +4005,14 @@
     </div>
   </div>
 
-      <div class="config" id="painelAvisos">
-    <div class="grupo">
-      <h2>Notificações</h2>
-      <p class="nota-dash">Avisos importantes vindos das agendas Google dos postos (vencimento de certificados, licenças, prazos...). Sincronizam automaticamente todo dia; para atualizar agora, peça ao Claude: "sincroniza as notificações".</p>
-      <div class="push-box">
-        <button class="btn-claro" id="btnAtivarPush" onclick="ativarAvisosPush()">🔔 Ativar avisos neste aparelho</button>
-        <p class="push-status nota-dash" id="pushStatus"></p>
-      </div>
-      <div id="conteudoAvisos"></div>
-    </div>
-  </div>
+  <!-- v353 - a tela "Notificações" (#painelAvisos) SAIU. Ela nunca esteve em MENUS_APP: a
+       unica porta dela era o botao "📅 Avisos" do cartao do sino, e o texto dela ainda
+       prometia a agenda Google como fonte unica quando ja eram tres (Google, Calendario e
+       Documentos). O que ela fazia ficou com quem ja fazia melhor:
+         - a LISTA com a janela de antecedencia  ->  o cartao do sino (que ja lia a mesma fonte)
+         - o vencimento no calendario            ->  ja acontecia sozinho (ocorrenciasDocumentos)
+         - o ✓ Concluí                           ->  o cartao do sino, item por item
+         - o 🔔 Ativar avisos neste aparelho      ->  Minha conta -->
 
   <div class="config" id="painelRelPosto">
     <div class="grupo">
@@ -4609,6 +4635,18 @@
       <p class="nota-dash">Escolha como os ícones do menu lateral aparecem. Vale só neste aparelho — cada pessoa escolhe o seu.</p>
       <div class="ico-escolha" id="icoEscolha"></div>
     </div>
+    <!-- v353 - o botao de push morava na tela "Notificações", que saiu. Veio para ca', e nao
+         para Configurações, por dois motivos medidos: ele e' ajuste DE APARELHO (igual ao bloco
+         de cima, que ja diz "vale so' neste aparelho"), e os grupos de Configurações escondem
+         por permissao - quem nao e' admin poderia ficar sem o botao. Minha conta todo mundo tem. -->
+    <div class="grupo">
+      <h2>Avisos neste aparelho</h2>
+      <p class="nota-dash">Receba no celular um aviso do que está vencendo (documentos, licenças, prazos) e dos alertas de preço. Vale só neste aparelho — cada pessoa ativa no seu.</p>
+      <div class="push-box">
+        <button class="btn-claro" id="btnAtivarPush" onclick="ativarAvisosPush()">🔔 Ativar avisos neste aparelho</button>
+        <p class="push-status nota-dash" id="pushStatus"></p>
+      </div>
+    </div>
     <div class="grupo">
       <h2>Sua conta</h2>
       <p class="nota-dash">Você está conectado como <b id="contaEmail"></b>.</p>
@@ -4656,7 +4694,7 @@
     </div>
     <div class="grupo">
       <h2>Alertas de cotação (Vibra)</h2>
-      <p class="nota-dash">Receba uma notificação no celular quando o preço de um produto na Vibra mudar bastante de um dia para o outro. Os avisos chegam pelo servidor toda manhã, mesmo com o computador desligado — os aparelhos precisam ter os avisos ativados no menu Notificações.</p>
+      <p class="nota-dash">Receba uma notificação no celular quando o preço de um produto na Vibra mudar bastante de um dia para o outro. Os avisos chegam pelo servidor toda manhã, mesmo com o computador desligado — os aparelhos precisam ter os avisos ativados em <b>👤 Minha conta</b>.</p>
       <div class="alerta-linha">
         <label class="alerta-check"><input type="checkbox" id="alertaSubiuAtivo" onchange="salvarAlertas()"> <span>Avisar quando <b>subir</b></span></label>
         <span class="alerta-mais">mais de</span>
@@ -5048,8 +5086,6 @@ let alertasConfig = { cotacaoSubiu: { ativo: true, centavos: 3 }, cotacaoCaiu: {
 let avisosDia = null;              // notificações das agendas sincronizadas da nuvem
 let avisosStatus = { concluidos: {} };   // notificações marcadas como concluídas (config/avisosStatus)
 let escutaAvisosStatus = null;
-let avisosMostrarFeitos = false;   // mostrar a seção "Concluídos"
-let avisosBuscaFeitos = "";        // filtro de busca no histórico de concluídos
 let escutaTransportadora = null;
 let motoristas = [];               // [{id, nome, caminhao, capacidade}] cadastro da transportadora
 // v176 - frota: cada caminhão aponta para o tanque de sempre, e cada tanque
@@ -7404,6 +7440,13 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v353", data:"12/08/2026", tit:"🔔 A tela <b>Notificações</b> saiu: o <b>sino</b> passou a resolver, e não só a avisar", itens:[
+    {t:"c", h:"Existiam dois lugares mostrando a mesma lista, e um deles quase ninguém achava", d:"O cartão do sino e a tela <b>Notificações</b> liam <b>exatamente a mesma fonte</b>. Só que a tela <b>nunca teve botão na barra lateral</b> nem aparecia na busca: a única porta dela era o botão <b>📅 Avisos</b> dentro do próprio cartão do sino. E o texto dela ainda dizia que os avisos vinham <b>das agendas Google dos postos</b> — o que deixou de ser a história completa quando o app ganhou <b>🗓️ Calendário</b> e <b>📁 Documentos</b> próprios. 🔑 <b>Dois lugares para a mesma lista não é escolha: é um deles desatualizado.</b>"},
+    {t:"n", h:"O ✓ agora é ali mesmo, no sino", d:"Cada aviso de vencimento no cartão do sino ganhou um <b>✓</b> à direita. Um toque e ele sai da lista e da bolinha vermelha — <b>sem trocar de tela</b>, exatamente como você já espiava sem sair de onde estava. Antes, para dispensar um aviso era preciso ir até a tela Notificações; era o único lugar do app que fazia isso. ⚠️ <b>O cartão mostra seis por vez</b> (é assim desde que ele nasceu), então o ✓ vale para os <b>seis primeiros</b> — ao dispensar um, o próximo entra no lugar e ganha o dele. Se houver mais de seis, o rodapé diz quantos ficaram."},
+    {t:"m", h:"⚠️ O que se perdeu, dito na cara: o histórico, o desfazer e os contadores", d:"A lista <b>Concluídos (N)</b>, com busca e com quem concluiu, <b>saiu junto com a tela</b>, e com ela o botão <b>↩ Reabrir</b> e a linha de contadores (<b>Pendentes / Vencidos / Hoje / Próximos 7 dias</b>). Quem marcar um ✓ por engano desfaz <b>mudando a data</b>: do documento em <b>📁 Documentos</b> (✏️ Editar / Renovar) ou do evento no <b>🗓️ Calendário</b>. 🔴 <b>Com uma exceção que é justo dizer:</b> os avisos que ainda vêm da <b>agenda antiga do Google</b> não podem ser editados por dentro do app, então neles o ✓ <b>não tem volta</b> — some de vez. São poucos e estão acabando (quem é <b>administrador</b> pode trazê-los para dentro do app pelo <b>🗓️ Calendário</b>), mas quem clicar neles clica sabendo. 🔑 <b>Recurso que sai tem de dizer por onde a pessoa passa a fazer aquilo — e onde ela não passa mais.</b>"},
+    {t:"m", h:"O 🔔 Ativar avisos neste aparelho mudou de casa", d:"Ele morava dentro da tela que saiu. Agora está em <b>👤 Minha conta</b>, num bloco novo chamado <b>Avisos neste aparelho</b> — ao lado dos <b>Ícones da barra de menus</b>, que também vale só no aparelho de cada um. As duas frases do app que mandavam você \"ao menu Notificações\" (o alerta de preço da Vibra e o convite que aparece no primeiro acesso) passaram a apontar para lá."},
+    {t:"m", h:"O vencimento de documento já aparecia no Calendário — e continua", d:"Isso não é novidade desta versão, é o que <b>permitiu</b> ela: documento com data de vencimento já vira ponto no <b>🗓️ Calendário</b> e linha na lista do mês, sozinho, com a cor da unidade. Quem quiser a visão de prazos por unidade continua em <b>📁 Documentos</b>, que separa <b>vencidos</b>, <b>vencem em breve</b> e <b>em dia</b> com a contagem de cada grupo."}
+  ]},
   {v:"v352", data:"12/08/2026", tit:"💵 O <b>Lucro Bruto</b> do card <b>Vendas do dia</b> agora é o lucro bruto <b>de verdade</b>", itens:[
     {t:"c", h:"O rótulo dizia Bruto, mas o número não era", d:"O card mostrava um número que vinha do Petros como <b>lucro líquido</b> e apenas <b>trocava o nome</b> conforme a despesa do dia estivesse lançada ou não. Só que lucro líquido é o bruto <b>mais as outras receitas</b> (bonificação, aluguel, juros), <b>menos as despesas</b> e <b>mais a variação de estoque</b> — então <b>o rótulo trocava e o número não</b>. 📏 Medido em 12/08: a loja de <b>Teresina</b> estava com despesa <b>zero</b> e mesmo assim o campo escrito \"Lucro Bruto\" mostrava <b>R$ 1.285,59</b>, quando o lucro bruto era <b>R$ 922,35</b>. Os <b>R$ 363,24</b> de diferença são <b>outras receitas e variação de estoque</b> — o documento que o servidor grava traz as duas somadas, então não dá para dizer quanto é de cada uma."},
     {t:"m", h:"⚠️ Por isso o número da loja DIMINUIU — e não é queda de resultado", d:"Onde havia outras receitas embutidas, o valor na tela cai. <b>A loja não vendeu menos e não lucrou menos:</b> o card passou a mostrar só a venda menos o custo do que foi vendido, que é o que a palavra <b>bruto</b> significa. O que ficou de fora não sumiu: continua no <b>lucro líquido</b>, no card <b>Resultado do mês</b> e nos menus <b>📑 Relatórios Adaptive</b> e <b>📉 DRE</b>, onde as <b>Outras receitas</b> aparecem em linha própria. 👉 O \"i\" ao lado do número explica o que entra e o que fica de fora."},
@@ -8520,7 +8563,10 @@ function alternarConta(){
   const aberto = abrirPainelExclusivo("painelConta");
   const bc = document.getElementById("btnConta");
   if (bc) bc.classList.toggle("ativo", aberto);
-  if (aberto) renderConta();
+  /* v353 - o `atualizarBotaoPush()` rodava em UM lugar so' no app inteiro: dentro do
+     `alternarAvisos()`, que morreu com a tela. Sem esta linha o botao nasce com o rotulo
+     estatico do HTML e nunca diz que os avisos JA estao ligados neste aparelho. */
+  if (aberto){ renderConta(); atualizarBotaoPush(); }
 }
 function renderConta(){
   const cn = document.getElementById("contaNome");
@@ -9101,8 +9147,6 @@ function iniciarSync(){
     atualizarBadgeAvisos();
     const pc = document.getElementById("painelCalendario");
     if (pc && pc.classList.contains("aberto")) renderCalendario();
-    const pa = document.getElementById("painelAvisos");
-    if (pa && pa.classList.contains("aberto")) renderAvisos();
   }, ()=>{});
 
   // Documentos/licenças com vencimento (Central de Vencimentos)
@@ -9114,8 +9158,6 @@ function iniciarSync(){
     if (pv && pv.classList.contains("aberto")) renderVencimentos();
     const pc = document.getElementById("painelCalendario");
     if (pc && pc.classList.contains("aberto")) renderCalendario();
-    const pa = document.getElementById("painelAvisos");
-    if (pa && pa.classList.contains("aberto")) renderAvisos();
   }, ()=>{});
 
   // Arquivos (licenças/contratos) guardados no Storage — entram no menu unificado "Documentos"
@@ -9128,8 +9170,6 @@ function iniciarSync(){
     if (pv && pv.classList.contains("aberto")) renderVencimentos();
     const pc = document.getElementById("painelCalendario");
     if (pc && pc.classList.contains("aberto")) renderCalendario();
-    const pa = document.getElementById("painelAvisos");
-    if (pa && pa.classList.contains("aberto")) renderAvisos();
   }, ()=>{});
 
   // Permissões de menus por usuário
@@ -9444,8 +9484,6 @@ function iniciarSync(){
   escutaAvisos = docAvisos.onSnapshot(snap => {
     avisosDia = snap.exists ? (snap.data() || null) : null;
     atualizarBadgeAvisos();
-    const pa = document.getElementById("painelAvisos");
-    if (pa && pa.classList.contains("aberto")) renderAvisos();
     const pc = document.getElementById("painelCalendario");
     if (pc && pc.classList.contains("aberto")) renderCalendario();
   }, ()=>{});
@@ -9454,8 +9492,6 @@ function iniciarSync(){
     const d = snap.exists ? (snap.data() || {}) : {};
     avisosStatus = { concluidos: (d && d.concluidos) ? d.concluidos : {} };
     atualizarBadgeAvisos();
-    const pa = document.getElementById("painelAvisos");
-    if (pa && pa.classList.contains("aberto")) renderAvisos();
   }, ()=>{});
 
   progGlobal(true);   // v248 - o fio no topo anda ate a nuvem responder
@@ -9683,7 +9719,7 @@ function excluir(i){
 // Painéis que ocupam a página; só um fica aberto por vez
 /* v278 - a lista abaixo e a de sempre, mas ela deixou de ser a UNICA fonte: qualquer menu
    de MENUS_APP com painel entra aqui sozinho (ver o bloco logo depois). */
-const PAINEIS = ["painelRegistros","painelDash","painelResumoDia","painelSimular","painelDescontos","painelPuxadas","painelCotacoes","painelInfleet","painelIfood","painelPedido","painelRelPosto","painelRelLoja","painelDespesas","painelFinanceiro","painelRelPetros","painelAnalise","painelAvisos","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin","painelNovidades"];
+const PAINEIS = ["painelRegistros","painelDash","painelResumoDia","painelSimular","painelDescontos","painelPuxadas","painelCotacoes","painelInfleet","painelIfood","painelPedido","painelRelPosto","painelRelLoja","painelDespesas","painelFinanceiro","painelRelPetros","painelAnalise","painelCalendario","painelVencimentos","painelCaixa","painelConta","painelConfig","painelAdmin","painelNovidades"];
 function fecharTodosPaineis(exceto){
   PAINEIS.forEach(id => {
     const el = document.getElementById(id);
@@ -9718,10 +9754,19 @@ function fecharTodosPaineis(exceto){
   if (bcv) bcv.classList.toggle("ativo", document.getElementById("painelConvVendas").classList.contains("aberto"));
   const bcc = document.getElementById("btnConvCompras");
   if (bcc) bcc.classList.toggle("ativo", document.getElementById("painelConvCompras").classList.contains("aberto"));
-  const bav = document.getElementById("btnAvisos");
-  if (bav) bav.classList.toggle("ativo", document.getElementById("painelAvisos").classList.contains("aberto"));
-  const bsh = document.getElementById("btnSinoHeader");
-  if (bsh) bsh.classList.toggle("ativo", document.getElementById("painelAvisos").classList.contains("aberto"));
+  /* 🔴 v353 - AQUI MORAVA A LINHA QUE MAIS ARRISCAVA ESTA VERSAO. Ate a v352 estas quatro
+     linhas liam `getElementById("painelAvisos").classList` SEM GUARDA DE NULL. O par do
+     `btnAvisos` se salvava por acidente (esse id nunca existiu no HTML, entao o `if` curto-
+     circuitava), mas o do `btnSinoHeader` NAO: o sino EXISTE, entao apagar o painel sem
+     apagar esta linha daria TypeError a cada troca de tela do app inteiro.
+     🔑 O sino agora diz a verdade que ele sempre quis dizer: ele fica aceso enquanto o
+     CARTAO dele esta' aberto - nao mais enquanto uma tela que nao existe mais estivesse.
+     ⚠️ E a fonte da verdade e' o DOM (`sinoCard.style.display`), NAO a variavel
+     `sinoCardAberto`: ela e' um `let` declarado 11 mil linhas abaixo, e esta funcao e'
+     chamada de tres lugares - ler a variavel daqui seria apostar que nenhum deles roda
+     antes de a declaracao ser avaliada. */
+  const bsh = document.getElementById("btnSinoHeader"), sc = document.getElementById("sinoCard");
+  if (bsh) bsh.classList.toggle("ativo", !!(sc && sc.style.display !== "none"));
   const bcal = document.getElementById("btnCalendario");
   if (bcal) bcal.classList.toggle("ativo", document.getElementById("painelCalendario").classList.contains("aberto"));
   const bven = document.getElementById("btnVencimentos");
@@ -20731,7 +20776,23 @@ function cancelarPreco(dist, comb){
    1. O `alternarAvisos()` ALTERNA — chamado com o painel ja' aberto, ele FECHA. O botao do
       card confere antes, como o `abrirMenuPorChave` da v247.
    2. O Esc ja' tinha dois donos (a caixa Personalizar, v244, e a busca, v247). Agora sao
-      tres, e cada um so' age quando a SUA caixa esta aberta. */
+      tres, e cada um so' age quando a SUA caixa esta aberta.
+
+   🆕 v353 - ESTE CARTAO VIROU O DONO DOS AVISOS DE VENCIMENTO, e nao mais a antessala deles.
+   A tela `#painelAvisos` saiu; o `alternarAvisos()` citado acima nao existe mais. O que a
+   tela tinha e o cartao nao tinha era o ✓ que dispensa o aviso - e ele entrou aqui.
+   🔑 A tela nunca esteve em MENUS_APP: era um segundo lugar para ver a MESMA lista que o
+   cartao ja mostrava.
+   ⚠️ E O QUE A FUSAO CUSTOU, ESCRITO PARA NAO SE ESQUECER (o revisor derrubou a primeira
+   versao deste comentario, que dizia "nao custou funcionalidade nenhuma"):
+     1. o ✓ so alcanca os SINO_TOPO primeiros, porque o cartao so desenha 6; a tela punha
+        um em CADA pendente. Dispensar um faz o proximo subir, entao todos continuam
+        alcancaveis - mas em ordem, e nao de qualquer lugar da lista.
+     2. sumiu o historico "Concluídos (N)" com busca e o ↩ Reabrir.
+     3. sumiu a linha de contadores Pendentes/Vencidos/Hoje/Proximos 7 dias.
+     4. 🔴 e o item vindo da agenda GOOGLE nao tem `_id`, entao o Calendario nao lhe da
+        ✏️/🗑 (a guarda `podeGerenciarEventos() && e._id`): nele o ✓ e' IRREVERSIVEL pelo
+        app. Esta e' a unica das quatro que morde dado, e por isso esta no Novidades. */
 const SINO_TOPO = 6;                  // quantos avisos cabem no cartao antes do "e mais N"
 let sinoCardAberto = false;
 function sinoPendentes(){
@@ -20789,18 +20850,30 @@ function renderSinoCard(){
     if (cxs.length > SINO_TOPO)
       h += '<div class="sino-mais">e mais ' + (cxs.length - SINO_TOPO) + ' na Caixa de entrada</div>';
   }
+  /* v353 - o \u2713 que dispensa o aviso entrou AQUI, porque a tela de Avisos saiu e ela era o
+     unico lugar do app que escrevia em `config/avisosStatus`. O indice e' o da lista INTEIRA
+     (`__sinoPend`), nao o da fatia mostrada - as duas coincidem hoje porque o slice comeca
+     em 0, e escrever assim nao depende disso continuar verdade. */
+  window.__sinoPend = pend;
   if (pend.length){
     h += '<div class="sino-sec">\ud83d\udcc5 Avisos de vencimento</div>';
-    pend.slice(0, SINO_TOPO).forEach(e => {
+    pend.slice(0, SINO_TOPO).forEach((e, i) => {
       const d = sinoRotuloData(e);
       h += '<div class="sino-it ' + d.cls + '">' +
            '<span class="sino-q">' + escAttr(d.rot) + '</span>' +
            '<span class="sino-t" title="' + escAttr(e.titulo || "") + '">' + escAttr(e.titulo || "") + '</span>' +
            (e.origem ? '<span class="sino-o">' + escAttr(e.origem) + '</span>' : '') +
+           /* o `event.stopPropagation()` NAO e' enfeite: sem ele o clique sobe ate o
+              `_sinoCliqueFora` depois de o botao ja ter sido apagado pelo redesenho, e o
+              cartao fecha. Ver o comentario da guarda, no `_sinoCliqueFora`. */
+           '<button class="sino-ok" onclick="event.stopPropagation();concluirAvisoSino(' + i + ')" title="Marcar como resolvido e tirar daqui">\u2713</button>' +
            '</div>';
     });
+    /* v353 - o "e mais N" apontava para "a tela de Avisos", que nao existe mais. Ele agora
+       diz onde a pessoa ve o resto de verdade. \ud83d\udd11 Rotulo que mente e' defeito, mesmo quando
+       a tela funciona (a licao da v288, do outro botao deste mesmo cartao). */
     if (pend.length > SINO_TOPO)
-      h += '<div class="sino-mais">e mais ' + (pend.length - SINO_TOPO) + ' na tela de Avisos</div>';
+      h += '<div class="sino-mais">e mais ' + (pend.length - SINO_TOPO) + ' \u2014 veja no \ud83d\uddd3\ufe0f Calend\u00e1rio</div>';
   }
   corpo.innerHTML = h;
 }
@@ -21363,6 +21436,19 @@ function fecharBula(){
 
 function _sinoCliqueFora(ev){
   const c = document.getElementById("sinoCard"), b = document.getElementById("btnSinoHeader");
+  /* 🔴 v353 - AQUI ESTEVE UMA GUARDA LARGA DEMAIS, E O REVISOR A DERRUBOU COM NUMERO.
+     O problema e' real: o `concluirAvisoSino` redesenha o cartao DENTRO do onclick, entao
+     quando este ouvinte roda o botao clicado JA' SAIU do DOM e `c.contains(ev.target)`
+     responde false para um elemento solto - todo ✓ fechava o cartao na cara da pessoa.
+     ⚠️ Mas a primeira correcao foi `!document.contains(ev.target) -> return`, e ela nao
+     distingue "o ✓ se apagou" de "QUALQUER controle do app se apagou". Este app redesenha
+     painel inteiro por innerHTML em quase todo clique: medido, clicar numa pastilha
+     `.cal-filtro` ou na seta `.cal-nav` do Calendario deixava de fechar o cartao, e a
+     promessa da v250b tres linhas acima ("clicar fora fecha") virava mentira.
+     ✅ O conserto e' ESTREITO e mora no proprio ✓: ele para o clique nele mesmo
+     (`event.stopPropagation()` no onclick), entao este ouvinte nunca chega a ver aquele
+     clique. 🔑 Guarda que resolve o meu caso mexendo no comportamento do app inteiro nao
+     e' guarda: e' efeito colateral com cara de conserto. */
   if (c && c.contains(ev.target)) return;
   if (b && b.contains(ev.target)) return;
   fecharSinoCard();
@@ -21383,27 +21469,23 @@ function fecharSinoCard(){
   if (c) c.style.display = "none";
   sinoCardAberto = false;
   document.removeEventListener("click", _sinoCliqueFora);
-  /* o sino so' continua aceso se a TELA de avisos estiver aberta */
+  /* v353 - antes o sino continuava aceso se a TELA de avisos estivesse aberta. Ela saiu, e
+     agora o sino aceso quer dizer uma coisa so': o cartao esta' aberto. */
   const b = document.getElementById("btnSinoHeader");
-  const p = document.getElementById("painelAvisos");
-  if (b) b.classList.toggle("ativo", !!(p && p.classList.contains("aberto")));
+  if (b) b.classList.remove("ativo");
 }
 function alternarSinoCard(){ sinoCardAberto ? fecharSinoCard() : abrirSinoCard(); }
-/* 🔴 `alternarAvisos()` ALTERNA: com o painel ja' aberto ele fecharia. Regra da v247.
+/* 🔴 `alternarCaixa()` ALTERNA: com o painel ja' aberto ele fecharia. Regra da v247 - por
+   isso o `if` confere antes, como o `abrirMenuPorChave`.
    🆕 v288 - O BOTAO CHAMADO "Abrir a Caixa de entrada" ABRIA A TELA DE AVISOS.
-   O nome dizia uma coisa e o destino era outro. Agora sao dois botoes, cada um no lugar
-   que o nome promete. 🔑 Rotulo que mente e' defeito, mesmo quando a tela funciona. */
+   O nome dizia uma coisa e o destino era outro; viraram dois botoes.
+   🆕 v353 - e agora voltou a ser UM: a tela de Avisos saiu, e o que ela mostrava passou a
+   ser mostrado e resolvido dentro do proprio cartao. */
 function abrirCaixaDoSino(){
   fecharSinoCard();
   const p = document.getElementById("painelCaixa");
   if (p && p.classList.contains("aberto")){ renderCaixa(); return; }
   alternarCaixa();
-}
-function abrirAvisosDoSino(){
-  fecharSinoCard();
-  const p = document.getElementById("painelAvisos");
-  if (p && p.classList.contains("aberto")){ renderAvisos(); return; }
-  alternarAvisos();
 }
 document.addEventListener("keydown", ev => {
   if (ev.key !== "Escape") return;
@@ -21413,14 +21495,6 @@ document.addEventListener("keydown", ev => {
   if (frcCardAberto)  fecharFrcCard();
   if (bulAberta)      fecharBula();   // v253
 });
-function alternarAvisos(){
-  const aberto = abrirPainelExclusivo("painelAvisos");
-  const b = document.getElementById("btnAvisos");
-  if (b) b.classList.toggle("ativo", aberto);
-  const sh = document.getElementById("btnSinoHeader");
-  if (sh) sh.classList.toggle("ativo", aberto);
-  if (aberto){ renderAvisos(); atualizarBotaoPush(); }
-}
 function diasAte(iso){
   const d1 = new Date(hojeISO()+"T00:00:00");
   const d2 = new Date(String(iso)+"T00:00:00");
@@ -21443,7 +21517,6 @@ function avisoOrigemPermitida(origem){
 }
 function refrescarAvisosCalendario(){
   if (typeof atualizarBadgeAvisos === "function") atualizarBadgeAvisos();
-  const pa = document.getElementById("painelAvisos"); if (pa && pa.classList.contains("aberto") && typeof renderAvisos === "function") renderAvisos();
   const pc = document.getElementById("painelCalendario"); if (pc && pc.classList.contains("aberto") && typeof renderCalendario === "function") renderCalendario();
 }
 function fonteEventos(){
@@ -21468,115 +21541,26 @@ function chaveAviso(e){
 }
 function avisoConcluido(e){ return !!(avisosStatus && avisosStatus.concluidos && avisosStatus.concluidos[chaveAviso(e)]); }
 function atualizarBadgeAvisos(){
-  const n = avisosVisiveis().filter(e => !avisoConcluido(e)).length;  // pendentes: vencidos + os que já entraram na janela de antecedência de cada evento
-  const b = document.getElementById("badgeAvisos");
-  if (b){ b.textContent = n; b.style.display = n ? "" : "none"; }
+  /* v353 - o `badgeAvisos` que esta funcao pintava NUNCA EXISTIU no HTML: era o numerinho de
+     um botao de barra lateral (`btnAvisos`) que tambem nunca existiu, porque a tela de Avisos
+     nunca esteve em MENUS_APP. Duas leituras de elemento inexistente, caladas desde sempre.
+     🔑 O que esta funcao faz de util e' a ultima linha - e por isso ela FICA. */
   atualizarBadgeSino();   /* v288 - a bolinha do sino e' Avisos + Caixa de entrada */
 }
-function concluirAvisoIdx(i){
-  const e = (window.__aviPend||[])[i]; if(!e) return;
+/* v353 - o ✓ do cartao do sino. Herdou o corpo do antigo `concluirAvisoIdx`, que morreu com
+   a tela de Avisos; a diferenca e' de onde vem o item (`__sinoPend`, escrito por
+   `renderSinoCard`) e o fato de nao precisar redesenhar nada a mao: `atualizarBadgeAvisos`
+   chama `atualizarBadgeSino`, que redesenha o cartao se ele estiver aberto.
+   ⚠️ O ↩ Reabrir e o historico "Concluídos (N)" NAO vieram junto - saíram de proposito com a
+   tela. Quem marcar por engano desfaz mudando a data em 📁 Documentos ou no 🗓️ Calendário. */
+function concluirAvisoSino(i){
+  const e = (window.__sinoPend||[])[i]; if(!e) return;
   if(!avisosStatus) avisosStatus={concluidos:{}};
   if(!avisosStatus.concluidos) avisosStatus.concluidos={};
   avisosStatus.concluidos[chaveAviso(e)] = { titulo:e.titulo, data:e.data, origem:e.origem||"", em:new Date().toISOString(), por: (typeof usuarioAtual!=="undefined"?usuarioAtual:"")||"", porNome: ((typeof nomeUsuario!=="undefined"&&nomeUsuario)?nomeUsuario:((typeof usuarioAtual!=="undefined"?usuarioAtual:"")||"")) };
-  renderAvisos(); atualizarBadgeAvisos();
+  atualizarBadgeAvisos();   /* -> atualizarBadgeSino() -> renderSinoCard(), se o cartao estiver aberto */
   try { docAvisosStatus.set({ concluidos: avisosStatus.concluidos }); } catch(_){}
 }
-function reabrirAvisoIdx(i){
-  const e = (window.__aviFeito||[])[i]; if(!e) return;
-  if(avisosStatus && avisosStatus.concluidos){ delete avisosStatus.concluidos[chaveAviso(e)]; }
-  renderAvisos(); atualizarBadgeAvisos();
-  try { docAvisosStatus.set({ concluidos: (avisosStatus&&avisosStatus.concluidos)||{} }); } catch(_){}
-}
-function reabrirAvisoChave(chave){
-  if(avisosStatus && avisosStatus.concluidos){ delete avisosStatus.concluidos[chave]; }
-  renderAvisos(); atualizarBadgeAvisos();
-  try { docAvisosStatus.set({ concluidos: (avisosStatus&&avisosStatus.concluidos)||{} }); } catch(_){}
-}
-function buscarConcluidos(v){
-  avisosBuscaFeitos = v||"";
-  const termo = avisosBuscaFeitos.trim().toLowerCase();
-  const cont = document.getElementById("conteudoAvisos");
-  if(!cont) return;
-  cont.querySelectorAll(".avi-feitos .avi-item").forEach(it => {
-    const t = (it.getAttribute("data-busca")||"").toLowerCase();
-    it.style.display = (!termo || t.indexOf(termo) >= 0) ? "" : "none";
-  });
-}
-function alternarConcluidos(){ avisosMostrarFeitos = !avisosMostrarFeitos; renderAvisos(); }
-function renderAvisos(){
-  const cont = document.getElementById("conteudoAvisos");
-  if (!cont) return;
-  const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
-  const evsTodos = avisosVisiveis();
-  const pend = evsTodos.filter(e => !avisoConcluido(e));
-  window.__aviPend = pend;
-  // Concluídos: histórico COMPLETO (config/avisosStatus) — não some com o tempo
-  const mapaFeitos = (avisosStatus && avisosStatus.concluidos) ? avisosStatus.concluidos : {};
-  const feitos = Object.keys(mapaFeitos)
-    .map(k => Object.assign({ __chave:k }, mapaFeitos[k]))
-    .filter(f => f && f.titulo && avisoOrigemPermitida(f.origem||""))
-    .sort((a,b) => (b.em||"") < (a.em||"") ? -1 : (b.em||"") > (a.em||"") ? 1 : 0);
-  let html = '';
-  if (avisosDia && avisosDia.atualizadoEm){
-    html += '<p class="cot-quem">🔄 Atualizado em ' + fmtDataHora(new Date(avisosDia.atualizadoEm)) + '</p>';
-  }
-  if (!pend.length && !feitos.length){
-    cont.innerHTML = html + '<p class="nota-dash">Nenhum aviso por enquanto. Os eventos do Calendário aparecem aqui quando a data vai chegando (conforme a antecedência escolhida em cada um).</p>';
-    return;
-  }
-  if (!pend.length){
-    html += '<p class="nota-dash">🎉 Tudo em dia! Nenhum aviso pendente.</p>';
-  } else {
-    /* v249 - a conta ja estava feita aqui em cima; so' faltava a tela dizer.
-       Os quatro aparecem SEMPRE, inclusive em zero: "Vencidos 0" e' a boa noticia. */
-    let cVenc = 0, cHoje = 0, cSete = 0;
-    pend.forEach(e => { const d = diasAte(e.data); if (d < 0) cVenc++; else if (d === 0) cHoje++; else if (d <= 7) cSete++; });
-    html += '<div class="cnt-linha">' +
-      '<span class="cnt-fil">Pendentes' + cntEtiqueta(pend.length) + '</span>' +
-      '<span class="cnt-fil' + (cVenc ? ' cnt-mau' : '') + '">Vencidos' + cntEtiqueta(cVenc) + '</span>' +
-      '<span class="cnt-fil">Hoje' + cntEtiqueta(cHoje) + '</span>' +
-      '<span class="cnt-fil">Próximos 7 dias' + cntEtiqueta(cSete) + '</span>' +
-      '</div>';
-    html += '<div class="avi-lista">';
-    pend.forEach((e,i) => {
-      const dd = diasAte(e.data);
-      const ddmm = fmtDataCurta(e.data).slice(0,5);
-      let cls = '', rot = fmtDataCurta(e.data);
-      if (dd < 0){ cls = 'vencido'; rot = '⚠️ VENCIDO ' + ddmm; }
-      else if (dd === 0){ cls = 'hoje'; rot = 'HOJE'; }
-      else if (dd === 1){ cls = 'perto'; rot = 'AMANHÃ'; }
-      else if (dd <= 7){ cls = 'perto'; rot = ddmm + ' • em ' + dd + ' dias'; }
-      html += '<div class="avi-item ' + cls + '"><span class="avi-data">' + rot + '</span>' +
-        '<span class="avi-tit">' + esc(e.titulo) + '</span>' +
-        (e.origem ? '<span class="avi-origem">' + esc(e.origem) + '</span>' : '') +
-        '<button class="avi-ok" onclick="concluirAvisoIdx(' + i + ')" title="Marcar como concluído">✓ Concluí</button>' +
-        '</div>';
-    });
-    html += '</div>';
-  }
-  if (feitos.length){
-    html += '<button class="avi-toggle-feitos" onclick="alternarConcluidos()">' +
-      (avisosMostrarFeitos ? '\u25be' : '\u25b8') + ' Concluídos (' + feitos.length + ')</button>';
-    if (avisosMostrarFeitos){
-      html += '<input class="avi-busca-feitos" type="search" placeholder="\ud83d\udd0e Buscar tarefa concluída..." value="' + escAttr(avisosBuscaFeitos) + '" oninput="buscarConcluidos(this.value)">';
-      html += '<div class="avi-lista avi-feitos">';
-      feitos.forEach(f => {
-        const quando = f.em ? fmtDataHora(new Date(f.em)) : '';
-        const quem = esc(f.porNome || f.por || '');
-        html += '<div class="avi-item feito" data-busca="' + escAttr((f.titulo||'') + ' ' + (f.origem||'')) + '"><span class="avi-data">\u2713 ' + (f.data ? fmtDataCurta(f.data).slice(0,5) : '') + '</span>' +
-          '<span class="avi-tit">' + esc(f.titulo) + '</span>' +
-          (f.origem ? '<span class="avi-origem">' + esc(f.origem) + '</span>' : '') +
-          '<button class="avi-reabrir" onclick="reabrirAvisoChave(\'' + escAspas(f.__chave) + '\')" title="Reabrir (desfazer)">\u21a9 Reabrir</button>' +
-          ((quem || quando) ? '<span class="avi-quem">\u2713 Concluído' + (quem ? (' por ' + quem) : '') + (quando ? (' \u2022 ' + esc(quando)) : '') + '</span>' : '') +
-          '</div>';
-      });
-      html += '</div>';
-    }
-  }
-  cont.innerHTML = html;
-  if (avisosMostrarFeitos && avisosBuscaFeitos) buscarConcluidos(avisosBuscaFeitos);
-}
-
 /* ================== Calendário (eventos das agendas) ================== */
 const MESES_CAL = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 let calAno = null, calMes = null, calDiaSel = null;   // mês 0-11
@@ -27412,7 +27396,7 @@ function renderPrecosMargens(){
 // Barrinha "Exportar PDF / Imprimir" no topo de cada menu de conteúdo (v113 — saiu da barra lateral)
 function instalarFerramentasPaineis(){
   const alvos = ["painelDash","painelRegistros","painelSimular","painelDescontos",
-                 "painelCotacoes","painelPuxadas","painelAvisos","painelCalendario","painelVencimentos",
+                 "painelCotacoes","painelPuxadas","painelCalendario","painelVencimentos",
                  "painelConvVendas","painelConvCompras"];
   alvos.forEach(id => {
     const p = document.getElementById(id);
@@ -27435,7 +27419,6 @@ function painelVisivelInfo(){
     ["painelCotacoes",  "Cotações do Dia", "cotacoes"],
     ["painelConvVendas",  "Vendas e Margem da Loja", "vendas_loja"],
     ["painelConvCompras", "Compras e Fornecedores",  "compras"],
-    ["painelAvisos",    "Notificações", "notificacoes"],
     ["painelCalendario","Calendário",   "calendario"],
     ["painelVencimentos","Documentos",  "documentos"],
     ["painelConfig",    "Configurações", "configuracoes"],
@@ -28160,7 +28143,7 @@ if ("serviceWorker" in navigator) {
     <div class="modal-push">
       <div class="modal-push-icone">🔔</div>
       <h3>Ativar avisos neste aparelho?</h3>
-      <p>Receba um aviso no celular quando algo importante do calendário estiver chegando (vencimentos, prazos, licenças) — 1 dia antes e no dia. Você pode ativar ou desativar depois no menu Notificações.</p>
+      <p>Receba um aviso no celular quando algo importante do calendário estiver chegando (vencimentos, prazos, licenças) — 1 dia antes e no dia. Você pode ativar ou desativar depois em Minha conta.</p>
       <div class="modal-push-botoes">
         <button class="btn-claro" onclick="recusarPushModal()">Agora não</button>
         <button class="btn-verde" onclick="aceitarPushModal()">Ativar avisos</button>
