@@ -1664,6 +1664,48 @@
     table.rpz-tab{font-size:.72rem}
     .rpz-nome{max-width:118px}
   }
+  /* ===== v356 - Fechamento do caixa =====
+     🔴 No celular a tabela de conta tem CINCO colunas, e a que importa - o SALDO FINAL - e' a
+     ultima: ela sai da tela e so' aparece rolando de lado. Ali cada conta vira um CARTAO com os
+     quatro numeros inteiros. No computador continua tabela. */
+  .fc-lista{display:none}
+  .fc-obs-cel{display:none}
+  .fc-dia{white-space:nowrap;color:var(--cinza);font-size:.72rem}
+  /* 🔴 A CLASSE `rpz-obs` NASCEU AQUI NA v356 E NUNCA FOI DEFINIDA. O nome veio emprestado do
+     painel rpz, onde ela tambem nao existe: o rpz nunca teve coluna de observacao. Sem regra, a
+     td herda o `white-space:nowrap` da .rpz-tab e uma observacao de 90 caracteres
+     ("REF 02 TROCA DE PNEU DE CALIBRAGEM DO CAMINHAO...") estica a tabela para fora do cartao no
+     computador. 🔑 Truncar com ellipsis seria pior: a observacao E' a unica coisa que diz de QUEM
+     e' a despesa (o campo `nome` do ERP e' a razao social da propria empresa). Entao ela QUEBRA. */
+  #painelFechCaixa td.rpz-obs{white-space:normal;word-break:break-word;max-width:360px;
+                              color:var(--cinza);font-size:.74rem;line-height:1.35}
+  #painelFechCaixa th.rpz-obs{white-space:nowrap}
+  #painelFechCaixa td.rpz-obs .rpz-obs{max-width:none;font-size:inherit;color:inherit}
+  /* ⚠️ O CARTAO DE CONTA COMECA EM 860px, NAO EM 640px. Medido: a tabela de conta tem cinco
+     colunas e a mais larga (o nome do banco: "BANCO DO BRASIL S/A - C/C 12.345-6") nao encolhe;
+     entre 641 e 860 ela some com o SALDO FINAL para fora da area visivel, e o tablet e o celular
+     deitado caem exatamente nessa faixa. O resto do painel (a observacao, o `fc-so-pc`) continua
+     em 640: aquilo e' sobre LARGURA DE TEXTO, isto e' sobre NUMERO DE COLUNAS. */
+  @media (max-width:860px){
+    .fc-tab{display:none}
+    .fc-lista{display:block}
+    .fc-c{border:1px solid var(--borda);border-radius:12px;padding:10px 12px;margin-bottom:8px;
+          background-image:linear-gradient(var(--superficie),var(--superficie));
+          box-shadow:inset 0 2px 0 -0.5px rgba(var(--verde-rgb),.42)}
+    .fc-n{font-size:.78rem;font-weight:600;margin-bottom:6px;line-height:1.3}
+    .fc-l{display:flex;justify-content:space-between;font-size:.74rem;color:var(--cinza);padding:2px 0}
+    .fc-l b{color:var(--txt);font-weight:600;font-variant-numeric:tabular-nums}
+    .fc-f{border-top:1px solid var(--borda);margin-top:5px;padding-top:5px}
+    .fc-f b{font-size:.9rem}
+  }
+  @media (max-width:640px){
+    /* a despesa vira duas linhas: o tipo em cima, a observacao INTEIRA embaixo. Truncar as duas
+       deixava "REF 02 TROCA DE PNEU DE CALIB...", que nao responde nada. */
+    .fc-so-pc{display:none}
+    #painelFechCaixa .rpz-nome{max-width:none;white-space:normal}
+    .fc-obs-cel{display:block;font-size:.66rem;color:var(--cinza);white-space:normal;
+                margin-top:1px;font-weight:400}
+  }
   @media (max-width:640px){
     .cxi-v{min-width:74px;font-size:.72rem}
     .cxi-q{min-width:52px}
@@ -3649,6 +3691,8 @@
       <button class="btn-claro" id="btnDre" onclick="alternarDre()"><span class="mi">📉</span><span class="mt">DRE</span></button>
       <!-- v341 - Despesas Detalhadas: o ano inteiro, por categoria e tipo -->
       <button class="btn-claro" id="btnDespesasDet" onclick="alternarDespesasDet()"><span class="mi">💸</span><span class="mt">Despesas Detalhadas</span></button>
+      <!-- v356 - Fechamento do caixa: o relatorio "C - Resumo Financeiro" do Petros, com de/ate livre -->
+      <button class="btn-claro" id="btnFechCaixa" onclick="alternarFechCaixa()"><span class="mi">💰</span><span class="mt">Fechamento do caixa</span></button>
       <!-- v312 - as Afericoes: o teste do bico, com periodo livre -->
       <button class="btn-claro" id="btnAfericoes" onclick="alternarAfericoes()"><span class="mi">📏</span><span class="mt">Aferições</span></button>
       <button class="btn-claro" id="btnClientes" onclick="alternarClientes()"><span class="mi">🧾</span><span class="mt">Clientes</span></button>
@@ -4061,6 +4105,30 @@
         <div class="desc-campo"><label>Retiradas de sócios</label><select id="dsdRet" onchange="dsdComRet=(this.value==='1');renderDespesasDet()"><option value="1">Incluir</option><option value="0">Tirar da conta</option></select></div>
       </div>
       <div id="dsdBox"></div>
+    </div>
+  </div>
+
+  <!-- ===================== v356 - FECHAMENTO DO CAIXA =====================
+       O relatorio "C - Resumo Financeiro" do Petros, com de/ate LIVRE. O coletor do VPS grava
+       um documento por EMPRESA e por DIA (resumoFinanceiro/{emp}_{AAAA-MM-DD}); esta tela junta
+       os dias do periodo.
+       🔴 O QUE SOMA E O QUE NAO SOMA: venda, recebimento, sangria, despesa, receita, deposito,
+       entrada e saida somam. O SALDO NAO: o inicial e' o do PRIMEIRO dia e o final e' o do ULTIMO.
+       Somar saldo da um numero sem significado nenhum.
+       ⚠️ Enquanto houver caixa aberto no periodo, o numero do dia AINDA MUDA - o litro sobe (vem
+       da venda crua) e o R$ nao (vem do caixa fechado). Por isso a tela diz quantos caixas estao
+       abertos, com o mesmo numero que o Petros imprime no topo da folha. -->
+  <div class="config" id="painelFechCaixa">
+    <div class="grupo">
+      <div class="rel-topo"><h2>💰 Fechamento do caixa</h2><div class="rel-topo-bts"></div></div>
+      <p class="nota-dash">O mesmo relatório <b>C - Resumo Financeiro</b> do Petros, por período livre: quanto foi vendido, como o dinheiro entrou, o que saiu de cada conta e de cada caixa, e cada despesa, receita e depósito do intervalo.</p>
+      <div class="evo-filtros">
+        <div class="desc-campo"><label>Unidade</label><select id="fcEmp" onchange="fcMudaEmp(this.value)"></select></div>
+        <div class="desc-campo"><label>Período</label><select id="fcAtalho" onchange="fcMudaAtalho(this.value)"></select></div>
+        <div class="desc-campo afer-data"><label>De</label><input type="date" id="fcDe" onchange="fcMudaData('de', this.value)"></div>
+        <div class="desc-campo afer-data"><label>Até</label><input type="date" id="fcAte" onchange="fcMudaData('ate', this.value)"></div>
+      </div>
+      <div id="fcBox"></div>
     </div>
   </div>
 
@@ -4892,6 +4960,14 @@ const colPuxadas = db.collection("puxadas");                      // registro de
 const colDescontos = db.collection("descontos");                  // descontos dados aos clientes (Postos Full)
 const docClientes = db.collection("config").doc("clientes");      // clientes cadastrados por posto (autocompletar do Descontos)
 const colConvVendas = db.collection("convVendas");                // vendas da loja de conveniência (custo x venda x margem)
+/* 🔴 v356 - o Fechamento do caixa: o relatorio "C - Resumo Financeiro" do Petros, gravado pelo
+   coletor do VPS por EMPRESA e por DIA em resumoFinanceiro/{emp}_{AAAA-MM-DD}, com um campo `data`
+   ("AAAA-MM-DD") para o `where` de faixa.
+   ⚠️ ELA NAO ENTRA NO iniciarSync(), e isso nao e' descuido: 7 empresas x 365 dias = 2.555
+   documentos que TODO usuario baixaria a cada login frio, inclusive quem nao tem permissao de
+   abrir a tela. A escuta nasce quando o painel abre e e' reassinada a cada troca de periodo —
+   o molde e' o `descontos` (carregarDescontosMes) e o `convVendas` (carregarConvVendasMes). */
+const colResumoFin = db.collection("resumoFinanceiro");
 const colConvCompras = db.collection("convCompras");              // compras/notas dos fornecedores da conveniência
 const docConvFornec = db.collection("config").doc("convFornecedores"); // fornecedores cadastrados por unidade (autocompletar das Compras)
 const docConvProdutos = db.collection("config").doc("convProdutos");   // produtos já vendidos por unidade (autocompletar das Vendas)
@@ -5113,6 +5189,20 @@ let convVendaDataSel = "";
 let convVendasMes = [];                // vendas da loja no período (consolidado)
 let escutaConvVendasMes = null;
 let convVMesIniSel = "", convVMesFimSel = "";
+/* v356 - Fechamento do caixa */
+let fcDocs = [];                       // os documentos do periodo escolhido
+let escutaFechCaixa = null;
+let fcEmpSel = "", fcDe = "", fcAte = "", fcAtalho = "mes", fcBusca = "", fcErro = "";
+/* 🔴 `fcDe`/`fcAte` sao O QUE OS DOIS CAMPOS DA TELA MOSTRAM. `fcIni`/`fcFim` sao o periodo
+   REALMENTE consultado - iguais aos de cima, exceto quando o usuario deixa a data inicial depois
+   da final e a tela ordena as duas para poder consultar. Ate' agora era uma variavel so', e a
+   ordenacao ficava GRAVADA: mexer no "Ate" antes do "De" (que e' a ordem natural de quem ve o
+   mes errado na tela) deixava os campos dizendo 01/07 a 31/07 e a consulta indo de 01/07 a 01/08.
+   Um dia a mais entrava no total, e a diferenca contra a folha do Petros pareceria erro do
+   coletor. 🔑 O padrao da casa (carregarDescontosMes, carregarConvVendasMes) nunca escreve de
+   volta o que ordenou; aqui a tela precisa do periodo para escrever no cabecalho, entao ele
+   ganhou variavel PROPRIA em vez de sujar a do campo. */
+let fcIni = "", fcFim = "", fcErroDeDesenho = false;
 let convCompras = [];                  // compras/notas no período selecionado
 let escutaConvCompras = null;
 let convCMesIniSel = "", convCMesFimSel = "";
@@ -5507,9 +5597,12 @@ const ICO_SVG = {
   empresa:"<path d='M3.6 20.4h16.8'/><path d='M5.4 20.4V6.2L12 3.6l6.6 2.6v14.2'/><path d='M9.6 20.4v-4.4h4.8v4.4'/><path d='M9.4 9.2h1.2M13.4 9.2h1.2M9.4 12.6h1.2M13.4 12.6h1.2'/>",
   g_finan:"<ellipse cx='12' cy='6.6' rx='7' ry='2.8'/><path d='M5 6.6v4.4c0 1.55 3.13 2.8 7 2.8s7-1.25 7-2.8V6.6'/><path d='M5 11v4.4c0 1.55 3.13 2.8 7 2.8s7-1.25 7-2.8V11'/>",
   despesasDet:"<path d='M5.4 3.4h13.2v17.2l-2.2-1.5-2.2 1.5-2.2-1.5-2.2 1.5-2.2-1.5z'/><path d='M8.8 8.2h6.4'/><path d='M8.8 11.6h6.4'/><path d='M8.8 15h3.4'/>",
+  /* v356 - a gaveta do caixa com o cifrao. Menu novo SAI COM DESENHO no mesmo patch que o cria:
+     sem ele o botao volta ao emoji nos estilos minimalista e vivo, sem erro nenhum (a licao da v317). */
+  fechCaixa:"<rect x='3.2' y='9.4' width='17.6' height='11' rx='2.2'/><path d='M7.2 9.4V6.6a2 2 0 0 1 2-2h5.6a2 2 0 0 1 2 2v2.8'/><path d='M12 12.4v5.6'/><path d='M13.9 13.5c-.6-.6-3.2-.8-3.2.6 0 1.3 2.9.7 2.9 2 0 1.3-2.6 1.1-3.3.4'/>",
   g_ajustes:"<circle cx='12' cy='12' r='3.1'/><path d='M19.1 14.6a1.5 1.5 0 0 0 .3 1.7l.1.1a1.9 1.9 0 1 1-2.6 2.6l-.1-.1a1.5 1.5 0 0 0-2.6 1v.2a1.9 1.9 0 0 1-3.7 0v-.1a1.5 1.5 0 0 0-2.6-1l-.1.1a1.9 1.9 0 1 1-2.6-2.6l.1-.1a1.5 1.5 0 0 0-1-2.6h-.2a1.9 1.9 0 1 1 0-3.7h.1a1.5 1.5 0 0 0 1-2.6l-.1-.1a1.9 1.9 0 1 1 2.6-2.6l.1.1a1.5 1.5 0 0 0 1.7.3h.1a1.5 1.5 0 0 0 .9-1.4v-.2a1.9 1.9 0 0 1 3.7 0v.1a1.5 1.5 0 0 0 2.6 1l.1-.1a1.9 1.9 0 1 1 2.6 2.6l-.1.1a1.5 1.5 0 0 0 1 2.6h.2a1.9 1.9 0 0 1 0 3.7h-.1a1.5 1.5 0 0 0-1.4.9z'/>"
 };
-const ICO_BTN = {btnComprar:"comprar",btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnTanquesNivel:"tanquesNivel",btnRecebimento:"recebimento",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnDre:"dre",btnDespesasDet:"despesasDet",btnAfericoes:"afericoes",btnClientes:"clientes",btnAnalise:"analise",btnRelLoja:"relLoja",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnPendAdm:"pendAdm",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
+const ICO_BTN = {btnComprar:"comprar",btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnTanquesNivel:"tanquesNivel",btnRecebimento:"recebimento",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnDre:"dre",btnDespesasDet:"despesasDet",btnFechCaixa:"fechCaixa",btnAfericoes:"afericoes",btnClientes:"clientes",btnAnalise:"analise",btnRelLoja:"relLoja",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnPendAdm:"pendAdm",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
 const ICO_GRP = {dia:"g_dia",analise:"g_analise",finan:"g_finan",transp:"g_transp",org:"g_org",ajustes:"g_ajustes"};   /* v341 */
 /* 🔑 cor por GRUPO, tirada da paleta do MIV (laranja da marca + verde e dourado Petrobras).
    Assim a cor diz de que familia e' o menu, em vez de ser arco-iris. */
@@ -5766,6 +5859,7 @@ function aoMudarLogin(usuario){
     if (escutaClientes){ escutaClientes(); escutaClientes = null; }
     if (escutaConvVendas){ escutaConvVendas(); escutaConvVendas = null; }
     if (escutaConvVendasMes){ escutaConvVendasMes(); escutaConvVendasMes = null; }
+    if (escutaFechCaixa){ escutaFechCaixa(); escutaFechCaixa = null; }   /* v356 */
     if (escutaConvCompras){ escutaConvCompras(); escutaConvCompras = null; }
     if (escutaConvFornec){ escutaConvFornec(); escutaConvFornec = null; }
     if (escutaConvProdutos){ escutaConvProdutos(); escutaConvProdutos = null; }
@@ -7507,6 +7601,14 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v356", data:"12/08/2026", tit:"💰 Menu novo: <b>Fechamento do caixa</b> — o relatório <b>C - Resumo Financeiro</b> do Petros, com período livre", itens:[
+    {t:"n", h:"O mesmo relatório que você pedia no Petros, agora dentro do app", d:"No grupo <b>💰 Financeiro</b> da barra lateral. Escolha a <b>unidade</b> e o <b>período</b> — de/até livre, como no Petros, ou pelos atalhos (este mês, mês passado, últimos 7 e 30 dias, este ano) — e a tela monta as <b>sete seções</b> da folha: movimento do caixa, como o dinheiro entrou, contas bancárias, caixas, despesas, receitas e depósitos. Os números vêm do servidor, que guarda <b>um dia por vez desde 01/01/2026</b>."},
+    {t:"n", h:"Duas coisas que a folha impressa não tem", d:"A <b>busca nas despesas</b>: digite <i>CARRETA</i>, <i>DIARIA</i> ou <i>LIMPEZA</i> e a lista filtra na hora, com o total do que sobrou — na folha isso é somar linha por linha. E a <b>sobra e falta por frentista</b>: o Petros calcula por pessoa e imprime só o total; aqui cada um aparece, do pior para o melhor."},
+    {t:"m", h:"Quando o caixa ainda não fechou, a tela avisa", d:"Enquanto houver caixa aberto no período, aparece um aviso em cima dizendo <b>quantos dias</b> ainda estão assim. É o mesmo que o Petros imprime no alto da folha — e a razão é real: <b>o número ainda muda</b>. 📏 Medido em 12/08: o litro do dia subiu <b>2,18 L em dois minutos</b>, enquanto o valor em reais não se moveu (um vem da venda crua, o outro do caixa já fechado)."},
+    {t:"m", h:"Saldo de conta não soma, e a tela respeita isso", d:"Num período de vários dias, entradas, saídas, vendas, despesas e depósitos <b>somam</b>. O <b>saldo</b> não: o inicial é o do <b>primeiro</b> dia e o final é o do <b>último</b> — somar saldo daria um número sem significado. E conta que não teve movimento aparece com <b>travessão</b>, não com R$ 0,00: <i>travessão</i> quer dizer \"não houve\", <i>zero</i> quer dizer \"houve e deu zero\"."},
+    {t:"m", h:"No celular, cada conta vira um cartão", d:"A tabela de conta tem cinco colunas, e no celular a última — o <b>saldo final</b>, justo a que importa — saía da tela. Ali cada conta aparece como um cartão com os quatro números inteiros, sem rolar de lado. Nas despesas, a observação vai <b>completa</b> embaixo do tipo, em vez de ser cortada no meio."},
+    {t:"m", h:"Dá para exportar em PDF e imprimir", d:"A barrinha <b>📄 Exportar PDF / 🖨️ Imprimir</b> aparece no topo da tela, como nos outros menus."}
+  ]},
   {v:"v355", data:"12/08/2026", tit:"📡 Os <b>avisos do Petros</b> que não impedem a venda saíram do cartão do selo e viraram uma aba do Painel Administrativo", itens:[
     {t:"c", h:"Era um aviso que quem lia não tinha como resolver", d:"O cartão que abre no <b>selo de frescor</b> (a pastilha com a hora, no topo) trazia um bloco <b>Avisos do Petros (não impedem a venda)</b> — as mensagens do tipo <b>mensagem</b> que o ERP devolve durante a sincronização, como <i>\"Não foi encontrado nenhum Concentrador TEF cadastrado para o terminal\"</i>. <b>Quem disse para ignorá-las foi o suporte do Petros</b>, e o Tiago trouxe o recado. 🔑 <b>Aviso que a operação não pode resolver, na tela da operação, ensina a ignorar aviso</b> — inclusive o vermelho que importa."},
     {t:"m", h:"Agora eles moram no Painel Administrativo, na aba 📡 Avisos do Petros", d:"O bloco <b>não foi apagado, foi mudado de lugar</b>: o mesmo texto, a mesma unidade, a mesma hora de cada aviso, e a lista <b>continua se atualizando sozinha</b> a cada leitura do Petros, como fazia dentro do cartão. Quem administra confere quando quiser; quem opera não esbarra mais neles. ⚠️ Na prática isso quer dizer que os avisos <b>deixam de aparecer para quem não é administrador</b> — o botão do Painel Administrativo só aparece para admin."},
@@ -9937,6 +10039,7 @@ const MENUS_APP = [
      ⚠️ E "despDet" tambem esta' fora: e' o nome de um CAMPO de dado dos relatorios
      (CAMPOS_LISTA_REL), e um grep atras do menu voltaria sujo. */
   {key:"despesasDet", btn:"btnDespesasDet", pan:"painelDespesasDet", emp:"postos|conv", nome:"Despesas Detalhadas"},   /* v341 */
+  {key:"fechCaixa",   btn:"btnFechCaixa",   pan:"painelFechCaixa",   emp:"postos|conv", nome:"Fechamento do caixa"},   /* v356 */
   {key:"afericoes",   btn:"btnAfericoes",   pan:"painelAfericoes",   emp:"postos", nome:"Aferições"},   /* v312 */
   {key:"infleet",     btn:"btnInfleet",     pan:"painelInfleet",     emp:"transp", nome:"APP Infleet"},
   {key:"comprar",     btn:"btnComprar",     pan:"painelComprar",     emp:"transp", nome:"O que comprar"},   /* v308 */
@@ -9970,7 +10073,7 @@ const GRUPOS_MENU = [
   {key:"soltos",  nome:"",               icone:"",       itens:["dash"]},
   {key:"dia",     nome:"Dia a dia",      icone:"\ud83d\udd01", itens:["resumoDia","tanquesNivel","recebimento","registros","descontos","simular"]},
   {key:"analise", nome:"Análise",        icone:"\ud83d\udcca", itens:["relPosto","afericoes","clientes","analise","relLoja","ifood"]},
-  {key:"finan",   nome:"Financeiro",     icone:"\ud83d\udcb0", itens:["despesasDet","dre"]},   /* v341 - o DRE saiu da Analise e veio para ca' */
+  {key:"finan",   nome:"Financeiro",     icone:"\ud83d\udcb0", itens:["despesasDet","dre","fechCaixa"]},   /* v341 - o DRE saiu da Analise e veio para ca'; v356 - o Fechamento do caixa */
   {key:"transp",  nome:"Transportadora", icone:"\ud83d\ude9a", itens:["infleet","comprar","pedido","cotacoes","puxadas"]},
   {key:"org",     nome:"Organização",    icone:"\ud83d\udcc1", itens:["calendario","vencimentos","caixa","pendAdm"]},   /* v251 - o 🗂 ninguem reconhecia */
   {key:"ajustes", nome:"Ajustes",        icone:"\u2699",        itens:["conta","config","usuarios"]},
@@ -15608,6 +15711,544 @@ function dreMesAnterior(mes){
 }
 
 /* ---------- as trocas de estado (todas redesenham) ---------- */
+/* ===================== v356 - FECHAMENTO DO CAIXA =====================
+   Le a colecao `resumoFinanceiro` por FAIXA DE DATA, no molde do `descontos` e do `convVendas`:
+   a escuta nasce ao abrir o painel e e' reassinada a cada troca de periodo. Ela NAO entra no
+   iniciarSync() - ver o comentario da declaracao de `colResumoFin`. */
+const FC_EMPRESAS = [
+  {k:"caxias",        nome:"Posto Caxias",              grupo:"Postos",       sig:"postos"},
+  {k:"teresina",      nome:"Posto Teresina",            grupo:"Postos",       sig:"postos"},
+  {k:"dutra",         nome:"Posto Pres. Dutra",         grupo:"Postos",       sig:"postos"},
+  {k:"troca-caxias",  nome:"Troca de Óleo Caxias",      grupo:"Outros",       sig:"postos"},
+  {k:"conv-caxias",   nome:"Conveniência Caxias",       grupo:"Conveniência", sig:"conv"},
+  {k:"conv-teresina", nome:"Conveniência Teresina",     grupo:"Conveniência", sig:"conv"},
+  {k:"conv-dutra",    nome:"Conveniência Pres. Dutra",  grupo:"Conveniência", sig:"conv"}
+];
+/* 🔴 O APP TEM DUAS EMPRESAS, E ATE AGORA ESTA TELA IGNORAVA ISSO. Quem entra na Full
+   Conveniencia via os tres postos na lista - dado de outra empresa, no menu de quem nao deveria
+   ve-lo. ✅ O padrao da casa e' o `dsdEhLoja()`: `siglaEmpresa(empresa)` devolve "postos" ou
+   "conv", e a tela mostra so' o que e' daquele lado. ⚠️ Se a sigla nao casar com nada (empresa
+   nova amanha), devolve a lista INTEIRA em vez de uma tela vazia: errar mostrando demais e'
+   recuperavel, errar mostrando nada parece que o app quebrou. */
+function fcEmpresasVisiveis(){
+  const s = (typeof siglaEmpresa === "function") ? siglaEmpresa(empresa) : "postos";
+  const l = FC_EMPRESAS.filter(e => e.sig === s);
+  return l.length ? l : FC_EMPRESAS;
+}
+const FC_ATALHOS = [["mes","Este mês"],["mesPassado","Mês passado"],["d7","Últimos 7 dias"],
+                    ["d30","Últimos 30 dias"],["ano","Este ano"],["livre","Escolher"]];
+/* os onze nomes da folha do Petros, na ordem em que ela imprime */
+const FC_RECEB = [["especieFisica","Em espécie física"],["sangrias","Total de sangrias (cofre eletrônico)"],
+  ["especieDigital","Em espécie digital"],["cartaoCredito","Cartão de crédito"],
+  ["cartaoDebito","Cartão de débito"],["chequePredatado","Cheque predatado"],
+  ["chequeVista","Cheque à vista"],["notaPrazo","Nota a prazo"],["valeFrete","Vale frete"],
+  ["ticket","Ticket"],["pagtoAntecipado","Pagamento antecipado"]];
+
+/* 🔴 soma que NAO inventa zero: sem nenhuma parcela conhecida, o total continua AUSENTE.
+   `—` quer dizer "nao houve"; `0,00` quer dizer "houve e deu zero". Sao coisas diferentes. */
+function fcSoma(a, b){
+  if (b === null || b === undefined || b === "" || !isFinite(Number(b))) return a;
+  /* 🔴 arredondar em 6 casas a cada passo mata o ruido binario da soma acumulada, e nao
+     encosta nas 3 casas do litro: 85142.79 + 83144.63 dava 168287.41999999998, e dois dias assim
+     ja' viram diferenca de centavo quando alguem COMPARA o total com a folha do Petros.
+     A tela esconderia isso (o toLocaleString arredonda), o que e' justamente o perigo. */
+  return Math.round(((a === null ? 0 : a) + Number(b)) * 1e6) / 1e6;
+}
+function fcR$(v, casas){ return (v === null || v === undefined) ? "—" : "R$ " + fmtBR(v, casas == null ? 2 : casas); }
+function fcPeriodoDoAtalho(v){
+  const h = new Date(), z = n => String(n).padStart(2,"0");
+  const iso = d => d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate());
+  if (v === "mes")        return {de: iso(new Date(h.getFullYear(), h.getMonth(), 1)), ate: hojeISO()};
+  if (v === "mesPassado"){ const p = new Date(h.getFullYear(), h.getMonth()-1, 1);
+                           return {de: iso(p), ate: iso(new Date(h.getFullYear(), h.getMonth(), 0))}; }
+  if (v === "d7")         return {de: iso(new Date(h.getTime() - 6*86400000)),  ate: hojeISO()};
+  if (v === "d30")        return {de: iso(new Date(h.getTime() - 29*86400000)), ate: hojeISO()};
+  if (v === "ano")        return {de: h.getFullYear()+"-01-01", ate: hojeISO()};
+  return null;
+}
+/* 🔴 DIA QUE O SERVIDOR NAO GRAVOU SUMIA EM SILENCIO. Medido na carga historica: 1.547
+   documentos onde 224 dias x 7 empresas = 1.568 - faltam 21, e a tela somava os 1.547 e imprimia
+   o total como se fosse o periodo inteiro. 🔑 Total menor que a verdade nao se denuncia sozinho:
+   ninguem estranha um numero que parece plausivel. Entao a tela CONTA os dias do periodo e diz
+   quais faltam. ⚠️ Nao conta dia no futuro (o periodo pode ir alem de hoje) nem alem de 01/01/2026,
+   que e' onde a carga comeca - reclamar do que nunca foi prometido ensina a ignorar o aviso. */
+const FC_INICIO_CARGA = "2026-01-01";
+function fcDiasFaltando(docs, de, ate){
+  if (!de || !ate) return [];
+  const tem = {}; docs.forEach(d => { if (d && d.data) tem[d.data] = 1; });
+  const z = n => String(n).padStart(2,"0");
+  const ini = de < FC_INICIO_CARGA ? FC_INICIO_CARGA : de;
+  /* 🔴 O DIA DE HOJE NAO CONTA COMO BURACO, e a razao e' o relogio do servidor: o coletor roda
+     as 6h38, 11h38, 15h38, 19h38 e 22h38 (o cron de 12/08). Entre a meia-noite e as 6h38 o
+     documento de hoje AINDA NAO NASCEU - e o atalho padrao ("Este mes", ate = hoje) pintaria um
+     🔴 vermelho todo santo dia de manha, dizendo que falta um dia que ninguem prometeu ainda.
+     🔑 Aviso que aparece por rotina ensina a ignorar aviso. Entao a conta vai ate' ONTEM. */
+  const dh = new Date(hojeISO() + "T12:00:00");
+  dh.setDate(dh.getDate() - 1);
+  const z2 = n => String(n).padStart(2,"0");
+  const ontem = dh.getFullYear() + "-" + z2(dh.getMonth()+1) + "-" + z2(dh.getDate());
+  const fim = ate > ontem ? ontem : ate;
+  if (ini > fim) return [];
+  const dt = new Date(ini + "T12:00:00");
+  if (isNaN(dt.getTime())) return [];
+  const falta = [];
+  for (let g = 0; g < 800; g++){
+    const iso = dt.getFullYear() + "-" + z(dt.getMonth()+1) + "-" + z(dt.getDate());
+    if (iso > fim) break;
+    if (!tem[iso]) falta.push(iso);
+    dt.setDate(dt.getDate() + 1);
+  }
+  return falta;
+}
+function fcSemAcento(t){ return String(t||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase(); }
+function fcMudaEmp(v){ fcEmpSel = v; fcBusca = ""; carregarFechCaixa(); }
+function fcMudaAtalho(v){
+  fcAtalho = v;
+  const p = fcPeriodoDoAtalho(v);
+  if (p){ fcDe = p.de; fcAte = p.ate;
+    const a = document.getElementById("fcDe"), b = document.getElementById("fcAte");
+    if (a) a.value = fcDe; if (b) b.value = fcAte; }
+  carregarFechCaixa();
+}
+function fcMudaData(qual, v){
+  /* ⚠️ campo de data APAGADO devolve "" - e o `fcDe || primeiro-dia-do-mes` la' embaixo entao
+     consultava o mes inteiro com o campo em branco na tela. Guardar o valor anterior e' menos
+     util do que nao mexer em nada: quem apagou vai digitar a data nova no instante seguinte. */
+  /* ⚠️ e o campo VOLTA a mostrar a data que a consulta esta usando: deixar o <input> em branco
+     com o estado cheio e' o desencontro do B-1 entrando pela outra porta. */
+  if (!v){
+    const el = document.getElementById(qual === "de" ? "fcDe" : "fcAte");
+    if (el) el.value = (qual === "de" ? fcDe : fcAte);
+    return;
+  }
+  if (qual === "de") fcDe = v; else fcAte = v;
+  fcAtalho = "livre";
+  const sel = document.getElementById("fcAtalho"); if (sel) sel.value = "livre";
+  carregarFechCaixa();
+}
+/* 🔴 A BUSCA REDESENHA A TELA, E O CAMPO MORRIA JUNTO. Medido: depois de UMA tecla o
+   activeElement virava BODY e as outras seis letras de "CARRETA" iam para o vazio — com o menu
+   Novidades prometendo justamente esse filtro. ⚠️ E vale tambem para o snapshot: o coletor
+   reescreve o dia cinco vezes por dia, e sem isto o campo sumiria da mao de quem digita. */
+function fcFocoBusca(){
+  const c = document.getElementById("fcBusca"); if (!c) return;
+  const p = c.value.length;
+  c.focus(); try { c.setSelectionRange(p, p); } catch(e){}
+}
+function fcMudaBusca(v){ fcBusca = v; renderFechCaixa(); fcFocoBusca(); }
+
+function carregarFechCaixa(){
+  let ini = fcDe || fcPeriodoDoAtalho("mes").de, fim = fcAte || hojeISO();
+  if (ini > fim){ const t = ini; ini = fim; fim = t; }   // ordena SO' para consultar
+  fcIni = ini; fcFim = fim;   /* 🔴 e NAO escreve de volta em fcDe/fcAte: ver a nota la' em cima */
+  if (escutaFechCaixa){ escutaFechCaixa(); escutaFechCaixa = null; }
+  const cx = document.getElementById("fcBox");
+  if (cx) cx.innerHTML = '<p class="nota-dash">Carregando o período…</p>';
+  try {
+    /* 🔴 A CONSULTA NAO PODE PEDIR INDICE COMPOSTO, e este e' o SEGUNDO lugar em que isso
+       morde no mesmo dia. A forma obvia — .where("emp","==",x).where("data",">=",a) — junta uma
+       IGUALDADE num campo com uma FAIXA em OUTRO, e o Firestore recusa com
+       `FAILED_PRECONDITION: The query requires an index` ate' alguem criar o indice a mao no
+       console. 🔑 Tela que so' funciona depois de um clique no console quebra quando ninguem
+       lembra do clique — e aqui quebraria para TODO MUNDO, na primeira abertura.
+       ✅ O id ja e' `{emp}_{AAAA-MM-DD}`, entao um range no proprio documentId() recorta a
+       empresa E o periodo com desigualdade num campo SO'. Nenhuma das 7 chaves e' prefixo de
+       outra (a suite prova), entao o range nunca alcanca a empresa vizinha. */
+    fcErroDeDesenho = false;
+    escutaFechCaixa = colResumoFin
+      .where(firebase.firestore.FieldPath.documentId(), ">=", fcEmpSel + "_" + ini)
+      .where(firebase.firestore.FieldPath.documentId(), "<=", fcEmpSel + "_" + fim).onSnapshot(snap => {
+        /* ⚠️ ESTE CALLBACK RODA DEPOIS, FORA DO try/catch la' de baixo. O try so' protege a
+           ASSINATURA; uma excecao aqui dentro (campo estranho num documento, por exemplo)
+           deixaria o painel preso em "Carregando o periodo..." com uma linha no console e mais
+           nada na tela. */
+        try {
+          /* 🔴 FECHAR O PAINEL PELO BOTAO DELE E' O CAMINHO RARO. O comum e' clicar em OUTRO
+             menu: ali quem fecha e' o `fecharTodosPaineis`, que so' tira a classe `aberto` e
+             nunca chama o `alternarFechCaixa` — a escuta ficava viva redesenhando uma tela que
+             ninguem esta vendo, ate' o logout. Trocar de empresa faz o mesmo caminho, e a escuta
+             sobrevivente era a dos documentos da empresa ANTERIOR. 🔑 Entao quem desliga e' a
+             propria gravacao seguinte: se o painel nao esta mais aberto, esta escuta se cancela
+             aqui e agora. */
+          const pnl = document.getElementById("painelFechCaixa");
+          if (pnl && !pnl.classList.contains("aberto")){
+            if (escutaFechCaixa){ escutaFechCaixa(); escutaFechCaixa = null; }
+            return;
+          }
+          fcDocs = [];
+          /* 🔴 A reconferencia do `emp` era o UNICO filtro que falhava FECHADO: o range no
+             documentId ja' garante a empresa, e exigir tambem o campo transformava qualquer
+             deriva dele (ausente num documento antigo, gravado em maiuscula, com o nome do ERP)
+             em "Nenhum dia gravado neste periodo" — indistinguivel de um periodo vazio de
+             verdade. 🔑 Agora ela so' RECUSA quem diz explicitamente ser de outra empresa. */
+          snap.forEach(d => { const o = Object.assign({id:d.id}, d.data() || {});
+            if (!o.emp || o.emp === fcEmpSel) fcDocs.push(o); });
+          fcDocs.sort((a,b) => String(a.data||"").localeCompare(String(b.data||"")));
+          const tinhaFoco = document.activeElement && document.activeElement.id === "fcBusca";
+          renderFechCaixa();
+          if (tinhaFoco) fcFocoBusca();
+        } catch(e){ fcErro = (e && e.message) || String(e || ""); fcErroDeDesenho = true;
+          console.error("[fechCaixa] o desenho falhou:", e); renderFechCaixa(true); }
+      }, err => { fcDocs = []; fcErro = (err && err.message) || String(err || ""); fcErroDeDesenho = false;
+        console.error("[fechCaixa] a leitura falhou:", err);
+        renderFechCaixa(true); });
+  } catch(e){ fcDocs = []; fcErro = (e && e.message) || String(e || ""); fcErroDeDesenho = false;
+    console.error("[fechCaixa]", e); renderFechCaixa(true); }
+}
+
+/* Junta os dias do periodo num so' objeto, respeitando o que soma e o que nao soma. */
+function fcJuntar(docs){
+  const r = {dias: docs.length, comb:null, prod:null, litros:null, un:null, a1:null, b1:null,
+             sobra:null, falta:null, receb:{}, contas:{}, caixas:{}, saidas:{},
+             desp:[], rec:[], dep:[], pessoas:{}, abertos:0, diasAbertos:0};
+  FC_RECEB.forEach(x => r.receb[x[0]] = null);
+  docs.forEach(d => {
+    const v = d.vendas || {};
+    r.comb = fcSoma(r.comb, v.combustivel); r.prod = fcSoma(r.prod, v.produto);
+    r.litros = fcSoma(r.litros, v.litros);  r.un   = fcSoma(r.un, v.unidades);
+    r.a1 = fcSoma(r.a1, d.totalVendasA1);   r.b1   = fcSoma(r.b1, d.totalRecebimentosB1);
+    r.sobra = fcSoma(r.sobra, d.sobraCaixa); r.falta = fcSoma(r.falta, d.faltaCaixa);
+    FC_RECEB.forEach(x => { r.receb[x[0]] = fcSoma(r.receb[x[0]], (d.receb||{})[x[0]]); });
+    (d.despesas || []).forEach(x => r.desp.push(Object.assign({dia:d.data}, x)));
+    (d.receitas || []).forEach(x => r.rec.push(Object.assign({dia:d.data}, x)));
+    (d.depositos || []).forEach(x => r.dep.push(Object.assign({dia:d.data}, x)));
+    Object.keys(d.saidasDeCaixa || {}).forEach(k => {
+      const o = d.saidasDeCaixa[k]; if (!o) return;
+      if (!r.saidas[k]) r.saidas[k] = {rotulo:o.rotulo, valor:null};
+      r.saidas[k].valor = fcSoma(r.saidas[k].valor, o.valor);
+    });
+    (d.diferencaPorPessoa || []).forEach(p => {
+      const k = p.pessoa || "—";
+      if (!r.pessoas[k]) r.pessoas[k] = {sobra:null, falta:null};
+      r.pessoas[k].sobra = fcSoma(r.pessoas[k].sobra, p.sobra);
+      r.pessoas[k].falta = fcSoma(r.pessoas[k].falta, p.falta);
+    });
+    /* ⚠️ `Number()` porque esta e' a UNICA soma do bloco que nao passa pelo `fcSoma` — e sem ele
+       `0 + "9"` vira `"09"`, e a tela escreve "09 caixas ainda estao abertos". O coletor grava
+       numero hoje; a guarda custa oito caracteres e vale para o dia em que nao gravar. */
+    const nAb = Number(d.caixasAbertos) || 0;
+    if (nAb > 0){ r.abertos += nAb; r.diasAbertos++; }
+    /* 🔴 SALDO NAO SOMA: o inicial e' o do PRIMEIRO dia em que a conta aparece, o final e'
+       o do ULTIMO. Entradas e saidas, sim, somam. Como `docs` ja' vem ordenado por data,
+       basta gravar o inicial uma vez e sobrescrever o final sempre. */
+    [["contas","contas"],["caixas","caixas"]].forEach(par => {
+      (d[par[0]] || []).forEach(c => {
+        const alvo = r[par[1]], k = c.nome || "—";
+        if (!alvo[k]) alvo[k] = {nome:k, ini:c.saldoInicial, ent:null, sai:null, fim:null};
+        alvo[k].ent = fcSoma(alvo[k].ent, c.entradas);
+        alvo[k].sai = fcSoma(alvo[k].sai, c.saidas);
+        if (c.saldoFinal !== null && c.saldoFinal !== undefined) alvo[k].fim = c.saldoFinal;
+      });
+    });
+  });
+  return r;
+}
+
+function fcTab(cols, linhas, total, classes){
+  let h = '<div class="rpz-rola"><table class="rpz-tab"><thead><tr>';
+  cols.forEach((c,i) => { h += '<th class="' + ((classes && classes[i]) || (i ? "rpz-r" : "")) + '">' + c + '</th>'; });
+  h += '</tr></thead><tbody>';
+  linhas.forEach(l => { h += '<tr>' + l.map((v,i) => '<td class="' + ((classes && classes[i]) || (i ? "rpz-r" : "rpz-nome")) + '">' + v + '</td>').join("") + '</tr>'; });
+  h += '</tbody>';
+  if (total) h += '<tfoot><tr class="rpz-tot">' + total.map((v,i) => '<td class="' + ((classes && classes[i]) || (i ? "rpz-r" : "rpz-nome")) + '">' + v + '</td>').join("") + '</tr></tfoot>';
+  return h + '</table></div>';
+}
+
+function renderFechCaixa(erro){
+  const cx = document.getElementById("fcBox"); if (!cx) return;
+  const emp = FC_EMPRESAS.find(e => e.k === fcEmpSel) || FC_EMPRESAS[0];
+  const periodo = fmtDataCurta(fcIni || fcDe) + " a " + fmtDataCurta(fcFim || fcAte);
+  if (erro){
+    /* ⚠️ a mensagem NAO chuta a causa: "tente de novo" e' conselho errado quando o problema e'
+       permissao ou indice — nesses dois, tentar de novo nunca resolve. */
+    /* 🔴 A LEITURA E O DESENHO FALHAM POR MOTIVOS DIFERENTES, E DIZIAM A MESMA COISA. Uma
+       excecao no desenho caia no mesmo `fcErro` e a tela anunciava "Nao deu para LER este
+       periodo" — a leitura tinha voltado inteira. Pior: o `/index/i` casa com qualquer
+       `TypeError` que fale de `indexOf` (o proprio filtro da busca usa um), e a tela mandava
+       quem administra procurar um indice que nao falta. */
+    const perm = !fcErroDeDesenho && /permission|insufficient/i.test(fcErro || "");
+    const idx  = !fcErroDeDesenho && /requires an index|failed_precondition/i.test(fcErro || "");
+    cx.innerHTML = '<div class="vz-cx"><span class="vz-tit">' +
+      (fcErroDeDesenho ? 'Não deu para montar este período' : 'Não deu para ler este período') + '</span><span>' +
+      (fcErroDeDesenho ? 'Os dados chegaram, mas a tela não conseguiu montá-los. Me chame com o print desta mensagem.'
+       : perm ? 'Esta tela não tem permissão de leitura no banco — quem resolve é quem administra o app.'
+       : idx ? 'O banco pediu um índice que ainda não existe para esta consulta.'
+       : 'Tente de novo em instantes; se continuar, me chame.') +
+      (fcErro ? '<br><small style="color:var(--cinza)">' + escAttr(String(fcErro).slice(0,140)) + '</small>' : '') +
+      '</span></div>';
+    return;
+  }
+  if (!fcDocs.length){
+    cx.innerHTML = '<div class="vz-cx"><span class="vz-tit">Nenhum dia gravado neste período</span>' +
+      '<span>' + escAttr(emp.nome) + ', de ' + escAttr(periodo) + '. O servidor grava a partir de 01/01/2026.</span></div>';
+    return;
+  }
+  const r = fcJuntar(fcDocs);
+  let h = '';
+
+  /* ---- o cabecalho do periodo, com o aviso de caixa aberto ---- */
+  h += '<h3 class="cxi-sub">' + escAttr(emp.nome) + ' &middot; ' + escAttr(periodo) +
+       ' <small style="font-weight:400;color:var(--cinza);font-size:.75rem">(' + r.dias + (r.dias === 1 ? ' dia' : ' dias') + ')</small></h3>';
+  const faltando = fcDiasFaltando(fcDocs, fcIni || fcDe, fcFim || fcAte);
+  if (faltando.length){
+    const amostra = faltando.slice(0,8).map(fmtDataCurta).join(", ");
+    h += '<div class="ana-item atencao">🔴 <b>' + faltando.length +
+         (faltando.length === 1 ? ' dia do período não tem nada gravado' : ' dias do período não têm nada gravado') +
+         '</b> — ' + escAttr(amostra) + (faltando.length > 8 ? ' e mais ' + (faltando.length - 8) : '') +
+         '. Os totais abaixo são a soma dos ' + r.dias + (r.dias === 1 ? ' dia que existe' : ' dias que existem') +
+         ', não do período inteiro. Dia sem lançamento nenhum também aparece aqui.</div>';
+  }
+  if (r.diasAbertos){
+    /* 🔑 `r.abertos` e' um NUMERO (o CtrlMovimentoAberto do ERP e' um COUNT), e ate' agora ele
+       era somado e jogado fora. "3 caixas em 1 dia" e "3 caixas em 3 dias" pedem providencias
+       diferentes de quem confere. */
+    h += '<div class="ana-resumo">⚠️ <b>' + r.abertos + (r.abertos === 1 ? ' caixa ainda está aberto' : ' caixas ainda estão abertos') +
+         '</b>, em ' + r.diasAbertos + (r.diasAbertos === 1 ? ' dia' : ' dias') +
+         ' deste período. Enquanto o caixa não fecha, o número ainda muda — é o mesmo aviso que o Petros imprime no alto da folha.</div>';
+  }
+
+  /* ---- 1. movimento do caixa ---- */
+  h += '<h3 class="rel-h4">⛽ Movimento do caixa</h3>';
+  h += '<div class="rpz-cards">' +
+    '<div class="rpz-card"><span>Venda de combustíveis</span><b>' + fcR$(r.comb, 0) +
+      (r.litros === null ? '' : '<small> · ' + fmtLitros(r.litros) + ' L</small>') + '</b></div>' +
+    '<div class="rpz-card"><span>Venda de produtos</span><b>' + fcR$(r.prod, 0) +
+      (r.un === null ? '' : '<small> · ' + fmtBR(r.un, 0) + ' un</small>') + '</b></div>' +
+    /* 🔴 "(A1) Total das saidas" e' o nome que a folha do Petros imprime, e ele engana: o numero
+       e' o total VENDIDO (saidas de MERCADORIA), nao dinheiro saindo. Trocar o rotulo faria a tela
+       divergir da folha que o Tiago confere ao lado; manter sozinho poe uma palavra errada em cima
+       de R$ 1,4 milhao. ✅ Fica o nome da folha, com a traducao colada nele. */
+    '<div class="rpz-card"><span>(A1) Total das saídas <small style="color:var(--cinza)">— é o total vendido</small></span><b>' + fcR$(r.a1, 0) + '</b></div>' +
+    '<div class="rpz-card"><span>(B1) Total dos recebimentos</span><b>' + fcR$(r.b1, 0) + '</b></div>';
+  const dif = (r.sobra === null && r.falta === null) ? null : (r.sobra || 0) - (r.falta || 0);
+  h += '<div class="rpz-card"><span>Diferença de caixa</span><b class="' + (dif === null ? '' : (dif < 0 ? 'rpz-neg' : (dif > 0 ? 'rpz-pos' : ''))) +
+       '">' + fcR$(dif) + '</b></div></div>';
+  if (dif !== null && dif !== 0){
+    h += '<div class="ana-resumo">💰 <b>' + (dif < 0 ? 'Faltaram ' : 'Sobraram ') + fcR$(Math.abs(dif)) + '</b> no período — ' +
+         fcR$(r.falta) + ' de falta contra ' + fcR$(r.sobra) + ' de sobra.</div>';
+  }
+  /* 🔴 AS DUAS CONTAS DEVERIAM DAR O MESMO NUMERO — E ISSO FOI MEDIDO, NAO SUPOSTO.
+     Caxias, 27/07 a 12/08: A1 = 1.345.598,83 + 27.628,50 = 1.373.227,33; B1 = a soma das ONZE
+     formas = 1.372.996,21; B1 - A1 = -231,12, que e' exatamente `sobra 201,36 - falta 432,48`.
+     ⚠️ A 1a versao desta nota dizia que elas divergem porque "venda a prazo entra em A1 e so'
+     vira B1 quando o cliente paga". E' FALSO: `Nota a prazo` (R$ 125.283,32 na medicao) e' UMA
+     DAS ONZE LINHAS DE B1. 🔑 Explicacao tranquilizadora sobre o unico sinal de que um bloco do
+     dia nao veio e' pior do que nao ter sinal nenhum — ensina a ignorar o alarme. Entao, quando
+     elas divergem, a tela diz o que isso REALMENTE significa: falta pedaco no dia. */
+  if (r.a1 !== null && r.b1 !== null){
+    const difBA = Math.round((r.b1 - r.a1) * 100) / 100;
+    /* 🔴 `dif` AUSENTE NAO E' `dif` ZERO. Sem `sobraCaixa`/`faltaCaixa` no periodo, a 1a versao
+       entrava aqui sempre — e com A1 igual a B1 centavo por centavo ela imprimia o 🔴 dizendo
+       que "as duas contas nao fecharam: o periodo da — contra R$ 0,00". Comparar com o que nao
+       existe e' inventar divergencia. Quando nao ha' diferenca de caixa gravada, o que conta e'
+       se B1-A1 sozinho se afasta de zero. */
+    if (dif === null ? Math.abs(difBA) > 1 : Math.abs(difBA - dif) > 1){
+      /* 🔴 CAIXA ABERTO EXPLICA A DIVERGENCIA, E ELE E' A REGRA, NAO A EXCECAO. Enquanto o
+         caixa nao fecha, a venda ja' entrou em A1 e o recebimento ainda nao virou B1 — as duas
+         contas divergem por MOTIVO CONHECIDO. Medido em 12/08: quatro das sete unidades tinham
+         caixa aberto nos dias recentes, e o atalho padrao ("Este mes") inclui hoje. Sem este
+         guarda, o painel abriria com um 🔴 acusando o servidor de perder dados TODO DIA, em
+         quatro unidades. 🔑 E' o mesmo erro que o aviso de dia faltando ja' cometeu: alarme que
+         aparece por rotina ensina a ignorar alarme. O painel ja' diz, duas linhas acima, quantos
+         caixas estao abertos — entao aqui ele so' explica, sem acusar ninguem. */
+      if (r.diasAbertos){
+        h += '<p class="nota-dash">As duas contas da folha não fecham entre si neste período: pela conferência por frentista dá ' +
+             fcR$(dif) + ', e por (B1) recebimentos menos (A1) vendas, ' + fcR$(difBA) +
+             '. É o esperado enquanto houver caixa aberto — a venda já entrou, o recebimento ainda não. Elas se encontram quando o caixa fechar.</p>';
+      } else {
+        h += '<div class="ana-item atencao">🔴 <b>As duas contas da diferença não fecharam.</b> Pela conferência por frentista o período dá ' +
+             fcR$(dif) + '; por (B1) recebimentos menos (A1) vendas, ' + fcR$(difBA) +
+             '. Com todos os caixas fechados as duas dão o mesmo número no Petros — quando não dão, é sinal de que algum bloco de algum dia não veio do servidor. Vale conferir este período direto no Petros antes de fechar.</div>';
+      }
+    }
+  }
+
+  /* ---- 2. recebimentos ---- */
+  h += '<h3 class="rel-h4">🧾 Como o dinheiro entrou</h3>';
+  h += fcTab(["Forma de recebimento","Valor","% do total"],
+    FC_RECEB.map(x => [escAttr(x[1]), fcR$(r.receb[x[0]]),
+      (r.receb[x[0]] === null || !r.b1) ? "—" : fmtBR(r.receb[x[0]] / r.b1 * 100, 1) + "%"]),
+    ["(B1) Total dos recebimentos", fcR$(r.b1), r.b1 ? "100,0%" : "—"]);
+  h += '<p class="nota-dash">As onze formas da folha do Petros. As que não tiveram movimento aparecem zeradas de propósito — sumir com a linha esconde a pergunta.</p>';
+
+  /* ---- 3 e 4. contas e caixas ---- */
+  function blocoContas(mapa, titulo, vazio){
+    const lista = Object.keys(mapa).map(k => mapa[k]);
+    let t = '<h3 class="rel-h4">' + titulo + '</h3>';
+    if (!lista.length) return t + '<p class="nota-dash">' + vazio + '</p>';
+    t += '<div class="fc-tab">' + fcTab(["Conta","Saldo inicial","Entradas","Saídas","Saldo final"],
+      lista.map(c => [escAttr(c.nome), fcR$(c.ini), fcR$(c.ent), fcR$(c.sai),
+        '<b class="' + (c.fim !== null && c.fim < 0 ? 'rpz-neg' : '') + '">' + fcR$(c.fim) + '</b>'])) + '</div>';
+    /* no celular a tabela de cinco colunas empurra o SALDO FINAL - a coluna que importa - para
+       fora da tela; ali cada conta vira um cartao com os quatro numeros inteiros. */
+    t += '<div class="fc-lista">' + lista.map(c =>
+      '<div class="fc-c"><div class="fc-n">' + escAttr(c.nome) + '</div>' +
+      '<div class="fc-l"><span>Saldo inicial</span><b>' + fcR$(c.ini) + '</b></div>' +
+      '<div class="fc-l"><span>Entradas</span><b>' + fcR$(c.ent) + '</b></div>' +
+      '<div class="fc-l"><span>Saídas</span><b>' + fcR$(c.sai) + '</b></div>' +
+      '<div class="fc-l fc-f"><span>Saldo final</span><b class="' + (c.fim !== null && c.fim < 0 ? 'rpz-neg' : '') + '">' + fcR$(c.fim) + '</b></div></div>').join("") + '</div>';
+    return t;
+  }
+  h += blocoContas(r.contas, "🏦 Movimentação por conta bancária", "Nenhuma conta bancária com movimento no período.");
+  h += '<p class="nota-dash">O saldo inicial é o do primeiro dia e o final é o do último — eles não se somam, ao contrário das entradas e das saídas. Conta sem movimento aparece com travessão: travessão não é zero.</p>';
+  h += blocoContas(r.caixas, "🗄️ Movimentação por caixa", "Nenhum caixa com movimento no período.");
+
+  /* ---- 5. despesas, com busca ---- */
+  /* ⚠️ sem tirar o acento, procurar COMISSOES nao acha COMISSOES com til — e a sondagem
+     mediu que o ERP as vezes devolve o acento corrompido. */
+  const filtro = fcSemAcento(fcBusca).trim();
+  const desp = r.desp.filter(d => !filtro || fcSemAcento((d.tipo||"") + " " + (d.obs||"")).indexOf(filtro) >= 0);
+  const somaF = desp.reduce((a,d) => fcSoma(a, d.valor), null);
+  const porTipo = {};
+  r.desp.forEach(d => { const k = d.tipo || "—"; porTipo[k] = fcSoma(porTipo[k] === undefined ? null : porTipo[k], d.valor); });
+  const tipos = Object.keys(porTipo).map(k => [k, porTipo[k]]).sort((a,b) => (b[1]||0) - (a[1]||0));
+  const totDesp = r.desp.reduce((a,d) => fcSoma(a, d.valor), null);
+
+  h += '<h3 class="rel-h4">💸 Despesas efetuadas no período</h3>';
+  /* 🔑 O documento traz DOIS caminhos ate o total das despesas: a soma das linhas listadas
+     (`totDesp`) e o totalizador que o ERP devolve num bloco separado
+     (`saidasDeCaixa.despesaVista`). A UNICA medicao que existe (Caxias, 27/07 a 12/08) diz que
+     eles batem CENTAVO POR CENTAVO: 38.780,39 dos dois lados.
+     🔴 A 1a versao somava `despesaParcelada` ao totalizador — e ninguem nunca mediu que ele
+     entra nesta conta. Os 13 blocos `Saida_Caixa_*` voltam SEMPRE (14 de 14 rodadas), entao
+     bastaria uma liquidacao parcelada no dia para a tela pintar vermelho acusando o coletor de
+     ter perdido linhas que ele nao perdeu.
+     ⚠️ E a comparacao e' de UM LADO SO': so' reclama quando a lista soma MENOS que o totalizador,
+     que e' o unico caso que significa "linha perdida no caminho". Somar MAIS e' despesa de outra
+     natureza entrando na lista — outra pergunta, e nao esta. */
+  const erpV = (r.saidas.despesaVista || {}).valor;
+  if (erpV !== null && erpV !== undefined && totDesp !== null && totDesp < erpV - 0.01){
+    h += '<div class="ana-item atencao">⚠️ <b>A lista está menor que o total do ERP:</b> as linhas abaixo somam ' +
+         fcR$(totDesp) + ', e o totalizador de liquidação de despesas à vista diz ' + fcR$(erpV) +
+         '. Faltam ' + fcR$(erpV - totDesp) + ' — provavelmente alguma linha não veio do servidor. Vale conferir este período no Petros antes de fechar.</div>';
+  }
+  if (tipos.length){
+    h += '<div class="rpz-cards">' + tipos.slice(0,4).map(t =>
+      '<div class="rpz-card"><span>' + escAttr(String(t[0]).toLowerCase()) + '</span><b>' + fcR$(t[1], 0) + '</b></div>').join("") +
+      '<div class="rpz-card"><span>Total das despesas</span><b class="rpz-neg">' + fcR$(totDesp, 0) + '</b></div></div>';
+    h += '<div class="doc-tools"><input class="doc-busca" id="fcBusca" placeholder="🔎 Procurar por tipo ou observação — ex.: CARRETA, DIARIA, LIMPEZA" value="' + escAttr(fcBusca) + '" oninput="fcMudaBusca(this.value)"></div>';
+  }
+  if (!r.desp.length){
+    h += '<p class="nota-dash">Nenhuma despesa lançada no período.</p>';
+  } else if (!desp.length){
+    h += '<p class="nota-dash">Nenhuma das ' + r.desp.length + ' despesas do período tem esse texto.</p>';
+  } else {
+    h += fcTab(["Dia","Tipo de despesa","Observação","Valor"],
+      desp.map(d => [rpzDia(d.dia),
+        '<span class="rpz-nome">' + escAttr(d.tipo || "") + '<span class="fc-obs-cel">' + escAttr(d.obs || "") + '</span></span>',
+        '<span class="rpz-obs">' + escAttr(d.obs || "") + '</span>', fcR$(d.valor)]),
+      [(filtro ? desp.length + " de " + r.desp.length : String(r.desp.length)) + (r.desp.length === 1 ? " despesa" : " despesas"), "", "", fcR$(somaF)],
+      ["fc-dia","rpz-nome","rpz-obs fc-so-pc","rpz-r"]);
+  }
+
+  /* ---- 6. receitas ---- */
+  h += '<h3 class="rel-h4">🪙 Receitas efetuadas no período</h3>';
+  if (!r.rec.length){ h += '<p class="nota-dash">Nenhuma receita lançada no período.</p>'; }
+  else {
+    h += fcTab(["Dia","Tipo de receita","Observação","Valor"],
+      r.rec.map(d => [rpzDia(d.dia), '<span class="rpz-nome">' + escAttr(d.tipo || "") +
+        '<span class="fc-obs-cel">' + escAttr(d.obs || "") + '</span></span>',
+        '<span class="rpz-obs">' + escAttr(d.obs || "—") + '</span>', fcR$(d.valor)]),
+      [r.rec.length + (r.rec.length === 1 ? " lançamento" : " lançamentos"), "", "", fcR$(r.rec.reduce((a,d) => fcSoma(a, d.valor), null))],
+      ["fc-dia","rpz-nome","rpz-obs fc-so-pc","rpz-r"]);
+  }
+
+  /* ---- 7. depositos ---- */
+  h += '<h3 class="rel-h4">🏧 Depósitos em conta corrente</h3>';
+  if (!r.dep.length){ h += '<p class="nota-dash">Nenhum depósito no período.</p>'; }
+  else {
+    h += fcTab(["Dia","Conta","Observação","Valor"],
+      r.dep.map(d => [rpzDia(d.dia), '<span class="rpz-nome">' + escAttr(d.conta || "") +
+        '<span class="fc-obs-cel">' + escAttr(d.obs || "") + '</span></span>',
+        '<span class="rpz-obs">' + escAttr(d.obs || "—") + '</span>', fcR$(d.valor)]),
+      [r.dep.length + (r.dep.length === 1 ? " depósito" : " depósitos"), "", "", fcR$(r.dep.reduce((a,d) => fcSoma(a, d.valor), null))],
+      ["fc-dia","rpz-nome","rpz-obs fc-so-pc","rpz-r"]);
+  }
+
+  /* ---- o que a folha do Petros NAO imprime: a diferenca por pessoa ---- */
+  const pes = Object.keys(r.pessoas).map(k => [k, r.pessoas[k]])
+    .filter(p => p[1].sobra !== null || p[1].falta !== null)
+    .map(p => [p[0], (p[1].sobra || 0) - (p[1].falta || 0), p[1]])
+    .sort((a,b) => a[1] - b[1]);
+  if (pes.length){
+    const somaSobra = pes.reduce((a,p) => fcSoma(a, p[2].sobra), null);
+    const somaFalta = pes.reduce((a,p) => fcSoma(a, p[2].falta), null);
+    const liq = (somaSobra === null && somaFalta === null) ? null
+                : Math.round(((somaSobra || 0) - (somaFalta || 0)) * 100) / 100;
+    h += '<h3 class="rel-h4">🙋 Sobra e falta por frentista <small style="font-weight:400;color:var(--cinza);font-size:.75rem">— isto o Petros calcula e não imprime</small></h3>';
+    h += fcTab(["Frentista","Sobra","Falta","Líquido"],
+      pes.map(p => [escAttr(p[0]), fcR$(p[2].sobra), fcR$(p[2].falta),
+        '<b class="' + (p[1] < 0 ? 'rpz-neg' : (p[1] > 0 ? 'rpz-pos' : '')) + '">' + fcR$(p[1]) + '</b>']),
+      ["Total", fcR$(somaSobra), fcR$(somaFalta),
+       '<b class="' + (liq === null ? '' : (liq < 0 ? 'rpz-neg' : (liq > 0 ? 'rpz-pos' : ''))) + '">' + fcR$(liq) + '</b>']);
+    h += '<p class="nota-dash">A diferença de caixa da folha é uma linha só. Aqui ela vem quebrada por pessoa, somando os dias do período.</p>';
+    /* 🔴 O RODAPE SOMA AS PROPRIAS LINHAS, e nao `r.sobra`/`r.falta`. Parece a mesma coisa e nao
+       e': as linhas vem do bloco `diferencaPorPessoa` e o `r.sobra`/`r.falta` vem do bloco dos
+       RECEBIMENTOS (`sobra_caixa`/`falta_caixa`), outro bloco do mesmo relatorio. Um dia em que a
+       quebra por pessoa nao venha — o coletor aceita documentos de 20 a 25 blocos — imprimia um
+       Total que NAO era a soma da coluna acima dele, e a tabela mentia sem nenhum sinal.
+       ⚠️ E o desencontro NAO vira alarme, porque NUNCA FOI MEDIDO que os dois blocos tem de dar o
+       mesmo numero. Acusar sem medicao e' o erro que a 1a versao da conferencia de despesas
+       cometeu. A tela mostra os dois numeros lado a lado e deixa quem confere decidir; medir um
+       dia real (Σ `diferencaPorPessoa` contra `sobraCaixa`) esta anotado como pendencia. */
+    if ((r.sobra !== null || r.falta !== null) &&
+        (Math.abs((somaSobra || 0) - (r.sobra || 0)) > 0.01 || Math.abs((somaFalta || 0) - (r.falta || 0)) > 0.01)){
+      /* ⚠️ A 1a versao desta nota explicava a divergencia com "nem todo dia traz a quebra por
+         pessoa". A UNICA medicao real (Caxias, 27/07) desmente: a quebra veio, com os oito
+         frentistas, e os dois blocos divergiram assim mesmo (Σ pessoas -40,84 contra -231,12).
+         🔑 Entao a nota so' DESCREVE os dois numeros. Explicacao inventada sobre numero de
+         dinheiro e' pior do que explicacao nenhuma. */
+      h += '<p class="nota-dash">Somando os nomes acima, o período dá <b>' + fcR$(liq) +
+           '</b>. A “Diferença de caixa” lá em cima diz <b>' + fcR$(dif) +
+           '</b> — são dois blocos diferentes do mesmo relatório do Petros, e nem sempre coincidem.</p>';
+    }
+  }
+
+  cx.innerHTML = h;
+}
+
+function alternarFechCaixa(){
+  const aberto = abrirPainelExclusivo("painelFechCaixa");
+  const b = document.getElementById("btnFechCaixa");
+  if (b) b.classList.toggle("ativo", aberto);
+  /* 🔑 FECHAR O PAINEL DESLIGA A ESCUTA. O painel de descontos nao faz isso e por enquanto
+     nao doi (ele escuta um mes), mas aqui um periodo de oito meses sao ~240 documentos vivos, e
+     o coletor reescreve cada dia CINCO vezes por dia: sem isto, cada gravacao redesenharia um
+     painel que ninguem esta olhando, pelo resto da sessao. */
+  if (!aberto){ if (escutaFechCaixa){ escutaFechCaixa(); escutaFechCaixa = null; } return; }
+  const selE = document.getElementById("fcEmp");
+  /* 🔴 DUAS COISAS MORAVAM NESTE `if (!selE.options.length)`.
+     1) A lista era montada UMA VEZ e nunca mais: trocar de empresa no app deixava os postos no
+        select de quem entrou na Conveniencia. Agora a marca `data-sig` diz para qual empresa a
+        lista foi montada, e ela se refaz quando a empresa muda.
+     2) `fcEmpSel` nasce "" (a declaracao la em cima nao escolhe nada) e `selE.value = ""` nao casa
+        com nenhuma opcao: o select ficava com selectedIndex -1 e a PRIMEIRA consulta ia com a
+        chave vazia, procurando documentos `_2026-08-01`. Nao existe nenhum. A tela abria dizendo
+        "Nenhum dia gravado neste periodo" na estreia, para todo mundo. ✅ Agora a chave e'
+        escolhida aqui, antes da consulta, e reconferida contra a lista visivel. */
+  const visiveis = fcEmpresasVisiveis();
+  if (!visiveis.some(e => e.k === fcEmpSel)) fcEmpSel = visiveis[0].k;
+  if (selE && (!selE.options.length || selE.getAttribute("data-sig") !== visiveis[0].sig)){
+    let og = "", ht = "";
+    visiveis.forEach(e => {
+      if (e.grupo !== og){ if (og) ht += '</optgroup>'; ht += '<optgroup label="' + escAttr(e.grupo) + '">'; og = e.grupo; }
+      ht += '<option value="' + escAttr(e.k) + '">' + escAttr(e.nome) + '</option>';
+    });
+    selE.innerHTML = ht + '</optgroup>';
+    selE.setAttribute("data-sig", visiveis[0].sig);
+  }
+  if (selE) selE.value = fcEmpSel;
+  const selA = document.getElementById("fcAtalho");
+  if (selA && !selA.options.length){
+    selA.innerHTML = FC_ATALHOS.map(a => '<option value="' + a[0] + '">' + a[1] + '</option>').join("");
+    selA.value = fcAtalho;
+  }
+  if (!fcDe || !fcAte){ const p = fcPeriodoDoAtalho(fcAtalho) || fcPeriodoDoAtalho("mes"); fcDe = p.de; fcAte = p.ate; }
+  const a = document.getElementById("fcDe"), z = document.getElementById("fcAte");
+  if (a) a.value = fcDe; if (z) z.value = fcAte;
+  carregarFechCaixa();
+}
+
 function alternarDre(){
   const aberto = abrirPainelExclusivo("painelDre");
   const b = document.getElementById("btnDre");
@@ -18424,7 +19065,7 @@ const CPR_CH_POSTO = "pf_comprar_posto";
 const CPR_CH_CAM   = "pf_comprar_caminhao";
 let cprRegua = null, cprCamSel = {}, cprPostoSel = "";
 try { cprPostoSel = localStorage.getItem(CPR_CH_POSTO) || ""; } catch(e){ cprPostoSel = ""; }
-/* \U0001f534 v310 - A ESCOLHA DO CAMINHAO E' POR POSTO, e nao uma so' para a tela.
+/* 🔴 v310 - A ESCOLHA DO CAMINHAO E' POR POSTO, e nao uma so' para a tela.
    Escolher o FH Prata para Caxias nao pode mudar quem carrega para Dutra — sao duas decisoes
    diferentes que moravam na mesma variavel. */
 try { cprCamSel = JSON.parse(localStorage.getItem(CPR_CH_CAM) || "{}") || {}; } catch(e){ cprCamSel = {}; }
@@ -18629,7 +19270,7 @@ function cprEsquecerCaminhao(posto){
   try { localStorage.setItem(CPR_CH_CAM, JSON.stringify(cprCamSel)); } catch(e){}
   renderComprar();
 }
-/* \U0001f534 v310 - O POSTO DA TELA. Um de cada vez, a pedido dele.
+/* 🔴 v310 - O POSTO DA TELA. Um de cada vez, a pedido dele.
    \u26a0 Filtro que aponta para posto que nao existe mais volta para o PRIMEIRO, nunca deixa a
    tela vazia — a mesma regra da v280. */
 function cprPostoAtual(nomes){
@@ -18774,7 +19415,7 @@ function cprOrdenar(lista){
 function cprCaminhoesLista(){
   return (caminhoes || []).map(c => {
     const tq = c.tanquePadrao ? normPlaca(c.tanquePadrao) : "";
-    /* \U0001f534 v310 - `posto` e' o posto que aquele caminhao atende, e ele mora no CADASTRO
+    /* 🔴 v310 - `posto` e' o posto que aquele caminhao atende, e ele mora no CADASTRO
        (Configuracoes -> Caminhoes e tanques). Nao ha' mapa de placas escrito aqui: o dia em que
        um caminhao trocar de posto e' um clique dele, nao uma versao minha. */
     return { placa: normPlaca(c.placa), tanque: tq, comps: compsDoTanque(tq),
@@ -18785,11 +19426,11 @@ function cprCamDoPosto(posto){
   const q = String(posto || "");
   return q ? cprCaminhoesLista().filter(c => c.posto === q) : [];
 }
-/* \U0001f534 QUEM CARREGA PARA ESTE POSTO, em tres degraus:
+/* 🔴 QUEM CARREGA PARA ESTE POSTO, em tres degraus:
    1. o que ELE escolheu na tela agora (inclusive "nenhum", que e' escolha valida);
    2. o que o CADASTRO diz;
    3. nenhum — e ai a tela nao inventa caminhao: ela diz que o pedido e' feito fora do app.
-   \U0001f511 O terceiro degrau e' o Posto Full - Teresina, que recebe por outra transportadora.
+   🔑 O terceiro degrau e' o Posto Full - Teresina, que recebe por outra transportadora.
       E ele NAO tem nome escrito no codigo: e' simplesmente o posto que nenhum caminhao atende. */
 function cprCamAtual(posto){
   const lista = cprCaminhoesLista();
@@ -18958,9 +19599,9 @@ function renderComprar(){
   const r = cprLerRegua();
   const todas = cprLinhas();
   const nomes = Object.keys(postos);
-  /* \U0001f534 v310 - UM POSTO DE CADA VEZ, a pedido dele. A tela inteira (os numeros do topo, o
+  /* 🔴 v310 - UM POSTO DE CADA VEZ, a pedido dele. A tela inteira (os numeros do topo, o
      aviso vermelho, a tabela e a carga) fala de UM posto.
-     \U0001f511 E as pastilhas continuam denunciando o que esta' pegando fogo nos OUTROS, com o
+     🔑 E as pastilhas continuam denunciando o que esta' pegando fogo nos OUTROS, com o
         numero de criticos ao lado do nome: filtro que ESCONDE urgencia e' armadilha; filtro que a
         RESUME e' o que faz caber. */
   const posto = cprPostoAtual(nomes);
@@ -18978,11 +19619,11 @@ function renderComprar(){
   h += '</div>';
 
   /* 2) A REGUA, NUMA FILEIRA SO'.
-     \U0001f534 Ate' a v309 eram TRES fileiras — uma da rede e duas com um campo por posto — e ele
+     🔴 Ate' a v309 eram TRES fileiras — uma da rede e duas com um campo por posto — e ele
      disse, olhando: "o topo dessa pagina ficou estranho o layout". Estava certo: aquele desenho
      nasceu de mostrar os tres postos de uma vez. Com um posto escolhido, a cobertura e a reserva
      DELE cabem na mesma linha do lote e do prazo, que e' o desenho do GASview que ele aprovou.
-     \U0001f511 O layout nao estava feio por acaso: ele estava carregando uma decisao que a tela
+     🔑 O layout nao estava feio por acaso: ele estava carregando uma decisao que a tela
         tinha acabado de deixar de tomar. */
   h += '<div class="cpr-regua">';
   [["lote","Lote de compra","litros"],
@@ -19150,7 +19791,7 @@ function renderComprar(){
 }
 
 /* ---- os dois blocos de baixo: a carga e onde comprar ---- */
-/* \U0001f534 v310 - AS PASTILHAS DE QUEM CARREGA. O caminhao do cadastro vem marcado como
+/* 🔴 v310 - AS PASTILHAS DE QUEM CARREGA. O caminhao do cadastro vem marcado como
    "padrao"; clicar noutro vale so' para este posto e fica guardado no aparelho. E o posto que
    nenhum caminhao atende tem a pastilha "outra transportadora" — que e' o padrao DELE. */
 function cprChipsCaminhao(posto, atual){
@@ -19174,10 +19815,10 @@ function cprChipsCaminhao(posto, atual){
   return h + '</div>';
 }
 
-/* \U0001f534 v310 - O POSTO QUE OUTRA TRANSPORTADORA ATENDE.
+/* 🔴 v310 - O POSTO QUE OUTRA TRANSPORTADORA ATENDE.
    Pedido dele: *"o posto de Teresina recebe produtos atraves de outra transportadora, entao
    fazemos o pedido dele em um site separado mas voce pode nos ajudar a calcular o pedido como ja
-   faz"*. \U0001f511 Entao a CONTA continua inteira e o que sai e' a CARGA — porque montar
+   faz"*. 🔑 Entao a CONTA continua inteira e o que sai e' a CARGA — porque montar
    compartimento de caminhao que nao vai carregar seria desenhar uma viagem que nao existe.
    No lugar dela, os litros por produto e um botao que copia o texto para colar no site deles.
    \u26a0 E o "onde compensa comprar" tambem nao aparece: a compra desse posto nao e' nossa. */
@@ -27481,7 +28122,7 @@ function renderPrecosMargens(){
 function instalarFerramentasPaineis(){
   const alvos = ["painelDash","painelRegistros","painelSimular","painelDescontos",
                  "painelCotacoes","painelPuxadas","painelCalendario","painelVencimentos",
-                 "painelConvVendas","painelConvCompras"];
+                 "painelConvVendas","painelConvCompras","painelFechCaixa"];   /* v356 */
   alvos.forEach(id => {
     const p = document.getElementById(id);
     if (!p || p.querySelector(".painel-tools")) return;
@@ -27503,6 +28144,7 @@ function painelVisivelInfo(){
     ["painelCotacoes",  "Cotações do Dia", "cotacoes"],
     ["painelConvVendas",  "Vendas e Margem da Loja", "vendas_loja"],
     ["painelConvCompras", "Compras e Fornecedores",  "compras"],
+    ["painelFechCaixa", "Fechamento do caixa", "fechamento_caixa"],   /* v356 */
     ["painelCalendario","Calendário",   "calendario"],
     ["painelVencimentos","Documentos",  "documentos"],
     ["painelConfig",    "Configurações", "configuracoes"],
