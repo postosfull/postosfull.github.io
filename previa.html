@@ -7292,6 +7292,11 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v344", data:"12/08/2026", tit:"\ud83e\uddef O aviso das <b>Despesas Detalhadas</b> parou de <b>escolher a causa</b> da diferença", itens:[
+    {t:"c", h:"O n\u00famero estava certo; a explica\u00e7\u00e3o ao lado dele, n\u00e3o", d:"A v343 dizia que a diferen\u00e7a contra o relat\u00f3rio recoletado era <b>toda</b> despesa lan\u00e7ada depois do fechamento. <b>Parte dela \u00e9 outra coisa:</b> o relat\u00f3rio recoletado <b>corrige uma subcontagem da categoria 3.10</b> nos meses antigos, e este detalhamento n\u00e3o tem essa corre\u00e7\u00e3o."},
+    {t:"m", h:"Agora ela mostra as duas causas e n\u00e3o escolhe", d:"A diferen\u00e7a continua na tela, m\u00eas a m\u00eas, com o valor. O que saiu foi a <b>afirma\u00e7\u00e3o</b> de por que ela existe. <b>Nos dois casos o total daqui est\u00e1 subestimado</b> \u2014 s\u00f3 n\u00e3o d\u00e1 para dizer por qual dos dois motivos."},
+    {t:"c", h:"\ud83d\udd11 N\u00famero certo com causa errada \u00e9 pior que n\u00famero errado", d:"N\u00famero errado algu\u00e9m desconfia. <b>Causa errada vira decis\u00e3o.</b> O aviso da <b>\ud83d\udcb5 Base caixa</b> continua afirmando o que afirma, porque l\u00e1 a causa \u00e9 <b>medida</b>: a data da coleta contra o \u00faltimo dia do m\u00eas."}
+  ]},
   {v:"v343", data:"12/08/2026", tit:"\u23f1\ufe0f As <b>Despesas Detalhadas</b> passam a dizer <b>de quando é o número</b> \u2014 e a acusar o que falta", itens:[
     {t:"c", h:"Despesa n\u00e3o para de chegar quando o m\u00eas fecha", d:"As meninas continuam lan\u00e7ando depois do fim do m\u00eas, porque a concilia\u00e7\u00e3o de caixa e banco n\u00e3o sai no mesmo dia. <b>A coleta refazia s\u00f3 o m\u00eas corrente</b>, ent\u00e3o cada m\u00eas ficava congelado na foto do dia 30 \u2014 e o n\u00famero envelhecia <b>calado</b>."},
     {t:"n", h:"Agora a tela mostra a data da coleta", d:"Em cima dos n\u00fameros, em toda r\u00e9gua: <b>quando aquilo foi coletado</b>. E na <b>\ud83d\udcb5 Base caixa</b> ela aponta com nome e data <b>os meses que foram fotografados antes de acabar</b> \u2014 aqueles n\u00e3o v\u00e3o se corrigir sozinhos."},
@@ -13169,11 +13174,24 @@ function renderDespesasDet(){
     av += '<div class="ana-resumo dsd-idade' + (falta > 0 ? ' dsd-idade-alerta' : '') + '">' +
           '<b>Coletado em ' + escAttr(dsdDataBR(quandoC)) + '.</b> ';
     if (falta > 0){
+      /* 🔴 v344 - A CAUSA SAIU DAQUI, E A LIÇÃO É DA FAMÍLIA MAIS CARA DO PROJETO: número certo,
+         causa errada. A v343 escrevia que a diferença toda era "despesa que continua chegando depois
+         que o mês fecha". A diferença é REAL e está medida — mas a explicação era chute com cara de
+         medição, e o cabeçalho do `dre-anomes.mjs` já tinha a outra metade escrita desde 06/08:
+         o `desp` do `anomes` NÃO sai do bloco `Despesas` do Mês a Mês, porque ele SUBCONTA a
+         categoria 3.10; o coletor corrige isso com uma consulta extra ao `f_obtem_dre`.
+         👉 Medido lá: Teresina, abril, 205.365,64 no bloco contra 262.879,88 corrigido — R$ 57.514.
+         Os três postos deram R$ 131.356 em abril, o que cabe quase inteiro nessa explicação.
+         🔑 E o mesmo texto diz que JULHO E AGOSTO batem exato pelos dois caminhos — que é justamente
+         onde o lançamento tardio se sustenta. 👉 A tela mostra a diferença e NÃO ESCOLHE a causa. */
       av += 'O mesmo relatório, na versão que é recoletada três vezes por dia, já soma <b>' + fmtR$0(falta) +
-            '</b> a mais neste ano — <b>' + fmtBR(D.total ? falta / D.total * 100 : 0, 1) + '%</b>. ' +
-            'É despesa que já foi lançada e que <b>este detalhamento ainda não tem</b>: ' + escAttr(mesesAtras.join(" · ")) + '. ' +
-            '🔑 Despesa continua chegando depois que o mês fecha — a conciliação de caixa e banco não sai no mesmo dia — ' +
-            'e a coleta desta tela ainda é de uma foto só. <b>Os totais por mês estão subestimados nessa medida.</b>';
+            '</b> a mais neste ano — <b>' + fmtBR(D.total ? falta / D.total * 100 : 0, 1) + '%</b>: ' +
+            escAttr(mesesAtras.join(" · ")) + '. ' +
+            '🔑 <b>São duas causas possíveis, e esta tela não sabe separar as duas.</b> Uma é despesa lançada ' +
+            '<b>depois</b> de o mês fechar — a conciliação de caixa e banco não sai no mesmo dia, e a coleta deste ' +
+            'detalhamento é de uma foto só. A outra é que o relatório recoletado <b>corrige uma subcontagem da ' +
+            'categoria 3.10</b> nos meses antigos, que este detalhamento não tem. ' +
+            '<b>Nos dois casos o total por mês aqui está subestimado</b> — só não dá para dizer por qual dos dois motivos.';
     } else if (anom){
       av += 'Confere com o total do relatório recoletado hoje — <b>sem diferença</b>.';
     } else {
