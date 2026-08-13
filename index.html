@@ -4668,6 +4668,14 @@
         <div id="admSincBox"></div>
       </div>
     </div>
+
+    <div class="adm-pag" id="admPagAuto" style="display:none">
+      <div class="grupo">
+        <h2>🤖 Avisos automáticos</h2>
+        <p class="nota-dash">Os avisos que <b>a máquina</b> escreve na Caixa de entrada — o coletor do VPS, a rotina de sincronização e o próprio app. Alguns <b>morrem sozinhos</b> quando o problema acaba, e por isso podem sumir antes de você ver. Aqui ficam todos, abertos e fechados, com <b>quem fechou cada um</b>. ⚠️ Só não aparece o que alguém <b>excluiu</b> na Caixa de entrada — excluir apaga o recado de vez. Recado de gente para gente não entra: esse continua só na Caixa de entrada.</p>
+        <div id="admAutoBox"></div>
+      </div>
+    </div>
   </div>
 
   <div class="config" id="painelCaixa">
@@ -5130,6 +5138,12 @@ let presencaVisWired = false;
 const ONLINE_MS = 150000;              // online se visto nos últimos 2,5 min
 let recados = [];                      // avisos/tarefas da caixa de entrada
 let escutaRecados = null;
+/* 🔴 A BANDEIRA DA CAIXA DE ENTRADA. `recados` nasce `[]`, entao "ainda nao chegou" e "chegou e
+   esta vazia" sao INDISTINGUIVEIS enquanto so' existir o array — e as duas coisas que dependem
+   dele agora (o fechamento automatico do aviso de recebimento e a aba 🤖 Avisos automaticos)
+   errariam calado nesse instante: uma nao fecharia nada, a outra afirmaria "nao ha aviso".
+   E' a mesma peca que mais custou na v221 e no verificador da v336. */
+let vistoRecados = false;
 /* v319 - a aba 📌 Pendencias */
 let pendencias = [];
 let escutaPendencias = null;
@@ -5947,6 +5961,9 @@ function aoMudarLogin(usuario){
     Object.keys(verifJaGravou).forEach(k => delete verifJaGravou[k]);
     arquivos = []; infAbastecimentos = []; infleetFrota = null;
     if (escutaRecebimentos){ escutaRecebimentos(); escutaRecebimentos = null; recebimentos = null; }   /* v316 */
+    /* mesma razao do bloco do verificador, logo acima: bandeira e assinatura voltam ao zero, senao
+       a proxima pessoa a entrar seria avaliada com o "ja' chegou" da anterior. */
+    vistoRecados = false; vistoRecebimentos = false; recebFechAssinatura = null;
     if (escutaAvisoReceb){ escutaAvisoReceb(); escutaAvisoReceb = null; avisoReceb = {}; }   /* v316 */
     if (escutaCombDia){ escutaCombDia(); escutaCombDia = null; combDia = null; vistoCombDia = false; }   /* v301 */
     if (escutaTanquesAjustes){ escutaTanquesAjustes(); escutaTanquesAjustes = null; tanquesAjustes = {}; tqvEdit = null; }   /* v278 */
@@ -6498,7 +6515,15 @@ const ABAS_ADM = [
      nomes (v335). E NAO e' "Sincronizacao" de proposito - a tela COMPLETA de sincronizacao e'
      uma pendencia aberta que esta aba nao faz, e batizar a aba com o nome dela faria a proxima
      sessao ler a pendencia como concluida. */
-  {k:"sinc",    nome:"📡 Avisos do Petros",       pag:"admPagSinc"}
+  {k:"sinc",    nome:"📡 Avisos do Petros",       pag:"admPagSinc"},
+  /* 🆕 A aba dos avisos que a MAQUINA cria na Caixa de entrada. Pedido dele em 13/08, na mesma
+     conversa em que pediu o fechamento automatico: "para eu ter ciencia de todos eles".
+     🔑 E' o contrapeso exato do recurso irmao: aviso que morre sozinho e' aviso que ele pode nunca
+     ter visto. Sem este lugar, "some sozinho" seria "some sem deixar rastro".
+     ⚠️ NAO E' UM SEGUNDO LUGAR PARA A CAIXA DE ENTRADA — o que ele recusou na v353. Aqui nao entra
+     recado de gente para gente, e o que a aba mostra de mais util e' justamente o que a Caixa NAO
+     mostra: o historico do que ja' fechou, e QUEM fechou. */
+  {k:"auto",    nome:"🤖 Avisos automáticos",     pag:"admPagAuto"}
 ];
 const EMPRESAS_ADM = [
   {sig:"postos", chave:"postos",         nome:"⛽ Postos Full",                cls:"adm-e1"},
@@ -6697,6 +6722,7 @@ function renderAbaAdm(){
   else if (admAba === "regras"){ renderMetaCaixa(); renderAvisoReceb(); }   /* v316 */
   else if (admAba === "ativ")   { popularSelectsAdmin(admEmails()); renderAtividadesFunc(); }
   else if (admAba === "sinc")   renderAdmSinc();             /* v355 */
+  else if (admAba === "auto")   renderAdmAuto();
   else                          renderAdminUsuarios();
 }
 
@@ -6747,6 +6773,93 @@ function renderAdmSinc(){
              (q ? '<span class="frc-un-ok">' + q + '</span>' : '') +
              '<span class="frc-it-d">' + escAttr(m.detalhe || "") + '</span></div>';
     }).join("") + '</div>' + carimbo;
+}
+
+/* ----- aba 🤖 Avisos automáticos: o rastro do que nasce e morre sem ninguem clicar -----------
+   🔴 NENHUMA PECA NOVA DE CARTAO, nem uma classe de CSS: reusa `rec-card`, `rec-topo`, `rec-tag`,
+   `rec-titulo`, `rec-meta`, `pe-sub` e `nota-dash`, como a v319 fez. Antes de criar classe, grep.
+
+   🔴 E A DECISAO QUE MAIS IMPORTA AQUI: NAO EXISTE LISTA DE FAMILIAS ESCRITA A MAO. Quem separa
+   "aviso da maquina" de "recado de gente" e' o campo `de`: sem "@" e' maquina. Uma lista de
+   prefixos (`rec_receb_`, `rec_falha_rotina_`, …) envelheceria no dia em que nascesse o proximo
+   coletor, e envelheceria CALADA — a aba continuaria bonita, mostrando menos do que existe.
+   🔑 Lista escrita a mao ao lado de coisa que cresce e' a proxima linha errada do arquivo.
+
+   🔴 E O NUMERO QUE ELA MOSTRA E' MEDIDO, NAO PROMETIDO: "fecharam sozinhos" x "fechados na mao"
+   sai do proprio historico. 📏 O QUE ELA IMPRIMIU contra dado real, antes de subir: "Recebimento
+   de combustivel — 7 no total · 0 fechou sozinho · 7 fechado na mao". 🔑 O defeito que ele levou
+   quatro dias para sentir estaria escrito na tela desde o primeiro dia.
+   ⚠️ E o numero e' 7, nao 8: existem OITO recados `rec_receb_*`, mas o oitavo
+   (`rec_receb_pendencias_2026-08-10`) tem outro autor — `deNome:"Recebimento de combustivel
+   (v316-v318)"`, escrito por mim — e por isso cai em outro grupo, como tem de cair.
+   🔑 O revisor pegou este 8 no comentario, e era o COMENTARIO que estava errado: numero de cabeca
+   ao lado de numero medido perde sempre.
+   👉 Aba que so' lista nao vale a tela que ocupa; esta CONFERE. */
+/* 🔴 AGRUPA POR QUEM ESCREVE, e a FOTO foi quem decidiu isto. A primeira versao agrupava pelo id
+   sem a data (`rec_receb_dutra`), e a tela contra dado real mostrou "Recebimento de combustivel"
+   TRES vezes seguidas, uma por posto, cada uma dizendo "2 no total". 📏 15 tipos onde existem 11.
+   🔑 E o estrago nao era cosmetico: o numero que da' o diagnostico — "0 fecharam sozinhos, 7 na
+   mao" — chegava PICADO em tres pedacinhos de 2, e um pedacinho de 2 nao acusa nada.
+   👉 `deNome` e' o proprio autor do recado: dado que o coletor ja' escreve, nao lista minha. */
+function admAutoTipo(r){
+  return String((r && (r.deNome || r.de)) || "").trim() || "Sem autor";
+}
+function admAutoFechouSozinho(r){
+  return !!r.concluida && String(r.concluidaPor || "").indexOf("@") < 0;
+}
+function renderAdmAuto(){
+  const box = document.getElementById("admAutoBox"); if (!box) return;
+  /* 🔴 A MESMA GUARDA DA ABA VIZINHA, e pela mesma razao: `recados` nasce `[]`, entao sem a
+     bandeira esta aba afirmaria "nenhum aviso" em cima de uma leitura que ainda nao voltou. */
+  if (!vistoRecados){ box.innerHTML = '<p class="nota-dash">Lendo a Caixa de entrada…</p>'; return; }
+  const daMaquina = (recados || []).filter(r => r && String(r.de || "").indexOf("@") < 0 && r.de);
+  if (!daMaquina.length){
+    box.innerHTML = '<p class="nota-dash">Nenhum aviso automático na Caixa de entrada até agora.</p>';
+    return;
+  }
+  const fams = {};
+  daMaquina.forEach(r => {
+    const k = admAutoTipo(r);
+    if (!fams[k]) fams[k] = { itens:[], quando:0 };
+    fams[k].itens.push(r);
+    const q = msDeQuando(r.criadoEm);
+    if (q > fams[k].quando) fams[k].quando = q;
+  });
+  const ordem = Object.keys(fams).sort((a,b) => fams[b].quando - fams[a].quando);
+  let h = '<p class="nota-dash">' + daMaquina.length + ' aviso(s) de ' + ordem.length +
+          ' tipo(s), do mais recente para o mais antigo.</p>';
+  ordem.forEach(k => {
+    const itens = fams[k].itens.slice().sort((a,b) => msDeQuando(b.criadoEm) - msDeQuando(a.criadoEm));
+    const abertos  = itens.filter(r => !r.concluida).length;
+    const sozinhos = itens.filter(admAutoFechouSozinho).length;
+    const naMao    = itens.length - abertos - sozinhos;
+    h += '<div class="pe-sub">' + escAttr(k) + '</div>';
+    h += '<p class="nota-dash">' + itens.length + ' no total · <b>' + abertos + '</b> aberto(s) · <b>' +
+         sozinhos + '</b> fechou sozinho · <b>' + naMao + '</b> fechado na mão.' +
+         /* 🔑 A frase so' aparece quando o numero a autoriza. Texto fixo dizendo "estes fecham
+            sozinhos" seria a mesma promessa que esta versao veio consertar. */
+         ((sozinhos === 0 && naMao > 0)
+            ? ' <b>Nenhum deste tipo fechou sozinho até hoje</b> — quem os apaga é sempre alguém clicando.'
+            : '') + '</p>';
+    h += itens.map(r => {
+      const nasceu = fmtHaTempo(r.criadoEm);
+      let estado, cls;
+      if (!r.concluida){ estado = '⏳ aberto'; cls = 'aviso'; }
+      else if (admAutoFechouSozinho(r)){
+        estado = '🤖 fechou sozinho ' + fmtHaTempo(r.concluidaEm); cls = 'tarefa';
+      } else {
+        estado = '✋ fechado por ' + (r.concluidaNome || r.concluidaPor || "alguém") + ' ' +
+                 fmtHaTempo(r.concluidaEm); cls = 'tarefa';
+      }
+      return '<div class="rec-card' + (r.concluida ? ' feito' : '') + '">' +
+        '<div class="rec-topo"><span class="rec-tag ' + cls + '">' + escAttr(estado) + '</span>' +
+        '<span class="rec-quando">' + escAttr(nasceu) + '</span></div>' +
+        '<div class="rec-titulo">' + escAttr(r.titulo || "") + '</div>' +
+        '<div class="rec-meta">' + escAttr(r.id) + '</div>' +
+        '</div>';
+    }).join("");
+  });
+  box.innerHTML = h;
 }
 
 /* ----- aba Pessoas ----- */
@@ -7696,6 +7809,13 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v362", data:"13/08/2026", tit:"🤖 O aviso de <b>nota a lançar</b> passa a sumir sozinho — e nasce a aba que mostra todos", itens:[
+    {t:"c", h:"A tela prometia isso desde a v316, e ninguém cumpria", d:"O aviso <b>📥 Recebimento em … — N tanque(s) com nota a lançar</b> dizia, com todas as letras, que <b>sumia sozinho quando a nota fosse lançada</b>. 📏 Medido no dia 13/08: <b>oito</b> avisos desses já existiram e <b>nenhum</b> fechou sozinho — quem os apagava era sempre alguém clicando em <b>✓ Marcar como concluída</b>. A prova de que devia ter fechado estava no próprio app: em <b>09/08</b>, os quatro tanques de Dutra têm nota lançada e diferença conferida há dias, e o aviso continuou na Caixa de entrada. 🔑 <b>Promessa que a máquina não cumpre é pior que recurso nenhum.</b>"},
+    {t:"n", h:"Agora ele fecha sozinho de verdade — e volta se chegar caminhão novo", d:"Quando as notas de <b>todos</b> os recebimentos daquele posto naquele dia aparecem lançadas, o aviso se conclui sozinho e sai da Caixa de entrada de todo mundo. ⚠️ E se chegar um <b>segundo caminhão</b> mais tarde, em <b>outro tanque</b>, ainda sem nota, o aviso <b>volta</b> — o aviso é um por posto e por dia. O que <b>você</b> concluiu na mão nunca é reaberto. 🔎 <b>O limite, dito na cara:</b> quando o segundo caminhão cai no <b>mesmo tanque</b>, nem o servidor nem o app enxergam — existe uma nota por tanque e por dia. Isso já era assim antes desta versão, e o conserto é do lado do servidor."},
+    {t:"n", h:"Aba nova: 🤖 Avisos automáticos, no Painel Administrativo", d:"Aviso que morre sozinho é aviso que você pode nunca ter visto. A aba mostra <b>tudo o que a máquina escreve</b> na Caixa de entrada — o coletor do servidor, a rotina de sincronização e o próprio app — <b>abertos e fechados</b>, com <b>quem fechou cada um</b> e quando. Recado de gente para gente não entra: esse continua só na Caixa de entrada."},
+    {t:"m", h:"E ela confere, não só lista", d:"Em cada tipo de aviso a aba diz <b>quantos fecharam sozinhos</b> e <b>quantos alguém fechou na mão</b>. Foi esse número que denunciou o defeito de cima — e é ele que denuncia o próximo, sem esperar alguém desconfiar. 🔑 <b>Recurso que promete automação nasce junto com o lugar onde se lê se ela aconteceu.</b>"},
+    {t:"a", h:"Onde ele fecha", d:"O fechamento acontece quando <b>alguém abre o app</b> — qualquer pessoa da equipe, não precisa ser você. Com o app fechado a noite inteira, o aviso morre na manhã seguinte. E quando a leitura do dia ainda não chegou, o app <b>não fecha nada</b>: melhor um aviso a mais na tela que uma nota que ninguém lança."}
+  ]},
   {v:"v361", data:"13/08/2026", tit:"👷 <b>Operadores</b>: a coluna <b>Premium</b> some onde a Podium não é vendida", itens:[
     {t:"c", h:"Duas colunas mostravam o mesmo número em dois dos três postos", d:"Ele viu e está certo: <b>Premium</b> aparecia em Caxias e em Dutra, que <b>não vendem Podium</b>. 📏 Medido em agosto: em Caxias <b>Aditiv.</b> e <b>Prem.</b> davam os mesmos <b>30,3%</b>, e em Dutra os mesmos <b>35,3%</b> — o mês inteiro. A conta explica: <i>premium = aditivada + Podium</i>, e sem Podium a soma é a própria aditivada. 🔑 <b>Coluna em que todo mundo tem o mesmo valor não é informação: é largura gasta</b> — e esta era pior, porque repetia a coluna VIZINHA e convidava a ler duas medidas onde só existe uma."},
     {t:"m", h:"Quem decide é o dado do mês, não uma lista de postos", d:"A coluna não foi apagada: ela continua em <b>Teresina</b>, o único posto que vende Podium, e some nos outros. ⚠️ E é o <b>dado</b> que manda — no dia em que Caxias passar a vender Podium, a coluna nasce lá <b>sozinha</b>, sem ninguém mexer no app. Onde ela não aparece, o <b>i</b> da coluna Aditivada explica o porquê."}
@@ -9231,9 +9351,21 @@ function iniciarSync(){
     snap.forEach(doc => arr.push(Object.assign({ id: doc.id }, doc.data() || {})));
     arr.sort((a,b) => msDeQuando(b.criadoEm) - msDeQuando(a.criadoEm));   // v201 - com texto ISO dava NaN e a ordem saia ao acaso
     recados = arr;
+    /* 🔴 DERRUBADO PELO REVISOR, e o molde ja' dizia como: `vistoRecados = true` puro subia a
+       bandeira com leitura de CACHE (o app tem `enablePersistence`). Sem sinal, o app leria a
+       foto de ontem, concluiria "a nota entrou" sobre um dia que ganhou descarga depois, e a
+       gravacao entraria na fila para ser aplicada quando a conexao voltasse.
+       🔑 As QUATRO bandeiras do verificador (v336) ja' tinham exatamente esta linha. Bandeira que
+       eu criei citando o molde e alimentei diferente do molde e' o erro a favor da propria mudanca. */
+    if (!snap.metadata || !snap.metadata.fromCache) vistoRecados = true;
     atualizarBadgeCaixa();
     const pcx = document.getElementById("painelCaixa");
     if (pcx && pcx.classList.contains("aberto")) renderCaixa();
+    /* a aba 🤖 Avisos automaticos mostra ESTA lista: sem isto ela seria uma foto do momento em
+       que o painel abriu, e o painel fica aberto enquanto ele trabalha. */
+    const pAdmA = document.getElementById("painelAdmin");
+    if (pAdmA && pAdmA.classList.contains("aberto")) renderAbaAdm();
+    sincronizarAvisoReceb();
   }, ()=>{});
 
   // v319 - 📌 Pendencias (o que depende do Tiago). So admin ve, mas a escuta e' de todos:
@@ -9624,8 +9756,10 @@ function iniciarSync(){
   escutaRecebimentos = db.collection("recebimentos").orderBy("data", "desc")
     .limit(RCB_DIAS_LISTA).onSnapshot(snap => {
       recebimentos = snap.docs.map(d => Object.assign({ id: d.id }, d.data() || {}));
+      if (!snap.metadata || !snap.metadata.fromCache) vistoRecebimentos = true;   /* idem */
       const pr = document.getElementById("painelRecebimento");
       if (pr && pr.classList.contains("aberto")) renderRecebimento();
+      sincronizarAvisoReceb();   /* a nota entrou -> o aviso da Caixa de entrada morre sozinho */
     }, () => { recebimentos = []; });
 
   /* v316 - quem recebe o aviso de recebimento. O coletor do VPS LE este documento; o Painel
@@ -17731,6 +17865,113 @@ function rcbDiasVisiveis(){
   const corte = new Date(Date.parse(hoje + "T12:00:00Z") - (rcbJanela - 1) * 86400000)
                   .toISOString().slice(0, 10);
   return recebimentos.filter(d => String(d.data || d.id || "") >= corte);
+}
+
+/* ========== O AVISO DE RECEBIMENTO QUE SE FECHA SOZINHO — a promessa sendo cumprida ==========
+   🔴 O PEDIDO DELE, 13/08: "ao ser lancada a nota teria como esse aviso sumir sem eu ter de
+   clicar em concluir? acho que voce ja ate faz isso pra outros avisos".
+
+   🔴 E A MEDICAO, ANTES DE ESCREVER UMA LINHA: ele estava certo sobre o OUTRO aviso e enganado
+   sobre este. Lido do Firestore em 13/08 — 8 avisos `rec_receb_*`: SETE fechados por ele na mao,
+   UM por mim, ZERO pelo coletor. O `rec_falha_rotina_*`, que ele citou de memoria, fechou sozinho
+   7 de 7. 📏 A PROVA de que este devia ter fechado: em `recebimentos/2026-08-09` os quatro tanques
+   de Dutra tem `notaDoDia.litros` (12.000 · 5.000 · 5.000 · 15.000) e `diferencaBr` calculada — a
+   condicao acabou, e o aviso ficou aberto ate' ele clicar.
+   🔑 ESTA TELA PROMETIA, EM DOIS LUGARES, UMA COISA QUE NINGUEM FAZIA: o texto do quadro do
+   Painel Administrativo e o `rcb-aviso` do topo dizem "some sozinho quando a nota for lancada".
+   Promessa que a maquina nao cumpre e' pior que recurso nenhum — e o preco dela e' ele deixar de
+   acreditar nos avisos que CUMPREM.
+
+   🔴 POR QUE AQUI E NAO NO COLETOR (escolha dele, com os dois custos na mao): o `descargas.mjs`
+   nao esta guardado em lugar nenhum da base, deste sandbox nao sai SSH, e o app ja' tem a REGUA —
+   `rcbSituacao()`, a mesma que pinta o cartao. Fazer no servidor seria uma SEGUNDA regua para a
+   mesma condicao, e o projeto ja' pagou caro por isso.
+   ⚠️ O QUE ISSO CUSTA, e ele aceitou sabendo: fecha quando ALGUEM abre o app — qualquer pessoa
+   logada, nao precisa ser ele. Com o app fechado a noite inteira, o aviso so' morre de manha.
+
+   🔴 O MOLDE E' DE CASA, DUAS VEZES CICATRIZADO: `sincronizarAvisoSemPerfil()` (v221) e o
+   verificador da v336. De la' vem o id fixo, a ASSINATURA que evita regravar a cada snapshot, o
+   `concluidaPor:"app"` e as BANDEIRAS de "a fonte ja' chegou?".
+   🔑 E A REGRA QUE MANDA AQUI E' A DA v336: `naosei` NUNCA FECHA. Fonte vazia e' indistinguivel de
+   problema resolvido, e fechar errado e' INVISIVEL — o aviso some da tela da gerente e a nota
+   nunca e' lancada. Por isso sao SEIS portas de saida antes do fechamento, e todas dizem "nao sei".
+
+   🔴 E UMA COISA QUE O MOLDE NAO TINHA: ESTE AVISO REABRE. O `rec_receb_<posto>_<dia>` tem id fixo
+   por DIA — se as notas da manha entram e um segundo caminhao chega a tarde sem nota, o coletor
+   reescreve o texto no MESMO id. Se eu so' soubesse fechar, aquele aviso nasceria morto e ninguem
+   veria. Entao: se a condicao voltar a estar aberta, o que EU fechei eu reabro.
+   ⚠️ O que ELE fechou na mao, eu nunca reabro — `concluidaPor:"app"` e' a unica chave.
+   🔑 "Nunca reabre" (v336) e' regra de PENDENCIA, que nasce de um texto; aqui a condicao e' dado,
+   e dado que volta e' fato novo, nao pisca-pisca.
+
+   🔴 E O LIMITE QUE O REVISOR ACHOU, ESCRITO AQUI PARA NINGUEM O REDESCOBRIR: um segundo caminhao
+   no MESMO tanque, no mesmo dia, NAO reabre — existe UMA `notaDoDia` por tanque e por dia (o
+   comentario da fonte, mais acima, diz isso com todas as letras), entao o tanque que ja' tem nota
+   nunca mais volta a `semnota`: ele vira `fora da faixa`.
+   ⚠️ ISSO NAO NASCEU AQUI. O COLETOR le a mesma coisa, entao esse caso nunca gerou aviso, nem antes
+   desta versao. O que esta versao devia — e agora faz — e' NAO PROMETER o que nao cumpre: o texto
+   do menu 🎁 Novidades diz "em OUTRO tanque", e nao "no mesmo dia".
+   🛑 E a saida obvia foi MEDIDA E RECUSADA: tratar `fora da faixa` como "nao sei" fecharia a porta
+   para sempre. 📏 Em 09/08, em Dutra, DOIS dos quatro tanques estao fora da faixa (2,4% e 32%) —
+   e esse e' justamente o dia que prova que o fechamento devia acontecer. 🔑 Guarda que reprova o
+   caso que motivou a versao nao e' zelo: e' o recurso desligado com cara de zelo.
+   👉 O caminho certo para esse buraco e' o COLETOR contar litros por descarga contra a nota —
+   trabalho de servidor, e o `descargas.mjs` precisa estar guardado antes. Fica na ficha. */
+const REC_RECEB_PREF = "rec_receb_";
+let recebFechAssinatura = null;
+/* a gemea de `vistoRecados`, do lado da fonte. ⚠️ NAO se apoia em `recebimentos.length`: lista
+   vazia tambem e' o que o callback de ERRO escreve. */
+let vistoRecebimentos = false;
+/* "Pres. Dutra" -> "presdutra". O coletor gerou o id a partir do nome do posto; se um dia gerar
+   de outro jeito, o `nomes.length !== 1` la' embaixo responde "nao sei" e nada e' fechado. */
+function rcbSlug(s){
+  return String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+         .toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+/* A situacao de UM posto num dia: "resolvido" | "aberto" | "naosei". FUNCAO PURA dos documentos —
+   nada de `Date.now()`, nada de estado de tela, nada de quem esta' logado (a regra da v336 que
+   autoriza qualquer sessao a gravar sem briga de escrita). */
+function rcbEstadoDoAviso(id){
+  const m = String(id).slice(REC_RECEB_PREF.length).match(/^(.+)_(\d{4}-\d{2}-\d{2})$/);
+  if (!m) return "naosei";                                    // 1. id fora do formato
+  const doc = (recebimentos || []).find(d => String(d.data || d.id) === m[2]);
+  if (!doc || !doc.postos) return "naosei";                   // 2. o dia nao esta' na janela lida
+  const nomes = Object.keys(doc.postos).filter(nm => rcbSlug(nm) === m[1]);
+  if (nomes.length !== 1) return "naosei";                    // 3. nao achei o posto, ou achei dois
+  const tanques = (doc.postos[nomes[0]] || {}).tanques;   /* posto null no doc do dia nao derruba a passada */
+  if (!Array.isArray(tanques) || !tanques.length) return "naosei";   // 4. fonte vazia != resolvido
+  const comDescarga = tanques.filter(t => rcbSituacao(t));
+  if (!comDescarga.length) return "naosei";                   // 5. o dia perdeu as descargas
+  const sits = comDescarga.map(t => rcbSituacao(t).k);
+  if (sits.indexOf("aberta") >= 0) return "naosei";            // 6. caminhao ainda na pista
+  return (sits.indexOf("semnota") >= 0) ? "aberto" : "resolvido";
+}
+function sincronizarAvisoReceb(){
+  if (!usuarioAtual || !vistoRecados) return;
+  if (!vistoRecebimentos || !Array.isArray(recebimentos)) return;     // a fonte ainda nao chegou
+  const fechar = [], reabrir = [];
+  (recados || []).forEach(r => {
+    if (!r || String(r.id).indexOf(REC_RECEB_PREF) !== 0) return;
+    const est = rcbEstadoDoAviso(r.id);
+    if (!r.concluida){ if (est === "resolvido") fechar.push(r.id); return; }
+    if (r.concluidaPor === "app" && est === "aberto") reabrir.push(r.id);
+  });
+  /* 🔴 TAMBEM DO REVISOR: sem zerar aqui, a assinatura da PRIMEIRA gravacao valia a sessao
+     inteira. Fechava de manha; o coletor reabria a tarde com um caminhao novo em outro tanque; a
+     nota da tarde entrava — e o segundo fechamento, legitimo, nao acontecia mais.
+     🔑 A guarda e' sobre a ACAO que acabei de mandar, nunca sobre o conjunto (a licao da v336). */
+  if (!fechar.length && !reabrir.length){ recebFechAssinatura = null; return; }
+  const assin = fechar.join("|") + "#" + reabrir.join("|");
+  if (assin === recebFechAssinatura) return;      // ja' gravei isto; o snapshot ainda nao voltou
+  recebFechAssinatura = assin;
+  /* 🔴 a assinatura CAI se a gravacao falhar — senao um erro de rede prenderia o fechamento pelo
+     resto da sessao, calado, que e' o defeito que esta funcao existe para nao ter. */
+  const errou = () => { recebFechAssinatura = null; };
+  fechar.forEach(id => colRecados.doc(id).set({
+    concluida:true, concluidaPor:"app", concluidaNome:"Recebimento de combustível",
+    concluidaEm: Date.now() }, {merge:true}).catch(errou));
+  reabrir.forEach(id => colRecados.doc(id).set({
+    concluida:false, concluidaPor:"", concluidaNome:"", concluidaEm:0 }, {merge:true}).catch(errou));
 }
 
 function rcbFiltrarPosto(p){ rcbPostoSel = p; rcbMsg = ""; renderRecebimento(); }
