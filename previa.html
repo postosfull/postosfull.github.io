@@ -1595,6 +1595,34 @@
   .dsp-cor{display:flex;align-items:center;gap:6px;font-size:.78rem;border:1px solid var(--borda);
            border-radius:999px;padding:3px 10px 3px 4px}
   .dsp-cor input[type=color]{width:26px;height:24px;border:none;background:none;padding:0;cursor:pointer}
+  /* v357 - a tabela dos Operadores */
+  /* 🔴 MEDIDO, NAO CHUTADO — o contraste de cada pastilha nos DOIS temas esta no
+     `shot2.js`, e ele REPROVA abaixo de 4,5. As cores copiadas dos irmaos mais
+     velhos (`.rec-tag.tarefa` e `.pnd-u1`) mediam 2,67 no claro e 2,15 no ESCURO,
+     que e' o tema PADRAO do app. Aqui o verde escureceu no claro e clareou no
+     escuro; o ambar fez o mesmo. ⚠️ As pastilhas antigas continuam como estavam:
+     mexer nelas e' outra versao, com outra prova. */
+  .rec-tag.ope-cima{background:rgba(34,197,94,.15);color:#0B6B35}
+  .rec-tag.ope-ritmo{background:rgba(0,0,0,.06);color:var(--cinza)}
+  .rec-tag.ope-baixo{background:rgba(234,179,8,.18);color:#7A5600}
+  .rec-tag.ope-nd{background:rgba(0,0,0,.04);color:var(--cinza)}
+  /* ⚠️ `body.tema-escuro`, nao `body.escuro`: a classe deste app e' essa, e uma regra
+     com o nome errado nao acusa erro — ela so' nunca vale (armadilha da v285). */
+  body.tema-escuro .rec-tag.ope-cima{background:rgba(34,197,94,.16);color:#5FE39B}
+  body.tema-escuro .rec-tag.ope-baixo{background:rgba(234,179,8,.16);color:#F2C94C}
+  body.tema-escuro .rec-tag.ope-ritmo{background:rgba(255,255,255,.10)}
+  body.tema-escuro .rec-tag.ope-nd{background:rgba(255,255,255,.07)}
+  @media (max-width:640px){
+    /* 🔑 medido em 12/08: com as doze colunas a tabela dava 383px numa caixa de
+       348px e a coluna Situação saía CORTADA. Sem estas, cabe em 390px sem rolar.
+       ⚠️ Em 360px ainda rola 25px e em 320px, 65px. */
+    #painelOperadores .ope-off{display:none}
+    #painelOperadores .ope-inteiro{display:none}
+    /* ⚠️ o nome curto entra por aqui, e NÃO como elemento — veja o comentário na
+       `renderOperadores`: elemento escondido dentro de <table> vaza para o PDF. */
+    #painelOperadores .rpz-nome::after{content:attr(data-curto)}
+    #painelOperadores .rec-tag{padding:2px 6px}
+  }
   /* v191 - Relatorios Petros */
   .rpz-cards{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
   .rpz-card{flex:1 1 130px;min-width:130px;border:1px solid var(--borda);border-radius:10px;padding:8px 10px;background:var(--superficie);background-image:linear-gradient(var(--superficie),var(--superficie))}
@@ -3697,6 +3725,7 @@
       <button class="btn-claro" id="btnAfericoes" onclick="alternarAfericoes()"><span class="mi">📏</span><span class="mt">Aferições</span></button>
       <button class="btn-claro" id="btnClientes" onclick="alternarClientes()"><span class="mi">🧾</span><span class="mt">Clientes</span></button>
       <button class="btn-claro" id="btnAnalise" onclick="alternarAnalise()"><span class="mi">🧠</span><span class="mt">Análise</span></button>
+      <button class="btn-claro" id="btnOperadores" onclick="alternarOperadores()"><span class="mi">👷</span><span class="mt">Operadores</span></button>
       <button class="btn-claro" id="btnRelLoja" onclick="alternarRelLoja()"><span class="mi">🍫</span><span class="mt">Produtos e categorias</span></button>
       <button class="btn-claro" id="btnIfood" onclick="alternarIfood()"><span class="mi">🍔</span><span class="mt">iFood</span></button>
       <button class="btn-claro" id="btnInfleet" onclick="alternarInfleet()"><span class="mi">📡</span><span class="mt">APP Infleet</span></button>
@@ -4179,6 +4208,22 @@
       <h2>🧾 Clientes</h2>
       <p class="nota-dash">Quem compra <b>a prazo</b> nos tr&ecirc;s postos, somado. Cada cliente aparece uma vez, com o selo de onde ele compra. Clique num nome para ver a ficha dele. Os n&uacute;meros v&ecirc;m do Petros/Adaptive e chegam pelo servidor.</p>
       <div id="cliBox"></div>
+    </div>
+  </div>
+
+  <div class="config" id="painelOperadores">
+    <div class="grupo">
+      <h2>👷 Operadores</h2>
+      <p class="nota-dash">Quanto cada frentista atendeu, vendeu e quanto tempo ficou na pista. Vem do
+        Petros pelo servidor, do mesmo lugar que já alimenta a aba <b>Equipe e movimento</b> — só que
+        agora com litros, dinheiro e horas, e não só a contagem. <b>Aferição de bomba não entra</b>:
+        ela é teste de bico, não atendimento de cliente.</p>
+      <div class="evo-filtros">
+        <div class="desc-campo"><label>Unidade</label><select id="opeUn" onchange="opeMuda('un', this.value)"></select></div>
+        <div class="desc-campo"><label>Mês</label><select id="opeMes" onchange="opeMuda('mes', this.value)"></select></div>
+        <div class="desc-campo"><label>Ordenar por</label><select id="opeOrd" onchange="opeMuda('ord', this.value)"></select></div>
+      </div>
+      <div id="opeBox"></div>
     </div>
   </div>
 
@@ -5556,6 +5601,7 @@ function concluir2FASePreciso(){
    lugar). Por isso ele termina chamando `aplicarTemaIcones` de novo: sem essa linha, trocar
    de empresa devolveria os emojis nos titulos e deixaria os menus com o traco. */
 const ICO_SVG = {
+  operadores:"<path d='M4.2 13.4a7.8 7.8 0 0 1 15.6 0'/><path d='M12 5.6v7.8'/>"+"<path d='M3.1 13.4h17.8'/><path d='M6.6 17.2h10.8'/><path d='M8.4 20.6h7.2'/>",   /* v357 */
   dash:"<path d='M3 17.5 9 11l4 3.5L21 6'/><path d='M15.5 6H21v5.5'/>",
   resumoDia:"<path d='M4 20V10M9.5 20V4M15 20v-7M20.5 20v-4'/>",
   registros:"<rect x='4.5' y='3.5' width='15' height='17' rx='2.5'/><path d='M8.5 8.5h7M8.5 12.5h7M8.5 16.5h4'/>",
@@ -5602,7 +5648,7 @@ const ICO_SVG = {
   fechCaixa:"<rect x='3.2' y='9.4' width='17.6' height='11' rx='2.2'/><path d='M7.2 9.4V6.6a2 2 0 0 1 2-2h5.6a2 2 0 0 1 2 2v2.8'/><path d='M12 12.4v5.6'/><path d='M13.9 13.5c-.6-.6-3.2-.8-3.2.6 0 1.3 2.9.7 2.9 2 0 1.3-2.6 1.1-3.3.4'/>",
   g_ajustes:"<circle cx='12' cy='12' r='3.1'/><path d='M19.1 14.6a1.5 1.5 0 0 0 .3 1.7l.1.1a1.9 1.9 0 1 1-2.6 2.6l-.1-.1a1.5 1.5 0 0 0-2.6 1v.2a1.9 1.9 0 0 1-3.7 0v-.1a1.5 1.5 0 0 0-2.6-1l-.1.1a1.9 1.9 0 1 1-2.6-2.6l.1-.1a1.5 1.5 0 0 0-1-2.6h-.2a1.9 1.9 0 1 1 0-3.7h.1a1.5 1.5 0 0 0 1-2.6l-.1-.1a1.9 1.9 0 1 1 2.6-2.6l.1.1a1.5 1.5 0 0 0 1.7.3h.1a1.5 1.5 0 0 0 .9-1.4v-.2a1.9 1.9 0 0 1 3.7 0v.1a1.5 1.5 0 0 0 2.6 1l.1-.1a1.9 1.9 0 1 1 2.6 2.6l-.1.1a1.5 1.5 0 0 0 1 2.6h.2a1.9 1.9 0 0 1 0 3.7h-.1a1.5 1.5 0 0 0-1.4.9z'/>"
 };
-const ICO_BTN = {btnComprar:"comprar",btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnTanquesNivel:"tanquesNivel",btnRecebimento:"recebimento",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnDre:"dre",btnDespesasDet:"despesasDet",btnFechCaixa:"fechCaixa",btnAfericoes:"afericoes",btnClientes:"clientes",btnAnalise:"analise",btnRelLoja:"relLoja",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnPendAdm:"pendAdm",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
+const ICO_BTN = {btnOperadores:"operadores",btnComprar:"comprar",btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnTanquesNivel:"tanquesNivel",btnRecebimento:"recebimento",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnDre:"dre",btnDespesasDet:"despesasDet",btnFechCaixa:"fechCaixa",btnAfericoes:"afericoes",btnClientes:"clientes",btnAnalise:"analise",btnRelLoja:"relLoja",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnPendAdm:"pendAdm",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
 const ICO_GRP = {dia:"g_dia",analise:"g_analise",finan:"g_finan",transp:"g_transp",org:"g_org",ajustes:"g_ajustes"};   /* v341 */
 /* 🔑 cor por GRUPO, tirada da paleta do MIV (laranja da marca + verde e dourado Petrobras).
    Assim a cor diz de que familia e' o menu, em vez de ser arco-iris. */
@@ -7601,6 +7647,13 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v357", data:"13/08/2026", tit:"👷 Menu novo: <b>Operadores</b> — quanto cada frentista atendeu, vendeu e quanto tempo ficou na pista", itens:[
+    {t:"n", h:"Cada frentista numa linha, no grupo 📊 Análise", d:"Escolha a <b>unidade</b>, o <b>mês</b> e por onde <b>ordenar</b>, e a tela lista quem atendeu: <b>horas na pista</b>, <b>atendimentos</b>, <b>litros</b>, <b>faturamento</b>, <b>ticket médio</b>, <b>tempo médio por abastecimento</b> e a fatia de <b>gasolina aditivada</b>. Os números vêm do Petros pelo servidor, <b>de hora em hora das 6h às 20h</b>, do mesmo lugar que já alimenta a aba <b>Equipe e movimento</b> dos Relatórios — só que ali havia apenas a <b>contagem</b> de abastecimentos, e aqui há litros, dinheiro e tempo. Dá para exportar em <b>📄 PDF</b> e imprimir, como nos outros menus."},
+    {t:"n", h:"A régua é por HORA NA PISTA, e não por dia trabalhado", d:"📏 Medido em Teresina, em 12/08: há quem trabalhe <b>11 a 21 dias</b> no mês com <b>65 a 106 atendimentos por dia</b>, e quem trabalhe <b>26 a 30 dias</b> com <b>32 a 43</b>. São <b>turno de 12x36 e jornada diária convivendo</b> — comparar os dois grupos <b>por dia</b> compara escala de trabalho, não desempenho. 🔑 Por isso a coluna que manda é <b>L/h</b>: ela pergunta quanto sai por hora em que a pessoa esteve ali."},
+    {t:"n", h:"O selo Acima / No ritmo / Abaixo sai da MEDIANA do próprio posto", d:"Acima de <b>+10%</b> da mediana é <b>↗ Acima</b>, abaixo de <b>−10%</b> é <b>↘ Abaixo</b>, e o meio é <b>— No ritmo</b>. A régua é do <b>próprio posto e do próprio mês</b>, então ela anda junto com a equipe. 🔑 <b>Mediana e não média</b>: um plantão curto de 800 L/h puxaria a média e faria todos os outros virarem “Abaixo”. E quem <b>não tem hora na pista</b> no mês fica com <b>—</b>, não com “Abaixo” — <i>travessão</i> quer dizer “não houve medida”, e <i>zero</i> quer dizer “houve e deu zero”."},
+    {t:"n", h:"Aditivada e Premium são DUAS colunas — e é por causa da Podium", d:"📏 Medido em 12/08: Teresina tem <b>11,2%</b> de aditivada contra <b>~30%</b> e <b>~35%</b> dos outros dois postos — mas o <b>premium (Podium)</b> dela é <b>29,5%</b>, o mesmo patamar de Caxias, e <b>só Teresina vende Podium</b>. Numa coluna só, ela apareceria muito atrás sem estar. 🔑 <b>Coluna que junta produto que nem todo posto vende compara posto com o cardápio, não com o vendedor.</b>"},
+    {t:"m", h:"⚠️ O que este menu NÃO mede, dito na cara", d:"A <b>aferição de bomba não entra</b>: ela é teste de bico, não atendimento de cliente. Quem cobre a <b>madrugada</b> tem menos movimento por motivo que não é dele, e <b>isso ainda não é descontado</b> — leia a linha de quem faz o turno da noite com isso na cabeça. O número de <b>turnos</b> existe mas <b>não é mostrado</b>: o corte por ociosidade pica o turno de quem atende pouco, então ele tem viés; só a soma de <b>horas</b> é robusta, e é ela que a tela usa. E no <b>celular</b> a tabela mostra as cinco colunas que cabem (a posição, o nome curto, L/h, litros e a situação) — o resto está no PDF e no computador."}
+  ]},
   {v:"v356", data:"12/08/2026", tit:"💰 Menu novo: <b>Fechamento do caixa</b> — o relatório <b>C - Resumo Financeiro</b> do Petros, com período livre", itens:[
     {t:"n", h:"O mesmo relatório que você pedia no Petros, agora dentro do app", d:"No grupo <b>💰 Financeiro</b> da barra lateral. Escolha a <b>unidade</b> e o <b>período</b> — de/até livre, como no Petros, ou pelos atalhos (este mês, mês passado, últimos 7 e 30 dias, este ano) — e a tela monta as <b>sete seções</b> da folha: movimento do caixa, como o dinheiro entrou, contas bancárias, caixas, despesas, receitas e depósitos. Os números vêm do servidor, que guarda <b>um dia por vez desde 01/01/2026</b>."},
     {t:"n", h:"Duas coisas que a folha impressa não tem", d:"A <b>busca nas despesas</b>: digite <i>CARRETA</i>, <i>DIARIA</i> ou <i>LIMPEZA</i> e a lista filtra na hora, com o total do que sobrou — na folha isso é somar linha por linha. E a <b>sobra e falta por frentista</b>: o Petros calcula por pessoa e imprime só o total; aqui cada um aparece, do pior para o melhor."},
@@ -9188,6 +9241,12 @@ function iniciarSync(){
     const m = {}; snap.forEach(d => m[d.id] = normalizaRel(Object.assign({ id: d.id }, d.data()))); relPostos = m;
     const pr = document.getElementById("painelRelPosto");
     if (pr && pr.classList.contains("aberto")) renderRelPosto();
+    /* v357 - 🔑 A SÉTIMA PEÇA de um menu novo, e ela falha em SILÊNCIO: quem abre
+       o Operadores antes do primeiro snapshot chegar vê "Ainda não chegou" e a
+       tela CONGELA nessa frase, porque nada redesenha quando o dado chega. O
+       vizinho `painelRelPosto`, três linhas acima, sempre teve esta linha. */
+    const pOp = document.getElementById("painelOperadores");
+    if (pOp && pOp.classList.contains("aberto")) renderOperadores();
     atualizarDashPostos();                                   // v200
   }, ()=>{});
   escutaRelLoja = colRelLoja.onSnapshot(snap => {
@@ -10050,6 +10109,7 @@ const MENUS_APP = [
   {key:"ifood",       btn:"btnIfood",       pan:"painelIfood",       emp:"conv",   nome:"iFood"},
   {key:"clientes",    btn:"btnClientes",    pan:"painelClientes",    emp:"postos", nome:"Clientes"},   // v328 - a loja nao vende a prazo (v193)
   {key:"analise",     btn:"btnAnalise",     pan:"painelAnalise",     emp:"postos|conv|transp", nome:"Análise"},
+  {key:"operadores",  btn:"btnOperadores",  pan:"painelOperadores",  emp:"postos", nome:"Operadores"},   /* v357 */
   {key:"calendario",  btn:"btnCalendario",  pan:"painelCalendario",  emp:"ambos",  nome:"Calendário"},
   {key:"vencimentos", btn:"btnVencimentos", pan:"painelVencimentos", emp:"ambos",  nome:"Documentos"},
   {key:"caixa",       btn:"btnCaixa",       pan:"painelCaixa",       emp:"ambos",  nome:"Caixa de entrada"},
@@ -10072,7 +10132,7 @@ const MENUS_APP = [
 const GRUPOS_MENU = [
   {key:"soltos",  nome:"",               icone:"",       itens:["dash"]},
   {key:"dia",     nome:"Dia a dia",      icone:"\ud83d\udd01", itens:["resumoDia","tanquesNivel","recebimento","registros","descontos","simular"]},
-  {key:"analise", nome:"Análise",        icone:"\ud83d\udcca", itens:["relPosto","afericoes","clientes","analise","relLoja","ifood"]},
+  {key:"analise", nome:"Análise",        icone:"\ud83d\udcca", itens:["relPosto","afericoes","clientes","analise","operadores","relLoja","ifood"]},
   {key:"finan",   nome:"Financeiro",     icone:"\ud83d\udcb0", itens:["despesasDet","dre","fechCaixa"]},   /* v341 - o DRE saiu da Analise e veio para ca'; v356 - o Fechamento do caixa */
   {key:"transp",  nome:"Transportadora", icone:"\ud83d\ude9a", itens:["infleet","comprar","pedido","cotacoes","puxadas"]},
   {key:"org",     nome:"Organização",    icone:"\ud83d\udcc1", itens:["calendario","vencimentos","caixa","pendAdm"]},   /* v251 - o 🗂 ninguem reconhecia */
@@ -11170,7 +11230,7 @@ function alternarSimular(){
 
 /* ================== v168 - Relatórios do posto e da conveniência (Adaptive) ================== */
 // Firestore não guarda lista dentro de lista: as tabelas vêm como texto JSON.
-const CAMPOS_LISTA_REL = ["aten","hora","comb","lbm","receb","cat","itens","despDet","precos","custoSubiu"];  // v194 - precos na v239, custoSubiu na v242
+const CAMPOS_LISTA_REL = ["aten","hora","comb","lbm","receb","cat","itens","despDet","precos","custoSubiu","oper"];  // v194 - precos na v239, custoSubiu na v242
 function normalizaRel(o){
   if (!o) return o;
   CAMPOS_LISTA_REL.forEach(k => {
@@ -16832,6 +16892,233 @@ function aferDiasDoPeriodo(de, ate){
 }
 
 /* ================== a tela ================== */
+
+/* ===================== v357 - MENU OPERADORES (por frentista) =====================
+   Lê `oper` e `operResumo` de relatoriosPosto/{un}_{mês}, gravados pelo coletor
+   `operadores.mjs` do VPS (cron `12 6-20`).
+
+   🔴 A RÉGUA É POR HORA NA PISTA, NÃO POR DIA TRABALHADO. O Tiago confirmou em
+      12/08 que 12x36 e jornada diária CONVIVEM: em Teresina, 11 a 21 dias com
+      65-106 atendimentos/dia contra 26 a 30 dias com 32-43/dia. Comparar os dois
+      grupos por dia é comparar escala, não desempenho.
+   🔴 O SELO SAI DA MEDIANA DO PRÓPRIO POSTO, não de um número fixo. Copiar a
+      régua do GasView daria "Crítico" para todo mundo (21 de 21 lá) — e vermelho
+      que acende para todos ensina a ignorar vermelho.
+   ⚠️ `turnos` NÃO É MOSTRADO de propósito: o corte por ociosidade picota o turno
+      de quem atende pouco, então ele tem viés. Só a soma `horas` é robusta, e é
+      ela que a tela usa.
+   ⚠️ A ADITIVADA E O PREMIUM são DUAS colunas: só Teresina vende Podium, e sem a
+      coluna premium ela apareceria com 11% contra 30% e 35% dos outros — quando o
+      premium dela é 29,5%, o mesmo patamar de Caxias.                          */
+let opeUn = "teresina", opeMes = "", opeOrd = "litrosHora";
+const OPE_ORDENS = [["litrosHora","Litros por hora"],["litros","Litros"],["reais","Faturamento"],
+                    ["atendHora","Atendimentos por hora"],["ticket","Ticket médio"],["nome","Nome"]];
+
+/* No celular o nome vira "primeiro + último sobrenome" — decisão dele em 12/08,
+   medida: 11 de 12 nomes ficavam cortados, e assim ficam 0 de 12, sem repetir
+   ninguém. O nome inteiro continua no `title`. */
+function opeNomeCurto(nome){
+  /* 🔴 A primeira versao filtrava as ligacoes antes de pegar o primeiro e o ultimo
+     pedaco. A prova por mutacao mostrou que aquele filtro era CODIGO MORTO: ligacao
+     nunca e' a primeira nem a ultima palavra de um nome, entao ele nunca mudava a
+     saida. 🔑 Mutacao que escapa nem sempre e' furo — as vezes e' codigo sobrando,
+     e a resposta certa e' apagar, nao escrever teste para ele. */
+  const p = String(nome || "").trim().split(/\s+/);
+  return p.length < 2 ? String(nome || "") : p[0] + " " + p[p.length - 1];
+}
+function opeCap(nome){
+  /* 🔑 "JOSE WANDERSON DOS SANTOS" vira "Jose Wanderson dos Santos", nao "Dos Santos".
+     Em nome de gente as ligacoes ficam minusculas — e a foto foi que mostrou: a
+     primeira versao capitalizava TODA palavra e saia "De Melo Lima". */
+  const LIGACOES = ["de","da","do","das","dos","e","di","du","van","von","del","la"];
+  return String(nome || "").toLowerCase()
+    .replace(/(^|\s|')([a-zà-ú])/g, (t, a, b) => a + b.toUpperCase())
+    .split(" ")
+    .map((p, i) => (i > 0 && LIGACOES.indexOf(p.toLowerCase()) >= 0) ? p.toLowerCase() : p)
+    .join(" ");
+}
+function opeMediana(v){
+  const a = v.filter(x => Number.isFinite(x)).sort((x, y) => x - y);
+  if (!a.length) return null;
+  const m = Math.floor(a.length / 2);
+  return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2;
+}
+function opeSelo(lh, mediana){
+  if (!Number.isFinite(lh) || !mediana) return { txt: "—", cls: "ope-nd" };
+  if (lh > mediana * 1.10) return { txt: "↗ Acima",   cls: "ope-cima" };
+  if (lh < mediana * 0.90) return { txt: "↘ Abaixo",  cls: "ope-baixo" };
+  return { txt: "— No ritmo", cls: "ope-ritmo" };
+}
+function opeTempo(seg){
+  const n = Number(seg);
+  if (!Number.isFinite(n) || n <= 0) return "—";
+  return n < 60 ? n + "s" : Math.floor(n / 60) + "m " + (n % 60) + "s";
+}
+/* 🔴 A `rpzDin` faz `Number(v)||0`: NULO VIRA "0,00". No resumo do posto,
+   `atendHora` e `litrosHora` SÃO nulos quando ninguém marcou hora na pista —
+   e isso acontece de verdade no dia 1º do mês, antes da primeira rodada. A
+   linha do frentista, na coluna ao lado, imprime "—" para a MESMA conta.
+   🔑 Duas casas dizendo coisas diferentes sobre o mesmo número é pior que não
+   dizer nada: "0" parece medição, "—" diz que não há medição. Este par existe
+   para que o KPI, a linha e o rodapé usem a MESMA regra. Zero de verdade
+   continua saindo "0" — só o ausente vira travessão. */
+function opeDin(v, casas){
+  if (v == null || v === "") return "—";
+  const n = Number(v);
+  return Number.isFinite(n) ? rpzDin(n, casas) : "—";
+}
+function opeDin0(v){
+  if (v == null || v === "") return "—";
+  const n = Number(v);
+  return Number.isFinite(n) ? rpzDin0(n) : "—";
+}
+function opeMuda(qual, v){
+  if (qual === "un") opeUn = v;
+  if (qual === "mes") opeMes = v;
+  if (qual === "ord") opeOrd = v;
+  renderOperadores();
+}
+function alternarOperadores(){
+  const aberto = abrirPainelExclusivo("painelOperadores");
+  const b = document.getElementById("btnOperadores");
+  if (b) b.classList.toggle("ativo", aberto);
+  if (aberto) renderOperadores();
+}
+function renderOperadores(){
+  const box = document.getElementById("opeBox");
+  if (!box) return;
+
+  /* os meses que existem para a unidade escolhida, do mais novo para o mais velho */
+  const meses = mesesRelPosto(opeUn);
+  if (opeMes && meses.indexOf(opeMes) < 0) opeMes = "";
+  if (!opeMes) opeMes = meses[0] || "";
+
+  const selUn = document.getElementById("opeUn");
+  if (selUn) selUn.innerHTML = AFER_UNS.map(u =>
+    '<option value="' + u.chave + '"' + (u.chave === opeUn ? ' selected' : '') + '>' + escAttr(u.nome) + '</option>').join("");
+  const selMes = document.getElementById("opeMes");
+  if (selMes) selMes.innerHTML = meses.length
+    ? meses.map(m => '<option value="' + m + '"' + (m === opeMes ? ' selected' : '') + '>' + escAttr(rotuloMesRel(m)) + '</option>').join("")
+    : '<option value="">—</option>';
+  const selOrd = document.getElementById("opeOrd");
+  if (selOrd) selOrd.innerHTML = OPE_ORDENS.map(o =>
+    '<option value="' + o[0] + '"' + (o[0] === opeOrd ? ' selected' : '') + '>' + o[1] + '</option>').join("");
+
+  const doc = relDocMes(opeUn, opeMes);
+  const lista = Array.isArray(doc.oper) ? doc.oper.slice() : [];
+  const res = doc.operResumo || null;
+
+  if (!lista.length){
+    /* 🔑 estado AUSENTE e estado VAZIO são coisas diferentes, e o texto tem de dizer qual é. */
+    box.innerHTML = vazioHtml("Ainda não chegou",
+      opeMes ? "O servidor ainda não gravou os operadores de " + escAttr(rotuloMesRel(opeMes)) + " para esta unidade."
+             : "Esta unidade ainda não tem nenhum mês gravado.");
+    return;
+  }
+
+  const mediana = opeMediana(lista.map(o => (o.horas > 0 ? o.litros / o.horas : NaN)));
+  const enfeite = o => {
+    const h = Number(o.horas) || 0;
+    return {
+      o: o,
+      atendHora: h > 0 ? o.atend / h : NaN,
+      litrosHora: h > 0 ? o.litros / h : NaN,
+      ticket: o.atend > 0 ? o.reais / o.atend : NaN,
+      pctAdit: (o.litrosGas > 0 && o.litrosAdit != null) ? 100 * o.litrosAdit / o.litrosGas : null,
+      pctPrem: (o.litrosGas > 0 && o.litrosPrem != null) ? 100 * o.litrosPrem / o.litrosGas : null
+    };
+  };
+  const linhas = lista.map(enfeite);
+  linhas.sort((a, b) => opeOrd === "nome"
+    ? String(a.o.nome).localeCompare(String(b.o.nome), "pt-BR")
+    : (Number(b[opeOrd] != null ? b[opeOrd] : b.o[opeOrd]) || 0) - (Number(a[opeOrd] != null ? a[opeOrd] : a.o[opeOrd]) || 0));
+
+  let h = "";
+  if (res){
+    h += '<div class="rel-kpis">' +
+      '<div class="rel-kpi"><span>Frentistas</span><b>' + rpzDin0(res.frentistas) + '</b><small>' + rpzDin0(res.horas) + ' h na pista</small></div>' +
+      '<div class="rel-kpi"><span>Atendimentos</span><b>' + rpzDin0(res.atend) + '</b><small>' + opeDin(res.atendHora, 1) + ' por hora, na média do posto</small></div>' +
+      '<div class="rel-kpi"><span>Litros</span><b>' + rpzDin0(res.litros) + '</b><small>' + opeDin0(res.litrosHora) + ' L por hora</small></div>' +
+      '<div class="rel-kpi"><span>Faturamento</span><b>' + fmtR$(res.reais) + '</b><small>ticket médio de ' +
+        (res.atend > 0 ? fmtR$(res.reais / res.atend) : "—") + '</small></div>' +
+      '<div class="rel-kpi"><span>Tempo médio</span><b>' + opeTempo(res.durMedia) + '</b><small>por abastecimento</small></div>' +
+      '<div class="rel-kpi"><span>Gasolina aditivada</span><b>' + (res.pctAdit == null ? "—" : rpzDin(res.pctAdit, 1) + "%") + '</b><small>' +
+        (res.pctPrem == null ? "sem classificação" : rpzDin(res.pctPrem, 1) + "% somando a Podium") + '</small></div>' +
+      '</div>';
+  }
+
+  h += '<div class="rpz-rola"><table class="rpz-tab"><thead><tr>' +
+    '<th>#</th><th>Frentista</th>' +
+    '<th class="rpz-r ope-off">Horas</th><th class="rpz-r ope-off">Atend.</th>' +
+    '<th class="rpz-r ope-off">Atend./h</th><th class="rpz-r">L/h</th><th class="rpz-r">Litros</th>' +
+    '<th class="rpz-r ope-off">Faturamento</th><th class="rpz-r ope-off">Ticket</th>' +
+    '<th class="rpz-r ope-off">Tempo méd.</th>' +
+    '<th class="rpz-r ope-off">Aditiv.</th><th class="rpz-r ope-off">Premium</th>' +
+    '<th>Situação</th></tr></thead><tbody>';
+
+  linhas.forEach((x, i) => {
+    const o = x.o, s = opeSelo(x.litrosHora, mediana), nome = opeCap(o.nome);
+    h += '<tr>' +
+      '<td>' + (i + 1) + '</td>' +
+      /* 🔴 O NOME CURTO É CONTEÚDO DE CSS (`::after` + `attr`), e NÃO um segundo
+         <span>. A primeira versão punha os dois textos na mesma <td> e deixava o
+         CSS escolher — e o 📄 Exportar PDF NÃO É FOTO: o `exportarPDFTexto` lê
+         `td.textContent`, e o `anda()` nunca desce dentro de uma <table> para
+         checar `display:none`. 📏 Medido nas duas larguras: cada uma das 11
+         linhas saía "Jose Wanderson dos SantosJose Santos" no PDF — justo o
+         relatório que a equipe levaria impresso.
+         🔑 Texto gerado por CSS não entra no `textContent`, então o PDF recebe o
+         nome inteiro UMA vez e a tela do celular continua com o nome curto.
+         ⚠️ ISTO CONTRARIA, DE PROPÓSITO, a decisão escrita mais abaixo neste
+         mesmo arquivo (procure "NAO em ::before do CSS"): lá o texto gerado
+         seria a ÚNICA forma de ler o conteúdo, e por isso foi proibido. Aqui o
+         nome inteiro continua no <span> de verdade, no `title`, no PDF, na
+         árvore de acessibilidade e no computador — o que se perde é a CÓPIA do
+         nome curto no celular (medido: selecionar a linha traz "1 207 13.123 ↗
+         Acima", sem o nome), e o que se ganha é o PDF inteiro deixando de sair
+         com cada nome escrito duas vezes. */
+      '<td class="rpz-nome" data-curto="' + escAttr(opeNomeCurto(nome)) + '" title="' + escAttr(nome) + '">' +
+        '<span class="ope-inteiro">' + escAttr(nome) + '</span></td>' +
+      '<td class="rpz-r ope-off">' + rpzDin0(o.horas) + '</td>' +
+      '<td class="rpz-r ope-off">' + rpzDin0(o.atend) + '</td>' +
+      '<td class="rpz-r ope-off">' + opeDin(x.atendHora, 1) + '</td>' +
+      '<td class="rpz-r"><b>' + opeDin0(x.litrosHora) + '</b></td>' +
+      '<td class="rpz-r">' + rpzDin0(o.litros) + '</td>' +
+      '<td class="rpz-r ope-off">' + fmtR$(o.reais) + '</td>' +
+      '<td class="rpz-r ope-off">' + (Number.isFinite(x.ticket) ? fmtR$(x.ticket) : "—") + '</td>' +
+      '<td class="rpz-r ope-off">' + opeTempo(o.dur) + '</td>' +
+      '<td class="rpz-r ope-off">' + (x.pctAdit == null ? "—" : rpzDin(x.pctAdit, 1) + "%") + '</td>' +
+      '<td class="rpz-r ope-off">' + (x.pctPrem == null ? "—" : rpzDin(x.pctPrem, 1) + "%") + '</td>' +
+      '<td><span class="rec-tag ' + s.cls + '">' + s.txt + '</span></td></tr>';
+  });
+
+  if (res){
+    h += '</tbody><tfoot><tr class="rpz-tot">' +
+      '<td></td><td>Posto</td>' +
+      '<td class="rpz-r ope-off">' + rpzDin0(res.horas) + '</td>' +
+      '<td class="rpz-r ope-off">' + rpzDin0(res.atend) + '</td>' +
+      '<td class="rpz-r ope-off">' + opeDin(res.atendHora, 1) + '</td>' +
+      '<td class="rpz-r">' + opeDin0(res.litrosHora) + '</td>' +
+      '<td class="rpz-r">' + rpzDin0(res.litros) + '</td>' +
+      '<td class="rpz-r ope-off">' + fmtR$(res.reais) + '</td>' +
+      '<td class="rpz-r ope-off">' + (res.atend > 0 ? fmtR$(res.reais / res.atend) : "—") + '</td>' +
+      '<td class="rpz-r ope-off">' + opeTempo(res.durMedia) + '</td>' +
+      '<td class="rpz-r ope-off">' + (res.pctAdit == null ? "—" : rpzDin(res.pctAdit, 1) + "%") + '</td>' +
+      '<td class="rpz-r ope-off">' + (res.pctPrem == null ? "—" : rpzDin(res.pctPrem, 1) + "%") + '</td>' +
+      '<td></td></tr></tfoot>';
+  } else h += '</tbody>';
+  h += '</table></div>';
+
+  h += '<p class="nota-dash"><b>Como a situação é calculada:</b> compara os litros por hora de cada um com a ' +
+       '<b>mediana do próprio posto</b>' + (mediana ? ' (' + rpzDin0(mediana) + ' L/h neste mês)' : '') +
+       '. Acima de +10% é “Acima”, abaixo de −10% é “Abaixo”, o meio é “No ritmo”. ' +
+       'A régua é por <b>hora na pista</b>, não por dia trabalhado — aqui convivem turno de 12 h e jornada diária, ' +
+       'e ninguém trabalha o mesmo número de dias. ⚠️ Quem cobre a madrugada tem menos movimento por motivo que ' +
+       'não é dele: isso ainda não é descontado.</p>';
+  if (doc.operAtualizadoEm) h += '<p class="ana-rodape">Servidor gravou em ' + escAttr(fmtQuandoLocal(doc.operAtualizadoEm)) + '.</p>';
+
+  box.innerHTML = h;
+}
 
 function alternarAfericoes(){
   const aberto = abrirPainelExclusivo("painelAfericoes");
@@ -28122,7 +28409,8 @@ function renderPrecosMargens(){
 function instalarFerramentasPaineis(){
   const alvos = ["painelDash","painelRegistros","painelSimular","painelDescontos",
                  "painelCotacoes","painelPuxadas","painelCalendario","painelVencimentos",
-                 "painelConvVendas","painelConvCompras","painelFechCaixa"];   /* v356 */
+                 "painelConvVendas","painelConvCompras","painelFechCaixa",
+                 "painelOperadores"];   /* v356; v357 - Operadores */
   alvos.forEach(id => {
     const p = document.getElementById(id);
     if (!p || p.querySelector(".painel-tools")) return;
@@ -28145,6 +28433,7 @@ function painelVisivelInfo(){
     ["painelConvVendas",  "Vendas e Margem da Loja", "vendas_loja"],
     ["painelConvCompras", "Compras e Fornecedores",  "compras"],
     ["painelFechCaixa", "Fechamento do caixa", "fechamento_caixa"],   /* v356 */
+    ["painelOperadores","Operadores",   "operadores"],   /* v357 */
     ["painelCalendario","Calendário",   "calendario"],
     ["painelVencimentos","Documentos",  "documentos"],
     ["painelConfig",    "Configurações", "configuracoes"],
