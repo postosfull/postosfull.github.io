@@ -1595,6 +1595,47 @@
   .dsp-cor{display:flex;align-items:center;gap:6px;font-size:.78rem;border:1px solid var(--borda);
            border-radius:999px;padding:3px 10px 3px 4px}
   .dsp-cor input[type=color]{width:26px;height:24px;border:none;background:none;padding:0;cursor:pointer}
+  /* 🔴 v359 - O NOME FICA COM A SOBRA, E AS OUTRAS COLUNAS COM O QUE PEDIREM.
+     📏 Medido: os treze "i" do cabeçalho custam ~247px de largura, e o algoritmo
+     de tabela do navegador tirou esse espaço da coluna do NOME — que tem
+     `overflow:hidden`, então a contribuição mínima dela é ZERO e ela é sempre a
+     primeira a encolher. O resultado foi "Carlos Rafael de Sousa Nascimento"
+     cortado por DOIS pixels, com 93px sobrando espalhados nas outras colunas.
+     👉 `width:1px` + `nowrap` faz cada coluna de número pedir exatamente o que o
+     conteúdo dela precisa; o que sobra vai todo para o nome.
+     🔑 Não é truque de largura mágica: é dizer QUEM tem prioridade quando falta
+     espaço, e num ranking de gente a resposta é o nome da pessoa. */
+  #painelOperadores .rpz-tab td:not(.rpz-nome){white-space:nowrap;width:1px}
+  /* o CABEÇALHO pode quebrar em duas linhas: "Faturamento" com o "i" do lado
+     custa 107px numa linha e bem menos em duas, e altura de cabeçalho é barata
+     perto de nome de gente cortado. */
+  /* 🔴 O CABEÇALHO NÃO PODE QUEBRAR ENTRE O RÓTULO E O "i": a primeira versão
+     deixava quebrar para ganhar largura, e o "i" caía sozinho na linha de baixo
+     em algumas colunas e não em outras — a tira de cabeçalho ficava serrilhada,
+     e cada uma das três tabelas serrilhava num lugar diferente.
+     👉 A largura veio de outro lugar: os rótulos longos ENCURTARAM, e quem
+     carrega o nome inteiro agora é o "i". É o mesmo desenho do GasView que ele
+     mandou de referência ("VOL. REALIZADO ⓘ", "MARGEM/L PROJ. ⓘ").
+     🔑 Abreviação com explicação ao lado é abreviação; sem ela é adivinhação. */
+  #painelOperadores .rpz-tab thead th{white-space:nowrap;width:1px;vertical-align:bottom}
+  #painelOperadores .rpz-tab thead th:nth-child(2){width:auto}
+  /* e o "i" aqui é um ponto menor que o dos cartões: são TREZE numa linha só */
+  #painelOperadores .rpz-tab thead i.dsd-i{width:12px;height:12px;margin-left:3px;font-size:.54rem}
+  /* 🔑 com a sobra indo para o nome, o teto de 210px do `.rpz-nome` — que é de
+     OUTRAS seis tabelas — deixa de fazer sentido aqui: quem manda é o espaço. */
+  #painelOperadores .rpz-nome{max-width:none}
+
+  /* v359 - o cabeçalho de cada equipe e o aviso de régua frágil */
+  .ope-eq{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;
+    margin:18px 0 8px;font-size:.95rem;font-weight:700;color:var(--txt)}
+  .ope-eq:first-of-type{margin-top:6px}
+  .ope-eq-n{font-size:.78rem;font-weight:400;color:var(--cinza)}
+  .ope-aviso{margin:7px 0 2px;font-size:.76rem;line-height:1.5;color:var(--cinza)}
+  .ope-aviso b{color:var(--txt)}
+  /* 🔑 quem está fora da régua não é erro, é contexto: cinza, não vermelho.
+     ⚠️ `opacity` no <tr> NÃO funciona em toda parte; a cor vai na célula. */
+  tr.ope-fora td{color:var(--cinza)}
+  tr.ope-fora td b{font-weight:600}
   /* v357 - a tabela dos Operadores */
   /* 🔴 MEDIDO, NAO CHUTADO — o contraste de cada pastilha nos DOIS temas esta no
      `shot2.js`, e ele REPROVA abaixo de 4,5. As cores copiadas dos irmaos mais
@@ -3536,6 +3577,9 @@
   /* ⚠️ o DESENHO tem 14px; o ALVO DO DEDO tem 30. Sem isto o "i" e' um alvo de 14x14 num
      aparelho de toque - da' para ver e nao da' para acertar. */
   i.dsd-i{position:relative}
+  /* v359 - o desenho do "i" mora aqui, e não num nó de texto: assim ele aparece
+     na tela e NÃO entra no `textContent` que o 📄 Exportar PDF lê. */
+  i.dsd-i::before{content:"i"}
   i.dsd-i::after{content:"";position:absolute;top:-8px;right:-8px;bottom:-8px;left:-8px}
   .evo-tip .dsd-p{margin:0;white-space:normal;font-weight:400;color:var(--cinza);line-height:1.5}
 
@@ -7652,6 +7696,13 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v359", data:"13/08/2026", tit:"👷 <b>Operadores</b>: uma tabela para cada equipe, e um <b>i</b> em cada coluna", itens:[
+    {t:"c", h:"A tabela única comparava HORÁRIO, não desempenho", d:"O Tiago disse, e o dado confirmou: <b>“o turno da noite tem muito menos clientes para atender do que o do dia”</b>. 📏 Medido em 60 dias nos três postos: o posto faz <b>2,0 a 2,3× mais atendimentos</b> e <b>2,1 a 2,5× mais litros</b> de dia. Com uma mediana só, quem faz plantão de madrugada caía em “Abaixo” por causa do relógio. 🔑 É a mesma família do erro que a v357 já tinha corrigido ao trocar “por dia trabalhado” por “por hora na pista” — um degrau mais fundo."},
+    {t:"n", h:"Agora é uma tabela por equipe, cada uma com a sua régua", d:"Cada equipe tem o próprio título, a própria mediana e o próprio rodapé. Os <b>seis cartões de cima continuam sendo do posto inteiro</b>. 📏 Em agosto, Teresina: <b>151 L/h</b> de mediana na equipe do dia contra <b>94</b> na da noite; Caxias, <b>203</b> contra <b>102</b>; Dutra, <b>182</b> contra <b>136</b>. Era essa diferença que virava selo."},
+    {t:"n", h:"E as equipes o servidor descobre SOZINHO — ninguém cadastra turno", d:"Ele olha a hora em que cada um começa o turno e corta o relógio onde há mais de <b>2 h</b> de intervalo entre uma pessoa e a seguinte. 📏 O corte não foi escolhido: qualquer valor entre <b>1h06 e 2h42</b> dá as mesmas respostas nos três postos. 🔑 E ele acha a particularidade de cada posto: Teresina e Dutra saem com <b>duas</b> equipes; <b>Caxias com três</b> — a intermediária que entra por volta das 10h. Quem muda de horário troca de tabela no mês seguinte, sozinho."},
+    {t:"n", h:"Um “i” em cada coluna, que abre ao passar o mouse", d:"Todas as treze colunas ganharam a explicação do que aquele número é, de onde ele vem e o que fica de fora. No celular ela também está lá, no toque — ⚠️ e este é o único ponto desta versão que não foi medido no aparelho dele: no emulador o balão abre e fecha na mesma batida do toque. ⚠️ Nada de novo foi inventado para isso: é o mesmo balão que as <b>Despesas detalhadas</b> já usavam — ele só deixou de ser exclusivo daquela tela."},
+    {t:"m", h:"⚠️ Duas situações em que a tela prefere não dar nota", d:"<b>Equipe com menos de três pessoas fica sem selo</b>, e a tela diz por quê: com duas, a mediana é o ponto médio entre elas, então se diferirem mais de 10% uma sai “Acima” e a outra “Abaixo” <b>por construção</b>, todo mês. 📏 É o caso da equipe intermediária de Caxias em agosto. E <b>quem trabalhou poucas horas no mês</b> (menos de um terço da mediana da equipe dele) aparece com todos os números, mas fora do cálculo da mediana e com a marca <b>“poucas horas”</b> no lugar do selo — 📏 medido: um frentista com CINCO plantões ficou com o maior L/h do posto. 🔑 Cinco plantões não dizem que alguém é rápido."}
+  ]},
   {v:"v358", data:"13/08/2026", tit:"🔄 O cartão da <b>Sincronização dos dados</b> parou de cobrar o que não existe mais", itens:[
     {t:"c", h:"Onze “não rodou” que eram passos aposentados, não passos falhados", d:"Em <b>12/08</b> a rotina do computador encolheu de <b>dezesseis passos para seis</b> — os vigias que conferiam o servidor, <b>um para cada coletor</b>, viraram <b>um passo só</b>. No dia seguinte o cartão dizia <b>“6 de 17 passos concluídos”</b> e listava <b>onze</b> em vermelho (<i>precos, fechamento, financeiro, petros, apagar, dre, anomes, infleet, vendas, precosloja, cte</i>) — com a rotina <b>em dia, sem nenhuma falha</b>. 🔑 Vermelho que aparece por rotina ensina a ignorar o vermelho que importa."},
     {t:"m", h:"Agora a rotina diz quais são os passos dela, em vez de o app adivinhar", d:"O cartão aprendia a lista <b>olhando o dia mais completo das últimas oito rodadas gravadas</b> — o que acerta sozinho, mas só <b>uma semana e meia depois</b>. E não tem como acertar antes: no primeiro dia, <b>“passo aposentado ontem” e “passo que falhou hoje” chegam ao app como exatamente o mesmo dado</b>. Quem sabe a diferença é a rotina, então ela passou a <b>gravar a própria lista</b> junto com o resultado. ⚠️ O aprendizado <b>continua</b> como rede, para o dia que vier sem essa lista."},
@@ -13685,8 +13736,14 @@ function dsdBarrasVert(D, ehPico){
    global de tooltips para desencontrar do desenho quando o ano ou a regua muda.
    🔑 Nao ha' o que desligar: `renderDespesasDet()` troca o innerHTML inteiro, e os listeners
    morrem junto com os nos antigos. */
-function dsdLigarTips(){
-  const box = document.getElementById("dsdBox");
+function dsdLigarTips(){ ligarTipsEm("dsdBox"); }
+/* 🆕 v358 — o mesmo mecanismo, com a RAIZ como parâmetro.
+   🔑 O comentário do "i" da v349 já dizia: "se um dia valer generalizar, é o
+   `bul()` que ganha hover". Valeu na v358, e o caminho foi este: a mecânica não
+   mudou UMA LINHA, só deixou de estar presa ao `#dsdBox`. ⚠️ Inventar um segundo
+   jeito de mostrar explicação deixaria a mesma casa com dois idiomas. */
+function ligarTipsEm(raizId){
+  const box = document.getElementById(raizId);
   if (!box) return;
   box.querySelectorAll(".dsd-wrap").forEach(wrap => {
     /* ⚠️ `:scope >` e nao um descendente qualquer. MEDIDO: hoje os quatro `.dsd-wrap` da tela
@@ -13746,7 +13803,10 @@ function dsdLigarTips(){
    que a v348 acabou de tirar da rosca. Quem responde por leitor de tela e' o `aria-label`. */
 function dsdI(tit, txt){
   const html = '<b>' + escAttr(tit) + '</b><p class="dsd-p">' + escAttr(txt) + '</p>';
-  return '<i class="dsd-i" tabindex="0" role="button" aria-label="' + escAttr(tit + ": " + txt) + '" data-tip="' + escAttr(html) + '">i</i>';
+  /* 🔴 SEM A LETRA "i" AQUI DENTRO: ela ia junto no `textContent` e saía
+     grudada no rótulo dentro do PDF ("Frentistai"). Quem desenha o "i" agora é
+     o `::before` do CSS — conteúdo de CSS não entra em `textContent`. */
+  return '<i class="dsd-i" tabindex="0" role="button" aria-label="' + escAttr(tit + ": " + txt) + '" data-tip="' + escAttr(html) + '"></i>';
 }
 /* A pastilha da tira. 🔑 Ela carrega o MESMO "i" dos cartoes, e nao so' por enfeite: sem ele
    ninguem descobre que ha' texto ali. E carrega `tabindex`+`aria-label` porque o que ela guarda
@@ -13756,7 +13816,7 @@ function dsdFx(texto, tit, txt, alerta){
   return '<span class="dsd-fx' + (alerta ? ' dsd-fx-alerta' : '') + '" tabindex="0" role="button"' +
          ' aria-label="' + escAttr(tit + ": " + txt) + '"' +
          ' data-tip="' + escAttr('<b>' + escAttr(tit) + '</b><p class="dsd-p">' + escAttr(txt) + '</p>') + '">' +
-         texto + '<i class="dsd-i" aria-hidden="true">i</i></span>';
+         texto + '<i class="dsd-i" aria-hidden="true"></i></span>';
 }
 /* Os meses que FALTAM de verdade - e nao a ressalva generica que a tela dava todo dia.
    🔑 O mes CORRENTE nunca conta como falta: no dia 1o ele legitimamente ainda nao tem
@@ -16996,6 +17056,123 @@ function alternarOperadores(){
   if (b) b.classList.toggle("ativo", aberto);
   if (aberto) renderOperadores();
 }
+/* ===================== v359 - AS EQUIPES DA TELA =====================
+   🔴 A OBJEÇÃO DELE, EM 13/08, E ELA ESTAVA CERTA: "o turno da noite tem muito
+      menos clientes para atender do que o do dia". 📏 MEDIDO em 60 dias nos três
+      postos: o posto faz 2,0 a 2,3× mais atendimentos e 2,1 a 2,5× mais litros
+      de dia — e a mediana de L/h da equipe da noite é 50% a 79% da do dia.
+      🔑 Com uma mediana só, a tela não media desempenho: media HORÁRIO. É a
+      mesma família do erro que a v357 já tinha corrigido ao trocar "por dia
+      trabalhado" por "por hora na pista", um degrau mais fundo.
+   👉 Agora é UMA TABELA POR EQUIPE, cada uma com a SUA mediana. Os seis cartões
+      de cima continuam sendo do POSTO inteiro — decisão dele.
+   ⚠️ Quem descobre as equipes é o COLETOR, não esta tela: ele corta o relógio
+      onde o buraco entre duas horas de entrada passa de 2 h, e carimba cada
+      frentista com a hora típica do grupo (`turno`). Aqui só se desenha.        */
+
+/* o rótulo da equipe. 🔑 A IDENTIDADE É A HORA, e o ícone é só enfeite: Caxias
+   tem DUAS equipes que entram de manhã (06h e 10h), e chamar as duas de "manhã"
+   deixaria duas tabelas com o mesmo título. */
+function opeRotuloTurno(h){
+  if (!Number.isFinite(h)) return { ico: "👥", nome: "Sem horário definido" };
+  const i = h >= 4 && h < 11 ? "🌅" : h >= 11 && h < 17 ? "☀️" : h >= 17 && h < 22 ? "🌙" : "🌜";
+  return { ico: i, nome: "Entra às " + opeHhMm(h) };
+}
+/* ⚠️ o arredondamento do minuto TEM de propagar para a hora, senão 17,999 sai
+   "17h60". A sonda dos turnos imprimiu exatamente isso antes de eu consertar. */
+function opeHhMm(h){
+  if (!Number.isFinite(h)) return "—";
+  let m = Math.round((h % 1) * 60), i = Math.floor(h);
+  if (m === 60) { m = 0; i = (i + 1) % 24; }
+  return String(i).padStart(2, "0") + "h" + (m ? String(m).padStart(2, "0") : "");
+}
+
+/* 🔴 QUEM TRABALHOU POUCO NO MÊS NÃO PUXA A RÉGUA DOS OUTROS, e também não
+   recebe selo. 📏 O caso que motivou, medido em 60 dias: um frentista de Dutra
+   com CINCO turnos ficou com o maior L/h do posto (241). Cinco plantões não
+   dizem se alguém é rápido — dizem que ele trabalhou cinco dias.
+   🔑 A régua é RELATIVA à própria equipe (um terço da mediana de horas dela), e
+   não um número fixo: assim ela vale no mês cheio e no mês pela metade, sem
+   ninguém reajustar nada. ⚠️ Decisão dele em 13/08: a linha CONTINUA na tabela,
+   com todos os números — só sai da conta e do selo. */
+function opeElegivel(horas, medianaHoras){
+  if (!(horas > 0)) return false;
+  if (!(medianaHoras > 0)) return true;      /* sem régua, ninguém é excluído */
+  return horas >= medianaHoras / 3;
+}
+
+/* 🔴 MEDIANA DE DUAS PESSOAS NÃO É RÉGUA: é o ponto médio entre elas, então se
+   diferirem mais de 10% UMA sai "Acima" e a outra "Abaixo" por construção, todo
+   mês, tenham ido bem ou mal. 📏 Em agosto o intermediário de Caxias tem
+   exatamente DUAS pessoas (184 e 164 L/h). 🔑 Selo que se sabe qual vai ser
+   antes de olhar o mês é do tipo que ensina a ignorar selo — a mesma regra do
+   vermelho que acende por rotina. 👉 Com três, a mediana É uma pessoa de verdade
+   e as outras duas se comparam com ela. Abaixo disso, travessão. */
+const OPE_MIN_SELO = 3;
+
+/* Monta as equipes a partir da lista já enfeitada. Devolve as tabelas na ordem
+   do relógio. ⚠️ Se ninguém tiver `turno` — que é o caso de TODO mês coletado
+   antes da v359 — devolve UM grupo só, e a tela volta a ser a da v357. */
+function opeEquipes(linhas){
+  const porTurno = new Map();
+  linhas.forEach(x => {
+    const t = Number.isFinite(x.o.turno) ? x.o.turno : null;
+    const k = t === null ? "—" : String(t);
+    if (!porTurno.has(k)) porTurno.set(k, { turno: t, gente: [] });
+    porTurno.get(k).gente.push(x);
+  });
+  const grupos = [...porTurno.values()].map(g => {
+    const medHoras = opeMediana(g.gente.map(x => Number(x.o.horas)));
+    g.gente.forEach(x => { x.conta = opeElegivel(Number(x.o.horas), medHoras); });
+    const paraRegua = g.gente.filter(x => x.conta);
+    g.mediana = opeMediana(paraRegua.map(x => x.litrosHora));
+    g.nRegua = paraRegua.length;
+    /* 🔑 o selo depende de QUANTOS entram na régua, não de quantos aparecem */
+    g.temSelo = paraRegua.length >= OPE_MIN_SELO && !!g.mediana;
+    g.rotulo = opeRotuloTurno(g.turno);
+    return g;
+  });
+  /* a ordem é a do relógio; quem não tem horário vai para o fim */
+  grupos.sort((a, b) => (a.turno === null ? 99 : a.turno) - (b.turno === null ? 99 : b.turno));
+  return { grupos, umSo: grupos.length <= 1 };
+}
+
+/* A soma de UMA equipe, para o rodapé dela. 🔑 Repete as regras da `resumo()` do
+   coletor de propósito — inclusive a que mais custou caro: a média de duração
+   pesa pelo número de DURAÇÕES VÁLIDAS (`durN`), não pelo de atendimentos.
+   📏 Um com 1 leitura de 600 s e 9 zeradas + outro com 1 de 60 s: o certo é
+   330 s; pesando por atendimento dava 551 s — e bateria justo no posto que
+   concentra as zeradas. ⚠️ E, como lá, produto fora do de-para faz a aditivação
+   virar AUSENTE, não zero. */
+function opeSoma(gente){
+  const s = f => gente.reduce((a, x) => a + (Number(f(x)) || 0), 0);
+  const horas = s(x => x.o.horas), atend = s(x => x.o.atend), litros = s(x => x.o.litros);
+  /* ⚠️ `durN` nasceu com o coletor da v357. Nos meses coletados ANTES dele o
+     campo não existe, e exigir `durN > 0` fazia o rodapé dizer "—" enquanto o
+     cartão de cima, que vem do `operResumo` do servidor, dizia "1m 18s" — duas
+     casas discordando sobre o mesmo número, que é o defeito que a v357 gastou
+     uma revisão inteira para tirar da tela. 👉 Sem `durN`, o peso cai para o
+     número de atendimentos: é PIOR (foi por isso que ele existe), mas é honesto
+     e some sozinho quando o mês tem o campo. */
+  const comDur = gente.filter(x => x.o.dur != null);
+  const peso = x => Number(x.o.durN) > 0 ? Number(x.o.durN) : (Number(x.o.atend) || 0);
+  const pesoDur = comDur.reduce((a, x) => a + peso(x), 0);
+  const semClasse = gente.some(x => x.o.litrosGas == null);
+  const gas  = semClasse ? null : s(x => x.o.litrosGas);
+  const adit = semClasse ? null : s(x => x.o.litrosAdit);
+  const prem = semClasse ? null : s(x => x.o.litrosPrem);
+  return {
+    horas, atend, litros, reais: s(x => x.o.reais),
+    atendHora:  horas > 0 ? atend / horas : null,
+    litrosHora: horas > 0 ? litros / horas : null,
+    durMedia: pesoDur > 0
+      ? Math.round(comDur.reduce((a, x) => a + Number(x.o.dur) * peso(x), 0) / pesoDur)
+      : null,
+    pctAdit: (gas && gas > 0) ? 100 * adit / gas : null,
+    pctPrem: (gas && gas > 0) ? 100 * prem / gas : null
+  };
+}
+
 function renderOperadores(){
   const box = document.getElementById("opeBox");
   if (!box) return;
@@ -17028,7 +17205,8 @@ function renderOperadores(){
     return;
   }
 
-  const mediana = opeMediana(lista.map(o => (o.horas > 0 ? o.litros / o.horas : NaN)));
+  /* 🆕 v359 — a mediana deixou de ser do POSTO e passou a ser de cada EQUIPE.
+     Ela é calculada dentro da `opeEquipes`, com quem tem horas suficientes. */
   const enfeite = o => {
     const h = Number(o.horas) || 0;
     return {
@@ -17041,9 +17219,9 @@ function renderOperadores(){
     };
   };
   const linhas = lista.map(enfeite);
-  linhas.sort((a, b) => opeOrd === "nome"
-    ? String(a.o.nome).localeCompare(String(b.o.nome), "pt-BR")
-    : (Number(b[opeOrd] != null ? b[opeOrd] : b.o[opeOrd]) || 0) - (Number(a[opeOrd] != null ? a[opeOrd] : a.o[opeOrd]) || 0));
+
+  /* 🆕 v359 — AS EQUIPES. Quem as descobre é o coletor; aqui só se desenha. */
+  const eq = opeEquipes(linhas);
 
   let h = "";
   if (res){
@@ -17059,77 +17237,134 @@ function renderOperadores(){
       '</div>';
   }
 
-  h += '<div class="rpz-rola"><table class="rpz-tab"><thead><tr>' +
-    '<th>#</th><th>Frentista</th>' +
-    '<th class="rpz-r ope-off">Horas</th><th class="rpz-r ope-off">Atend.</th>' +
-    '<th class="rpz-r ope-off">Atend./h</th><th class="rpz-r">L/h</th><th class="rpz-r">Litros</th>' +
-    '<th class="rpz-r ope-off">Faturamento</th><th class="rpz-r ope-off">Ticket</th>' +
-    '<th class="rpz-r ope-off">Tempo méd.</th>' +
-    '<th class="rpz-r ope-off">Aditiv.</th><th class="rpz-r ope-off">Premium</th>' +
-    '<th>Situação</th></tr></thead><tbody>';
+  /* 🔑 O `.dsd-wrap` embrulha as tabelas INTEIRAS, e não cada uma: o balão do
+     "i" nasce dentro dele e se posiciona pelo retângulo dele. Um wrap por tabela
+     faria o balão da última coluna ser cortado pela borda da tabela estreita. */
+  h += '<div class="dsd-wrap">';
 
-  linhas.forEach((x, i) => {
-    const o = x.o, s = opeSelo(x.litrosHora, mediana), nome = opeCap(o.nome);
-    h += '<tr>' +
-      '<td>' + (i + 1) + '</td>' +
-      /* 🔴 O NOME CURTO É CONTEÚDO DE CSS (`::after` + `attr`), e NÃO um segundo
-         <span>. A primeira versão punha os dois textos na mesma <td> e deixava o
-         CSS escolher — e o 📄 Exportar PDF NÃO É FOTO: o `exportarPDFTexto` lê
-         `td.textContent`, e o `anda()` nunca desce dentro de uma <table> para
-         checar `display:none`. 📏 Medido nas duas larguras: cada uma das 11
-         linhas saía "Jose Wanderson dos SantosJose Santos" no PDF — justo o
-         relatório que a equipe levaria impresso.
-         🔑 Texto gerado por CSS não entra no `textContent`, então o PDF recebe o
-         nome inteiro UMA vez e a tela do celular continua com o nome curto.
-         ⚠️ ISTO CONTRARIA, DE PROPÓSITO, a decisão escrita mais abaixo neste
-         mesmo arquivo (procure "NAO em ::before do CSS"): lá o texto gerado
-         seria a ÚNICA forma de ler o conteúdo, e por isso foi proibido. Aqui o
-         nome inteiro continua no <span> de verdade, no `title`, no PDF, na
-         árvore de acessibilidade e no computador — o que se perde é a CÓPIA do
-         nome curto no celular (medido: selecionar a linha traz "1 207 13.123 ↗
-         Acima", sem o nome), e o que se ganha é o PDF inteiro deixando de sair
-         com cada nome escrito duas vezes. */
-      '<td class="rpz-nome" data-curto="' + escAttr(opeNomeCurto(nome)) + '" title="' + escAttr(nome) + '">' +
-        '<span class="ope-inteiro">' + escAttr(nome) + '</span></td>' +
-      '<td class="rpz-r ope-off">' + rpzDin0(o.horas) + '</td>' +
-      '<td class="rpz-r ope-off">' + rpzDin0(o.atend) + '</td>' +
-      '<td class="rpz-r ope-off">' + opeDin(x.atendHora, 1) + '</td>' +
-      '<td class="rpz-r"><b>' + opeDin0(x.litrosHora) + '</b></td>' +
-      '<td class="rpz-r">' + rpzDin0(o.litros) + '</td>' +
-      '<td class="rpz-r ope-off">' + fmtR$(o.reais) + '</td>' +
-      '<td class="rpz-r ope-off">' + (Number.isFinite(x.ticket) ? fmtR$(x.ticket) : "—") + '</td>' +
-      '<td class="rpz-r ope-off">' + opeTempo(o.dur) + '</td>' +
-      '<td class="rpz-r ope-off">' + (x.pctAdit == null ? "—" : rpzDin(x.pctAdit, 1) + "%") + '</td>' +
-      '<td class="rpz-r ope-off">' + (x.pctPrem == null ? "—" : rpzDin(x.pctPrem, 1) + "%") + '</td>' +
-      '<td><span class="rec-tag ' + s.cls + '">' + s.txt + '</span></td></tr>';
+  eq.grupos.forEach(g => {
+    const gente = g.gente.slice().sort((a, b) => opeOrd === "nome"
+      ? String(a.o.nome).localeCompare(String(b.o.nome), "pt-BR")
+      : (Number(b[opeOrd] != null ? b[opeOrd] : b.o[opeOrd]) || 0) - (Number(a[opeOrd] != null ? a[opeOrd] : a.o[opeOrd]) || 0));
+
+    /* o cabeçalho da equipe só aparece quando HÁ equipe: num mês coletado antes
+       da v358 ninguém tem `turno`, e ali a tela é a da v357, sem título nenhum */
+    if (!eq.umSo || g.turno !== null){
+      h += '<h3 class="ope-eq">' + g.rotulo.ico + ' ' + escAttr(g.rotulo.nome) +
+        '<span class="ope-eq-n">' + gente.length + (gente.length === 1 ? ' frentista' : ' frentistas') +
+        (g.mediana ? ' · mediana de ' + rpzDin0(g.mediana) + ' L/h' : '') + '</span></h3>';
+    }
+
+    h += '<div class="rpz-rola"><table class="rpz-tab"><thead><tr>' +
+      '<th>#' + dsdI("A posição", "A colocação DENTRO DESTA EQUIPE, pela ordem escolhida em “Ordenar por”. Trocar a ordem troca a posição — ela não é um ranking fixo.") + '</th>' +
+      '<th>Frentista' + dsdI("Frentista", "O nome como está cadastrado no Petros. No celular aparece o primeiro nome e o último sobrenome; o nome inteiro sai no PDF e ao parar o mouse em cima.") + '</th>' +
+      '<th class="rpz-r ope-off">Horas' + dsdI("Horas na pista", "A soma dos turnos do mês, do primeiro ao último abastecimento de cada turno. Silêncio de até 6 h NÃO corta o turno: três horas de madrugada sem cliente é rotina, não fim de expediente.") + '</th>' +
+      '<th class="rpz-r ope-off">Atend.' + dsdI("Atendimentos", "Quantos abastecimentos ele registrou no mês. A aferição de bomba NÃO entra: é teste de bico, não atendimento de cliente — e contá-la inflaria justamente quem afere mais.") + '</th>' +
+      '<th class="rpz-r ope-off">At./h' + dsdI("Atendimentos por hora", "Os atendimentos divididos pelas horas na pista. Diz o ritmo de gente atendida; quem abastece caminhão faz menos atendimentos e mais litros.") + '</th>' +
+      '<th class="rpz-r">L/h' + dsdI("Litros por hora", "Litros divididos pelas horas na pista. É ESTA coluna que decide a Situação. Por hora, e não por dia, porque aqui convivem plantão de 12 h e jornada diária — comparar por dia compara escala de trabalho, não desempenho.") + '</th>' +
+      '<th class="rpz-r">Litros' + dsdI("Litros", "O total de litros que passou pela mão dele no mês, somando todos os combustíveis.") + '</th>' +
+      '<th class="rpz-r ope-off">Fatur.' + dsdI("Faturamento", "O valor das vendas dele no mês, no preço de bomba. NÃO é lucro: o custo do combustível não está descontado.") + '</th>' +
+      '<th class="rpz-r ope-off">Ticket' + dsdI("Ticket médio", "O faturamento dividido pelos atendimentos: quanto rendeu, em média, cada abastecimento que ele fez.") + '</th>' +
+      '<th class="rpz-r ope-off">Tempo' + dsdI("Tempo médio", "Quanto durou, em média, cada abastecimento dele, do começo ao fim da bomba. Abastecimento com duração ZERADA fica fora da média — eles existem e se concentram num posto só.") + '</th>' +
+      '<th class="rpz-r ope-off">Aditiv.' + dsdI("Gasolina aditivada", "Quanto da GASOLINA que ele vendeu era aditivada. O denominador é só a gasolina — diesel e etanol não entram nem em cima nem embaixo.") + '</th>' +
+      '<th class="rpz-r ope-off">Prem.' + dsdI("Premium", "A aditivada MAIS a Podium. Esta coluna existe porque só Teresina vende Podium: sem ela, Teresina apareceria muito atrás dos outros dois postos sem estar — o upsell dela vai para a Podium.") + '</th>' +
+      '<th>Situação' + dsdI("Situação", "Compara o L/h de cada um com a MEDIANA DA PRÓPRIA EQUIPE, e não com a do posto inteiro: a equipe da noite atende menos por motivo que não é dela. Acima de +10% é “Acima”, abaixo de −10% é “Abaixo”, o meio é “No ritmo”. Quem trabalhou poucas horas no mês fica sem selo.") + '</th>' +
+      '</tr></thead><tbody>';
+
+    gente.forEach((x, i) => {
+      const o = x.o, nome = opeCap(o.nome);
+      /* 🔑 quem está fora da régua não recebe selo NENHUM — nem "—" mudo: a
+         pastilha diz "poucas horas", que é a resposta à pergunta que a pessoa faz. */
+      const s = !g.temSelo ? { txt: "—", cls: "ope-nd" }
+              : !x.conta   ? { txt: "poucas horas", cls: "ope-nd" }
+              : opeSelo(x.litrosHora, g.mediana);
+      h += '<tr' + (x.conta ? '' : ' class="ope-fora"') + '>' +
+        '<td>' + (i + 1) + '</td>' +
+        '<td class="rpz-nome" data-curto="' + escAttr(opeNomeCurto(nome)) + '" title="' + escAttr(nome) + '">' +
+          '<span class="ope-inteiro">' + escAttr(nome) + '</span></td>' +
+        '<td class="rpz-r ope-off">' + rpzDin0(o.horas) + '</td>' +
+        '<td class="rpz-r ope-off">' + rpzDin0(o.atend) + '</td>' +
+        '<td class="rpz-r ope-off">' + opeDin(x.atendHora, 1) + '</td>' +
+        '<td class="rpz-r"><b>' + opeDin0(x.litrosHora) + '</b></td>' +
+        '<td class="rpz-r">' + rpzDin0(o.litros) + '</td>' +
+        '<td class="rpz-r ope-off">' + fmtR$(o.reais) + '</td>' +
+        '<td class="rpz-r ope-off">' + (Number.isFinite(x.ticket) ? fmtR$(x.ticket) : "—") + '</td>' +
+        '<td class="rpz-r ope-off">' + opeTempo(o.dur) + '</td>' +
+        '<td class="rpz-r ope-off">' + opeDin(x.pctAdit, 1) + (x.pctAdit == null ? '' : '%') + '</td>' +
+        '<td class="rpz-r ope-off">' + opeDin(x.pctPrem, 1) + (x.pctPrem == null ? '' : '%') + '</td>' +
+        '<td><span class="rec-tag ' + s.cls + '">' + s.txt + '</span></td></tr>';
+    });
+
+    /* o rodapé é a soma DESTA equipe, não a do posto — o posto está nos cartões */
+    const t = opeSoma(gente);
+    h += '</tbody><tfoot><tr class="rpz-tot">' +
+      '<td></td><td>' + (eq.umSo && g.turno === null ? 'Posto' : 'Equipe') + '</td>' +
+      '<td class="rpz-r ope-off">' + rpzDin0(t.horas) + '</td>' +
+      '<td class="rpz-r ope-off">' + rpzDin0(t.atend) + '</td>' +
+      '<td class="rpz-r ope-off">' + opeDin(t.atendHora, 1) + '</td>' +
+      '<td class="rpz-r">' + opeDin0(t.litrosHora) + '</td>' +
+      '<td class="rpz-r">' + rpzDin0(t.litros) + '</td>' +
+      '<td class="rpz-r ope-off">' + fmtR$(t.reais) + '</td>' +
+      '<td class="rpz-r ope-off">' + (t.atend > 0 ? fmtR$(t.reais / t.atend) : "—") + '</td>' +
+      '<td class="rpz-r ope-off">' + opeTempo(t.durMedia) + '</td>' +
+      '<td class="rpz-r ope-off">' + opeDin(t.pctAdit, 1) + (t.pctAdit == null ? '' : '%') + '</td>' +
+      '<td class="rpz-r ope-off">' + opeDin(t.pctPrem, 1) + (t.pctPrem == null ? '' : '%') + '</td>' +
+      '<td></td></tr></tfoot></table></div>';
+
+    /* 🔴 EQUIPE PEQUENA NÃO GANHA SELO, E A TELA DIZ POR QUÊ com o número. */
+    if (!g.temSelo){
+      h += '<p class="ope-aviso">⚠️ <b>Esta equipe está sem selo de situação</b>, e é de propósito: ' +
+        (g.nRegua >= OPE_MIN_SELO
+          ? 'não há litros por hora suficientes nesta equipe para montar uma mediana.'
+          : g.nRegua === 0 ? 'ninguém aqui tem horas na pista suficientes para entrar numa régua.'
+          : g.nRegua === 1 ? 'sobrou <b>uma pessoa</b> na régua, e ninguém é “acima” ou “abaixo” de si mesmo.'
+          : 'a régua sairia de <b>duas pessoas</b> — e aí a mediana é o ponto médio entre elas: ' +
+            'se diferirem mais de 10%, uma sai “Acima” e a outra “Abaixo” todo mês, por construção, ' +
+            'tenham ido bem ou mal. É preciso <b>' + OPE_MIN_SELO + '</b> para a mediana ser uma pessoa de verdade.') + '</p>';
+    }
   });
 
-  if (res){
-    h += '</tbody><tfoot><tr class="rpz-tot">' +
-      '<td></td><td>Posto</td>' +
-      '<td class="rpz-r ope-off">' + rpzDin0(res.horas) + '</td>' +
-      '<td class="rpz-r ope-off">' + rpzDin0(res.atend) + '</td>' +
-      '<td class="rpz-r ope-off">' + opeDin(res.atendHora, 1) + '</td>' +
-      '<td class="rpz-r">' + opeDin0(res.litrosHora) + '</td>' +
-      '<td class="rpz-r">' + rpzDin0(res.litros) + '</td>' +
-      '<td class="rpz-r ope-off">' + fmtR$(res.reais) + '</td>' +
-      '<td class="rpz-r ope-off">' + (res.atend > 0 ? fmtR$(res.reais / res.atend) : "—") + '</td>' +
-      '<td class="rpz-r ope-off">' + opeTempo(res.durMedia) + '</td>' +
-      '<td class="rpz-r ope-off">' + (res.pctAdit == null ? "—" : rpzDin(res.pctAdit, 1) + "%") + '</td>' +
-      '<td class="rpz-r ope-off">' + (res.pctPrem == null ? "—" : rpzDin(res.pctPrem, 1) + "%") + '</td>' +
-      '<td></td></tr></tfoot>';
-  } else h += '</tbody>';
-  h += '</table></div>';
+  h += '<div class="evo-tip dsd-tip"></div></div>';
 
-  h += '<p class="nota-dash"><b>Como a situação é calculada:</b> compara os litros por hora de cada um com a ' +
-       '<b>mediana do próprio posto</b>' + (mediana ? ' (' + rpzDin0(mediana) + ' L/h neste mês)' : '') +
-       '. Acima de +10% é “Acima”, abaixo de −10% é “Abaixo”, o meio é “No ritmo”. ' +
-       'A régua é por <b>hora na pista</b>, não por dia trabalhado — aqui convivem turno de 12 h e jornada diária, ' +
-       'e ninguém trabalha o mesmo número de dias. ⚠️ Quem cobre a madrugada tem menos movimento por motivo que ' +
-       'não é dele: isso ainda não é descontado.</p>';
+  /* 🔴 A NOTA MUDA COM O QUE A TELA MOSTRA. A primeira versão falava de equipes
+     sempre — e num mês coletado antes da v359 a tela desenha UMA tabela, com o
+     rodapé "Posto" e nenhum título, enquanto a nota embaixo dizia "compara com a
+     mediana da própria equipe" e "quem muda de horário troca de tabela".
+     ⚠️ E não é caso de laboratório: a tela sobe ANTES de o coletor novo entrar
+     no cron, então por algumas horas o MÊS CORRENTE também cai aqui — e julho
+     para trás cai para sempre. 🔑 Texto que descreve uma tela diferente da que
+     está na frente da pessoa é pior que texto nenhum. */
+  const semEquipe = eq.umSo && eq.grupos.length && eq.grupos[0].turno === null;
+  if (semEquipe){
+    const med = eq.grupos[0].mediana;
+    h += '<p class="nota-dash"><b>Como a situação é calculada:</b> compara os litros por hora de cada um com a ' +
+         '<b>mediana do posto</b>' + (med ? ' (' + rpzDin0(med) + ' L/h neste mês)' : '') +
+         '. Acima de +10% é “Acima”, abaixo de −10% é “Abaixo”, o meio é “No ritmo”. ' +
+         'A régua é por <b>hora na pista</b>, não por dia trabalhado — aqui convivem plantão de 12 h e jornada diária. ' +
+         '⚠️ <b>Este mês foi coletado antes de o servidor separar as equipes</b>, então ele aparece numa tabela só. ' +
+         'Nos meses novos, a equipe do dia e a da noite têm cada uma a sua régua — ' +
+         '📏 medido em agosto, o posto faz cerca de <b>duas vezes</b> mais atendimentos de dia do que de madrugada, ' +
+         'e comparar as duas na mesma tabela mede horário, não desempenho.</p>';
+  }
+
+
+  if (!semEquipe) h += '<p class="nota-dash"><b>Como a situação é calculada:</b> compara os litros por hora de cada um com a ' +
+       '<b>mediana da própria equipe</b> — e não com a do posto inteiro. ' +
+       'Acima de +10% é “Acima”, abaixo de −10% é “Abaixo”, o meio é “No ritmo”. ' +
+       '🔑 <b>As equipes o servidor descobre sozinho</b>, olhando a hora em que cada um começa o turno e cortando ' +
+       'onde há mais de 2 h de intervalo entre uma pessoa e a seguinte. Ninguém precisa cadastrar turno, e quem ' +
+       'muda de horário troca de tabela no mês seguinte. ' +
+       'A régua é por <b>hora na pista</b>, não por dia trabalhado — aqui convivem plantão de 12 h e jornada diária. ' +
+       '📏 Medido em agosto: o posto faz cerca de <b>duas vezes</b> mais atendimentos de dia do que de madrugada, ' +
+       'e por isso comparar as duas equipes na mesma tabela media horário, não desempenho. ' +
+       '⚠️ Quem trabalhou <b>poucas horas no mês</b> aparece com todos os números, mas fica fora do cálculo da ' +
+       'mediana e sem selo: cinco plantões não dizem se alguém é rápido.</p>';
   if (doc.operAtualizadoEm) h += '<p class="ana-rodape">Servidor gravou em ' + escAttr(fmtQuandoLocal(doc.operAtualizadoEm)) + '.</p>';
 
   box.innerHTML = h;
+  /* 🔑 os balões do "i" se ligam DEPOIS do innerHTML, e a cada desenho: o
+     `innerHTML` mata os nós antigos e os ouvintes junto com eles. */
+  ligarTipsEm("opeBox");
 }
 
 function alternarAfericoes(){
