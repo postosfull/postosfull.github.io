@@ -7696,6 +7696,9 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v360", data:"13/08/2026", tit:"👷 <b>Operadores</b>: o título de cada equipe passou a dizer a <b>hora cheia</b>", itens:[
+    {t:"m", h:"“Entra às 07h” no lugar de “Entra às 07h09”", d:"Pedido dele, e ele está certo: <b>nenhuma escala começa às 07h09</b>. Aqueles minutos eram o resíduo da média das entradas de todo mundo da equipe, e ninguém usa esse detalhe para nada. ⚠️ O título <b>trunca</b>, não arredonda para o mais próximo: a equipe que entra <b>18h31</b> continua sendo <b>“18h”</b> — arredondar faria o título pular de hora no dia em que um frentista atrasasse. 🔑 <b>O número não foi apagado, foi mudado de lugar:</b> pare o mouse no <b>i</b> ao lado do título e ele diz a hora típica medida e <b>a faixa real de entrada da equipe</b> (por exemplo, “as entradas de verdade vão de 06h15 a 08h04”)."}
+  ]},
   {v:"v359", data:"13/08/2026", tit:"👷 <b>Operadores</b>: uma tabela para cada equipe, e um <b>i</b> em cada coluna", itens:[
     {t:"c", h:"A tabela única comparava HORÁRIO, não desempenho", d:"O Tiago disse, e o dado confirmou: <b>“o turno da noite tem muito menos clientes para atender do que o do dia”</b>. 📏 Medido em 60 dias nos três postos: o posto faz <b>2,0 a 2,3× mais atendimentos</b> e <b>2,1 a 2,5× mais litros</b> de dia. Com uma mediana só, quem faz plantão de madrugada caía em “Abaixo” por causa do relógio. 🔑 É a mesma família do erro que a v357 já tinha corrigido ao trocar “por dia trabalhado” por “por hora na pista” — um degrau mais fundo."},
     {t:"n", h:"Agora é uma tabela por equipe, cada uma com a sua régua", d:"Cada equipe tem o próprio título, a própria mediana e o próprio rodapé. Os <b>seis cartões de cima continuam sendo do posto inteiro</b>. 📏 Em agosto, Teresina: <b>151 L/h</b> de mediana na equipe do dia contra <b>94</b> na da noite; Caxias, <b>203</b> contra <b>102</b>; Dutra, <b>182</b> contra <b>136</b>. Era essa diferença que virava selo."},
@@ -17073,10 +17076,15 @@ function alternarOperadores(){
 /* o rótulo da equipe. 🔑 A IDENTIDADE É A HORA, e o ícone é só enfeite: Caxias
    tem DUAS equipes que entram de manhã (06h e 10h), e chamar as duas de "manhã"
    deixaria duas tabelas com o mesmo título. */
-function opeRotuloTurno(h){
+function opeRotuloTurno(h, comMinuto){
   if (!Number.isFinite(h)) return { ico: "👥", nome: "Sem horário definido" };
   const i = h >= 4 && h < 11 ? "🌅" : h >= 11 && h < 17 ? "☀️" : h >= 17 && h < 22 ? "🌙" : "🌜";
-  return { ico: i, nome: "Entra às " + opeHhMm(h) };
+  /* 🔴 TRUNCA, e não arredonda para o mais próximo. Turno começa em hora cheia:
+     "18h31" é 18h com trinta e um minutos de média, não 19h. Arredondar faria o
+     rótulo PULAR DE HORA quando um frentista atrasasse — 📏 Teresina está hoje
+     em 18h31, a um minuto de virar "19h" e confundir quem lê.
+     ⚠️ `comMinuto` só entra quando DUAS equipes cairiam na mesma hora cheia. */
+  return { ico: i, nome: "Entra às " + (comMinuto ? opeHhMm(h) : String(Math.floor(h)).padStart(2, "0") + "h") };
 }
 /* ⚠️ o arredondamento do minuto TEM de propagar para a hora, senão 17,999 sai
    "17h60". A sonda dos turnos imprimiu exatamente isso antes de eu consertar. */
@@ -17129,9 +17137,18 @@ function opeEquipes(linhas){
     g.nRegua = paraRegua.length;
     /* 🔑 o selo depende de QUANTOS entram na régua, não de quantos aparecem */
     g.temSelo = paraRegua.length >= OPE_MIN_SELO && !!g.mediana;
-    g.rotulo = opeRotuloTurno(g.turno);
     return g;
   });
+  /* 🔴 DUAS TABELAS COM O MESMO TÍTULO SERIA PIOR QUE O MINUTO SOBRANDO. Hoje
+     não acontece — o corte do coletor exige mais de 2 h entre uma pessoa e a
+     seguinte, então duas equipes não cabem na mesma hora cheia. ⚠️ Mas isso é
+     consequência de um parâmetro que pode mudar, e não uma lei: se um dia
+     mudar, TODOS os rótulos voltam a mostrar o minuto, em vez de dois títulos
+     iguais na mesma tela. 🔑 A trava custa uma linha; descobrir o defeito
+     olhando a tela custa uma versão. */
+  const cheias = grupos.map(g => (Number.isFinite(g.turno) ? Math.floor(g.turno) : "—"));
+  const repetiu = cheias.some((h, i) => cheias.indexOf(h) !== i);
+  grupos.forEach(g => { g.rotulo = opeRotuloTurno(g.turno, repetiu); });
   /* a ordem é a do relógio; quem não tem horário vai para o fim */
   grupos.sort((a, b) => (a.turno === null ? 99 : a.turno) - (b.turno === null ? 99 : b.turno));
   return { grupos, umSo: grupos.length <= 1 };
@@ -17250,7 +17267,18 @@ function renderOperadores(){
     /* o cabeçalho da equipe só aparece quando HÁ equipe: num mês coletado antes
        da v358 ninguém tem `turno`, e ali a tela é a da v357, sem título nenhum */
     if (!eq.umSo || g.turno !== null){
+      /* 🔑 O NÚMERO NÃO FOI APAGADO, FOI MUDADO DE LUGAR. O rótulo diz a hora
+         cheia porque é assim que a escala é falada; a hora medida e a faixa real
+         de entrada ficam no "i", para quem quiser conferir de onde saiu o grupo.
+         ⚠️ Bula que some é promessa quebrada — a mesma regra da v306. */
+      const ent = gente.map(x => Number(x.o.entrada)).filter(Number.isFinite).sort((a, b) => a - b);
+      const faixa = ent.length > 1 ? ' As entradas de verdade vão de ' + opeHhMm(ent[0]) +
+        ' a ' + opeHhMm(ent[ent.length - 1]) + '.' : '';
       h += '<h3 class="ope-eq">' + g.rotulo.ico + ' ' + escAttr(g.rotulo.nome) +
+        dsdI(g.rotulo.nome, 'O servidor achou esta equipe sozinho, cortando o relógio onde há mais de 2 h ' +
+             'entre uma hora de entrada e a seguinte — ninguém cadastra turno. ' +
+             (Number.isFinite(g.turno) ? 'A hora típica medida é ' + opeHhMm(g.turno) + ', e o título mostra a hora cheia.' : '') +
+             faixa + ' Quem muda de horário troca de tabela no mês seguinte.') +
         '<span class="ope-eq-n">' + gente.length + (gente.length === 1 ? ' frentista' : ' frentistas') +
         (g.mediana ? ' · mediana de ' + rpzDin0(g.mediana) + ' L/h' : '') + '</span></h3>';
     }
