@@ -5033,7 +5033,10 @@ const docFdcConferidos = db.collection("config").doc("fdcConferidos"); // v211 -
 const colCaixaInd = db.collection("caixaIndicadores");    // v185 - "2026-07" indicadores de caixa por posto
 const colDespesasAno = db.collection("despesasAno");      // v185 - "2026" despesas mes a mes por tipo
 const colRotinaStatus = db.collection("rotinaStatus");   // v252 - um doc por dia: o estado dos passos da sincronizacao
-let rotinaDias = {};        // "AAAA-MM-DD" -> {data, atualizadoEm, passos:{...}, reserva:{...}}
+let rotinaDias = {};        // "AAAA-MM-DD" -> {data, atualizadoEm, passos:{...}, regua:[...]}
+                            /* v358 - `regua` e a lista de passos que a rotina DECLARA (ver
+                               frcPassosRegua). O `reserva:{...}` saiu daqui: a maquina reserva
+                               foi aposentada em 12/08 e so aparece em documentos ate 10/08. */
 let escutaRotina = null;
 let vistoRotina = false;    /* v249 - estado AUSENTE nao e' estado VAZIO: enquanto a nuvem nao
                                responde, o selo nao afirma nada */
@@ -5045,7 +5048,9 @@ let sincFalhou = false;   /* v355 - a leitura FALHOU e' diferente de "li e nao h
 let vistoSinc = false;
 let frcTimer = null;
 const FRC_CORTE = 9;        /* a partir desta hora, dia util sem rodada vira problema (a rodada
-                               completa e' as 7h30 na maquina 1 e as 8h na reserva) */
+                               completa e' as 7h30). ⚠️ v358 - aqui dizia "e as 8h na reserva":
+                               a maquina reserva foi aposentada em 12/08, e a hora 9 continua
+                               valendo pela rodada das 7h30, que e' quem manda desde sempre. */
 const FRC_DIAS_REGUA = 8;   // quantos dias olhar para aprender quais passos a rotina executa
 const colRelPetros   = db.collection("relatoriosPetros"); // v191 - relatorios do Adaptive (Mapa Anual, DRE, despesas, tanques, colaboradores, a prazo)
 const colAnalises = db.collection("analises");             // v172 - "postos_2026-07-28" / "conv_2026-07-28"
@@ -7647,6 +7652,13 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v358", data:"13/08/2026", tit:"🔄 O cartão da <b>Sincronização dos dados</b> parou de cobrar o que não existe mais", itens:[
+    {t:"c", h:"Onze “não rodou” que eram passos aposentados, não passos falhados", d:"Em <b>12/08</b> a rotina do computador encolheu de <b>dezesseis passos para seis</b> — os vigias que conferiam o servidor, <b>um para cada coletor</b>, viraram <b>um passo só</b>. No dia seguinte o cartão dizia <b>“6 de 17 passos concluídos”</b> e listava <b>onze</b> em vermelho (<i>precos, fechamento, financeiro, petros, apagar, dre, anomes, infleet, vendas, precosloja, cte</i>) — com a rotina <b>em dia, sem nenhuma falha</b>. 🔑 Vermelho que aparece por rotina ensina a ignorar o vermelho que importa."},
+    {t:"m", h:"Agora a rotina diz quais são os passos dela, em vez de o app adivinhar", d:"O cartão aprendia a lista <b>olhando o dia mais completo das últimas oito rodadas gravadas</b> — o que acerta sozinho, mas só <b>uma semana e meia depois</b>. E não tem como acertar antes: no primeiro dia, <b>“passo aposentado ontem” e “passo que falhou hoje” chegam ao app como exatamente o mesmo dado</b>. Quem sabe a diferença é a rotina, então ela passou a <b>gravar a própria lista</b> junto com o resultado. ⚠️ O aprendizado <b>continua</b> como rede, para o dia que vier sem essa lista."},
+    {t:"n", h:"E a lista declarada só ACRESCENTA — nunca apaga", d:"Se a rotina gravar um passo que <b>não está</b> na lista declarada, ele <b>continua aparecendo</b> no cartão com o resultado dele. 🔑 A lista é escrita à mão, então ela erra; o que a rotina <b>escreveu</b> é fato. Consertar o vermelho falso comprando um <b>verde falso</b> seria o mesmo defeito, e pior."},
+    {t:"c", h:"Sumiu a linha da máquina reserva", d:"O cartão terminava com <b>“A máquina reserva ainda não deu sinal hoje”</b>. Ela foi <b>aposentada em 12/08</b> — aquela frase ia aparecer todo dia, para sempre, sobre um computador que não existe mais. 🔑 Aviso que sobrevive ao problema que o criou ensina a ignorar avisos."},
+    {t:"n", h:"O que o cartão continua fazendo igual", d:"A cor <b>continua mandada pela unidade parada</b>: se o Petros travar em algum posto, a pastilha fica <b>vermelha</b> mesmo com a rotina inteira verde — esse desenho é de <b>06/08</b> e não mudou. E passo que <b>realmente</b> falhar continua aparecendo na lista <b>O que ficou faltando</b>, com o motivo do lado."}
+  ]},
   {v:"v357", data:"13/08/2026", tit:"👷 Menu novo: <b>Operadores</b> — quanto cada frentista atendeu, vendeu e quanto tempo ficou na pista", itens:[
     {t:"n", h:"Cada frentista numa linha, no grupo 📊 Análise", d:"Escolha a <b>unidade</b>, o <b>mês</b> e por onde <b>ordenar</b>, e a tela lista quem atendeu: <b>horas na pista</b>, <b>atendimentos</b>, <b>litros</b>, <b>faturamento</b>, <b>ticket médio</b>, <b>tempo médio por abastecimento</b> e a fatia de <b>gasolina aditivada</b>. Os números vêm do Petros pelo servidor, <b>de hora em hora das 6h às 20h</b>, do mesmo lugar que já alimenta a aba <b>Equipe e movimento</b> dos Relatórios — só que ali havia apenas a <b>contagem</b> de abastecimentos, e aqui há litros, dinheiro e tempo. Dá para exportar em <b>📄 PDF</b> e imprimir, como nos outros menus."},
     {t:"n", h:"A régua é por HORA NA PISTA, e não por dia trabalhado", d:"📏 Medido em Teresina, em 12/08: há quem trabalhe <b>11 a 21 dias</b> no mês com <b>65 a 106 atendimentos por dia</b>, e quem trabalhe <b>26 a 30 dias</b> com <b>32 a 43</b>. São <b>turno de 12x36 e jornada diária convivendo</b> — comparar os dois grupos <b>por dia</b> compara escala de trabalho, não desempenho. 🔑 Por isso a coluna que manda é <b>L/h</b>: ela pergunta quanto sai por hora em que a pessoa esteve ali."},
@@ -21908,9 +21920,44 @@ function frcDiasOrdenados(){ return Object.keys(rotinaDias).sort(); }
 
 /* A REGUA DOS PASSOS NAO E' ESCRITA A MAO (regra da v217).
    Ela e' o dia MAIS COMPLETO dos ultimos dias: passo novo na rotina entra sozinho,
-   passo aposentado some sozinho depois de alguns dias. */
+   passo aposentado some sozinho depois de alguns dias.
+
+   🔴 v358 - E AGORA A ROTINA PODE DECLARAR A PROPRIA LISTA, no campo `regua` do dia.
+   O QUE ACONTECEU: em 12/08 a rotina encolheu de DEZESSEIS passos para SEIS - os vigias que
+   conferiam o coletor do VPS, um por coletor, viraram o passo unico `servidor`. No dia
+   seguinte o cartao dizia "6 de 17 passos concluidos" e listava ONZE "nao rodou" de passos
+   que NAO EXISTEM MAIS - com a rotina em dia e nenhuma falha.
+   🔑 E o aprendizado sozinho NAO tem como acertar isso no dia 1: "passo aposentado ontem" e
+   "passo que falhou hoje" chegam aqui como exatamente o mesmo dado - a AUSENCIA da chave.
+   Sao os DIAS que separam os dois, e por isso a janela de FRC_DIAS_REGUA existe e FICA.
+   ⚠️ Encurtar a janela seria comprar o vermelho de hoje com cegueira amanha - o mesmo defeito
+   com o sinal trocado (a licao das v296/v316: vermelho de rotina ensina a ignorar vermelho).
+   👉 Entao quem sabe a diferenca passou a DIZER: a rotina grava `regua: [...]` junto com os
+   passos, e o app acredita nela. O aprendizado continua como REDE para o dia que vier sem o
+   campo - dia antigo, ou rotina que parou antes de escrever. */
 function frcPassosRegua(){
   const ids = frcDiasOrdenados().slice(-FRC_DIAS_REGUA);
+  /* 🔴 A DECLARADA E' A DO DIA MAIS RECENTE, nunca a de um dia velho: e' o dia mais recente
+     que o cartao mostra (o `frcEstadoRotina` pega o ultimo id), e regua velha voltaria a
+     cobrar passo aposentado - que e' o proprio defeito que esta linha existe para matar. */
+  const ult = ids.length ? ids[ids.length - 1] : "";
+  const dec = ult ? ((rotinaDias[ult] || {}).regua) : null;
+  if (Array.isArray(dec)){
+    /* ⚠️ Lista vazia, ou so' com lixo, NAO vale: regua de tamanho zero faria o cartao dizer
+       "0 de 0 passos" e nunca mais reclamar de nada. Sem nome utilizavel, cai na rede. */
+    const nomes = dec.filter(p => typeof p === "string" && p);
+    /* 🔴 A REGUA E' A DECLARADA MAIS O QUE A ROTINA ESCREVEU - NUNCA SO' A DECLARADA.
+       Pego pelo revisor, e era o defeito mais caro desta versao: com a regua so' declarada,
+       um passo gravado como "falhou" que nao estivesse na lista SUMIA do cartao e o selo
+       ficava VERDE. A lista e' mantida a mao, entao ela erra; o que a rotina ESCREVEU e' fato.
+       🔑 Declarar serve para ACRESCENTAR o que ainda nao apareceu, nunca para APAGAR o que
+       apareceu. Uniao, e nao substituicao - senao o conserto do vermelho falso comprava um
+       verde falso, que e' pior. */
+    if (nomes.length){
+      const vistos = Object.keys(((rotinaDias[ult] || {}).passos) || {});
+      return nomes.concat(vistos.filter(k => nomes.indexOf(k) < 0));
+    }
+  }
   let regua = [];
   ids.forEach(id => {
     const ps = Object.keys(((rotinaDias[id] || {}).passos) || {});
@@ -22161,12 +22208,17 @@ function renderFrcCard(){
     h += '<div class="frc-lista"><span class="frc-lista-tit">O que ficou faltando</span>' +
          e.pend.map(frcLinhaPendente).join("") + '</div>';
   }
+  /* 🔴 v358 - A MAQUINA RESERVA FOI APOSENTADA EM 12/08, pelo proprio Tiago (a tarefa foi
+     EXCLUIDA, nao desativada). A linha "A maquina reserva ainda nao deu sinal hoje" era
+     verdadeira e inutil: ela ia aparecer TODO DIA, para sempre, sobre uma maquina que nao
+     existe mais - e ela NAO se conserta sozinha com o tempo, ao contrario da regua.
+     🔑 Aviso que sobrevive ao problema que o criou ensina a ignorar avisos.
+     ⚠️ A linha POSITIVA fica: os documentos ate 10/08 tem `reserva` dentro, e e' ela que
+     deixa aquele passado legivel se um dia alguem olhar um dia antigo. */
   const r = (e.doc && e.doc.reserva) || null;
   if (r && r.ultimaRodada){
     h += '<p class="frc-res">M\u00e1quina reserva: \u00faltima rodada \u00e0s ' + escAttr(frcHora(r.ultimaRodada)) +
          (r.resultado ? ' \u2014 ' + escAttr(String(r.resultado)) : '') + '.</p>';
-  } else if (e.deHoje){
-    h += '<p class="frc-res">A m\u00e1quina reserva ainda n\u00e3o deu sinal hoje.</p>';
   }
 
   /* v265 - o que o PETROS esta dizendo sobre cada unidade */
