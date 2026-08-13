@@ -7809,12 +7809,31 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v363", data:"13/08/2026", tit:"🛢️ O nome do <b>diesel</b> para de cair para a linha de baixo no <b>Nível dos tanques</b>", itens:[
+    {t:"m", h:"<b>DIESEL S10 GRID</b>, <b>DIESEL S10</b> e <b>DIESEL S500</b> no lugar do nome do sistema", d:"A etiqueta do produto mostrava o nome cru do Petros — <b>OLEO DIESEL S10 ADITIVADO</b> em Teresina e <b>OLEO DIESEL B S10 COMUM</b> em Caxias e Dutra — e ele não cabia ao lado de <b>Tanque N</b>, então caía para a linha de baixo. 📏 <b>Medido com a fonte do app, dentro do próprio app:</b> a etiqueta do S10 aditivado só cabe na mesma linha em cartão de <b>317px</b> para cima, e a do S10 comum, <b>310px</b>. As novas cabem a partir de <b>249px</b>, <b>229px</b> e <b>219px</b>. 👉 Na prática: <b>em qualquer celular de 320px de largura para cima</b> (o menor iPhone), e em qualquer computador. São os mesmos nomes que <b>Preços</b> e <b>Descontos</b> já usam."},
+    {t:"m", h:"O nome do sistema continua ali, no <b>computador</b>", d:"Passando o mouse na etiqueta aparece o nome inteiro que o Petros manda. ⚠️ <b>No celular não aparece</b> — o toque não abre esse balão, e essa é a parte que esta versão tira de você. 🔎 <b>Mas só o TEXTO mudou:</b> a <b>cor</b> de cada produto, a cor que você escolheu à mão em <b>✏️ Personalizar</b> e o menu <b>🛒 O que comprar</b> continuam trabalhando com o nome do sistema — <b>nada que estava salvo se perdeu</b>, e o 🛒 O que comprar continua mostrando o nome comprido de propósito."},
+    {t:"m", h:"A caixa ✏️ Personalizar também fala assim agora", d:"A lista <b>Cor de cada combustível</b>, dentro do próprio Nível dos tanques, passou a mostrar o mesmo nome curto — e a se ordenar por ele, o que deixa os três diesel juntos em vez de espalhados. <b>Uma tela não pode chamar o mesmo produto por dois nomes.</b> ⚠️ Essa caixa só aparece para administrador."},
+    {t:"c", h:"O que a etiqueta curta deixa de dizer, e o que esta versão <b>não</b> conserta", d:"Em <b>DIESEL S10</b> saem o <b>B</b> (a mistura de biodiesel) e a palavra <b>COMUM</b>; em <b>DIESEL S10 GRID</b>, a palavra <b>ADITIVADO</b> vira a marca. 🔎 E o <b>OLEO DIESEL S-500</b> <b>já cabia</b> na mesma linha — quem quebrava era só o S10; ele foi encurtado assim mesmo, por decisão sua, para a tela não ter <b>DIESEL S10</b> num cartão e <b>OLEO DIESEL S-500</b> no cartão do lado. ⚠️ Continua caindo para a linha de baixo, <b>em celular de 320px</b>, a etiqueta <b>GASOLINA ADITIVADA</b> — ela já era assim antes desta versão e ninguém pediu para mexer nela."}
+  ]},
   {v:"v362", data:"13/08/2026", tit:"🤖 O aviso de <b>nota a lançar</b> passa a sumir sozinho — e nasce a aba que mostra todos", itens:[
     {t:"c", h:"A tela prometia isso desde a v316, e ninguém cumpria", d:"O aviso <b>📥 Recebimento em … — N tanque(s) com nota a lançar</b> dizia, com todas as letras, que <b>sumia sozinho quando a nota fosse lançada</b>. 📏 Medido no dia 13/08: <b>oito</b> avisos desses já existiram e <b>nenhum</b> fechou sozinho — quem os apagava era sempre alguém clicando em <b>✓ Marcar como concluída</b>. A prova de que devia ter fechado estava no próprio app: em <b>09/08</b>, os quatro tanques de Dutra têm nota lançada e diferença conferida há dias, e o aviso continuou na Caixa de entrada. 🔑 <b>Promessa que a máquina não cumpre é pior que recurso nenhum.</b>"},
     {t:"n", h:"Agora ele fecha sozinho de verdade — e volta se chegar caminhão novo", d:"Quando as notas de <b>todos</b> os recebimentos daquele posto naquele dia aparecem lançadas, o aviso se conclui sozinho e sai da Caixa de entrada de todo mundo. ⚠️ E se chegar um <b>segundo caminhão</b> mais tarde, em <b>outro tanque</b>, ainda sem nota, o aviso <b>volta</b> — o aviso é um por posto e por dia. O que <b>você</b> concluiu na mão nunca é reaberto. 🔎 <b>O limite, dito na cara:</b> quando o segundo caminhão cai no <b>mesmo tanque</b>, nem o servidor nem o app enxergam — existe uma nota por tanque e por dia. Isso já era assim antes desta versão, e o conserto é do lado do servidor."},
     {t:"n", h:"Aba nova: 🤖 Avisos automáticos, no Painel Administrativo", d:"Aviso que morre sozinho é aviso que você pode nunca ter visto. A aba mostra <b>tudo o que a máquina escreve</b> na Caixa de entrada — o coletor do servidor, a rotina de sincronização e o próprio app — <b>abertos e fechados</b>, com <b>quem fechou cada um</b> e quando. Recado de gente para gente não entra: esse continua só na Caixa de entrada."},
     {t:"m", h:"E ela confere, não só lista", d:"Em cada tipo de aviso a aba diz <b>quantos fecharam sozinhos</b> e <b>quantos alguém fechou na mão</b>. Foi esse número que denunciou o defeito de cima — e é ele que denuncia o próximo, sem esperar alguém desconfiar. 🔑 <b>Recurso que promete automação nasce junto com o lugar onde se lê se ela aconteceu.</b>"},
-    {t:"a", h:"Onde ele fecha", d:"O fechamento acontece quando <b>alguém abre o app</b> — qualquer pessoa da equipe, não precisa ser você. Com o app fechado a noite inteira, o aviso morre na manhã seguinte. E quando a leitura do dia ainda não chegou, o app <b>não fecha nada</b>: melhor um aviso a mais na tela que uma nota que ninguém lança."}
+    /* 🔴 v363 - ERA `t:"a"`, E O `a` NAO EXISTE. `nvdDesenhaVer` monta as colunas com
+       `["n","m","c"].map(...)` e `NVD_COLS` so' conhece esses tres: item de tipo desconhecido e'
+       DESCARTADO, sem erro e sem aviso. Este item da v362 foi publicado hoje e NINGUEM o viu —
+       justamente o que declara o limite do aviso automatico (com o app fechado a noite inteira,
+       ele morre de manha). 🔴 E o `nvdTextoBusca` INCLUI o texto dele: quem procurasse por
+       "app fechado" acharia a v362, abriria, e o paragrafo nao estaria la'.
+       ⚠️ Mexer numa versao ja' publicada foi DECISAO DELE, e a razao pesou mais que a regra:
+          nao e' reescrever historia, e' entregar um paragrafo que a v362 escreveu e a tela comeu.
+       🔑 TIPO NOVO NUM CAMPO QUE E' LIDO POR UMA LISTA FIXA FALHA EM SILENCIO — e' a familia do
+          `ICO_SVG`, do `ICO_BTN` e do `CAMPOS_LISTA_REL`. Antes de inventar um `t:` novo, procure
+          quem le' o `t:`. 👉 Se um dia um quarto tipo for mesmo preciso, sao TRES lugares:
+          `NVD_COLS`, o `["n","m","c"]` do `nvdDesenhaVer` e a regra `.nvd-tag.<letra>` no CSS —
+          e a do CSS falha calada, como a `.tqv-boca` que ficou invisivel por nao ter regra. */
+    {t:"m", h:"Onde ele fecha", d:"O fechamento acontece quando <b>alguém abre o app</b> — qualquer pessoa da equipe, não precisa ser você. Com o app fechado a noite inteira, o aviso morre na manhã seguinte. E quando a leitura do dia ainda não chegou, o app <b>não fecha nada</b>: melhor um aviso a mais na tela que uma nota que ninguém lança."}
   ]},
   {v:"v361", data:"13/08/2026", tit:"👷 <b>Operadores</b>: a coluna <b>Premium</b> some onde a Podium não é vendida", itens:[
     {t:"c", h:"Duas colunas mostravam o mesmo número em dois dos três postos", d:"Ele viu e está certo: <b>Premium</b> aparecia em Caxias e em Dutra, que <b>não vendem Podium</b>. 📏 Medido em agosto: em Caxias <b>Aditiv.</b> e <b>Prem.</b> davam os mesmos <b>30,3%</b>, e em Dutra os mesmos <b>35,3%</b> — o mês inteiro. A conta explica: <i>premium = aditivada + Podium</i>, e sem Podium a soma é a própria aditivada. 🔑 <b>Coluna em que todo mundo tem o mesmo valor não é informação: é largura gasta</b> — e esta era pior, porque repetia a coluna VIZINHA e convidava a ler duas medidas onde só existe uma."},
@@ -15610,6 +15629,112 @@ function tqvChaveProd(nome){ return String(nome || "").trim().toUpperCase(); }
       simples passa a mexer no banco. */
 function tqvNomePosto(nm){ return "Posto Full - " + String(nm || ""); }
 
+/* ===== v363 - O NOME DO DIESEL NA ETIQUETA, pedido dele em 13/08 ===================
+   O sintoma: "o nome do oleo diesel sempre esta indo para a linha debaixo em todos os postos".
+   📏 MEDIDO ANTES DE ESCREVER, com Poppins de verdade (a fonte esta' instalada no sandbox) e o
+      cabecalho real do card. A coluna diz a MENOR largura de card em que a etiqueta ainda fica
+      na MESMA linha do "Tanque N":
+        OLEO DIESEL S10 ADITIVADO   177,6px de etiqueta  ->  317px de card
+        OLEO DIESEL B S10 COMUM     169,5px              ->  310px
+        GASOLINA ADITIVADA          145,0px              ->  281px
+        OLEO DIESEL S-500           127,7px              ->  267px
+        DIESEL S10 GRID             109,1px              ->  249px
+        DIESEL S500                  88,9px              ->  229px
+        DIESEL S10                   78,6px              ->  219px
+      🔴 A PRIMEIRA VERSAO DESTA TABELA DIZIA "cabe em 264px" NAS QUATRO ULTIMAS LINHAS, e o
+         revisor mostrou que 264 nao era medicao: era o PRIMEIRO VALOR DO `for` da varredura.
+         Varrendo de 200px para cima, o OLEO DIESEL S-500 precisa de 267px — ele NAO cabia em
+         264. 🔑 Piso de laco vira "limite medido" quando ninguem olha de onde o numero saiu.
+      ⚠️ E O `minmax(272px,1fr)` NAO E' O PISO DA TELA: abaixo de 561px a media query troca a
+         grade por `1fr`, e o card passa a valer `viewport - 42`. Medido no proprio index.html:
+         viewport 390 -> card 348px · 320 -> 278px · 300 -> 258px.
+      👉 Entao a frase honesta e' esta: os tres nomes novos cabem em qualquer celular a partir de
+         **320px de largura** (o iPhone SE), e nao "em tela nenhuma". Abaixo de ~291px de
+         viewport o DIESEL S10 GRID volta a quebrar — e a GASOLINA ADITIVADA, que ja' quebrava
+         antes desta versao, continua quebrando em 320px. Isso nao e' regressao: e' o que a v363
+         NAO conserta, e esta' escrito no menu 🎁 Novidades.
+   📏 E A REGUA SAIU DAS FOTOS DELE, que e' a medicao que vale (a maquina dele, nao a minha):
+      nelas a GASOLINA ADITIVADA cabe e o OLEO DIESEL B S10 COMUM nao — logo o card dele esta'
+      entre 281 e 310px, e os tres nomes novos passam com pelo menos 36px de folga.
+   🚩 UM ACHADO QUE O PEDIDO NAO TINHA: o "sempre" era quase. O OLEO DIESEL S-500 ja' cabia hoje
+      (127,7px, do tamanho da GASOLINA PODIUM); quem quebrava era so' o S10 — o aditivado de
+      Teresina e o comum de Caxias e Dutra. Ele decidiu encurtar o S-500 assim mesmo, e o motivo
+      nao e' largura: e' que "DIESEL S10" num card e "OLEO DIESEL S-500" no card do lado seriam
+      dois vocabularios para o mesmo liquido na MESMA tela (a regra da v335).
+   🔑 Encurtar o rotulo e' proteger o numero — a mesma frase da v308 e da v335, agora na terceira
+      tela. Os nomes escolhidos sao os que o app JA' usa em Precos e Descontos
+      (`combustiveisDoPosto`): "Diesel S10 Grid" em Teresina, "Diesel S10"/"Diesel S500" nos outros.
+   🔴 SO' O TEXTO MUDA, e isto e' o que mais importa aqui. A chave continua sendo o nome cru do
+      Petros em toda parte: a cor (`tqvCorProduto`), a cor escolhida a mao (`tanquesAjustes.cores`,
+      gravada em CAIXA ALTA com o nome do ERP), a ordem salva, o de-para do 🛒 O que comprar
+      (`cprDePara`) e o cruzamento do card ⛽ Lucro por combustivel. Nada disso ve' o rotulo.
+      👉 E o nome inteiro continua no `title`: passar o mouse mostra, como nas Cotacoes.
+   ⚠️ A ORDEM DOS TESTES IMPORTA, e e' a MESMA armadilha do `TQV_COR` e do `CBD_ORDEM`: o
+      "OLEO DIESEL S10 ADITIVADO" de Teresina tem de cair em Grid, nao no S10 comum — por isso o
+      teste do aditivado exige S10 **e** (ADITIV|GRID), e vem antes do S10 sozinho.
+   🔴 O QUE NAO MUDA: gasolina, etanol e qualquer coisa sem "DIESEL" no nome saem INTEIRAS. Ele
+      pediu o diesel; "G. Comum" na etiqueta do tanque ninguem pediu, e reuso que traz junto uma
+      mudanca que nao foi pedida nao e' reuso.
+   🔴 E DIESEL QUE NAO E' S10 NEM S-500 TAMBEM SAI INTEIRO: o que ninguem reconhece nao vira
+      palpite (a mesma regra do `cprDePara`). */
+const TQV_ROT = [
+  [/S\s*-?\s*500/i,                                  "Diesel S500"],
+  /* ⚠️ `[\s\S]*` E NAO `.*`, E SEM `^` — as duas coisas, e uma so' nao resolve. O `.` nao
+     atravessa `\n` nem `\r`, entao um rotulo que chegasse "OLEO DIESEL S10\nADITIVADO" viraria
+     "Diesel S10", colidiria com o S10 comum de Caxias e Dutra, e a trava devolveria OS DOIS ao
+     nome cru — a versao se desfazendo sozinha, calada, justamente nos dois produtos que a
+     motivaram. 🔴 O projeto ja' registra que o Petros manda rotulo com caractere de controle
+     () dentro do nome; a quebra de linha e' o parente pior porque nao aparece na tela.
+     🔑 E ISTO E' MEDICAO, NAO TEORIA: o revisor apontou o `^` e disse que apagar bastava. Apagar
+        NAO bastava — sem o `^`, `(?=.*ADITIV)` continua sem enxergar o outro lado da quebra, e a
+        assercao com `\n` reprovou o conserto proposto. 👉 Conserto de revisor tambem se mede. */
+  [/(?=[\s\S]*S\s*-?\s*10)(?=[\s\S]*(?:ADITIV|GRID))/i, "Diesel S10 Grid"],
+  [/S\s*-?\s*10/i,                                   "Diesel S10"]
+];
+function tqvRotuloProd(nome){
+  const t = String(nome || "");
+  if (!/DIESEL/i.test(t)) return t;                  /* so' o diesel muda */
+  for (let i = 0; i < TQV_ROT.length; i++) if (TQV_ROT[i][0].test(t)) return TQV_ROT[i][1];
+  return t;
+}
+/* 🔴 A TRAVA, que e' a regra do `cbdRotulo` trazida para ca': ROTULO CURTO SO' PODE ENCURTAR O
+   QUE CONTINUA UNICO. Se dois nomes crus DIFERENTES caissem no mesmo rotulo, dois cards
+   passariam a se chamar igual e a tela mentiria sobre qual tanque e' qual — e a caixa
+   Personalizar mostraria duas linhas de cor com o mesmo nome. Nesse caso os DOIS voltam ao nome
+   cru, que e' o unico que distingue; o resto da tela continua encurtado.
+   📏 Hoje isso nao acontece em posto nenhum (os cinco produtos de cada posto dao cinco rotulos
+      diferentes). A trava existe para o dia em que o Petros criar um produto novo — e esse dia
+      chega sem avisar, como chegou o `resumofin` no cron.
+   🔑 O mapa e' UM SO' PARA A TELA INTEIRA, montado sobre TODOS os postos e nao so' os visiveis:
+      assim o card e a caixa Personalizar nunca chamam o mesmo produto por dois nomes, mesmo com
+      o filtro de posto ligado. */
+function tqvMapaRotulos(postos, nomes){
+  const rot = {};
+  (nomes || []).forEach(nm => (((postos || {})[nm] || {}).tanques || []).forEach(t => {
+    const p = t.produto || t.tanque || "", k = tqvChaveProd(p);
+    if (k && rot[k] === undefined) rot[k] = tqvRotuloProd(p);
+  }));
+  const conta = {};
+  Object.keys(rot).forEach(k => { const r = tqvChaveProd(rot[k]); conta[r] = (conta[r] || 0) + 1; });
+  const saida = {};
+  Object.keys(rot).forEach(k => { saida[k] = (conta[tqvChaveProd(rot[k])] > 1) ? null : rot[k]; });
+  /* 🔴 A TRAVA NAO PODE DESLIGAR O CONSERTO EM SILENCIO (achado do revisor). Se ela reverter, o
+     sintoma que esta versao veio consertar VOLTA — e sem esta linha ninguem saberia por que.
+     🔑 Corte que o codigo faz sozinho se ANUNCIA; senao, tela igual a de antes vira "o conserto
+        nao foi publicado" em vez de "o Petros criou um nome novo". */
+  const revertidos = Object.keys(rot).filter(k => saida[k] === null);
+  if (revertidos.length) try { console.warn("Nivel dos tanques: " + revertidos.length +
+    " produto(s) ficaram com o nome do Petros porque dois nomes diferentes dariam a mesma " +
+    "etiqueta: " + revertidos.join(" | ")); } catch(e){}
+  return saida;                                      /* null = colidiu, use o nome cru */
+}
+/* devolve o que vai na TELA. Sem mapa, sem chave ou com colisao, devolve o nome cru inteiro. */
+function tqvRotDe(mapa, nome){
+  const cru = String(nome || "");
+  const r = (mapa || {})[tqvChaveProd(cru)];
+  return r || cru;
+}
+
 /* ===== v280 - o filtro de posto =====
    Guardado no proprio aparelho (nao no Firestore): e' preferencia de quem esta' olhando, nao
    configuracao da empresa. O admin ja tem a caixa Personalizar para o que vale para todos. */
@@ -15711,7 +15836,7 @@ function tqvSalvarPers(){
     avisar("Personaliza\u00e7\u00e3o dos tanques salva.", "ok");
   }).catch(e => avisar("N\u00e3o deu para salvar: " + (e && e.message ? e.message : e), "erro"));
 }
-function tqvCaixaPers(postos, nomes){
+function tqvCaixaPers(postos, nomes, rotProd){
   const ed = tqvEdit;
   if (!ehAdminAtual()) return "";
   if (!ed) return '<div class="tqv-perslinha"><button class="btn-claro tqv-persbt" onclick="tqvAbrirPers()">' +
@@ -15722,7 +15847,11 @@ function tqvCaixaPers(postos, nomes){
   nomes.forEach(nm => (postos[nm].tanques || []).forEach(t => {
     const p = t.produto || t.tanque || ""; if (p && prods.indexOf(p) < 0) prods.push(p);
   }));
-  prods.sort();
+  /* 🔴 v363 - a lista se ordena pelo que APARECE, nao pelo nome cru. Com o rotulo curto, ordenar
+     por "OLEO DIESEL…" jogaria o diesel para o fim de uma lista que a pessoa le' como "DIESEL…",
+     e lista alfabetica fora de ordem parece defeito. ⚠️ A ORDEM daqui e' so' visual: a chave
+     gravada em `tanquesAjustes.cores` continua sendo o nome cru, e ela nao depende desta lista. */
+  prods.sort((a, b) => tqvRotDe(rotProd, a).localeCompare(tqvRotDe(rotProd, b), "pt-BR"));
   let h = '<div class="tqv-pers"><div class="tqv-pers-tit">\u2699\ufe0f Personalizar <span>(s\u00f3 voc\u00ea v\u00ea esta caixa)</span></div>';
 
   h += '<div class="tqv-pers-bl"><b>Cor de cada combust\u00edvel</b><div class="tqv-pers-cores">';
@@ -15731,7 +15860,9 @@ function tqvCaixaPers(postos, nomes){
     const mexido = !!(ed.cores || {})[tqvChaveProd(p)];
     h += '<label class="tqv-pers-cor"><input type="color" value="' + escAttr(cor) +
          '" onchange="tqvCor(' + JSON.stringify(p).replace(/"/g, "&quot;") + ', this.value)">' +
-         '<span>' + escAttr(p) + '</span>' +
+         /* v363 - o texto e' o rotulo curto; o `p` dos dois onclick continua sendo o nome CRU,
+            que e' a chave de `tanquesAjustes.cores`. Trocar o `p` aqui apagaria a cor salva. */
+         '<span title="' + escAttr(p) + '">' + escAttr(tqvRotDe(rotProd, p)) + '</span>' +
          (mexido ? '<button class="tqv-pers-x" title="voltar ao padr\u00e3o" onclick="tqvCorPadraoDe(' +
                    JSON.stringify(p).replace(/"/g, "&quot;") + ')">\u21ba</button>' : '') + '</label>';
   });
@@ -19511,6 +19642,9 @@ function renderTanquesNivel(){
      escolhido - e uma tela vazia nao diz "seu filtro ficou velho", ela diz "nao ha' dado". */
   if (tqvPostoSel && nomes.indexOf(tqvPostoSel) < 0) tqvPostoSel = "";
   const visiveis = tqvPostoSel ? [tqvPostoSel] : nomes;
+  /* v363 - o rotulo curto do diesel. Montado sobre TODOS os postos, nao so' os visiveis: com o
+     filtro ligado, a caixa Personalizar continua listando a rede inteira. */
+  const rotProd = tqvMapaRotulos(postos, nomes);
   if (!nomes.length){
     box.innerHTML = vazioHtml("Ainda n\u00e3o chegou a leitura dos tanques",
       "A coleta roda de hora em hora, das 6h \u00e0s 20h. Se isto continuar vazio depois da pr\u00f3xima hora cheia, a coleta do servidor parou.", "", "");
@@ -19570,7 +19704,7 @@ function renderTanquesNivel(){
     h += '</div>';
   }
 
-  h += tqvCaixaPers(postos, nomes);
+  h += tqvCaixaPers(postos, nomes, rotProd);
 
   /* --- 3. a regua ------------------------------------------------------------------- */
   h += '<div class="tqv-regua"><span class="tqv-rg tqv-c">Cr\u00edtico: menos de 2 dias</span>' +
@@ -19601,7 +19735,10 @@ function renderTanquesNivel(){
              '<div class="tqv-top">' +
                '<span class="tqv-pt"></span>' +
                '<span class="tqv-n">Tanque ' + escAttr(String(t.n).replace(/^0+/, "") || t.n) + '</span>' +
-               '<span class="tqv-prod">' + escAttr(t.produto || t.tanque || "") + '</span>' +
+               /* v363 - o TEXTO e' o rotulo curto; o nome cru do Petros fica no `title` (mouse
+                  mostra) e continua sendo o que vai para `tqvCorProduto`, acima. */
+               '<span class="tqv-prod" title="' + escAttr(t.produto || t.tanque || "") + '">' +
+                 escAttr(tqvRotDe(rotProd, t.produto || t.tanque || "")) + '</span>' +
              '</div>' +
              tqvDesenho(pct, nm + "_" + t.n) +
              /* 🔴 a porcentagem saiu de DENTRO do desenho (pedido dele em 07/08): la' dentro ela
