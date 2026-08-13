@@ -7696,6 +7696,10 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v361", data:"13/08/2026", tit:"👷 <b>Operadores</b>: a coluna <b>Premium</b> some onde a Podium não é vendida", itens:[
+    {t:"c", h:"Duas colunas mostravam o mesmo número em dois dos três postos", d:"Ele viu e está certo: <b>Premium</b> aparecia em Caxias e em Dutra, que <b>não vendem Podium</b>. 📏 Medido em agosto: em Caxias <b>Aditiv.</b> e <b>Prem.</b> davam os mesmos <b>30,3%</b>, e em Dutra os mesmos <b>35,3%</b> — o mês inteiro. A conta explica: <i>premium = aditivada + Podium</i>, e sem Podium a soma é a própria aditivada. 🔑 <b>Coluna em que todo mundo tem o mesmo valor não é informação: é largura gasta</b> — e esta era pior, porque repetia a coluna VIZINHA e convidava a ler duas medidas onde só existe uma."},
+    {t:"m", h:"Quem decide é o dado do mês, não uma lista de postos", d:"A coluna não foi apagada: ela continua em <b>Teresina</b>, o único posto que vende Podium, e some nos outros. ⚠️ E é o <b>dado</b> que manda — no dia em que Caxias passar a vender Podium, a coluna nasce lá <b>sozinha</b>, sem ninguém mexer no app. Onde ela não aparece, o <b>i</b> da coluna Aditivada explica o porquê."}
+  ]},
   {v:"v360", data:"13/08/2026", tit:"👷 <b>Operadores</b>: o título de cada equipe passou a dizer a <b>hora cheia</b>", itens:[
     {t:"m", h:"“Entra às 07h” no lugar de “Entra às 07h09”", d:"Pedido dele, e ele está certo: <b>nenhuma escala começa às 07h09</b>. Aqueles minutos eram o resíduo da média das entradas de todo mundo da equipe, e ninguém usa esse detalhe para nada. ⚠️ O título <b>trunca</b>, não arredonda para o mais próximo: a equipe que entra <b>18h31</b> continua sendo <b>“18h”</b> — arredondar faria o título pular de hora no dia em que um frentista atrasasse. 🔑 <b>O número não foi apagado, foi mudado de lugar:</b> pare o mouse no <b>i</b> ao lado do título e ele diz a hora típica medida e <b>a faixa real de entrada da equipe</b> (por exemplo, “as entradas de verdade vão de 06h15 a 08h04”)."}
   ]},
@@ -17118,6 +17122,22 @@ function opeElegivel(horas, medianaHoras){
    e as outras duas se comparam com ela. Abaixo disso, travessão. */
 const OPE_MIN_SELO = 3;
 
+/* 🔴 ESTE POSTO VENDEU PODIUM NESTE MÊS?
+   `premium` é `aditivada + Podium`, então sem Podium as duas contas dão o MESMO
+   número — e foi isso que ele viu: 30,27% e 30,27% em Caxias, 35,31% e 35,31%
+   em Dutra, o mês inteiro. 👉 Quem responde é o DADO, e não uma lista de postos
+   escrita à mão: no dia em que Caxias passar a vender, a coluna nasce lá sozinha,
+   e no mês em que Teresina não vender nenhuma ela some de lá.
+   ⚠️ A comparação tem folga de um centésimo de litro porque os dois vêm de somas
+   de ponto flutuante — exigir igualdade exata deixaria a coluna aparecer por
+   causa de um resíduo que ninguém vê na tela. */
+function opeTemPodium(linhas){
+  return linhas.some(x => {
+    const a = Number(x.o.litrosAdit), p = Number(x.o.litrosPrem);
+    return Number.isFinite(a) && Number.isFinite(p) && p - a > 0.01;
+  });
+}
+
 /* Monta as equipes a partir da lista já enfeitada. Devolve as tabelas na ordem
    do relógio. ⚠️ Se ninguém tiver `turno` — que é o caso de TODO mês coletado
    antes da v359 — devolve UM grupo só, e a tela volta a ser a da v357. */
@@ -17239,6 +17259,8 @@ function renderOperadores(){
 
   /* 🆕 v359 — AS EQUIPES. Quem as descobre é o coletor; aqui só se desenha. */
   const eq = opeEquipes(linhas);
+  /* 🆕 v361 — a coluna Premium só existe onde a Podium é vendida. */
+  const comPrem = opeTemPodium(linhas);
 
   let h = "";
   if (res){
@@ -17250,7 +17272,9 @@ function renderOperadores(){
         (res.atend > 0 ? fmtR$(res.reais / res.atend) : "—") + '</small></div>' +
       '<div class="rel-kpi"><span>Tempo médio</span><b>' + opeTempo(res.durMedia) + '</b><small>por abastecimento</small></div>' +
       '<div class="rel-kpi"><span>Gasolina aditivada</span><b>' + (res.pctAdit == null ? "—" : rpzDin(res.pctAdit, 1) + "%") + '</b><small>' +
-        (res.pctPrem == null ? "sem classificação" : rpzDin(res.pctPrem, 1) + "% somando a Podium") + '</small></div>' +
+        (res.pctPrem == null ? "sem classificação"
+         : !comPrem ? "da gasolina vendida no mês"
+         : rpzDin(res.pctPrem, 1) + "% somando a Podium") + '</small></div>' +
       '</div>';
   }
 
@@ -17294,8 +17318,10 @@ function renderOperadores(){
       '<th class="rpz-r ope-off">Fatur.' + dsdI("Faturamento", "O valor das vendas dele no mês, no preço de bomba. NÃO é lucro: o custo do combustível não está descontado.") + '</th>' +
       '<th class="rpz-r ope-off">Ticket' + dsdI("Ticket médio", "O faturamento dividido pelos atendimentos: quanto rendeu, em média, cada abastecimento que ele fez.") + '</th>' +
       '<th class="rpz-r ope-off">Tempo' + dsdI("Tempo médio", "Quanto durou, em média, cada abastecimento dele, do começo ao fim da bomba. Abastecimento com duração ZERADA fica fora da média — eles existem e se concentram num posto só.") + '</th>' +
-      '<th class="rpz-r ope-off">Aditiv.' + dsdI("Gasolina aditivada", "Quanto da GASOLINA que ele vendeu era aditivada. O denominador é só a gasolina — diesel e etanol não entram nem em cima nem embaixo.") + '</th>' +
-      '<th class="rpz-r ope-off">Prem.' + dsdI("Premium", "A aditivada MAIS a Podium. Esta coluna existe porque só Teresina vende Podium: sem ela, Teresina apareceria muito atrás dos outros dois postos sem estar — o upsell dela vai para a Podium.") + '</th>' +
+      '<th class="rpz-r ope-off">Aditiv.' + dsdI("Gasolina aditivada", "Quanto da GASOLINA que ele vendeu era aditivada. O denominador é só a gasolina — diesel e etanol não entram nem em cima nem embaixo." +
+        (comPrem ? "" : " ⚠️ Neste posto não há coluna Premium porque a Podium não foi vendida neste mês — " +
+                        "sem ela, premium e aditivada seriam o MESMO número.")) + '</th>' +
+      (comPrem ? '<th class="rpz-r ope-off">Prem.' + dsdI("Premium", "A aditivada MAIS a Podium. Esta coluna existe porque só Teresina vende Podium: sem ela, Teresina apareceria muito atrás dos outros dois postos sem estar — o upsell dela vai para a Podium.") + '</th>' : '') +
       '<th>Situação' + dsdI("Situação", "Compara o L/h de cada um com a MEDIANA DA PRÓPRIA EQUIPE, e não com a do posto inteiro: a equipe da noite atende menos por motivo que não é dela. Acima de +10% é “Acima”, abaixo de −10% é “Abaixo”, o meio é “No ritmo”. Quem trabalhou poucas horas no mês fica sem selo.") + '</th>' +
       '</tr></thead><tbody>';
 
@@ -17319,7 +17345,7 @@ function renderOperadores(){
         '<td class="rpz-r ope-off">' + (Number.isFinite(x.ticket) ? fmtR$(x.ticket) : "—") + '</td>' +
         '<td class="rpz-r ope-off">' + opeTempo(o.dur) + '</td>' +
         '<td class="rpz-r ope-off">' + opeDin(x.pctAdit, 1) + (x.pctAdit == null ? '' : '%') + '</td>' +
-        '<td class="rpz-r ope-off">' + opeDin(x.pctPrem, 1) + (x.pctPrem == null ? '' : '%') + '</td>' +
+        (comPrem ? '<td class="rpz-r ope-off">' + opeDin(x.pctPrem, 1) + (x.pctPrem == null ? '' : '%') + '</td>' : '') +
         '<td><span class="rec-tag ' + s.cls + '">' + s.txt + '</span></td></tr>';
     });
 
@@ -17336,7 +17362,7 @@ function renderOperadores(){
       '<td class="rpz-r ope-off">' + (t.atend > 0 ? fmtR$(t.reais / t.atend) : "—") + '</td>' +
       '<td class="rpz-r ope-off">' + opeTempo(t.durMedia) + '</td>' +
       '<td class="rpz-r ope-off">' + opeDin(t.pctAdit, 1) + (t.pctAdit == null ? '' : '%') + '</td>' +
-      '<td class="rpz-r ope-off">' + opeDin(t.pctPrem, 1) + (t.pctPrem == null ? '' : '%') + '</td>' +
+      (comPrem ? '<td class="rpz-r ope-off">' + opeDin(t.pctPrem, 1) + (t.pctPrem == null ? '' : '%') + '</td>' : '') +
       '<td></td></tr></tfoot></table></div>';
 
     /* 🔴 EQUIPE PEQUENA NÃO GANHA SELO, E A TELA DIZ POR QUÊ com o número. */
