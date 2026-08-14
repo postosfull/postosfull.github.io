@@ -1802,33 +1802,13 @@
   .ana-conf li{margin-bottom:4px}
   .ana-rodape{font-size:.74rem;color:var(--cinza);font-style:italic;margin-top:14px;line-height:1.5}
   .ana-vazio{border:1px dashed var(--borda);border-radius:10px;padding:22px 16px;text-align:center;color:var(--cinza);font-size:.9rem;line-height:1.6}
-  /* v365 - a Analise em cartao de imagem, para o WhatsApp.
-     🔑 Cores FIXAS, como todo o resto do `.cardres`: isto vira PNG e sai do app — la nao existe
-     tema escuro nem `var()`. E o acento (a borda de 4px) NAO esta escrito aqui: ele vem por
-     `style` de `anaMarcaEmpresa()`, porque a Transportadora e' OURO e as outras duas sao LARANJA. */
-  .cardres-ana-per{font-size:12px;color:#6b7280;margin:0 0 10px}
-  /* ⚠️ O `border-left-color` daqui NUNCA aparece: `montarCartaoAnalise` sempre manda o da empresa
-     por `style`. Fica CINZA de propósito — hex de marca escrito num lugar que ninguém vê é mais
-     um sítio para a próxima troca de cor esquecer. (Achado do revisor.) */
-  .cardres-ana-resumo{background:#f6f7f9;border-left:4px solid #6b7280;border-radius:0 10px 10px 0;
-    padding:12px 14px;margin:0 0 14px;font-size:15px;line-height:1.6}
-  .cardres-ana-item{background:#f9fafb;border:1px solid #e8eaed;border-left:4px solid #6b7280;
-    border-radius:10px;padding:10px 12px;margin:8px 0}
-  /* 🔴 A FOTO PEGOU, e por isso esta regra existe: com `flex-wrap` solto, TÍTULO LONGO empurrava o
-     selo ⚠️ para uma linha sozinho e a pastilha da unidade para uma TERCEIRA — dois itens do mesmo
-     cartão saíam com desenhos diferentes. Aqui o selo e a pastilha ficam presos nas pontas e quem
-     quebra e' o TITULO, no meio. 📏 Medido no cartao de 14/08 dos postos: 1.483 -> 1.424 px. */
-  .cardres-ana-tit{display:flex;gap:5px 8px;align-items:baseline;flex-wrap:wrap;font-weight:700;font-size:14px;line-height:1.35}
-  .cardres-ana-tit > span:nth-child(2){flex:1 1 0;min-width:0}
-  .cardres-ana-uni{font-size:11px;font-weight:600;color:#6b7280;background:#fff;border:1px solid #e8eaed;
-    border-radius:20px;padding:1px 8px;white-space:nowrap;flex:0 1 100%;max-width:max-content;align-self:flex-start}
-  .cardres-ana-txt{font-size:13px;line-height:1.55;margin-top:5px;color:#1b1f24}
-  .cardres-ana-conf{background:#f9fafb;border:1px solid #e8eaed;border-radius:10px;padding:11px 13px;margin-top:14px}
-  .cardres-ana-conf b{font-size:13px}
-  .cardres-ana-conf ul{margin:7px 0 0;padding-left:18px;font-size:13px;line-height:1.5}
-  .cardres-ana-conf li{margin-bottom:4px}
-  .cardres-ana-rod{font-size:11px;color:#6b7280;font-style:italic;margin-top:14px;line-height:1.5;
-    border-top:1px solid #e8eaed;padding-top:10px}
+  /* 🛑 v366 - O CARTÃO DE IMAGEM DA ANÁLISE SAIU, e com ele todo o CSS `.cardres-ana-*`.
+     Ele viveu UMA versão (a v365, de 14/08) e morreu no mesmo dia, por medição do dono:
+     *"a foto terminou ficando com a qualidade muito baixa... ao tentarmos dar zoom ela perde
+     qualidade"*. O lugar dele é o `exportarPDFAnalise`, que escreve TEXTO em vez de colar
+     foto. 🔑 Tela que sai leva a coleta dela junto (v301) — aqui, o cartão que sai leva o
+     CSS dele junto. Deixar as classes órfãs seria a próxima sessão achando que há um
+     cartão para consertar. */
   .evo-filtros .desc-campo{flex:0 1 200px;min-width:150px}
   .evo-filtros .desc-campo.auto{flex:0 0 auto;min-width:0}
   .evo-filtros .dash-check{padding:9px 0;white-space:nowrap;text-transform:none;letter-spacing:0;font-size:.9rem;font-weight:400;color:var(--txt)}
@@ -4318,11 +4298,10 @@
            🔴 A linha inteira e' ESCONDIDA por `renderAnalise` quando nao ha analise, junto com a
            `.evo-filtros` — botao que gera cartao vazio e' pior que botao nenhum. -->
       <div id="anaAcoes" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px">
-        <button class="btn-verde" onclick="gerarImagemAnalise()">🖼️ Enviar como imagem</button>
+        <button class="btn-verde" onclick="exportarPDFAnalise()">📄 Enviar como PDF</button>
         <button class="btn-claro" onclick="enviarAnaliseWhats()">📲 Enviar como texto</button>
         <button class="btn-claro" onclick="copiarAnaliseTexto()">📋 Copiar mensagem</button>
       </div>
-      <div id="cartaoAnalise" class="cardres"></div>
       <p class="nota-dash" id="anaMsg" style="margin-top:8px"></p>
     </div>
   </div>
@@ -7854,6 +7833,13 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v366", data:"14/08/2026", tit:"📄 A Análise vai para o WhatsApp em <b>PDF</b>, no lugar da foto — e agora dá para <b>dar zoom</b>", itens:[
+    {t:"c", h:"O botão 🖼️ <b>Enviar como imagem</b> virou 📄 <b>Enviar como PDF</b>", d:"Pedido do Tiago <b>no mesmo dia em que a v365 saiu</b>, depois de usar de verdade: <i>“a foto terminou ficando com a qualidade muito baixa pois pelo que entendi ela é um print e ao tentarmos dar zoom ela perde qualidade”</i>. 🔑 <b>Ele acertou a causa.</b> A foto era um retrato da tela: <b>pixel</b>. Aproximar só estica o que já existe, e o WhatsApp ainda <b>recomprime</b> imagem enviada como foto. O PDF leva <b>texto de verdade</b> — o zoom não tem fim — e o WhatsApp manda PDF como <b>documento</b>, sem recomprimir."},
+    {t:"m", h:"📏 O que isso mudou de tamanho, medido nas três empresas", d:"A análise de <b>14/08</b> dos postos era uma imagem de <b>1.120 × 2.848 pixels e 762 KB</b>; virou um PDF de <b>uma página A4 e 14 KB</b> — <b>54 vezes menor</b>. A da Conveniência dá 2 páginas (15 KB) e a da Transportadora, 1 página (12 KB). 👉 E some a <b>tira alta</b> que a v365 avisou que ia aparecer cortada na conversa: agora é uma página inteira."},
+    {t:"n", h:"Os selos ⚠️ ✅ 👀 viram <b>barra colorida + a palavra</b>", d:"A fonte que o PDF usa não desenha emoji — no lugar deles sairia lixo. Então cada achado ganhou uma <b>barra na lateral</b> e a palavra <b>ATENÇÃO</b>, <b>BOM</b> ou <b>DE OLHO</b> na cor dela. <b>Vermelho</b> e <b>verde</b> são fixos (significam gravidade, não marca) e o <b>de olho</b> segue a empresa: <b>ouro</b> na Full Transportadora, <b>laranja</b> nas outras duas. 🔑 Ícone explica para quem já sabe; a palavra ensina quem não sabe — e este PDF vai para gente de fora do app."},
+    {t:"c", h:"🔴 <b>Dois erros</b> que a conferência pegou <b>antes</b> de publicar — e o segundo apagava o sinal de menos", d:"<b>(1)</b> A limpeza de emoji que o app já usava no 📄 Exportar PDF apagava, junto, o <b>sinal de menos</b>: saía <i>“o ganho por litro caiu de R$ 1,2150 para R$ 1,0286 <b>(15,3%)</b>”</i>, com o número dizendo o <b>contrário</b> do texto. 📏 Medido caractere por caractere nas <b>54 análises</b> gravadas: naquela faixa existem <b>dois</b> sinais — o menos (<b>97 vezes</b>) e a seta → (<b>35 vezes</b>) — e <b>nenhum emoji</b>. Agora <b>22 sinais</b> são <b>traduzidos</b> (menos, setas, ≠, ≈, ≤, ≥, ✓, ▲, ▼…) em vez de apagados, e o que sobrar sem tradução <b>avisa no console</b> em vez de sumir calado. 🔑 Apagar caractere que carrega significado não é limpeza: é o texto mentindo com número do lado. <b>(2)</b> Um achado <b>maior que uma página inteira</b> era desenhado <b>para fora do papel</b> e o leitor de PDF <b>recortava</b> — 📏 medido: 8.000 caracteres chegavam a <b>y = 477 mm</b> num papel de 297, e <b>34 linhas sumiam sem erro nenhum</b>. Agora a quebra é <b>por linha</b>: o bloco continua mudando de página inteiro quando cabe numa, e quando não cabe ele <b>escorre em vez de sumir</b>."},
+    {t:"m", h:"O que <b>não</b> mudou, e o que isso custa", d:"O <b>texto</b> e o <b>copiar</b> continuam idênticos, com a análise inteira e os títulos em negrito. A <b>tela</b> da Análise não mudou <b>nada</b> — foi decisão dele quando a prévia encurtou a caixa da mensagem. ⚠️ Três custos, ditos na cara: o PDF <b>não mostra prévia</b> dentro da conversa como a foto mostrava (chega como documento para abrir); a montagem <b>precisa de internet na primeira vez</b>, porque o <b>jsPDF</b> vem de fora e não está no pacote que o app guarda para funcionar sem rede; e o PDF gasta <b>~40% mais papel</b> do que precisaria, porque a conta de altura de linha é folgada — folga que é o que garante que nada encoste no rodapé."}
+  ]},
   {v:"v365", data:"14/08/2026", tit:"🧠 A <b>Análise</b> ganhou os três botões do WhatsApp — nas <b>três empresas</b>", itens:[
     {t:"n", h:"<b>🖼️ Enviar como imagem</b>, <b>📲 Enviar como texto</b> e <b>📋 Copiar mensagem</b>", d:"Pedido do Tiago: <i>“teria como no menu Análise - IA tanto dos Postos Full como da Full Conveniência e da Full Transportadora acrescentarmos esses botões para eu poder compartilhar no WhatsApp?”</i>. São os <b>mesmos três</b> do 📊 Resumo do dia. No <b>celular</b> a imagem abre direto o compartilhamento; no <b>computador</b>, ela baixa com o nome <b>analise-postos-2026-08-14.png</b> e é só anexar. O <b>texto</b> vai com os títulos em negrito do WhatsApp, e a análise <b>inteira</b> — resumo, todos os achados, o <b>📌 O que vale conferir</b> e o rodapé."},
     {t:"n", h:"O cartão sai com a <b>logo da empresa em que você está</b>", d:"Este é o único ponto em que este cartão difere dos outros três do app: o <b>Resumo do dia</b>, o <b>Pedido</b> e o <b>Recebimento</b> vivem cada um numa empresa só, e por isso têm a logo escrita no código. A <b>Análise existe nas três</b>, então <b>logo, nome e a cor do risco lateral</b> saem da empresa aberta — <b>ouro</b> na Full Transportadora, <b>laranja</b> nas outras duas. E o rodapé continua mandando conferir <b>no Petros</b> nos postos e nas lojas, e <b>no Infleet e nos CT-e</b> na Transportadora, como desde a v174."},
@@ -11595,21 +11581,20 @@ function anaDatasDe(sigla){
     .map(k => k.slice(sigla.length + 1))
     .sort().reverse();
 }
-/* ============ v365 - a Analise vai para o WhatsApp ============
-   O caminho e' o MESMO do 📊 Resumo do dia (v154) e do 📥 Recebimento (v317): um cartao que mora
-   fora da tela com a classe `.cardres`, `html2canvas`, e `navigator.share` no celular / download
-   no computador. NENHUMA PECA NOVA de geracao de imagem.
-   🔴 O QUE MUDA AQUI, e e' o unico ponto: a LOGO. As outras tres telas tem o arquivo escrito a
-   mao porque cada uma vive numa empresa so; a Analise existe nas TRES (`emp:"postos|conv|transp"`
-   em MENUS_APP), entao logo, nome e cor de acento saem de `anaMarcaEmpresa()`.
-   ⚠️ Os tres PNG ja estao no `ARQUIVOS` do sw.js desde sempre — nada de novo para cachear. */
-const ANA_MARCA = {
-  postos:         { arq:"logo-full.png",           alt:"Postos Full",         cor:"#FE7030" },
-  conveniencia:   { arq:"logo-conveniencia.png",   alt:"Full Conveniência",   cor:"#FE7030" },
-  transportadora: { arq:"logo-transportadora.png", alt:"Full Transportadora", cor:"#96780F" }
-};
-function anaMarcaEmpresa(){ return ANA_MARCA[empresa] || ANA_MARCA.postos; }
-// 🔑 A cor do item e' FIXA (vira PNG), menos a do "olho", que segue a marca da empresa.
+/* ============ v365/v366 - a Analise vai para o WhatsApp ============
+   Sao TRES botoes: 📄 PDF, 📲 texto e 📋 copiar. Os dois ultimos nasceram na v365; o primeiro era
+   🖼️ imagem na v365 e virou PDF na v366, no mesmo dia, depois de ele USAR: *"a foto terminou
+   ficando com a qualidade muito baixa... ao tentarmos dar zoom ela perde qualidade"*.
+   🔴 O QUE ESTE MENU TEM DE DIFERENTE DOS OUTROS QUE MANDAM PARA O WHATSAPP: ele existe nas TRES
+   empresas (`emp:"postos|conv|transp"` em MENUS_APP), enquanto o 📊 Resumo do dia, o 📝 Pedido e o
+   📥 Recebimento vivem cada um numa so. Por isso a cor de acento nao pode ser escrita a mao: ela
+   sai de `anaCorEmpresa()` — OURO na Transportadora, LARANJA nas outras duas.
+   ⚠️ A LOGO nao entra no PDF, e isso e' de propósito: NENHUM PDF deste app tem logo — o cabecalho
+   e' a faixa preta com o nome da empresa por extenso (`cabecalhoPDF`), e sair do padrao aqui faria
+   o unico PDF diferente ser justamente o que vai para gente de fora. */
+const ANA_COR_EMPRESA = { postos:"#FE7030", conveniencia:"#FE7030", transportadora:"#96780F" };
+function anaCorEmpresa(){ return ANA_COR_EMPRESA[empresa] || ANA_COR_EMPRESA.postos; }
+// 🔑 Vermelho e verde sao FIXOS: significam gravidade, nao marca. So o "de olho" segue a empresa.
 function anaCorItem(tipo, cor){ return tipo === "atencao" ? "#b42318" : (tipo === "bom" ? "#087443" : cor); }
 // O documento que esta na tela AGORA — ou null. Uma so porta para os quatro usos (tela, imagem,
 // texto e copia), para nao existir "tem analise" respondido de dois jeitos diferentes.
@@ -11662,66 +11647,220 @@ function montarTextoAnalise(){
   L.push(anaRodapeTexto(a, sigla));
   return L.join("\n");
 }
-// Monta o cartao (fica fora da tela ate alguem pedir a imagem)
-function montarCartaoAnalise(){
-  const a = anaDocAtual();
-  const el = document.getElementById("cartaoAnalise");
-  if (!a || !el) return null;
-  const sigla = anaEmpresaAtual(), mc = anaMarcaEmpresa();
-  let h = "";
-  h += '<div class="cardres-topo"><img src="' + mc.arq + '" alt="' + escAttr(mc.alt) + '">' +
-       '<div class="cardres-dt">🧠 Análise de<b>' + fmtDataCurta(anaSel) + '</b></div></div>';
-  h += '<div class="cardres-corpo">';
-  if (a.periodo) h += '<div class="cardres-ana-per">Período analisado: ' + escAttr(a.periodo) + '</div>';
-  if (a.resumo)  h += '<div class="cardres-ana-resumo" style="border-left-color:' + mc.cor + '">' + escAttr(a.resumo) + '</div>';
-  (Array.isArray(a.itens) ? a.itens : []).forEach(it => {
-    const i = it || {};                      // ver a guarda de `montarTextoAnalise`
-    const tipo = ANA_SELO[i.tipo] ? i.tipo : "olho";
-    h += '<div class="cardres-ana-item" style="border-left-color:' + anaCorItem(tipo, mc.cor) + '">' +
-      '<div class="cardres-ana-tit"><span>' + ANA_SELO[tipo] + '</span><span>' + escAttr(i.titulo || "") + '</span>' +
-      (i.unidade ? '<span class="cardres-ana-uni">' + escAttr(i.unidade) + '</span>' : '') + '</div>' +
-      (i.texto ? '<div class="cardres-ana-txt">' + escAttr(i.texto) + '</div>' : '') +
-      '</div>';
-  });
-  const conf = Array.isArray(a.conferir) ? a.conferir.filter(Boolean) : [];
-  if (conf.length){
-    h += '<div class="cardres-ana-conf"><b>📌 O que vale conferir</b><ul>' +
-      conf.map(c => '<li>' + escAttr(c) + '</li>').join("") + '</ul></div>';
-  }
-  h += '<div class="cardres-ana-rod">' + escAttr(anaRodapeTexto(a, sigla)) + '</div>';
-  h += '</div>';
-  el.innerHTML = h;
-  return el;
+function anaNomeArquivo(ext){
+  return "analise-" + anaEmpresaAtual() + "-" + (anaSel || "") + "." + (ext || "pdf");
 }
-function anaNomeArquivo(){
-  return "analise-" + anaEmpresaAtual() + "-" + (anaSel || "") + ".png";
-}
-async function gerarImagemAnalise(){
+/* 🔴 v366 - O PDF NO LUGAR DA FOTO. Pedido dele depois de USAR a v365 no WhatsApp:
+   *"a foto terminou ficando com a qualidade muito baixa pois pelo que entendi ela é um print e ao
+   tentarmos dar zoom ela perde qualidade"*. 🔑 Ele está certo na causa: `html2canvas` fotografa a
+   tela, e foto é PIXEL — o zoom só estica o que já existe. E o WhatsApp ainda RECOMPRIME a imagem,
+   o que a v365 já tinha escrito como custo no 🎁 Novidades, sem ninguém ter medido o quanto doía.
+   👉 Aqui o texto é VETOR: o mesmo motor do 📄 Exportar PDF (`exportarPDFTexto`), que escreve com
+   `doc.text` + `splitTextToSize` em vez de colar imagem. Zoom não tem fim, e o WhatsApp manda PDF
+   como DOCUMENTO — não recomprime.
+   ⚠️ O PREÇO, e é o único: a Helvetica do jsPDF não desenha emoji. Os selos ⚠️ ✅ 👀 viram uma
+   BARRA COLORIDA + a palavra (ATENÇÃO / BOM / DE OLHO) — 🔑 e isso segue a v286: *ícone explica o
+   estado para quem já sabe; verbo ensina quem não sabe*. */
+async function exportarPDFAnalise(){
   const m = document.getElementById("anaMsg");
-  const el = montarCartaoAnalise();
-  if (!el){ if (m) m.textContent = "Não há análise para este dia."; return; }
-  if (m) m.textContent = "Gerando a imagem…";
+  const a = anaDocAtual();
+  if (!a){ if (m) m.textContent = "Não há análise para este dia."; return; }
+  if (m) m.textContent = "Montando o PDF…";
   try {
     await carregarBibliotecasPDF();
-    const canvas = await html2canvas(el, { scale:2, backgroundColor:"#ffffff", useCORS:true, logging:false });
-    const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
-    const nome = anaNomeArquivo();
+    const sigla = anaEmpresaAtual(), corEmp = anaCorEmpresa();
+    const rgb = h => [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)];
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation:"portrait", unit:"mm", format:"a4" });
+    const margL = 12, margR = 12, pageW = 210, pageH = 297, limiteY = pageH - 14;
+    const contentW = pageW - margL - margR;
+    const sub = "Análise — " + (NOME_EMPRESA[empresa] || "Postos Full") + "  ·  " + fmtDataCurta(anaSel);
+    let y;
+    const nova = (primeira) => { if (!primeira) doc.addPage(); cabecalhoPDF(doc, sub); y = 30; };
+    /* 🔴 AQUI ESTAVA O DEFEITO QUE A PRÓPRIA FOTO DO PDF PEGOU, ANTES DE PUBLICAR.
+       O `exportarPDFTexto` limpa emoji com `replace(/[←-⯿…]/g, "")` — e essa faixa
+       **engole o sinal de menos tipográfico** `−` (U+2212). No PDF saía
+       *"o ganho por litro caiu de R$ 1,2150 para R$ 1,0286 (15,3%)"* — **sem o menos**, ou seja,
+       o número dizendo o CONTRÁRIO do que a análise escreveu.
+       📏 MEDIDO nas 54 análises gravadas, caractere por caractere: dentro daquela faixa existem
+       **exatamente dois** — `−` (U+2212) **97 vezes** e `→` (U+2192) **35 vezes**. **Emoji de
+       verdade: ZERO** (os emoji são só dos textos que EU monto, como o 🧠 do título).
+       👉 Então o certo não é APAGAR: é TRADUZIR o que tem significado, e apagar só o resto.
+       🔑 Apagar um caractere que carrega significado não é limpeza — é a tela mentindo com número
+       do lado. ⚠️ O `exportarPDFTexto` do resto do app continua com a versão antiga: é dívida
+       registrada, não consertada aqui (correção estreita vale mais que correção geral). */
+    /* ⚠️ SÓ entram aqui os que CAEM na faixa varrida. O travessão `—`, as aspas curvas, as
+       reticências, o `•`, o `×`, o `÷`, o `€`, o `º`, o `±` e TODOS os acentos do português ficam
+       de fora de propósito: estão fora da faixa **e** a fonte do PDF os desenha — medido no
+       arquivo gerado, com a fonte saindo como `/Helvetica /WinAnsiEncoding`.
+       🔴 A PRIMEIRA VERSÃO DESTA TABELA TINHA OITO ENTRADAS E UM REVISOR A DERRUBOU: dentro da
+       faixa continuavam sendo APAGADOS em silêncio o `≠`, o `↗`, o `↘`, o `▲`, o `▼`, o `✓` e mais
+       oito — ou seja, o defeito do sinal de menos consertado para DOIS casos e deixado de pé para
+       catorze. *"1,2150 ≠ 1,0286"* virava *"1,2150  1,0286"*. 🔑 Consertar dois de dezesseis e
+       escrever no Novidades que apagar caractere com significado não é limpeza é pior que não
+       consertar: passa a impressão de que ficou resolvido.
+       🔑 E o que sobrar sem tradução NÃO some calado: avisa no console, como a trava da v363 —
+       porque quando ele age, o texto do PDF fica diferente do que a análise escreveu. */
+    const TROCA_PDF = {
+      "−":"-",  "–":"-",  "⁻":"-",  "‑":"-",
+      "→":"->", "←":"<-", "↔":"<->", "⇒":"=>",
+      "↑":"(sobe)", "↗":"(sobe)", "▲":"(sobe)",
+      "↓":"(cai)",  "↘":"(cai)",  "▼":"(cai)",
+      "≠":"/=", "≈":"~", "≤":"<=", "≥":">=",
+      "✓":"OK", "✔":"OK", "☑":"OK",
+      "●":"*", "■":"*", "◆":"*", "★":"*",
+      "√":"raiz de", "∞":"infinito"
+    };
+    const semTraducao = [];
+    const semSimbolos = t => String(t == null ? "" : t)
+      .replace(/[←-⯿]/g, c => {
+        if (c in TROCA_PDF) return TROCA_PDF[c];
+        if (semTraducao.indexOf(c) < 0) semTraducao.push(c);
+        return "";
+      })
+      .replace(/[︀-️\u200B]|[\u{1F000}-\u{1FFFF}]/gu, "");
+    const limpar = v => semSimbolos(v).replace(/\s+/g, " ").trim();
+    const alturaLinha = s => s * 0.42 + 1.6;
+    // mede ANTES de desenhar, para a barra colorida ter a altura do bloco e para o título nunca
+    // ficar órfão no pé da página
+    function linhasDe(t, size, bold, larg){
+      doc.setFont("helvetica", bold ? "bold" : "normal"); doc.setFontSize(size);
+      return doc.splitTextToSize(t, larg);
+    }
+    /* 🔴 A REDE DE BAIXO, e ela nasceu de um ACHADO DO REVISOR na v366, antes de publicar:
+       o `if (y + alt > limiteY) nova(false)` de cada bloco abre UMA página. Se um achado sozinho
+       for mais alto que a página inteira, aquele `if` dispara uma vez e o texto continua descendo
+       — 📏 medido com o jsPDF de verdade: um achado de 8.000 caracteres chegava a **y = 477 mm**
+       num papel de 297, e o leitor de PDF simplesmente **recortava 34 linhas**, sem erro nenhum.
+       🔑 Perder texto em silêncio é o pior jeito de falhar, e este documento vai para gente de
+       fora. Aqui a quebra é POR LINHA: o bloco continua mudando de página inteiro quando CABE
+       numa, e quando não cabe ele escorre em vez de sumir. */
+    function escreveLinhas(linhas, x, size, bold, cor){
+      const lh = alturaLinha(size);
+      for (const ln of linhas){
+        if (y + lh > limiteY){ nova(false); doc.setFont("helvetica", bold ? "bold" : "normal");
+                               doc.setFontSize(size); doc.setTextColor(cor[0], cor[1], cor[2]); }
+        else { doc.setFont("helvetica", bold ? "bold" : "normal");
+               doc.setFontSize(size); doc.setTextColor(cor[0], cor[1], cor[2]); }
+        doc.text(ln, x, y); y += lh;
+      }
+    }
+    // o que cabe numa página inteira, do topo do conteúdo até o limite
+    const espacoDaPagina = limiteY - 30;
+    // 🔑 bloco que NÃO cabe numa página não ganha nada mudando de página: ele escorre.
+    const abreEspaco = alt => { if (y + alt > limiteY && alt <= espacoDaPagina) nova(false); };
+    // e a barra colorida nunca desce além do papel
+    const alturaBarra = (topo, alt) => Math.min(alt, limiteY - topo + 3);
+    nova(true);
+
+    if (a.periodo){
+      const l = linhasDe("Período analisado: " + limpar(a.periodo), 8.5, false, contentW);
+      escreveLinhas(l, margL, 8.5, false, [120,120,120]);
+      y += 2;
+    }
+
+    // ── o resumo, com a barra da empresa ──
+    if (a.resumo){
+      const larg = contentW - 6;
+      const l = linhasDe(limpar(a.resumo), 10.5, false, larg);
+      const alt = l.length * alturaLinha(10.5) + 6;
+      abreEspaco(alt);
+      const topo = y, altB = alturaBarra(topo - 4, alt);
+      doc.setFillColor(246,247,249); doc.rect(margL, topo - 4, contentW, altB, "F");
+      const c = rgb(corEmp); doc.setFillColor(c[0], c[1], c[2]); doc.rect(margL, topo - 4, 1.6, altB, "F");
+      y = topo + 1;
+      escreveLinhas(l, margL + 6, 10.5, false, [27,31,36]);
+      y = topo - 4 + alt + 5;
+    }
+
+    // ── os achados ──
+    const ROT = { atencao:"ATENÇÃO", bom:"BOM", olho:"DE OLHO" };
+    (Array.isArray(a.itens) ? a.itens : []).forEach(it => {
+      const i = it || {};
+      const tipo = ANA_SELO[i.tipo] ? i.tipo : "olho";
+      const cor = rgb(anaCorItem(tipo, corEmp));
+      const larg = contentW - 6;
+      const lTit = linhasDe(limpar(i.titulo || ""), 10, true, larg);
+      const lTxt = i.texto ? linhasDe(limpar(i.texto), 9, false, larg) : [];
+      const alt = 4.5 + lTit.length * alturaLinha(10) + (lTxt.length ? lTxt.length * alturaLinha(9) + 1 : 0) + 4;
+      // 🔴 o bloco INTEIRO muda de página junto: título sem o texto dele é pior que página com folga
+      abreEspaco(alt);
+      const topo = y;
+      doc.setFillColor(cor[0], cor[1], cor[2]); doc.rect(margL, topo - 3, 1.6, alturaBarra(topo - 3, alt), "F");
+      // a palavra do selo, na cor dele, e a unidade do outro lado
+      doc.setFont("helvetica","bold"); doc.setFontSize(7);
+      doc.setTextColor(cor[0], cor[1], cor[2]);
+      doc.text(ROT[tipo], margL + 6, topo);
+      if (i.unidade){
+        doc.setFont("helvetica","normal"); doc.setFontSize(7);
+        doc.setTextColor(120,120,120);
+        doc.text(limpar(i.unidade), pageW - margR, topo, { align:"right" });
+      }
+      y = topo + 4.5;
+      escreveLinhas(lTit, margL + 6, 10, true, [27,31,36]);
+      if (lTxt.length){ y += 1; escreveLinhas(lTxt, margL + 6, 9, false, [55,60,66]); }
+      y = topo - 3 + alt + 3;
+    });
+
+    // ── o que vale conferir ──
+    const conf = Array.isArray(a.conferir) ? a.conferir.filter(Boolean) : [];
+    if (conf.length){
+      const lTit = linhasDe("O QUE VALE CONFERIR", 9, true, contentW);
+      // 🔑 o título de seção corre o MESMO risco de orfandade do título do achado — reserva ele
+      // MAIS a primeira linha da lista. (Achado do revisor: só ele estava sem essa conta.)
+      const primeira = linhasDe(limpar(conf[0]), 9, false, contentW - 6);
+      abreEspaco(3 + lTit.length * alturaLinha(9) + 1.5 + primeira.length * alturaLinha(9));
+      y += 3;
+      escreveLinhas(lTit, margL, 9, true, [27,31,36]);
+      y += 1.5;
+      conf.forEach(c => {
+        const l = linhasDe(limpar(c), 9, false, contentW - 6);
+        abreEspaco(l.length * alturaLinha(9));
+        const topo = y;
+        doc.setFillColor(120,120,120); doc.circle(margL + 1.6, topo - 1.2, 0.7, "F");
+        escreveLinhas(l, margL + 5, 9, false, [55,60,66]);
+        y += 1;
+      });
+    }
+
+    // ── o rodapé, a MESMA frase da tela e do WhatsApp ──
+    const lRod = linhasDe(limpar(anaRodapeTexto(a, sigla)), 7.5, false, contentW);
+    abreEspaco(lRod.length * alturaLinha(7.5) + 6);
+    y += 5;
+    doc.setDrawColor(232,234,237); doc.line(margL, y - 3, pageW - margR, y - 3);
+    escreveLinhas(lRod, margL, 7.5, false, [120,120,120]);
+
+    // 🔴 o aviso da trava: se algum sinal foi APAGADO sem tradução, o PDF ficou diferente do texto
+    // que a análise escreveu — e isso tem de aparecer para quem for consertar.
+    if (semTraducao.length) console.warn("PDF da Análise: sinais apagados sem tradução —",
+      semTraducao.map(c => c + " (U+" + c.codePointAt(0).toString(16).toUpperCase().padStart(4,"0") + ")").join(", "));
+
+    // "Página X de Y" só no fim, porque o total só se conhece depois (o padrão da casa)
+    const total = doc.internal.getNumberOfPages();
+    for (let p = 1; p <= total; p++){
+      doc.setPage(p); doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(150,150,150);
+      doc.text("Página " + p + " de " + total, pageW - margR, pageH - 5, { align:"right" });
+    }
+
+    // ── a entrega: o MESMO bloco do botão de imagem, trocando só o tipo do arquivo ──
+    const blob = doc.output("blob");
+    const nome = anaNomeArquivo("pdf");
     const legenda = "🧠 Análise — " + (NOME_EMPRESA[empresa] || "Postos Full") + " · " + fmtDataCurta(anaSel);
-    const arq = new File([blob], nome, { type:"image/png" });
+    const arq = new File([blob], nome, { type:"application/pdf" });
     if (navigator.canShare && navigator.canShare({ files:[arq] })){
       await navigator.share({ files:[arq], text: legenda });
-      if (m) m.textContent = "Escolha o grupo para enviar a imagem.";
+      if (m) m.textContent = "Escolha o grupo para enviar o PDF.";
       return;
     }
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = nome; document.body.appendChild(a); a.click();
-    document.body.removeChild(a);
+    const el = document.createElement("a");
+    el.href = url; el.download = nome; document.body.appendChild(el); el.click();
+    document.body.removeChild(el);
     setTimeout(() => URL.revokeObjectURL(url), 5000);
-    if (m) m.textContent = "Imagem salva (" + nome + ") — é só anexar no WhatsApp.";
+    if (m) m.textContent = "PDF salvo (" + nome + ") — é só anexar no WhatsApp.";
   } catch(e){
     if (m) m.textContent = (e && e.name === "AbortError") ? "Envio cancelado."
-      : ("Não consegui gerar a imagem: " + (e && e.message ? e.message : e));
+      : ("Não consegui montar o PDF: " + (e && e.message ? e.message : e));
   }
 }
 function enviarAnaliseWhats(){
