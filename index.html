@@ -7809,6 +7809,12 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v364", data:"13/08/2026", tit:"📥 <b>Recebimento de combustível</b>: o nome da aditivada de Caxias, e os <b>litros de Caxias consertados no servidor</b>", itens:[
+    {t:"c", h:"<b>GASOLINA ADITIVADA</b> no lugar de <b>GASOLINA ADITIVADA GRID</b>", d:"O nome do tanque vinha <b>cru do cadastro do Petros</b>, e lá o tanque 01 de Caxias está registrado como <b>TQ 01 - GASOLINA ADITIVADA GRID</b> — enquanto o <b>produto</b> daquele mesmo tanque, no cadastro, é <b>GASOLINA ADITIVADA</b>, igual ao de Dutra. 👉 Por decisão sua, o conserto é <b>só no nosso app</b>: o cadastro do Petros fica como está. 🔎 A troca é estreita de propósito — cai o <b>GRID</b> que sobra <b>depois de ADITIVADA</b>, e só ele. Em <b>Teresina</b> nada muda: lá existe um produto que se chama mesmo <b>GASOLINA GRID</b>, e o GRID não sobra, é o produto. 📏 Dos 16 tanques da rede, a regra toca <b>um</b>."},
+    {t:"m", h:"Muda nos <b>três</b> lugares, não em um", d:"O cartão da tela, o <b>texto do WhatsApp</b> e o <b>cartão que vira imagem</b> passaram a falar igual. Mexer só no cartão faria a tela e a imagem enviada ao grupo contarem histórias diferentes sobre o mesmo tanque. 🔎 No <b>computador</b>, passando o mouse no nome aparece o que o Petros manda; <b>no celular esse balão não abre</b>, e essa é a parte que esta versão tira de você — o mesmo custo que a v363 pagou no Nível dos tanques."},
+    {t:"c", h:"🔴 E os <b>litros de Caxias</b> estavam errados — isso foi consertado <b>no servidor</b>, hoje", d:"Não é mudança do app, mas é a mesma tela, então está escrito aqui. O programa que remonta as descargas jogava fora pedaços inteiros da entrega em Caxias: no dia <b>13/08</b> a tela mostrava <b>16.731 L</b> recebidos contra notas de <b>40.000 L</b>, com <b>cinco</b> tanques marcados <b>⚠️ fora da faixa</b>. 📏 Depois do conserto: <b>39.496 L</b> — TQ 01 <b>4.695</b>, TQ 02 <b>5.088</b>, TQ 04 <b>5.088</b>, TQ 05 <b>14.792</b>, TQ 06 <b>9.833</b>. 🔑 <b>O combustível sempre esteve no tanque</b>: quem errava era a conta. ✅ Os dias <b>12</b> e <b>13/08</b> já foram reescritos com os números certos."},
+    {t:"c", h:"🔎 Por que só Caxias, e o que ainda não está resolvido", d:"A sonda de <b>Caxias</b> grava de <b>1 em 1 minuto</b>; a de Teresina e a de Dutra, de 5 em 5. Nessa leitura fina o próprio balanço do combustível entrando faz o nível oscilar, e uma regra que existia para descartar leitura defeituosa passou a descartar a descarga inteira. <b>Teresina e Dutra saíram com os números idênticos aos de antes</b> — foi conferido tanque a tanque no mesmo dia. ⚠️ <b>O que ainda não mudou:</b> os cartões de Caxias podem continuar com o selo <b>fora da faixa</b>, porque a faixa é de <b>±1%</b> e lá a diferença agora fica entre 1,4% e 6,1%. Esse <b>±1%</b> é um número escolhido, nunca medido — vai ser medido com os próximos dias de dado antes de mexer."}
+  ]},
   {v:"v363", data:"13/08/2026", tit:"🛢️ O nome do <b>diesel</b> para de cair para a linha de baixo no <b>Nível dos tanques</b>", itens:[
     {t:"m", h:"<b>DIESEL S10 GRID</b>, <b>DIESEL S10</b> e <b>DIESEL S500</b> no lugar do nome do sistema", d:"A etiqueta do produto mostrava o nome cru do Petros — <b>OLEO DIESEL S10 ADITIVADO</b> em Teresina e <b>OLEO DIESEL B S10 COMUM</b> em Caxias e Dutra — e ele não cabia ao lado de <b>Tanque N</b>, então caía para a linha de baixo. 📏 <b>Medido com a fonte do app, dentro do próprio app:</b> a etiqueta do S10 aditivado só cabe na mesma linha em cartão de <b>317px</b> para cima, e a do S10 comum, <b>310px</b>. As novas cabem a partir de <b>249px</b>, <b>229px</b> e <b>219px</b>. 👉 Na prática: <b>em qualquer celular de 320px de largura para cima</b> (o menor iPhone), e em qualquer computador. São os mesmos nomes que <b>Preços</b> e <b>Descontos</b> já usam."},
     {t:"m", h:"O nome do sistema continua ali, no <b>computador</b>", d:"Passando o mouse na etiqueta aparece o nome inteiro que o Petros manda. ⚠️ <b>No celular não aparece</b> — o toque não abre esse balão, e essa é a parte que esta versão tira de você. 🔎 <b>Mas só o TEXTO mudou:</b> a <b>cor</b> de cada produto, a cor que você escolheu à mão em <b>✏️ Personalizar</b> e o menu <b>🛒 O que comprar</b> continuam trabalhando com o nome do sistema — <b>nada que estava salvo se perdeu</b>, e o 🛒 O que comprar continua mostrando o nome comprido de propósito."},
@@ -17968,6 +17974,42 @@ function rcbHojeIso(){
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 }
 
+/* ===== v364 - O NOME DO TANQUE NESTA TELA ==========================================
+   🔴 O NOME VEM CRU DO CADASTRO DO PETROS. O coletor grava `t.tanque` exatamente como o ERP
+   registrou o TANQUE, e em CAXIAS o tanque 001 esta' cadastrado como
+   "TQ 01 - GASOLINA ADITIVADA GRID" — enquanto o PRODUTO do mesmo tanque, no
+   `config/tanquesNivel`, e' "GASOLINA ADITIVADA", igual ao de Dutra. 📏 Lido do Firestore em
+   13/08/2026, nos 16 tanques dos tres postos.
+   👉 DECISAO DELE: consertar SO' NO NOSSO APP e deixar o cadastro do Petros quieto
+      ("nao estou mais usando o outro sistema e o suporte deles e' ruim").
+
+   🔴 A REGRA E' ESTREITA DE PROPOSITO, e a estreiteza E' o conserto: so' cai o " GRID" que vem
+   DEPOIS de "ADITIVAD…". Em TERESINA existe um produto que se chama mesmo "GASOLINA GRID"
+   (o tanque 03), e ali o GRID nao sobra: e' o produto. Encurtar aquele seria a tela mentindo
+   sobre o que esta' no tanque. 📏 Dos 16 nomes reais, a regra toca UM.
+
+   🚩 E POR QUE NAO TEM A TRAVA ANTICOLISAO DO `tqvMapaRotulos` (v363): ali os rotulos disputam
+   entre si porque o nome e' so' o produto. Aqui todo nome cru comeca com "TQ NN - ", que ja' e'
+   unico por tanque — dois rotulos so' colidiriam se dois tanques tivessem o MESMO numero no
+   MESMO posto. A trava foi escrita, medida contra os 16 nomes reais, NUNCA disparou, e saiu.
+   🔑 Guarda que nao pode disparar nao e' zelo: e' a "conferencia cujo verde nao pode falhar".
+   ⚠️ O risco que sobra e' outro, e nenhuma trava dessas pegaria: se o Petros inventar um QUARTO
+   nome (ex. "GASOLINA ADITIVADA GRID II"), a regra encurta e ninguem percebe. Quem for mexer
+   aqui confere a lista de nomes crus antes.
+
+   ⚠️ O NOME CRU CONTINUA ALCANCAVEL no computador, pelo `title` do cartao — e some no celular,
+   que e' o mesmo custo que a v363 pagou e declarou no 🛢️ Nivel dos tanques.
+   🔴 E ELE ENTRA EM TRES SAIDAS, nao uma: o cartao da tela, o texto do WhatsApp e o cartao que
+   vira imagem. Mexer em uma so' faria a tela e a imagem enviada ao grupo contarem historias
+   diferentes sobre o mesmo tanque. 👉 A suite trava a contagem em tres. */
+const RCB_ROT = [ [/(ADITIVAD[A-Z]*)\s+GRID\b/i, "$1"] ];
+
+function rcbRotulo(nome){
+  let s = String(nome === null || nome === undefined ? "" : nome);
+  for (const [de, para] of RCB_ROT) s = s.replace(de, para);
+  return s;
+}
+
 /* 🔴 A SITUACAO DE UM TANQUE NO DIA SE DECIDE AQUI, E SO' AQUI.
    A cor da borda, o selo, o texto e o contador do aviso do topo apenas USAM.
    🔑 E' a licao da v297: regra escrita em seis lugares diverge em dois deles, e quem descobre e'
@@ -18127,7 +18169,7 @@ function rcbTextoWhats(dia, nomePosto, p){
     const sit = rcbSituacao(t);
     if (!sit) return;
     const r = t.recebimentos;
-    l.push("• " + t.tanque + ": " + rcbL(t.recebidoBr) +
+    l.push("• " + rcbRotulo(t.tanque) + ": " + rcbL(t.recebidoBr) +
            (r.length > 1 ? " (" + r.length + " descargas)" : "") +
            "  — altura " + rcbMM(r[0].altIni) + " → " + rcbMM(r[r.length - 1].altFim) +
            ", das " + rcbHora(r[0].inicio) + " às " + rcbHora(r[r.length - 1].fim));
@@ -18202,7 +18244,7 @@ function montarCartaoReceb(dia, nomePosto){
     const ini = r[0], fim = r[r.length - 1];
     total += Number(t.recebidoBr) || 0;
 
-    h += cardLinhaResumo(t.tanque, rcbL(t.recebidoBr));
+    h += cardLinhaResumo(rcbRotulo(t.tanque), rcbL(t.recebidoBr));
     /* a linha miudinha: a HORA e a ALTURA — que é o número pelo qual o recebimento é conferido */
     h += rcbCartaoLinhaSub(
       rcbHora(ini.inicio) + '–' + rcbHora(fim.fim) +
@@ -19390,7 +19432,8 @@ function renderRecebimento(){
         const r = t.recebimentos;
         const ini = r[0], fim = r[r.length - 1];
         h += '<div class="rcb-card rcb-' + sit.k + '">' +
-               '<div class="rcb-top"><span class="rcb-prod">' + escAttr(t.tanque) + '</span>' +
+               '<div class="rcb-top"><span class="rcb-prod" title="' + escAttr(t.tanque) + '">' +
+                 escAttr(rcbRotulo(t.tanque)) + '</span>' +
                  '<span class="rcb-hora">' + rcbHora(ini.inicio) + '–' + rcbHora(fim.fim) +
                  '</span></div>' +
                '<div class="rcb-litros">' + rcbL(t.recebidoBr) +
