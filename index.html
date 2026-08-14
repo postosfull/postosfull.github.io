@@ -1785,6 +1785,14 @@
   .ana-item.atencao{border-left-color:var(--vermelho)}
   .ana-item.bom{border-left-color:#22c55e}
   .ana-item.olho{border-left-color:var(--verde)}
+  /* 🛑 v365 - A REGRA DE ALINHAMENTO DO CARTÃO NÃO ENTRA AQUI, E ISSO É DECISÃO DELE.
+     Um revisor cobrou que o conserto do título entrasse também na tela (a lição da v364, "muda nos
+     três lugares"), e a mudança chegou a ser medida e fotografada — na largura de celular ela
+     economizava duas linhas por achado. O Tiago viu a prévia e disse: *"encurtou a caixa com a
+     mensagem dentro do app, não gostei. no app pode deixar como estava antes mesmo. Você faz só a
+     parte dos botões"*. 🔑 A v365 é a versão dos BOTÕES: a tela da Análise fica intocada.
+     ⚠️ O custo, escrito para quem vier depois: a etiqueta da unidade se desenha de um jeito na
+     tela e de outro no cartão que vira imagem. Foi escolhido, não esquecido. */
   .ana-tit{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-weight:700;font-size:.93rem}
   .ana-uni{font-size:.7rem;font-weight:600;color:var(--cinza);background:var(--superficie);border:1px solid var(--borda);border-radius:20px;padding:1px 8px;white-space:nowrap}
   .ana-txt{font-size:.88rem;line-height:1.55;margin-top:5px;color:var(--txt)}
@@ -1794,6 +1802,33 @@
   .ana-conf li{margin-bottom:4px}
   .ana-rodape{font-size:.74rem;color:var(--cinza);font-style:italic;margin-top:14px;line-height:1.5}
   .ana-vazio{border:1px dashed var(--borda);border-radius:10px;padding:22px 16px;text-align:center;color:var(--cinza);font-size:.9rem;line-height:1.6}
+  /* v365 - a Analise em cartao de imagem, para o WhatsApp.
+     🔑 Cores FIXAS, como todo o resto do `.cardres`: isto vira PNG e sai do app — la nao existe
+     tema escuro nem `var()`. E o acento (a borda de 4px) NAO esta escrito aqui: ele vem por
+     `style` de `anaMarcaEmpresa()`, porque a Transportadora e' OURO e as outras duas sao LARANJA. */
+  .cardres-ana-per{font-size:12px;color:#6b7280;margin:0 0 10px}
+  /* ⚠️ O `border-left-color` daqui NUNCA aparece: `montarCartaoAnalise` sempre manda o da empresa
+     por `style`. Fica CINZA de propósito — hex de marca escrito num lugar que ninguém vê é mais
+     um sítio para a próxima troca de cor esquecer. (Achado do revisor.) */
+  .cardres-ana-resumo{background:#f6f7f9;border-left:4px solid #6b7280;border-radius:0 10px 10px 0;
+    padding:12px 14px;margin:0 0 14px;font-size:15px;line-height:1.6}
+  .cardres-ana-item{background:#f9fafb;border:1px solid #e8eaed;border-left:4px solid #6b7280;
+    border-radius:10px;padding:10px 12px;margin:8px 0}
+  /* 🔴 A FOTO PEGOU, e por isso esta regra existe: com `flex-wrap` solto, TÍTULO LONGO empurrava o
+     selo ⚠️ para uma linha sozinho e a pastilha da unidade para uma TERCEIRA — dois itens do mesmo
+     cartão saíam com desenhos diferentes. Aqui o selo e a pastilha ficam presos nas pontas e quem
+     quebra e' o TITULO, no meio. 📏 Medido no cartao de 14/08 dos postos: 1.483 -> 1.424 px. */
+  .cardres-ana-tit{display:flex;gap:5px 8px;align-items:baseline;flex-wrap:wrap;font-weight:700;font-size:14px;line-height:1.35}
+  .cardres-ana-tit > span:nth-child(2){flex:1 1 0;min-width:0}
+  .cardres-ana-uni{font-size:11px;font-weight:600;color:#6b7280;background:#fff;border:1px solid #e8eaed;
+    border-radius:20px;padding:1px 8px;white-space:nowrap;flex:0 1 100%;max-width:max-content;align-self:flex-start}
+  .cardres-ana-txt{font-size:13px;line-height:1.55;margin-top:5px;color:#1b1f24}
+  .cardres-ana-conf{background:#f9fafb;border:1px solid #e8eaed;border-radius:10px;padding:11px 13px;margin-top:14px}
+  .cardres-ana-conf b{font-size:13px}
+  .cardres-ana-conf ul{margin:7px 0 0;padding-left:18px;font-size:13px;line-height:1.5}
+  .cardres-ana-conf li{margin-bottom:4px}
+  .cardres-ana-rod{font-size:11px;color:#6b7280;font-style:italic;margin-top:14px;line-height:1.5;
+    border-top:1px solid #e8eaed;padding-top:10px}
   .evo-filtros .desc-campo{flex:0 1 200px;min-width:150px}
   .evo-filtros .desc-campo.auto{flex:0 0 auto;min-width:0}
   .evo-filtros .dash-check{padding:9px 0;white-space:nowrap;text-transform:none;letter-spacing:0;font-size:.9rem;font-weight:400;color:var(--txt)}
@@ -4279,6 +4314,16 @@
         <div class="desc-campo"><label>Análise de</label><select id="anaData" onchange="anaSel=this.value;renderAnalise()"></select></div>
       </div>
       <div id="anaBox"></div>
+      <!-- v365 - os tres botoes do Resumo do dia, agora tambem aqui.
+           🔴 A linha inteira e' ESCONDIDA por `renderAnalise` quando nao ha analise, junto com a
+           `.evo-filtros` — botao que gera cartao vazio e' pior que botao nenhum. -->
+      <div id="anaAcoes" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px">
+        <button class="btn-verde" onclick="gerarImagemAnalise()">🖼️ Enviar como imagem</button>
+        <button class="btn-claro" onclick="enviarAnaliseWhats()">📲 Enviar como texto</button>
+        <button class="btn-claro" onclick="copiarAnaliseTexto()">📋 Copiar mensagem</button>
+      </div>
+      <div id="cartaoAnalise" class="cardres"></div>
+      <p class="nota-dash" id="anaMsg" style="margin-top:8px"></p>
     </div>
   </div>
 
@@ -7809,6 +7854,15 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v365", data:"14/08/2026", tit:"🧠 A <b>Análise</b> ganhou os três botões do WhatsApp — nas <b>três empresas</b>", itens:[
+    {t:"n", h:"<b>🖼️ Enviar como imagem</b>, <b>📲 Enviar como texto</b> e <b>📋 Copiar mensagem</b>", d:"Pedido do Tiago: <i>“teria como no menu Análise - IA tanto dos Postos Full como da Full Conveniência e da Full Transportadora acrescentarmos esses botões para eu poder compartilhar no WhatsApp?”</i>. São os <b>mesmos três</b> do 📊 Resumo do dia. No <b>celular</b> a imagem abre direto o compartilhamento; no <b>computador</b>, ela baixa com o nome <b>analise-postos-2026-08-14.png</b> e é só anexar. O <b>texto</b> vai com os títulos em negrito do WhatsApp, e a análise <b>inteira</b> — resumo, todos os achados, o <b>📌 O que vale conferir</b> e o rodapé."},
+    {t:"n", h:"O cartão sai com a <b>logo da empresa em que você está</b>", d:"Este é o único ponto em que este cartão difere dos outros três do app: o <b>Resumo do dia</b>, o <b>Pedido</b> e o <b>Recebimento</b> vivem cada um numa empresa só, e por isso têm a logo escrita no código. A <b>Análise existe nas três</b>, então <b>logo, nome e a cor do risco lateral</b> saem da empresa aberta — <b>ouro</b> na Full Transportadora, <b>laranja</b> nas outras duas. E o rodapé continua mandando conferir <b>no Petros</b> nos postos e nas lojas, e <b>no Infleet e nos CT-e</b> na Transportadora, como desde a v174."},
+    {t:"m", h:"Os botões <b>somem</b> quando não há análise do dia", d:"No dia em que a rotina da manhã ainda não escreveu — ou numa empresa sem análise nenhuma —, a linha dos três botões desaparece junto com o seletor de data, em vez de ficar na tela gerando um cartão vazio. 🔑 A tela e os botões perguntam <b>pela mesma porta</b> se existe análise, então “o botão está aí” e “o botão vai funcionar” não podem discordar."},
+    {t:"m", h:"O rodapé passou a ser escrito <b>num lugar só</b>", d:"A frase <i>“Escrito pelo Claude em … confira no Petros antes de decidir”</i> aparece agora na <b>tela</b>, na <b>imagem</b> e no <b>texto do WhatsApp</b> — e as três leem do mesmo lugar. Se ela tivesse virado três cópias, o conserto da <b>v174</b> (que trocou “confira no Petros” por “no Infleet e nos CT-e” na Transportadora) teria de ser refeito em três, e a tela e a imagem poderiam mandar conferir em lugares diferentes."},
+    {t:"m", h:"📏 O que foi medido antes de desenhar", d:"As <b>54 análises</b> já gravadas (18 por empresa) foram medidas com o cartão montado: ele fica entre <b>1.187 e 1.906 px</b> de altura sobre <b>560 px</b> de largura. Foram desenhadas também as versões de <b>700 px</b> (que traria o pior dia para 1.484 px) e de <b>820 px</b> (1.299 px), fotografadas e levadas a ele — <b>ele escolheu os 560</b>, que é a largura dos outros três cartões do app. E a régua do botão de <b>texto</b> é outra, e também foi medida: a maior das 54 dá <b>3.698 caracteres</b>, que viram um endereço de <b>5.991</b> — cabe com folga."},
+    {t:"m", h:"⚠️ O custo, e ele é no CELULAR", d:"Este é o <b>primeiro cartão do app com altura livre</b> — os outros três têm conteúdo fechado e saem curtos. Análise comprida vira uma <b>tira de 1:3,4</b>: na conversa do WhatsApp aparece <b>um pedaço</b>, e ela abre inteira no toque. ⚠️ O quanto a letra aguenta a <b>recompressão</b> do WhatsApp numa imagem dessa altura <b>ninguém mediu</b> — se ficar ruim, os remédios já estão dimensionados: mandar como <b>documento</b> em vez de foto, ou subir para <b>700 px</b>. E, como nos outros três, a imagem <b>precisa de internet na primeira vez</b>: o desenhista da foto vem de fora e não está no pacote que o app guarda para funcionar sem rede."},
+    {t:"c", h:"E um ajuste que a foto pegou antes de publicar — <b>só no cartão</b>", d:"No cartão que vira imagem, título longo empurrava o selo ⚠️ para uma linha sozinho e a pastilha da unidade para uma <b>terceira</b>. Agora o <b>selo e a pastilha ficam presos nas pontas</b> e quem quebra é o título, no meio. 📏 O cartão de hoje encolheu de <b>1.483 para 1.424 px</b>. 🛑 <b>A tela da Análise não mudou nada</b>: o mesmo ajuste foi medido e fotografado para ela também, e o Tiago viu a prévia e preferiu deixar a tela como sempre esteve. ⚠️ O preço disso está dito aqui de propósito — a etiqueta do posto se desenha de um jeito na tela e de outro na imagem que vai para o grupo."}
+  ]},
   {v:"v364", data:"13/08/2026", tit:"📥 <b>Recebimento de combustível</b>: o nome da aditivada de Caxias, e os <b>litros de Caxias consertados no servidor</b>", itens:[
     {t:"c", h:"<b>GASOLINA ADITIVADA</b> no lugar de <b>GASOLINA ADITIVADA GRID</b>", d:"O nome do tanque vinha <b>cru do cadastro do Petros</b>, e lá o tanque 01 de Caxias está registrado como <b>TQ 01 - GASOLINA ADITIVADA GRID</b> — enquanto o <b>produto</b> daquele mesmo tanque, no cadastro, é <b>GASOLINA ADITIVADA</b>, igual ao de Dutra. 👉 Por decisão sua, o conserto é <b>só no nosso app</b>: o cadastro do Petros fica como está. 🔎 A troca é estreita de propósito — cai o <b>GRID</b> que sobra <b>depois de ADITIVADA</b>, e só ele. Em <b>Teresina</b> nada muda: lá existe um produto que se chama mesmo <b>GASOLINA GRID</b>, e o GRID não sobra, é o produto. 📏 Dos 16 tanques da rede, a regra toca <b>um</b>."},
     {t:"m", h:"Muda nos <b>três</b> lugares, não em um", d:"O cartão da tela, o <b>texto do WhatsApp</b> e o <b>cartão que vira imagem</b> passaram a falar igual. Mexer só no cartão faria a tela e a imagem enviada ao grupo contarem histórias diferentes sobre o mesmo tanque. 🔎 No <b>computador</b>, passando o mouse no nome aparece o que o Petros manda; <b>no celular esse balão não abre</b>, e essa é a parte que esta versão tira de você — o mesmo custo que a v363 pagou no Nível dos tanques."},
@@ -11541,6 +11595,161 @@ function anaDatasDe(sigla){
     .map(k => k.slice(sigla.length + 1))
     .sort().reverse();
 }
+/* ============ v365 - a Analise vai para o WhatsApp ============
+   O caminho e' o MESMO do 📊 Resumo do dia (v154) e do 📥 Recebimento (v317): um cartao que mora
+   fora da tela com a classe `.cardres`, `html2canvas`, e `navigator.share` no celular / download
+   no computador. NENHUMA PECA NOVA de geracao de imagem.
+   🔴 O QUE MUDA AQUI, e e' o unico ponto: a LOGO. As outras tres telas tem o arquivo escrito a
+   mao porque cada uma vive numa empresa so; a Analise existe nas TRES (`emp:"postos|conv|transp"`
+   em MENUS_APP), entao logo, nome e cor de acento saem de `anaMarcaEmpresa()`.
+   ⚠️ Os tres PNG ja estao no `ARQUIVOS` do sw.js desde sempre — nada de novo para cachear. */
+const ANA_MARCA = {
+  postos:         { arq:"logo-full.png",           alt:"Postos Full",         cor:"#FE7030" },
+  conveniencia:   { arq:"logo-conveniencia.png",   alt:"Full Conveniência",   cor:"#FE7030" },
+  transportadora: { arq:"logo-transportadora.png", alt:"Full Transportadora", cor:"#96780F" }
+};
+function anaMarcaEmpresa(){ return ANA_MARCA[empresa] || ANA_MARCA.postos; }
+// 🔑 A cor do item e' FIXA (vira PNG), menos a do "olho", que segue a marca da empresa.
+function anaCorItem(tipo, cor){ return tipo === "atencao" ? "#b42318" : (tipo === "bom" ? "#087443" : cor); }
+// O documento que esta na tela AGORA — ou null. Uma so porta para os quatro usos (tela, imagem,
+// texto e copia), para nao existir "tem analise" respondido de dois jeitos diferentes.
+function anaDocAtual(){
+  const a = analises[anaEmpresaAtual() + "_" + anaSel];
+  if (!a) return null;
+  const temItem = Array.isArray(a.itens) && a.itens.length > 0;
+  return (a.resumo || temItem) ? a : null;
+}
+function anaQuandoTexto(a){
+  return a.criadoEm
+    ? (fmtDataCurta(String(a.criadoEm).slice(0,10)) + (anaHoraCurta(a.criadoEm) ? " às " + anaHoraCurta(a.criadoEm) : ""))
+    : fmtDataCurta(anaSel);
+}
+/* 🔴 UMA FONTE SO' PARA O RODAPE. Ele nasceu escrito dentro do `renderAnalise`; se a imagem e o
+   texto do WhatsApp ganhassem copias, a v174 (que consertou "confira no Petros" na Transportadora)
+   teria de ser refeita em tres lugares — e a tela, a imagem e o texto poderiam mandar conferir em
+   lugares diferentes. Tela, cartao e WhatsApp leem daqui. */
+function anaRodapeTexto(a, sigla){
+  return "Escrito pelo Claude em " + anaQuandoTexto(a) + (a.por ? " (" + a.por + ")" : "") +
+    ", a partir dos números que estão no app. É uma leitura para chamar atenção, não um laudo: " +
+    "confira " + (sigla === "transp" ? "no Infleet e nos CT-e" : "no Petros") + " antes de decidir.";
+}
+function montarTextoAnalise(){
+  const a = anaDocAtual();
+  if (!a) return "";
+  const sigla = anaEmpresaAtual();
+  const L = [];
+  L.push("🧠 Análise — " + (NOME_EMPRESA[empresa] || "Postos Full") + " · " + fmtDataCurta(anaSel));
+  if (a.periodo) L.push("Período analisado: " + a.periodo);
+  if (a.resumo){ L.push(""); L.push(a.resumo); }
+  (Array.isArray(a.itens) ? a.itens : []).forEach(it => {
+    // 🔴 O `i && …` da linha de baixo era DECORATIVO: a linha seguinte desreferenciava `i` do
+    // mesmo jeito. Um `null` dentro de `itens` derrubava a função inteira. (Achado do revisor.)
+    // 📏 Medido no Firestore: zero dos 54 documentos tem item nulo — a guarda é para o dia em que
+    // a rotina da manhã escrever um. Ausência medida hoje não é garantia amanhã.
+    const i = it || {};
+    const tipo = ANA_SELO[i.tipo] ? i.tipo : "olho";
+    L.push("");
+    L.push(ANA_SELO[tipo] + " *" + (i.titulo || "") + "*" + (i.unidade ? " — " + i.unidade : ""));
+    if (i.texto) L.push(i.texto);
+  });
+  const conf = Array.isArray(a.conferir) ? a.conferir.filter(Boolean) : [];
+  if (conf.length){
+    L.push("");
+    L.push("📌 *O que vale conferir*");
+    conf.forEach(c => L.push("• " + c));
+  }
+  L.push("");
+  L.push(anaRodapeTexto(a, sigla));
+  return L.join("\n");
+}
+// Monta o cartao (fica fora da tela ate alguem pedir a imagem)
+function montarCartaoAnalise(){
+  const a = anaDocAtual();
+  const el = document.getElementById("cartaoAnalise");
+  if (!a || !el) return null;
+  const sigla = anaEmpresaAtual(), mc = anaMarcaEmpresa();
+  let h = "";
+  h += '<div class="cardres-topo"><img src="' + mc.arq + '" alt="' + escAttr(mc.alt) + '">' +
+       '<div class="cardres-dt">🧠 Análise de<b>' + fmtDataCurta(anaSel) + '</b></div></div>';
+  h += '<div class="cardres-corpo">';
+  if (a.periodo) h += '<div class="cardres-ana-per">Período analisado: ' + escAttr(a.periodo) + '</div>';
+  if (a.resumo)  h += '<div class="cardres-ana-resumo" style="border-left-color:' + mc.cor + '">' + escAttr(a.resumo) + '</div>';
+  (Array.isArray(a.itens) ? a.itens : []).forEach(it => {
+    const i = it || {};                      // ver a guarda de `montarTextoAnalise`
+    const tipo = ANA_SELO[i.tipo] ? i.tipo : "olho";
+    h += '<div class="cardres-ana-item" style="border-left-color:' + anaCorItem(tipo, mc.cor) + '">' +
+      '<div class="cardres-ana-tit"><span>' + ANA_SELO[tipo] + '</span><span>' + escAttr(i.titulo || "") + '</span>' +
+      (i.unidade ? '<span class="cardres-ana-uni">' + escAttr(i.unidade) + '</span>' : '') + '</div>' +
+      (i.texto ? '<div class="cardres-ana-txt">' + escAttr(i.texto) + '</div>' : '') +
+      '</div>';
+  });
+  const conf = Array.isArray(a.conferir) ? a.conferir.filter(Boolean) : [];
+  if (conf.length){
+    h += '<div class="cardres-ana-conf"><b>📌 O que vale conferir</b><ul>' +
+      conf.map(c => '<li>' + escAttr(c) + '</li>').join("") + '</ul></div>';
+  }
+  h += '<div class="cardres-ana-rod">' + escAttr(anaRodapeTexto(a, sigla)) + '</div>';
+  h += '</div>';
+  el.innerHTML = h;
+  return el;
+}
+function anaNomeArquivo(){
+  return "analise-" + anaEmpresaAtual() + "-" + (anaSel || "") + ".png";
+}
+async function gerarImagemAnalise(){
+  const m = document.getElementById("anaMsg");
+  const el = montarCartaoAnalise();
+  if (!el){ if (m) m.textContent = "Não há análise para este dia."; return; }
+  if (m) m.textContent = "Gerando a imagem…";
+  try {
+    await carregarBibliotecasPDF();
+    const canvas = await html2canvas(el, { scale:2, backgroundColor:"#ffffff", useCORS:true, logging:false });
+    const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
+    const nome = anaNomeArquivo();
+    const legenda = "🧠 Análise — " + (NOME_EMPRESA[empresa] || "Postos Full") + " · " + fmtDataCurta(anaSel);
+    const arq = new File([blob], nome, { type:"image/png" });
+    if (navigator.canShare && navigator.canShare({ files:[arq] })){
+      await navigator.share({ files:[arq], text: legenda });
+      if (m) m.textContent = "Escolha o grupo para enviar a imagem.";
+      return;
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = nome; document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    if (m) m.textContent = "Imagem salva (" + nome + ") — é só anexar no WhatsApp.";
+  } catch(e){
+    if (m) m.textContent = (e && e.name === "AbortError") ? "Envio cancelado."
+      : ("Não consegui gerar a imagem: " + (e && e.message ? e.message : e));
+  }
+}
+function enviarAnaliseWhats(){
+  const txt = montarTextoAnalise();
+  const m = document.getElementById("anaMsg");
+  if (!txt){ if (m) m.textContent = "Não há análise para este dia."; return; }
+  const url = "https://wa.me/?text=" + encodeURIComponent(txt);
+  let janela = null;
+  try { janela = window.open(url, "_blank", "noopener"); } catch(e) {}
+  if (!janela){
+    if (m) m.innerHTML = 'O aparelho bloqueou a abertura. Toque aqui: <a href="' + url + '" target="_blank" rel="noopener">abrir o WhatsApp</a>.';
+  } else if (m){
+    m.textContent = "WhatsApp aberto — escolha o grupo e envie.";
+  }
+}
+function copiarAnaliseTexto(){
+  const txt = montarTextoAnalise();
+  const m = document.getElementById("anaMsg");
+  const fim = () => { if (m) m.textContent = "Mensagem copiada."; };
+  if (!txt){ if (m) m.textContent = "Não há análise para este dia."; return; }
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(fim, fim); return; }
+  } catch(e) {}
+  const ta = document.createElement("textarea");
+  ta.value = txt; document.body.appendChild(ta); ta.select();
+  try { document.execCommand("copy"); } catch(e) {}
+  document.body.removeChild(ta); fim();
+}
 /* ===================== v185 - MENU CAIXAS ===================== */
 const CXI_POSTOS = ["Teresina","Caxias","Dutra"];
 // v188 - o mesmo menu serve Postos Full e Full Conveniencia; muda so o ramo dos dados e o rotulo
@@ -14296,10 +14505,16 @@ function renderAnalise(){
   const datas = anaDatasDe(sigla);
   const sel = document.getElementById("anaData");
 
+  // v365 - a mensagem dos botoes nao pode sobreviver a troca de dia nem de empresa
+  const msg = document.getElementById("anaMsg");
+  if (msg) msg.textContent = "";
+
   if (!datas.length){
     if (sel) sel.innerHTML = "";
     const linha = document.querySelector("#painelAnalise .evo-filtros");
     if (linha) linha.style.display = "none";
+    const acoes0 = document.getElementById("anaAcoes");
+    if (acoes0) acoes0.style.display = "none";
     box.innerHTML = '<div class="ana-vazio">Ainda não há análise para a <b>' +
       escAttr(NOME_EMPRESA[empresa] || "empresa") + '</b>.<br>' +
       'Ela é escrita de manhã, junto com a coleta das vendas do dia anterior.</div>';
@@ -14317,8 +14532,9 @@ function renderAnalise(){
   if (a.resumo)  html += '<div class="ana-resumo">' + escAttr(a.resumo) + '</div>';
 
   const itens = Array.isArray(a.itens) ? a.itens : [];
-  itens.forEach(i => {
-    const tipo = (i && ANA_SELO[i.tipo]) ? i.tipo : "olho";
+  itens.forEach(it => {
+    const i = it || {};                      // v365 - ver a guarda de `montarTextoAnalise`
+    const tipo = ANA_SELO[i.tipo] ? i.tipo : "olho";
     html += '<div class="ana-item ' + tipo + '">' +
       '<div class="ana-tit"><span>' + ANA_SELO[tipo] + '</span><span>' + escAttr(i.titulo || "") + '</span>' +
       (i.unidade ? '<span class="ana-uni">' + escAttr(i.unidade) + '</span>' : '') + '</div>' +
@@ -14335,12 +14551,16 @@ function renderAnalise(){
       conf.map(c => '<li>' + escAttr(c) + '</li>').join("") + '</ul></div>';
   }
 
-  const quando = a.criadoEm ? (fmtDataCurta(String(a.criadoEm).slice(0,10)) + (anaHoraCurta(a.criadoEm) ? " às " + anaHoraCurta(a.criadoEm) : "")) : fmtDataCurta(anaSel);
-  html += '<p class="ana-rodape">Escrito pelo Claude em ' + escAttr(quando) +
-          (a.por ? " (" + escAttr(a.por) + ")" : "") + ', a partir dos números que estão no app. ' +
-          'É uma leitura para chamar atenção, não um laudo: confira ' + (sigla === "transp" ? "no Infleet e nos CT-e" : "no Petros") + ' antes de decidir.</p>';
+  // v365 - o rodape passou a sair de anaRodapeTexto(): a tela, o cartao de imagem e o texto do
+  // WhatsApp leem da MESMA frase. Ver o comentario daquela funcao.
+  html += '<p class="ana-rodape">' + escAttr(anaRodapeTexto(a, sigla)) + '</p>';
 
   box.innerHTML = html;
+
+  // v365 - os botoes so aparecem quando ha o que enviar. `anaDocAtual()` e' a mesma porta que as
+  // tres funcoes usam, entao "o botao esta na tela" e "o botao vai funcionar" nao podem divergir.
+  const acoes = document.getElementById("anaAcoes");
+  if (acoes) acoes.style.display = anaDocAtual() ? "flex" : "none";
 }
 
 function alternarRelPosto(){
