@@ -1303,6 +1303,23 @@
   .prc-sobe2{background-image:linear-gradient(rgba(211,47,47,.10),rgba(211,47,47,.10))}
   .prc-sobe2 b{color:var(--vermelho)}
   .prc-susp{color:var(--amarelo,#c9a227);font-weight:600}
+  /* v367 - o codigo de barras e o botao de copiar */
+  /* 🔴 ESPECIFICIDADE, e o revisor pegou: `.prc-tab td small` e' (0,1,2) e vence uma classe solta
+     (0,1,0) — cor e negrito destas linhas se perdiam em silencio dentro das tabelas. Por isso TODA
+     regra abaixo nasce com o mesmo peso, escrita como `.prc-tab td small.xxx`. */
+  .prc-tab td small.prc-bar{display:block;font-size:.7rem;color:var(--cinza);font-variant-numeric:tabular-nums;letter-spacing:.3px;margin-top:2px}
+  .prc-tab td small.prc-bar.vazio{font-style:italic;opacity:.7}
+  .prc-copia{margin-left:6px;padding:0 5px;border:1px solid var(--borda);border-radius:6px;background:transparent;
+    cursor:pointer;font-size:.72rem;line-height:1.6;color:var(--txt)}
+  .prc-copia:hover{background:var(--superficie-2)}
+  .prc-tab td small.rjt-parado{display:block;font-size:.7rem;font-weight:600;color:#c9a227;margin-top:2px}
+  .prc-tab td small.rjt-lojas{display:block;font-size:.7rem;color:var(--cinza);margin-top:2px}
+  /* 🔴 v367 - ACHADO DE PASSAGEM, e e' ANTERIOR a esta versao: `.prc-tab td small{display:block}`
+     (0,1,2) vence `.cmp-op-mob{display:none}` (0,1,0), entao a linha que existe PARA O CELULAR
+     aparece tambem no computador, repetindo colunas que ja estao ali do lado. O conserto entra
+     ESTREITO, so' nas duas tabelas desta versao — a fila de ajuste da aba Comparar lojas continua
+     como sempre esteve, porque ninguem pediu para mexer nela. */
+  .prc-cst td small.cmp-op-mob, .prc-exc td small.cmp-op-mob{display:none}
   @media (max-width:620px){
     .cmp-tab th:first-child,.cmp-tab td:first-child{white-space:normal;max-width:120px;font-size:.78rem}
     .cmp-tab th,.cmp-tab td{padding:6px 6px}
@@ -1311,6 +1328,7 @@
     .prc-tab th,.prc-tab td{padding:6px 6px}
     .prc-tab th:last-child,.prc-tab td:last-child{display:none}
     .cmp-op-mob{display:block;font-size:.68rem;font-weight:600;color:var(--vermelho);white-space:normal;margin-top:2px}
+    .prc-cst td small.cmp-op-mob, .prc-exc td small.cmp-op-mob{display:block;font-weight:600;color:var(--vermelho)}   /* v367 - no celular ela e' a tela toda, e a cor tambem tem de vencer a (0,1,2) */
     .cmp-cards{grid-template-columns:1fr}
     .rel-barra-nome{flex:0 0 92px;font-size:.78rem}
     .rel-barra-val{flex:0 0 66px;font-size:.78rem}
@@ -3786,6 +3804,8 @@
       <button class="btn-claro" id="btnAnalise" onclick="alternarAnalise()"><span class="mi">🧠</span><span class="mt">Análise</span></button>
       <button class="btn-claro" id="btnOperadores" onclick="alternarOperadores()"><span class="mi">👷</span><span class="mt">Operadores</span></button>
       <button class="btn-claro" id="btnRelLoja" onclick="alternarRelLoja()"><span class="mi">🍫</span><span class="mt">Produtos e categorias</span></button>
+      <!-- v367 - o menu da equipe da loja: o que precisa de reajuste -->
+      <button class="btn-claro" id="btnReajustes" onclick="alternarReajustes()"><span class="mi">💹</span><span class="mt">Preços a reajustar</span></button>
       <button class="btn-claro" id="btnIfood" onclick="alternarIfood()"><span class="mi">🍔</span><span class="mt">iFood</span></button>
       <button class="btn-claro" id="btnInfleet" onclick="alternarInfleet()"><span class="mi">📡</span><span class="mt">APP Infleet</span></button>
       <button class="btn-claro" id="btnComprar" onclick="alternarComprar()"><span class="mi">🛒</span><span class="mt">O que comprar</span></button>
@@ -4322,6 +4342,20 @@
       </div>
       <div class="doc-tools" id="relLojaAbas"></div>
       <div id="relLojaBox"></div>
+    </div>
+  </div>
+
+  <div class="config" id="painelReajustes">
+    <div class="grupo">
+      <h2>💹 Preços a reajustar</h2>
+      <p class="nota-dash">Os produtos da conveniência que <b>precisam de reajuste</b>, com o <b>código de barras</b> para
+        colar no Petros. Duas réguas: o <b>custo que subiu na última nota</b> e a <b>margem abaixo da média da categoria</b>.
+        A ordem é pelo <b>dinheiro</b> que cada um deixa de dar por mês. Vem do Petros pelo servidor, junto com os preços.</p>
+      <div class="evo-filtros">
+        <div class="desc-campo"><label>Loja</label><select id="rjtLoja" onchange="rjtMuda('loja', this.value)"></select></div>
+        <div class="desc-campo"><label>Mês</label><select id="rjtMes" onchange="rjtMuda('mes', this.value)"></select></div>
+      </div>
+      <div id="rjtBox"></div>
     </div>
   </div>
 
@@ -5698,6 +5732,9 @@ const ICO_SVG = {
   financeiro:"<path d='M3.2 9.4 12 4.2l8.8 5.2'/><path d='M5.6 10.6v7.6M10 10.6v7.6M14 10.6v7.6M18.4 10.6v7.6'/><path d='M3 20.2h18'/>",
   analise:"<path d='M9.2 17.6h5.6'/><path d='M10 20.6h4'/><path d='M12 3.4a6 6 0 0 0-3.5 10.9c.5.4.7.9.7 1.3h5.6c0-.4.2-.9.7-1.3A6 6 0 0 0 12 3.4z'/>",
   relLoja:"<path d='M2.8 3.6h2.6l2.4 11.2h9.6l2-7.6H6.6'/><circle cx='9.4' cy='19' r='1.6'/><circle cx='16.6' cy='19' r='1.6'/>",
+  /* v367 - etiqueta de preco com a seta para cima. 🔴 O ICO_SVG falha em SILENCIO: sem esta
+     linha o botao sai sem desenho e ninguem ve erro nenhum. */
+  reajustes:"<path d='M3.9 12.6V4.9a1 1 0 0 1 1-1h7.7a1 1 0 0 1 .7.3l6.8 6.8a1 1 0 0 1 0 1.4l-7.4 7.4a1 1 0 0 1-1.4 0l-6.8-6.8a1 1 0 0 1-.6-1.4z'/><circle cx='7.8' cy='7.8' r='1.3'/><path d='M11.4 16.1V10.4'/><path d='M9.2 12.6l2.2-2.2 2.2 2.2'/>",
   ifood:"<path d='M5.4 8h13.2l-1.2 12.4H6.6z'/><path d='M8.8 8V6.2a3.2 3.2 0 0 1 6.4 0V8'/>",
   infleet:"<circle cx='12' cy='12' r='2.1'/><path d='M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4'/><path d='M5 5a9.9 9.9 0 0 0 0 14M19 5a9.9 9.9 0 0 1 0 14'/>",
   pedido:"<path d='M6.5 2.8h7.6L19 7.7v3.4'/><path d='M13.8 2.9v5h5'/><path d='M6.5 2.8v18.4h5.2'/><path d='M9.8 12.4h4.4'/><path d='M13.2 21.2l.7-2.9 5.4-5.4a1.45 1.45 0 0 1 2.1 2.1l-5.4 5.4z'/>",
@@ -5735,7 +5772,7 @@ const ICO_SVG = {
   fechCaixa:"<rect x='3.2' y='9.4' width='17.6' height='11' rx='2.2'/><path d='M7.2 9.4V6.6a2 2 0 0 1 2-2h5.6a2 2 0 0 1 2 2v2.8'/><path d='M12 12.4v5.6'/><path d='M13.9 13.5c-.6-.6-3.2-.8-3.2.6 0 1.3 2.9.7 2.9 2 0 1.3-2.6 1.1-3.3.4'/>",
   g_ajustes:"<circle cx='12' cy='12' r='3.1'/><path d='M19.1 14.6a1.5 1.5 0 0 0 .3 1.7l.1.1a1.9 1.9 0 1 1-2.6 2.6l-.1-.1a1.5 1.5 0 0 0-2.6 1v.2a1.9 1.9 0 0 1-3.7 0v-.1a1.5 1.5 0 0 0-2.6-1l-.1.1a1.9 1.9 0 1 1-2.6-2.6l.1-.1a1.5 1.5 0 0 0-1-2.6h-.2a1.9 1.9 0 1 1 0-3.7h.1a1.5 1.5 0 0 0 1-2.6l-.1-.1a1.9 1.9 0 1 1 2.6-2.6l.1.1a1.5 1.5 0 0 0 1.7.3h.1a1.5 1.5 0 0 0 .9-1.4v-.2a1.9 1.9 0 0 1 3.7 0v.1a1.5 1.5 0 0 0 2.6 1l.1-.1a1.9 1.9 0 1 1 2.6 2.6l-.1.1a1.5 1.5 0 0 0 1 2.6h.2a1.9 1.9 0 0 1 0 3.7h-.1a1.5 1.5 0 0 0-1.4.9z'/>"
 };
-const ICO_BTN = {btnOperadores:"operadores",btnComprar:"comprar",btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnTanquesNivel:"tanquesNivel",btnRecebimento:"recebimento",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnDre:"dre",btnDespesasDet:"despesasDet",btnFechCaixa:"fechCaixa",btnAfericoes:"afericoes",btnClientes:"clientes",btnAnalise:"analise",btnRelLoja:"relLoja",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnPendAdm:"pendAdm",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
+const ICO_BTN = {btnOperadores:"operadores",btnComprar:"comprar",btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnTanquesNivel:"tanquesNivel",btnRecebimento:"recebimento",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnDre:"dre",btnDespesasDet:"despesasDet",btnFechCaixa:"fechCaixa",btnAfericoes:"afericoes",btnClientes:"clientes",btnAnalise:"analise",btnRelLoja:"relLoja",btnReajustes:"reajustes",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnPendAdm:"pendAdm",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
 const ICO_GRP = {dia:"g_dia",analise:"g_analise",finan:"g_finan",transp:"g_transp",org:"g_org",ajustes:"g_ajustes"};   /* v341 */
 /* 🔑 cor por GRUPO, tirada da paleta do MIV (laranja da marca + verde e dourado Petrobras).
    Assim a cor diz de que familia e' o menu, em vez de ser arco-iris. */
@@ -7833,6 +7870,14 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v367", data:"15/08/2026", tit:"💹 Nasce o menu <b>Preços a reajustar</b> — e o app para de apontar produto que vocês <b>já reajustaram</b>", itens:[
+    {t:"c", h:"🔴 O <b>\"Preço p/ recuperar\"</b> fugia quando o preço subia — e agora não foge mais", d:"Era a reclamação da loja, e ela estava certa: <i>“às vezes você aponta um produto pra ser feito reajuste sendo que elas já fizeram”</i>. A conta antiga media a margem <b>de antes</b> usando o <b>preço de hoje</b>, então <b>subir o preço subia o alvo na mesma proporção</b> — o produto nunca saía da lista e voltava pedindo mais. Agora o servidor manda o <b>preço que valia na época da compra antiga</b>, e o alvo é um <b>número fixo</b>: quando o preço alcança, o produto <b>sai da lista sozinho</b>. 📏 Medido nas três lojas em 15/08: dos <b>219</b> produtos apontados, <b>41 (18,7%)</b> já estavam reajustados o bastante — <b>8</b> em Teresina, <b>18</b> em Caxias, <b>15</b> em Dutra. 👉 Um exemplo real: o <b>CIG ROTHMANS RED SERIES</b> de Teresina foi reajustado de <b>R$ 14,99 para R$ 19,99</b>, e a conta antiga continuava pedindo <b>R$ 26,42</b>. A conta nova pede <b>R$ 19,81</b> — ou seja, <b>já está feito</b>. ⚠️ <b>O que esta conta ainda não sabe, dito na cara:</b> em <b>162</b> dos 219 o preço da época veio <b>igual ao de hoje</b>, e isso são duas coisas ao mesmo tempo — ou o preço não mudou desde aquela compra (e aí o alvo está certo), ou o servidor não achou o histórico e usou o preço atual (e aí o alvo volta a fugir). O app <b>não separa os dois casos</b>, e a tela diz isso embaixo da tabela em vez de prometer o que não pode."},
+    {t:"n", h:"O <b>código de barras</b> na tela, com botão de <b>copiar</b>", d:"Cada produto agora mostra o código de barras embaixo do nome, com um botão <b>📋</b> que copia — é o que se cola no aplicativo do Petros. O código <b>interno</b> não serve para isso e por isso não aparece. ⚠️ <b>Nem todo produto tem:</b> 📏 medido no mesmo dia, <b>18 dos 219</b> apontados (8%) não têm código de barras cadastrado, e a linha deles <b>diz isso</b> em vez de mostrar um botão que não faz nada. Nas listas inteiras de preço são <b>200 de 1.238</b> (16%) — essa é uma tarefa de cadastro para a equipe."},
+    {t:"n", h:"A ordem passou a ser pelo <b>dinheiro</b>, e quem <b>não vendeu</b> vai para o fim", d:"Antes a lista era ordenada por <b>pontos percentuais</b> de margem perdida, e 📏 <b>quatro dos cinco primeiros não tinham vendido nada em quinze dias</b> — o primeiro da fila era uma cerveja parada. Agora a ordem é <b>quanto cada produto deixa de dar por mês</b>, com a quantidade vendida de verdade. E o produto que <b>não vendeu no mês</b> aparece marcado. 🔎 O texto diz apenas <b>“sem venda em agosto”</b>, e nada além: esses produtos <b>venderam nas últimas semanas</b> (o servidor só traz quem vendeu nos últimos 90 dias) — não são cadastro morto. ⚠️ E no <b>começo do mês</b> a régua olha o <b>mês anterior</b>, senão no dia 1º a lista inteira nasceria marcada como parada — <b>loja por loja</b>, porque uma loja pode estar com a coleta atrasada em relação às outras."},
+    {t:"n", h:"A régua da <b>média da categoria</b> passou a valer para produto vendido em <b>mais de uma loja</b>", d:"O bloco <b>“Só existe em uma loja”</b> virou <b>“Margem abaixo da média da categoria”</b> e agora julga <b>todos</b> os produtos. Antes, um produto vendido nas três lojas com as três margens igualmente ruins <b>não aparecia em lugar nenhum</b> — e um produto vendido em duas lojas com custo lançado em uma só caía nos <b>dois</b> buracos ao mesmo tempo."},
+    {t:"m", h:"O bloco <b>saiu</b> da aba ⚖️ Comparar lojas — de propósito", d:"Menu novo com a mesma lista no lugar antigo seriam <b>duas cópias</b>, com ordens diferentes. A aba ⚖️ <b>Comparar lojas</b> continua com o que é dela: a comparação de <b>categoria por categoria</b> entre as três lojas e a fila de ajuste de quem está mais barato do que na loja irmã. Lá ficou um aviso dizendo para onde os dois blocos foram."},
+    {t:"m", h:"⚠️ O menu <b>nasce invisível</b> para a equipe — alguém precisa liberar", d:"Como todo menu novo, a chave <b>💹 Preços a reajustar</b> não está marcada em nenhum perfil de acesso: quem não é administrador <b>não vê o menu</b> até ser liberado no <b>Painel Administrativo</b>. E no <b>celular</b> as duas tabelas foram reordenadas para que a coluna do <b>preço a colocar</b> não seja a última — a última é a que o celular esconde, e era justamente ela que sumia."}
+  ]},
   {v:"v366", data:"14/08/2026", tit:"📄 A Análise vai para o WhatsApp em <b>PDF</b>, no lugar da foto — e agora dá para <b>dar zoom</b>", itens:[
     {t:"c", h:"O botão 🖼️ <b>Enviar como imagem</b> virou 📄 <b>Enviar como PDF</b>", d:"Pedido do Tiago <b>no mesmo dia em que a v365 saiu</b>, depois de usar de verdade: <i>“a foto terminou ficando com a qualidade muito baixa pois pelo que entendi ela é um print e ao tentarmos dar zoom ela perde qualidade”</i>. 🔑 <b>Ele acertou a causa.</b> A foto era um retrato da tela: <b>pixel</b>. Aproximar só estica o que já existe, e o WhatsApp ainda <b>recomprime</b> imagem enviada como foto. O PDF leva <b>texto de verdade</b> — o zoom não tem fim — e o WhatsApp manda PDF como <b>documento</b>, sem recomprimir."},
     {t:"m", h:"📏 O que isso mudou de tamanho, medido nas três empresas", d:"A análise de <b>14/08</b> dos postos era uma imagem de <b>1.120 × 2.848 pixels e 762 KB</b>; virou um PDF de <b>uma página A4 e 14 KB</b> — <b>54 vezes menor</b>. A da Conveniência dá 2 páginas (15 KB) e a da Transportadora, 1 página (12 KB). 👉 E some a <b>tira alta</b> que a v365 avisou que ia aparecer cortada na conversa: agora é uma página inteira."},
@@ -9520,6 +9565,10 @@ function iniciarSync(){
     const m = {}; snap.forEach(d => m[d.id] = normalizaRel(Object.assign({ id: d.id }, d.data()))); relLojas = m;
     const pl = document.getElementById("painelRelLoja");
     if (pl && pl.classList.contains("aberto")) renderRelLoja();
+    /* v367 - A SETIMA PECA de um menu novo, e ela falha em silencio: quem abre a tela antes do
+       primeiro snapshot ve "ainda nao temos" e CONGELA nessa frase (a licao da v357). */
+    const pRjt = document.getElementById("painelReajustes");
+    if (pRjt && pRjt.classList.contains("aberto")) renderReajustes();
     atualizarDashConv();                                     // v198 - Dashboard da Conveniencia
   }, ()=>{});
 
@@ -10375,6 +10424,10 @@ const MENUS_APP = [
   {key:"cotacoes",    btn:"btnCotacoes",    pan:"painelCotacoes",    emp:"transp", nome:"Cotações do Dia"},
   {key:"puxadas",     btn:"btnPuxadas",     pan:"painelPuxadas",     emp:"transp", nome:"Puxadas"},
   {key:"relLoja",     btn:"btnRelLoja",     pan:"painelRelLoja",     emp:"conv",   nome:"Produtos e categorias"},
+  /* v367 - 🔴 NASCE INVISIVEL para quem nao e' admin: `_menuPermBase` diz "sem perfil = nenhum
+     menu", e chave nova nao esta marcada em perfil nenhum. Alguem tem de marcar 💹 Precos a
+     reajustar no Painel Administrativo para a equipe da loja enxergar. */
+  {key:"reajustes",   btn:"btnReajustes",   pan:"painelReajustes",   emp:"conv",   nome:"Preços a reajustar"},   /* v367 */
   {key:"ifood",       btn:"btnIfood",       pan:"painelIfood",       emp:"conv",   nome:"iFood"},
   {key:"clientes",    btn:"btnClientes",    pan:"painelClientes",    emp:"postos", nome:"Clientes"},   // v328 - a loja nao vende a prazo (v193)
   {key:"analise",     btn:"btnAnalise",     pan:"painelAnalise",     emp:"postos|conv|transp", nome:"Análise"},
@@ -10401,7 +10454,7 @@ const MENUS_APP = [
 const GRUPOS_MENU = [
   {key:"soltos",  nome:"",               icone:"",       itens:["dash"]},
   {key:"dia",     nome:"Dia a dia",      icone:"\ud83d\udd01", itens:["resumoDia","tanquesNivel","recebimento","registros","descontos","simular"]},
-  {key:"analise", nome:"Análise",        icone:"\ud83d\udcca", itens:["relPosto","afericoes","clientes","analise","operadores","relLoja","ifood"]},
+  {key:"analise", nome:"Análise",        icone:"\ud83d\udcca", itens:["relPosto","afericoes","clientes","analise","operadores","relLoja","reajustes","ifood"]},
   {key:"finan",   nome:"Financeiro",     icone:"\ud83d\udcb0", itens:["despesasDet","dre","fechCaixa"]},   /* v341 - o DRE saiu da Analise e veio para ca'; v356 - o Fechamento do caixa */
   {key:"transp",  nome:"Transportadora", icone:"\ud83d\ude9a", itens:["infleet","comprar","pedido","cotacoes","puxadas"]},
   {key:"org",     nome:"Organização",    icone:"\ud83d\udcc1", itens:["calendario","vencimentos","caixa","pendAdm"]},   /* v251 - o 🗂 ninguem reconhecia */
@@ -15177,12 +15230,14 @@ function blocoRelLojaComp(){
                   : compTodasCategorias(linhas, lojas);
   // v239 - preco de tabela das 3 lojas, lado a lado
   h += relLojaCat ? blocoPrecoCategoria(mes, relLojaCat) : blocoPrecoTop(mes);
-  // v242 - o que nao da' para comparar, e o custo que subiu
-  const dPrc = dadosPrecoLojas(mes);
-  if (dPrc.temAlgum){
-    h += blocoExclusivos(dPrc, mes, relLojaCat || "");
-    h += blocoCustoSubiu(mes, relLojaCat || "");
-  }
+  /* 🔴 v367 - OS DOIS BLOCOS QUE MANDAM REAJUSTAR SAIRAM DAQUI para o menu 💹 Precos a
+     reajustar. A licao da v353: o que ele recusou nao foi a lista, foi o SEGUNDO LUGAR para a
+     mesma lista. Esta aba fica com a comparacao ENTRE as lojas, que e' outra pergunta. */
+  h += menuPermitido("reajustes")
+     ? '<p class="nota-dash">💹 O que precisa de <b>reajuste</b> — custo que subiu, e margem abaixo da média da categoria — mudou de endereço: agora fica no menu <b>💹 Preços a reajustar</b>.</p>'
+     /* 🔴 MENU NOVO NASCE INVISIVEL (v221): apontar para uma porta que a pessoa nao enxerga e' pior
+        que nao apontar. Quem ainda nao tem a chave marcada le' o que fazer. */
+     : '<p class="nota-dash">💹 O que precisa de <b>reajuste</b> mudou de endereço: agora fica no menu <b>💹 Preços a reajustar</b>, que <b>ainda não está liberado para o seu acesso</b> — peça ao administrador para marcar essa chave no Painel Administrativo.</p>';
   return h;
 }
 function compTodasCategorias(linhas, lojas){
@@ -15267,6 +15322,9 @@ let prcTudo = false;          // v241 - o botao "Ver todos" abre a lista inteira
 function prcVerTudo(){ prcTudo = !prcTudo; renderRelLoja(); }
 
 function prcMargem(preco, custo){ return preco > 0 ? (preco - custo) / preco * 100 : 0; }
+/* v367 - UMA normalizacao de codigo para os dois lados do join. Antes o `precos` usava
+   `.trim()` e o `custoSubiu` nao: chave que nao casa apaga produto vivo da tela SEM ERRO. */
+function prcCodNorm(c){ return String(c == null ? "" : c).trim(); }
 function dataCurtaRel(iso){ const p = String(iso||"").split("-");
   return p.length === 3 ? p[2] + "/" + p[1] : (iso || "—"); }
 
@@ -15280,7 +15338,7 @@ function dadosPrecoLojas(mes){
     const lista = Array.isArray(d.precos) ? d.precos : [];
     if (lista.length) temAlgum = true; else semPrecos.push(u.nome);
     lista.forEach(x => {
-      const cod = String(x[0] == null ? "" : x[0]).trim();
+      const cod = prcCodNorm(x[0]);
       if (!cod) return;
       if (!mapa[cod]) mapa[cod] = { nome:String(x[1]||""), cat:String(x[2]||""), por:{} };
       if (!mapa[cod].nome) mapa[cod].nome = String(x[1]||"");
@@ -15288,13 +15346,18 @@ function dadosPrecoLojas(mes){
       const preco = +x[3]||0, custo = +x[4]||0, qtd = +x[6]||0, rec = +x[7]||0;
       mapa[cod].por[u.chave] = { preco:preco, custo:custo, compra:String(x[5]||""),
         qtd:qtd, rec:rec, marg:prcMargem(preco, custo),
-        pmed: qtd > 0 ? rec / qtd : preco };
+        pmed: qtd > 0 ? rec / qtd : preco, barras:String(x[8]||"").trim() };   /* v367 - 9a posicao */
     });
   });
-  const itens = [], exclusivos = [];
+  const itens = [], exclusivos = [], todos = [];
   Object.keys(mapa).forEach(cod => {
     const it = mapa[cod], por = it.por;
     const todas = lojas.filter(l => por[l.chave]);
+    /* v367 - TODOS os produtos, com par ou sem. E' desta lista que saem a media da categoria e a
+       regua do "abaixo da media". A `itens` deixa de fora quem tem menos de DUAS lojas com custo
+       valido e a `exclusivos` so' pega quem tem UMA loja: produto vendido em duas lojas com custo
+       lancado em uma so' caia nos dois buracos ao mesmo tempo e nao aparecia em tela nenhuma. */
+    todos.push({ cod:cod, nome:it.nome, cat:it.cat, por:por, todas:todas });
     const validas = lojas.filter(l => por[l.chave] && por[l.chave].preco > 0
                                    && por[l.chave].custo > 0 && por[l.chave].custo < por[l.chave].preco);
     // v242 - vendido numa loja so': nao da' para comparar, mas nao pode sumir do radar
@@ -15322,7 +15385,7 @@ function dadosPrecoLojas(mes){
     itens.push({ cod:cod, nome:it.nome, cat:it.cat, por:por, validas:validas, todas:todas,
                  ref:ref, margRef:margRef, precoRef:precoRef, ganho:ganho });
   });
-  return { lojas:lojas, itens:itens, exclusivos:exclusivos, temAlgum:temAlgum, semPrecos:semPrecos };
+  return { lojas:lojas, itens:itens, exclusivos:exclusivos, todos:todos, temAlgum:temAlgum, semPrecos:semPrecos };
 }
 
 /* uma linha por produto x loja que da' para ajustar, ordenada pelo ganho do mes */
@@ -15476,17 +15539,456 @@ function blocoPrecoCategoria(mes, cat){
    verdade (natureza COMPRA), coletadas pelo passo `precosloja`.                            */
 const PRC_EXC_TOPO   = 15;    // exclusivos mostrados por loja com a lista fechada
 const PRC_ALTA_SUSP  = 50;    // acima disso a alta e' marcada como "conferir a nota"
-let prcExcTudo = false, prcCstTudo = false;
-function prcVerExc(){ prcExcTudo = !prcExcTudo; renderRelLoja(); }
-function prcVerCst(){ prcCstTudo = !prcCstTudo; renderRelLoja(); }
+/* =============== v367 - A REGUA HONESTA, O CODIGO DE BARRAS E O MENU DA EQUIPE ===============
+   O coletor `precosloja` v2 (no ar desde 15/08 as 22h11) passou a mandar tres campos que o app
+   nao lia: `precos[8]` = codigo de barras; `custoSubiu[8]` = codigo de barras; `custoSubiu[9]` =
+   precoEpoca (o preco que valia na data da compra VELHA).
+   🔴 O QUE O `precoEpoca` CONSERTA. A regua velha calculava a margem "de antes" com o preco de
+      HOJE: alvo = novo x preco / velho, logo preco/alvo = velho/novo — que NAO depende do preco.
+      Subir o preco subia o alvo na mesma proporcao: o produto NUNCA saia da lista e voltava
+      pedindo mais. 📏 Medido em 15/08 nas tres lojas: 41 dos 219 apontamentos (18,7%) ja estavam
+      reajustados o bastante — 8 em Teresina, 18 em Caxias, 15 em Dutra.
+   🔑 Com a margem da EPOCA o alvo e' um numero FIXO: para de andar quando o preco anda, e a
+      lista esvazia sozinha.                                                                    */
+const RJT_DIA_MIN = 10;      // mes com menos dias de dado que isso nao serve de janela de venda
+/* 🔴 MARGEM ABSURDA NAO ENTRA NA MEDIA DA CATEGORIA — achado do revisor, medido no dado de 15/08.
+   O `MISTO QUENTE` esta cadastrado com custo de R$ 0,34 para preco de R$ 9,99 (96,6% de margem) e
+   o `CUSCUZ MILHO`, R$ 0,21 para R$ 6,99 (97%): producao propria com custo nao lancado. Sozinhos,
+   eles levavam a media de PADARIA em Caxias de 44,9% para 61,9% — 17 pontos — e a v367 transformou
+   essa media em ORDEM DE REAJUSTE para a categoria inteira.
+   📏 O corte de 90% esta encurralado pelos dois lados: acima dele ha 5 produtos, todos com custo
+   entre R$ 0,21 e R$ 0,60; entre 80% e 90% ha 16, e sao legitimos (dose de whisky 83%, cafe
+   cappuccino 82%, tapioca 82%). 👉 Eles saem so' da MEDIA; continuam aparecendo na tela. */
+const PRC_MARG_ABSURDA = 90;
+
+/* ---- a janela de venda ----
+   O `precos` NASCE DA VENDA (provado no SQL do coletor, 15/08: a consulta comeca com um CTE
+   sobre a `vw_venda`). Entao "o cod do custoSubiu nao tem par no precos" = "nao vendeu no mes".
+   ⚠️ ISSO NAO E' CADASTRO MORTO, e a tela nao pode dizer que e': o proprio SQL do `custoSubiu`
+      exige `ultima_venda` nos ultimos 90 dias. O texto diz "sem venda em agosto", e nada alem.
+   🔴 A ARMADILHA DO DIA 1o: no comeco do mes quase nada vendeu ainda, e o sinal marcaria a lista
+      inteira. Por isso a janela e' o mes escolhido SO' depois de RJT_DIA_MIN dias de dado; antes
+      disso e' o mes anterior. Sem mes anterior guardado, a tela NAO MARCA NINGUEM — calar custa
+      menos que mentir.                                                                          */
+function prcDiaDoAte(mes, chave){
+  let dia = 0;
+  UNIDADES_REL.forEach(u => {
+    if (chave && u.chave !== chave) return;
+    const d = relLojas[u.chave + "_" + mes];
+    const p = (d && d.ate) ? String(d.ate).split("-") : null;
+    if (p && p.length === 3) dia = Math.max(dia, parseInt(p[2], 10) || 0);
+  });
+  return dia;
+}
+function prcMesAnterior(mes){
+  const p = String(mes || "").split("-");
+  if (p.length < 2) return "";
+  let a = parseInt(p[0], 10), m = parseInt(p[1], 10) - 1;
+  if (!a || isNaN(m)) return "";
+  if (m < 1){ m = 12; a--; }
+  return a + "-" + (m < 10 ? "0" + m : String(m));
+}
+function prcTemMes(mes, chave){
+  return !!mes && UNIDADES_REL.some(u => (!chave || u.chave === chave) && !!relLojas[u.chave + "_" + mes]);
+}
+/* 🔴 A JANELA E' POR LOJA, e isso foi achado pelo revisor: com `Math.max` do `ate` das TRES, uma
+   loja atrasada (coletor que falhou, `ate` de dois dias atras) teria a lista inteira marcada como
+   "sem venda", porque a janela seria a da loja mais adiantada. 🔑 O dado e' por loja; a regua
+   tambem tem de ser. */
+function prcJanelaVenda(mes, chave){
+  const dia = prcDiaDoAte(mes, chave);
+  if (!dia) return { mes:mes, valida:false, dia:0 };            // documento sem `ate`: nao da' para saber o tamanho da janela
+  if (dia >= RJT_DIA_MIN) return { mes:mes, valida:true, dia:dia };
+  const ant = prcMesAnterior(mes);
+  return prcTemMes(ant, chave) ? { mes:ant, valida:true, dia:prcDiaDoAte(ant, chave) }
+                               : { mes:mes, valida:false, dia:dia };
+}
+/* quem vendeu na janela, por loja: cod -> {qtd, rec, pmed} */
+function prcVendaDaJanela(mes){
+  const out = {};
+  UNIDADES_REL.forEach(u => {
+    const d = relLojas[u.chave + "_" + mes];
+    const lista = (d && Array.isArray(d.precos)) ? d.precos : [];
+    const m = {};
+    lista.forEach(x => {
+      const cod = prcCodNorm(x[0]);
+      if (!cod) return;
+      const qtd = +x[6]||0, rec = +x[7]||0, preco = +x[3]||0;
+      m[cod] = { qtd:qtd, rec:rec, pmed: qtd > 0 ? rec / qtd : preco };
+    });
+    out[u.chave] = m;
+  });
+  return out;
+}
+/* o mes mais recente, ATE a janela, em que cada produto vendeu naquela loja.
+   Um mapa so' por rodada: procurar mes a mes por produto custaria a mesma varredura N vezes. */
+function prcMapaUltimaVenda(ate){
+  const out = {};
+  UNIDADES_REL.forEach(u => {
+    const m = {};
+    mesesDisponiveis(relLojas, u.chave).filter(x => x <= ate).sort().forEach(mes => {   // crescente: o ultimo a escrever ganha
+      const d = relLojas[u.chave + "_" + mes];
+      const lista = (d && Array.isArray(d.precos)) ? d.precos : [];
+      lista.forEach(x => { const c = prcCodNorm(x[0]); if (c) m[c] = mes; });
+    });
+    out[u.chave] = m;
+  });
+  return out;
+}
+/* 🔑 A MESMA tabela de meses do menu Novidades. Ja havia CINCO copias dela no arquivo; a sexta
+   seria a que envelhece calada. */
+function rjtMesPorExtenso(ym, refAno){
+  const p = String(ym || "").split("-");
+  const nome = NVD_MESES[(+p[1] || 1) - 1] || "";
+  if (!nome) return rotuloMesRel(ym);
+  const ano = String(p[0] || "");
+  return (refAno && ano && ano !== String(refAno)) ? nome + " de " + ano : nome;
+}
+function rjtTextoParado(x){
+  const jan = (x.janela && x.janela.mes) ? x.janela.mes : "";
+  const ano = String(jan).split("-")[0];
+  const t = "sem venda em " + rjtMesPorExtenso(jan, ano);
+  return x.desde ? t + " — última venda em " + rjtMesPorExtenso(x.desde, ano) : t;
+}
+
+/* ---- o codigo de barras na tela ----
+   📏 Medido no Firestore em 15/08: 18 dos 219 apontados (8%) nao tem codigo de barras, e 200 das
+   1.238 linhas de `precos` (16%). 👉 Por isso a celula DIZ que nao tem, em vez de mostrar um
+   botao que nao faz nada. */
+function prcCelBarras(cod, mudo){
+  const c = String(cod == null ? "" : cod).trim();
+  if (mudo) return "";                     // mes coletado antes de o servidor mandar o barras
+  if (!c) return '<small class="prc-bar vazio">sem código de barras</small>';
+  /* 🔴 O codigo vai em `data-cod`, NAO dentro da chamada: codigo com aspas ou barra invertida
+     escapava do `escAttr` e quebrava o `onclick` DAQUELA linha em silencio (achado do revisor).
+     O campo e' numerico no Petros, entao a chance e' ~0 — mas a de-para custa uma palavra. */
+  return '<small class="prc-bar">' + escAttr(c)
+       + '<button type="button" class="prc-copia" data-ico="📋" data-cod="' + escAttr(c) + '"'
+       + ' title="Copiar o código de barras"'
+       + ' onclick="prcCopiarBarras(event, this.getAttribute(&quot;data-cod&quot;))">📋</button></small>';
+}
+/* O `stopPropagation` fica por precaucao MEDIDA, e a razao mudou depois da revisao: nestas duas
+   tabelas a <tr> NAO tem `onclick` — quem tem e' a fila de ajuste da aba Comparar lojas (15250),
+   e e' para la' que este botao vai no dia em que alguem o reusar. */
+function prcCopiarBarras(ev, cod){
+  if (ev && ev.stopPropagation) ev.stopPropagation();
+  const txt = String(cod == null ? "" : cod).trim();
+  const bt = (ev && ev.currentTarget) ? ev.currentTarget : null;
+  const msg = document.getElementById("rjtMsg");
+  if (!txt){ if (msg) msg.textContent = "Este produto não tem código de barras cadastrado no Petros."; return; }
+  const fim = () => {
+    if (bt){ const antes = bt.getAttribute("data-ico") || "📋";
+             bt.textContent = "✔"; setTimeout(() => { bt.textContent = antes; }, 1600); }
+    if (msg) msg.textContent = "Código de barras copiado: " + txt;
+  };
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(fim, fim); return; }
+  } catch(e) {}
+  const ta = document.createElement("textarea");
+  ta.value = txt; document.body.appendChild(ta); ta.select();
+  try { document.execCommand("copy"); } catch(e) {}
+  document.body.removeChild(ta); fim();
+}
+
+/* ---- custo que subiu entre as duas ultimas compras, medido pela REGUA HONESTA ---- */
+function prcCustoSubiu(mes, cat, loja){
+  const cacheV = {}, cacheU = {};   // um mapa por MES de janela, nao por loja: as lojas costumam compartilhar
+  const out = [];
+  UNIDADES_REL.forEach(u => {
+    if (loja && u.chave !== loja) return;
+    const jan  = prcJanelaVenda(mes, u.chave);
+    const vend = cacheV[jan.mes] || (cacheV[jan.mes] = prcVendaDaJanela(jan.mes));
+    const ult  = cacheU[jan.mes] || (cacheU[jan.mes] = prcMapaUltimaVenda(jan.mes));
+    const d = relLojas[u.chave + "_" + mes];
+    if (!d || !Array.isArray(d.custoSubiu)) return;
+    d.custoSubiu.forEach(x => {
+      const catx = String(x[2] || "");
+      if (cat && catx !== cat) return;
+      const velho = +x[3]||0, novo = +x[4]||0, preco = +x[7]||0, epoca = +x[9]||0;
+      if (!(velho > 0) || !(novo > velho) || !(preco > novo)) return;
+      const cod = prcCodNorm(x[0]);
+      /* 🔴 A GUARDA DO `precoEpoca`: o coletor cai no preco de hoje quando nao ha historico ate a
+         data da compra velha, e preco historico ZERADO ou abaixo do custo velho daria margem
+         negativa e alvo abaixo do proprio custo. Nos dois casos a conta volta a ser a antiga —
+         e o `semEpoca` conta quantos sao, para a tela poder dizer. */
+      const semEpoca  = !(epoca > velho);
+      const base      = semEpoca ? preco : epoca;
+      const margEpoca = (base - velho) / base * 100;
+      const margAgora = (preco - novo) / preco * 100;
+      const alvo      = margEpoca < 95 ? novo / (1 - margEpoca / 100) : preco;
+      const suspeito  = (novo / velho - 1) * 100 >= PRC_ALTA_SUSP;
+      /* 🔴 margem da epoca acima de 95% e' custo velho quebrado (medido em 15/08: os cinco casos
+         de margem >= 90% do catalogo tem custo de R$ 0,21 a R$ 0,60 para preco de R$ 7 a R$ 10).
+         Sem esta guarda o `alvo` cai em `preco` e o produto se declara RECUPERADO sozinho — sai da
+         lista em silencio, que e' o pior jeito de errar. */
+      const semAlvo   = margEpoca >= 95;
+      /* alta absurda e' cadastro/nota errada: nao se declara "ja recuperado" em cima dela */
+      const recuperado = !suspeito && !semAlvo && preco >= alvo - 0.005;
+      const v     = (vend[u.chave] || {})[cod] || null;
+      const qtd   = v ? v.qtd : 0;
+      const pmed  = v ? v.pmed : preco;
+      const parado = jan.valida && !v;
+      out.push({ cod:cod, nome:String(x[1]||""), cat:catx, loja:u, barras:String(x[8]||"").trim(),
+        velho:velho, novo:novo, dia:String(x[5]||""), diaVelho:String(x[6]||""), preco:preco,
+        epoca:epoca, semEpoca:semEpoca, semAlvo:semAlvo,
+        /* 📏 MEDIDO em 15/08: em 162 dos 219 o preco da epoca e' IGUAL ao de hoje. Isso e' as duas
+           coisas ao mesmo tempo — ou o preco nao mudou desde a compra velha (e ai igual e' o certo),
+           ou o coletor nao achou historico e caiu no preco de hoje (e ai o alvo volta a fugir).
+           🔑 O app NAO consegue separar as duas, e a tela tem de dizer isso em vez de prometer. */
+        igualHoje: Math.abs(epoca - preco) <= 0.005,
+        pct:(novo/velho - 1) * 100,
+        margEpoca:margEpoca, margAgora:margAgora, pp: margEpoca - margAgora,
+        alvo:alvo, falta: Math.max(0, alvo - preco), recuperado:recuperado, suspeito:suspeito,
+        /* 🔴 PEGO PELA SUITE, e teria ido para a tela: linha SUSPEITA nao promete dinheiro. O alvo
+           dela e' inventado — a AGUA de R$ 9,99 com custo velho de R$ 0,67 (cadastro quebrado)
+           dava alvo de R$ 76,90 e jogava R$ 13 mil no topo da lista ordenada por dinheiro.
+           🔑 A tela ja se recusava a mostrar o alvo dela; a ordem, nao. */
+        qtd:qtd, pmed:pmed, ganho: (recuperado || suspeito || semAlvo) ? 0 : Math.max(0, alvo - pmed) * qtd,
+        parado:parado, desde: parado ? ((ult[u.chave] || {})[cod] || "") : "", janela:jan });
+    });
+  });
+  /* v367 - por DINHEIRO, nao por ponto percentual. 📏 Medido em 15/08 em Teresina: pela ordem
+     velha os cinco primeiros somavam R$ 136/mes e um deles nem vendeu; pela nova, R$ 534. */
+  return out.sort((a,b) => b.ganho - a.ganho || b.pp - a.pp);
+}
+
+/* ---- bloco: o custo subiu e o preco nao ---- */
+function blocoReajusteCusto(mes, cat, loja){
+  const todos = prcCustoSubiu(mes, cat, loja);
+  const jan = prcJanelaVenda(mes);
+  if (!todos.length)
+    return '<h4 class="rel-h4">⬆️ O custo subiu e o preço não</h4>'
+         + '<p class="nota-dash">Nenhum produto com alta de custo na última nota em ' + rotuloMesRel(mes)
+         + (loja ? ' nesta loja' : ' nas três lojas') + '.</p>';
+  const rec   = todos.filter(x => x.recuperado);
+  const fila  = todos.filter(x => !x.recuperado);
+  const lista = rjtVerRec ? rec : fila;
+  const parados = fila.filter(x => x.parado);
+  const semEp   = fila.filter(x => x.semEpoca || x.semAlvo);
+  const igual   = fila.filter(x => x.igualHoje && !x.semEpoca);
+  const total   = fila.reduce((a,x) => a + x.ganho, 0);
+  /* 🔴 MES COLETADO ANTES DA v2 DO COLETOR (15/08) nao tem a 9a posicao: TODAS as linhas ficam sem
+     barras. Dizer "N produtos nao tem codigo cadastrado" ali seria acusar a equipe de um cadastro
+     que ela fez — o que faltou foi o snapshot, nao o cadastro. (achado do revisor) */
+  const mudo    = todos.length > 0 && todos.every(x => !x.barras);
+  const semBar  = fila.filter(x => !x.barras);   // so' e' impresso quando NAO e' mes mudo (ver a nota)
+  /* o periodo de verdade da quantidade: as lojas podem estar em janelas diferentes */
+  const janelas = [];
+  todos.forEach(x => { if (x.janela && janelas.indexOf(x.janela.mes) < 0) janelas.push(x.janela.mes); });
+  const diaJan = janelas.length === 1 ? prcDiaDoAte(janelas[0], "") : 0;
+  const rotPer = janelas.length === 1
+    ? rjtMesPorExtenso(janelas[0], String(janelas[0]).split("-")[0]) + (diaJan && diaJan < 28 ? " (1 a " + diaJan + ")" : "")
+    : "no mês de cada loja";
+  let h = '<h4 class="rel-h4">⬆️ O custo subiu e o preço não</h4>' + cntEtiqueta(fila.length);
+  h += '<div class="prc-alerta">Estes produtos foram comprados <b>mais caro na última nota</b> e o preço de venda '
+     + 'continua o mesmo. <b>' + fila.length + '</b> ' + (fila.length === 1 ? 'produto' : 'produtos') + ' para reajustar'
+     + (loja ? '' : ' nas três lojas') + (cat ? ' nesta categoria' : '') + '.'
+     + (rec.length ? ' <b>' + rec.length + '</b> ' + (rec.length === 1 ? 'já foi reajustado' : 'já foram reajustados')
+                   + ' o bastante e ' + (rec.length === 1 ? 'saiu' : 'saíram') + ' da fila.' : '')
+     + (total > 0 ? ' Somando o que falta, são <b>' + fmtR$0(total) + '</b> — a conta usa a quantidade vendida '
+                  + (janelas.length === 1 ? 'em ' : '') + rotPer + ', não um mês inteiro.' : '')
+     + '</div>';
+  if (rec.length)
+    h += '<div class="prc-mais"><button type="button" class="doc-chip prc-btn" onclick="rjtVerRecuperados()">'
+       + (rjtVerRec ? '↩ Voltar para os ' + fila.length + ' que faltam'
+                    : '✅ Ver os ' + rec.length + ' que já foram reajustados')
+       + '</button><span class="prc-mais-n">' + (rjtVerRec ? 'mostrando os que já saíram da fila' : '') + '</span></div>';
+  if (!lista.length)
+    return h + '<p class="nota-dash">Nada nesta lista.</p>';
+  const mostrar = rjtCstTudo ? lista : lista.slice(0, PRC_EXC_TOPO);
+  h += '<div class="rel-scroll"><table class="rel-tab prc-tab prc-cst"><thead><tr>'
+     + '<th>Produto</th><th>Loja</th><th class="n">Custo antes</th><th class="n">Custo agora</th>'
+     + '<th class="n">Margem</th><th class="n">Preço p/ recuperar</th><th class="n">Deixa de ganhar</th>'
+     + '</tr></thead><tbody>';
+  mostrar.forEach(x => {
+    h += '<tr><td>' + escAttr(x.nome) + '<small class="prc-cat">' + escAttr(x.cat) + '</small>'
+       + prcCelBarras(x.barras, mudo)
+       + (x.parado ? '<small class="rjt-parado">' + escAttr(rjtTextoParado(x)) + '</small>' : '')
+       + (x.suspeito ? '<small class="prc-susp">⚠️ alta muito grande — confira a nota de entrada</small>' : '')
+       + (x.semAlvo ? '<small class="prc-susp">⚠️ custo antigo quase zero — confira o cadastro</small>' : '')
+       + '<small class="cmp-op-mob">'
+       + ((x.suspeito || x.semAlvo) ? 'confira a nota antes'
+                     : fmtR$(x.preco) + ' → ' + fmtR$(x.alvo) + (x.ganho > 0 ? ' · ' + fmtR$0(x.ganho) + ' a ganhar' : ''))
+       + '</small></td>'
+       + '<td>' + escAttr(x.loja.nome) + '</td>'
+       + '<td class="n">' + fmtR$(x.velho) + '<small>' + (x.diaVelho ? dataCurtaRel(x.diaVelho) : '—') + '</small></td>'
+       + '<td class="n prc-sobe2"><b>' + fmtR$(x.novo) + '</b><small>+' + fmtPctRel(x.pct) + ' · ' + dataCurtaRel(x.dia) + '</small></td>'
+       + '<td class="n">' + fmtPctRel(x.margEpoca) + ' → <b class="rel-desce">' + fmtPctRel(x.margAgora) + '</b>'
+       + '<small>' + x.pp.toFixed(1) + ' pp a menos</small></td>'
+       + (x.suspeito || x.semAlvo
+          ? '<td class="n cmp-sem">—<small>confira a nota antes</small></td>'
+          : x.recuperado
+            ? '<td class="n"><b>' + fmtR$(x.alvo) + '</b><small>já está em ' + fmtR$(x.preco) + '</small></td>'
+            : '<td class="n prc-sug"><b>' + fmtR$(x.alvo) + '</b><small>hoje ' + fmtR$(x.preco)
+              + (x.falta > 0.005 ? ' · faltam ' + fmtR$(x.falta) : '') + '</small></td>')
+       + '<td class="n' + (x.ganho > 0 ? ' rel-desce' : '') + '">'
+       + (x.ganho > 0 ? '<b>' + fmtR$0(x.ganho) + '</b>' : '<span class="cmp-sem">—</span>') + '</td></tr>';
+  });
+  h += '</tbody></table></div>';
+  if (lista.length > PRC_EXC_TOPO){
+    h += '<div class="prc-mais"><button type="button" class="doc-chip prc-btn" onclick="rjtVerCst()">'
+       + (rjtCstTudo ? '↑ Mostrar só os ' + PRC_EXC_TOPO + ' maiores' : '↓ Ver todos os ' + lista.length + ' produtos')
+       + '</button><span class="prc-mais-n">'
+       + (rjtCstTudo ? 'mostrando os ' + lista.length : 'mostrando ' + PRC_EXC_TOPO + ' de ' + lista.length) + '</span></div>';
+  }
+  h += '<p class="nota-dash"><b>"Preço p/ recuperar"</b> usa a margem que o produto dava <b>na época da compra antiga</b> — '
+     + 'não o preço de hoje. Por isso ele <b>não sobe quando vocês reajustam</b>: é um número fixo, e quando o preço alcança '
+     + 'esse número o produto <b>sai da lista sozinho</b>. A ordem é pelo <b>dinheiro</b> que cada um deixa de dar, '
+     + 'não pela porcentagem.'
+     + (parados.length ? ' <b>' + parados.length + '</b> ' + (parados.length === 1 ? 'produto está' : 'produtos estão')
+        + ' marcados como <b>sem venda</b> no mês: continuam na lista, mas no fim dela.' : '')
+     + (mudo ? ' ⚠️ Este mês foi coletado <b>antes</b> de o servidor passar a mandar o código de barras (15/08), '
+        + 'por isso nenhuma linha mostra o código — o cadastro no Petros pode existir.'
+        : (semBar.length ? ' <b>' + semBar.length + '</b> ' + (semBar.length === 1 ? 'não tem' : 'não têm')
+           + ' código de barras cadastrado no Petros.' : ''))
+     + (igual.length ? ' Em <b>' + igual.length + '</b> o preço da época é <b>igual ao de hoje</b>: ou o preço não mudou '
+        + 'desde aquela compra, ou o servidor não achou o histórico e usou o preço atual — o app não separa os dois casos, '
+        + 'e neles o alvo é o mesmo da conta antiga.' : '')
+     + (semEp.length ? ' Em <b>' + semEp.length + '</b> o preço da época não serve (histórico ausente, ou custo antigo '
+        + 'quebrado), e a conta volta a ser a de antes.' : '')
+     + ' Produto sem duas compras no último ano não aparece aqui.</p>';
+  return h;
+}
+
+/* ---- margem abaixo da media da categoria (v242, estendido na v367) ----
+   🔴 O BURACO QUE ESTA VERSAO FECHA: a regua da media so' julgava quem existia em UMA loja
+   (`dados.exclusivos`). Produto vendido nas tres, com as tres margens igualmente ruins, nao
+   aparecia em lugar nenhum — e produto vendido em duas lojas com custo lancado em UMA caia
+   fora das duas listas ao mesmo tempo. Agora a fonte e' `dados.todos`.                        */
+function prcAbaixoMedia(dados, loja){
+  const media = prcMediaCategoria(dados);
+  const out = [];
+  (dados.todos || []).forEach(it => {
+    it.todas.forEach(l => {
+      if (loja && l.chave !== loja) return;
+      const c = it.por[l.chave];
+      if (!c || !(c.preco > 0) || !(c.custo > 0) || c.custo >= c.preco) return;
+      const m = (media[l.chave] || {})[it.cat];
+      if (!m || m.n < 3) return;                       // categoria com menos de 3 produtos nao vira meta
+      const gap = m.media - c.marg;
+      if (!(gap > 0.05)) return;                       // a lista da equipe so' mostra quem esta ABAIXO
+      const alvo = m.media < 95 ? c.custo / (1 - m.media / 100) : c.preco;
+      out.push({ it:it, loja:l, c:c, mediaCat:m.media, nCat:m.n, gap:gap, alvo:alvo,
+                 nLojas:it.todas.length, ganho: Math.max(0, alvo - c.pmed) * c.qtd });
+    });
+  });
+  return out.sort((a,b) => b.ganho - a.ganho || b.c.rec - a.c.rec);
+}
+function blocoAbaixoMedia(dados, mes, cat, loja){
+  let lista = prcAbaixoMedia(dados, loja);
+  if (cat) lista = lista.filter(x => x.it.cat === cat);
+  if (!lista.length)
+    return '<h4 class="rel-h4">🏷️ Margem abaixo da média da categoria</h4>'
+         + '<p class="nota-dash">Nenhum produto abaixo da média da própria categoria em ' + rotuloMesRel(mes) + '.</p>';
+  const varias = lista.filter(x => x.nLojas > 1);
+  const total  = lista.reduce((a,x) => a + x.ganho, 0);
+  const mudo   = lista.length > 0 && lista.every(x => !x.c.barras);
+  const diaB   = prcDiaDoAte(mes, loja);
+  const foraDaMedia = (dados.todos || []).reduce((n, it) => n + it.todas.filter(l => {
+    const c = it.por[l.chave]; return c && c.preco > 0 && c.custo > 0 && c.marg >= PRC_MARG_ABSURDA; }).length, 0);
+  const mostrar = rjtMedTudo ? lista : lista.slice(0, PRC_EXC_TOPO);
+  let h = '<h4 class="rel-h4">🏷️ Margem abaixo da média da categoria</h4>' + cntEtiqueta(lista.length);
+  h += '<div class="prc-alerta neutro">A régua aqui é a <b>margem média da própria categoria naquela loja</b> — mesmo '
+     + 'custo, mesmo público. <b>' + lista.length + '</b> ' + (lista.length === 1 ? 'produto está' : 'produtos estão')
+     + ' abaixo dela' + (cat ? ' nesta categoria' : '') + (loja ? '' : ' nas três lojas') + ', '
+     + '<b>' + varias.length + '</b> ' + (varias.length === 1 ? 'deles vendido' : 'deles vendidos') + ' em mais de uma loja'
+     /* 🔴 O MESMO CUIDADO DO BLOCO DE CIMA: som de 560 linhas com o mes pela metade nao e' "por
+        mes", e reajustar TUDO ate' a media da categoria nao acontece. A frase do teto e' a mesma
+        que o app ja usa na fila de ajuste (15379). */
+     + (total > 0 ? ', somando <b>' + fmtR$0(total) + '</b> se todos chegassem à média — é o teto, não a previsão, '
+                  + 'e a conta usa a quantidade vendida em ' + rjtMesPorExtenso(mes, String(mes).split("-")[0])
+                  + (diaB && diaB < 28 ? ' (1 a ' + diaB + ')' : '') : '') + '.</div>';
+  h += '<div class="rel-scroll"><table class="rel-tab prc-tab prc-exc"><thead><tr>'
+     + '<th>Produto</th><th>Loja</th><th class="n">Preço</th><th class="n">Custo</th>'
+     + '<th class="n">Margem</th><th class="n">Preço p/ chegar lá</th><th class="n">Deixa de ganhar</th>'
+     + '</tr></thead><tbody>';
+  mostrar.forEach(x => {
+    h += '<tr><td>' + escAttr(x.it.nome) + '<small class="prc-cat">' + escAttr(x.it.cat) + '</small>'
+       + prcCelBarras(x.c.barras, mudo)
+       + (x.nLojas > 1 ? '<small class="rjt-lojas">vendido em ' + x.nLojas + ' lojas</small>' : '')
+       + '<small class="cmp-op-mob">' + fmtR$(x.c.preco) + ' → ' + fmtR$(x.alvo)
+       + (x.ganho > 0 ? ' · ' + fmtR$0(x.ganho) + ' a ganhar' : '') + '</small></td>'
+       + '<td>' + escAttr(x.loja.nome) + '</td>'
+       + '<td class="n">' + fmtR$(x.c.preco) + '<small>' + fmtR$0(x.c.rec) + ' no mês</small></td>'
+       + '<td class="n">' + fmtR$(x.c.custo) + '</td>'
+       + '<td class="n rel-desce"><b>' + fmtPctRel(x.c.marg) + '</b><small>média ' + fmtPctRel(x.mediaCat)
+       + ' · ' + x.nCat + ' produtos</small></td>'
+       + '<td class="n prc-sug"><b>' + fmtR$(x.alvo) + '</b><small>hoje ' + fmtR$(x.c.preco) + '</small></td>'
+       + '<td class="n' + (x.ganho > 0 ? ' rel-desce' : '') + '">'
+       + (x.ganho > 0 ? '<b>' + fmtR$0(x.ganho) + '</b>' : '<span class="cmp-sem">—</span>') + '</td></tr>';
+  });
+  h += '</tbody></table></div>';
+  if (lista.length > PRC_EXC_TOPO){
+    h += '<div class="prc-mais"><button type="button" class="doc-chip prc-btn" onclick="rjtVerMed()">'
+       + (rjtMedTudo ? '↑ Mostrar só os ' + PRC_EXC_TOPO + ' maiores' : '↓ Ver todos os ' + lista.length + ' produtos')
+       + '</button><span class="prc-mais-n">'
+       + (rjtMedTudo ? 'mostrando os ' + lista.length : 'mostrando ' + PRC_EXC_TOPO + ' de ' + lista.length) + '</span></div>';
+  }
+  h += '<p class="nota-dash">Categoria com menos de 3 produtos na loja não vira régua — média de dois produtos não é média. '
+     + 'Produto sem preço ou sem custo de compra lançado fica de fora. Aqui todo produto <b>vendeu no mês</b>: esta lista '
+     + 'nasce da venda. Um mesmo produto pode aparecer nos dois blocos — são duas réguas diferentes.'
+     + (foraDaMedia ? ' <b>' + foraDaMedia + '</b> ' + (foraDaMedia === 1 ? 'produto ficou' : 'produtos ficaram')
+        + ' de fora do <b>cálculo da média</b> por ter margem acima de ' + PRC_MARG_ABSURDA + '% — custo quase zero é '
+        + 'cadastro por lançar, e um deles sozinho puxa a categoria inteira para cima.' : '')
+     + '</p>';
+  return h;
+}
+
+/* ---------- v367 - a tela 💹 Precos a reajustar ---------- */
+let rjtLoja = "", rjtMes = "", rjtVerRec = false, rjtCstTudo = false, rjtMedTudo = false;
+function rjtMuda(campo, valor){
+  if (campo === "loja") rjtLoja = valor; else if (campo === "mes") rjtMes = valor;
+  rjtVerRec = false; rjtCstTudo = false; rjtMedTudo = false;
+  renderReajustes();
+}
+function rjtVerRecuperados(){ rjtVerRec = !rjtVerRec; rjtCstTudo = false; renderReajustes(); }
+function rjtVerCst(){ rjtCstTudo = !rjtCstTudo; renderReajustes(); }
+function rjtVerMed(){ rjtMedTudo = !rjtMedTudo; renderReajustes(); }
+/* 🔑 `dcvMeses()` (do Dashboard da Conveniencia) ja faz exatamente isto sobre o mesmo `relLojas`.
+   A primeira versao desta tela reescreveu o corpo dela caractere por caractere — quatro funcoes
+   depois de eu ter escrito que a sexta copia de uma tabela e' a que envelhece calada. */
+function alternarReajustes(){
+  const aberto = abrirPainelExclusivo("painelReajustes");
+  const b = document.getElementById("btnReajustes");
+  if (b) b.classList.toggle("ativo", aberto);
+  if (aberto) renderReajustes();
+}
+function renderReajustes(){
+  const box = document.getElementById("rjtBox");
+  if (!box) return;
+  const meses = dcvMeses();
+  if (!meses.length){
+    preencherSelectRel("rjtMes", [], "", null);
+    box.innerHTML = '<p class="nota-dash">Ainda não temos os preços da conveniência. Eles são montados na sincronização — '
+                  + 'peça ao Claude: "sincroniza os preços da conveniência".</p>';
+    return;
+  }
+  if (meses.indexOf(rjtMes) < 0) rjtMes = meses[0];
+  preencherSelectRel("rjtMes", meses, rjtMes, rotuloMesRel);
+  preencherSelectRel("rjtLoja", [""].concat(UNIDADES_REL.map(u => u.chave)), rjtLoja,
+    c => c ? ((UNIDADES_REL.find(u => u.chave === c) || {}).nome || c) : "Todas as lojas");
+  const dados = dadosPrecoLojas(rjtMes);
+  /* 🔴 MES SEM PRECO COLETADO nao pode responder "nenhum produto para reajustar": isso se le' como
+     "esta tudo em ordem". As duas telas irmas ja faziam certo (`blocoPrecoTop`, 15424). */
+  if (!dados.temAlgum){ box.innerHTML = prcAvisoSemDado(dados, rjtMes); return; }
+  let h = blocoReajusteCusto(rjtMes, "", rjtLoja);
+  h += blocoAbaixoMedia(dados, rjtMes, "", rjtLoja);
+  h += '<p class="nota-dash" id="rjtMsg"></p>';
+  box.innerHTML = h;
+}
+
 
 /* margem media de reposicao de cada categoria, POR LOJA, ponderada pela receita do mes */
 function prcMediaCategoria(dados){
   const acc = {};   // loja -> categoria -> {peso, soma}
-  dados.itens.concat(dados.exclusivos || []).forEach(it => {
+  (dados.todos || []).forEach(it => {
     it.todas.forEach(l => {
       const c = it.por[l.chave];
       if (!c || !(c.preco > 0) || !(c.custo > 0) || c.custo >= c.preco) return;
+      /* v367 - custo quase zero e' cadastro por lancar, e UM deles puxa a categoria inteira:
+         medido em 15/08, o MISTO QUENTE (custo R$ 0,34 sobre preco R$ 9,99) levava a PADARIA de
+         Caxias de 44,9% para 61,9%. Sai da MEDIA; continua na tela. */
+      if (c.marg >= PRC_MARG_ABSURDA) return;
       const peso = Math.max(c.rec, 1);
       if (!acc[l.chave]) acc[l.chave] = {};
       const a = acc[l.chave][it.cat] = acc[l.chave][it.cat] || { peso:0, soma:0, n:0 };
@@ -15501,123 +16003,11 @@ function prcMediaCategoria(dados){
 }
 
 /* os produtos que so' existem em UMA loja, medidos contra a media da categoria dela */
-function prcExclusivos(dados){
-  const media = prcMediaCategoria(dados);
-  const out = [];
-  (dados.exclusivos || []).forEach(it => {
-    const l = it.todas[0], c = it.por[l.chave];
-    if (!c || !(c.preco > 0) || !(c.custo > 0) || c.custo >= c.preco) return;
-    const m = (media[l.chave] || {})[it.cat];
-    if (!m || m.n < 3) return;                       // categoria com menos de 3 produtos nao vira meta
-    const gap = m.media - c.marg;
-    const alvo = m.media < 95 ? c.custo / (1 - m.media / 100) : c.preco;
-    out.push({ it:it, loja:l, c:c, mediaCat:m.media, nCat:m.n, gap:gap,
-               alvo:alvo, ganho: gap > 0 ? Math.max(0, alvo - c.pmed) * c.qtd : 0 });
-  });
-  return out.sort((a,b) => b.ganho - a.ganho || b.c.rec - a.c.rec);
-}
 
-/* custo que subiu entre as duas ultimas compras */
-function prcCustoSubiu(mes, cat){
-  const out = [];
-  UNIDADES_REL.forEach(u => {
-    const d = relLojas[u.chave + "_" + mes];
-    if (!d || !Array.isArray(d.custoSubiu)) return;
-    d.custoSubiu.forEach(x => {
-      const catx = String(x[2] || "");
-      if (cat && catx !== cat) return;
-      const velho = +x[3]||0, novo = +x[4]||0, preco = +x[7]||0;
-      if (!(velho > 0) || !(novo > velho) || !(preco > novo)) return;
-      const margAntes = (preco - velho) / preco * 100;
-      const margAgora = (preco - novo) / preco * 100;
-      out.push({ cod:String(x[0]||""), nome:String(x[1]||""), cat:catx, loja:u,
-        velho:velho, novo:novo, dia:String(x[5]||""), diaVelho:String(x[6]||""), preco:preco,
-        pct:(novo/velho - 1) * 100, margAntes:margAntes, margAgora:margAgora,
-        pp: margAntes - margAgora, alvo: margAntes < 95 ? novo / (1 - margAntes/100) : preco,
-        suspeito: (novo/velho - 1) * 100 >= PRC_ALTA_SUSP });
-    });
-  });
-  return out.sort((a,b) => b.pp - a.pp);
-}
 
 /* ---- bloco: custo subiu ---- */
-function blocoCustoSubiu(mes, cat){
-  const lista = prcCustoSubiu(mes, cat);
-  if (!lista.length) return "";
-  const firmes = lista.filter(x => !x.suspeito), susp = lista.filter(x => x.suspeito);
-  const mostrar = prcCstTudo ? lista : lista.slice(0, PRC_EXC_TOPO);
-  let h = '<h5 class="cmp-h5">\u{2B06}\u{FE0F} O custo de compra subiu — a margem caiu junto</h5>' + cntEtiqueta(lista.length);
-  h += '<div class="prc-alerta">Estes produtos foram comprados mais caro na última nota, e o preço de venda '
-     + 'continua o mesmo. <b>' + lista.length + (lista.length===1?' produto':' produtos') + '</b> nesta situação'
-     + (cat ? ' nesta categoria' : ' nas três lojas') + '. Comparação entre as <b>duas últimas compras de verdade</b> '
-     + '(nota de compra; devolução de venda e bonificação ficam de fora).</div>';
-  h += '<div class="rel-scroll"><table class="rel-tab prc-tab prc-cst"><thead><tr>'
-     + '<th>Produto</th><th>Loja</th><th class="n">Custo antes</th><th class="n">Custo agora</th>'
-     + '<th class="n">Comprou em</th><th class="n">Margem</th><th class="n">Preço p/ recuperar</th>'
-     + '</tr></thead><tbody>';
-  mostrar.forEach(x => {
-    h += '<tr><td>' + escAttr(x.nome) + '<small class="prc-cat">' + escAttr(x.cat) + '</small>'
-       + (x.suspeito ? '<small class="prc-susp">⚠️ alta muito grande — confira a nota de entrada</small>' : '')
-       + '<small class="cmp-op-mob">margem ' + fmtPctRel(x.margAntes) + ' → ' + fmtPctRel(x.margAgora) + '</small></td>'
-       + '<td>' + escAttr(x.loja.nome) + '</td>'
-       + '<td class="n">' + fmtR$(x.velho) + '<small>' + (x.diaVelho ? dataCurtaRel(x.diaVelho) : '—') + '</small></td>'
-       + '<td class="n prc-sobe2"><b>' + fmtR$(x.novo) + '</b><small>+' + fmtPctRel(x.pct) + '</small></td>'
-       + '<td class="n">' + dataCurtaRel(x.dia) + '</td>'
-       + '<td class="n">' + fmtPctRel(x.margAntes) + ' → <b class="rel-desce">' + fmtPctRel(x.margAgora) + '</b>'
-       + '<small>' + x.pp.toFixed(1) + ' pp a menos</small></td>'
-       + (x.suspeito
-          ? '<td class="n cmp-sem">—<small>confira a nota antes</small></td></tr>'
-          : '<td class="n prc-sug"><b>' + fmtR$(x.alvo) + '</b><small>hoje ' + fmtR$(x.preco) + '</small></td></tr>');
-  });
-  h += '</tbody></table></div>';
-  if (lista.length > PRC_EXC_TOPO){
-    h += '<div class="prc-mais"><button type="button" class="doc-chip prc-btn" onclick="prcVerCst()">'
-       + (prcCstTudo ? '↑ Mostrar só os ' + PRC_EXC_TOPO + ' maiores' : '↓ Ver todos os ' + lista.length + ' produtos')
-       + '</button><span class="prc-mais-n">' + (prcCstTudo ? 'mostrando os ' + lista.length : 'mostrando ' + PRC_EXC_TOPO + ' de ' + lista.length) + '</span></div>';
-  }
-  h += '<p class="nota-dash">"Preço p/ recuperar" é quanto o preço precisaria subir para a margem voltar ao que era antes desta compra. '
-     + (susp.length ? susp.length + ' com alta acima de ' + PRC_ALTA_SUSP + '% estão marcados: costuma ser embalagem diferente na nota, não preço novo do fornecedor. ' : '')
-     + 'Produto sem duas compras no último ano não aparece aqui.</p>';
-  return h;
-}
 
 /* ---- bloco: so' nesta loja ---- */
-function blocoExclusivos(dados, mes, cat){
-  let lista = prcExclusivos(dados);
-  if (cat) lista = lista.filter(x => x.it.cat === cat);
-  if (!lista.length) return "";
-  const abaixo = lista.filter(x => x.gap > 0);
-  const mostrar = prcExcTudo ? lista : lista.slice(0, PRC_EXC_TOPO);
-  let h = '<h5 class="cmp-h5">\u{1F3F7}\u{FE0F} Só existe em uma loja</h5>' + cntEtiqueta(lista.length);
-  h += '<div class="prc-alerta neutro">Produtos vendidos em <b>uma loja só</b> — não têm par para comparar. '
-     + 'A régua aqui é a <b>margem média da própria categoria naquela loja</b>. '
-     + '<b>' + lista.length + '</b> ' + (lista.length===1?'produto':'produtos') + (cat ? ' nesta categoria' : '')
-     + ', dos quais <b>' + abaixo.length + '</b> estão abaixo da média da sua categoria.</div>';
-  h += '<div class="rel-scroll"><table class="rel-tab prc-tab prc-exc"><thead><tr>'
-     + '<th>Produto</th><th>Loja</th><th class="n">Preço</th><th class="n">Custo</th>'
-     + '<th class="n">Margem</th><th class="n">Média da categoria</th><th class="n">Preço p/ chegar lá</th>'
-     + '</tr></thead><tbody>';
-  mostrar.forEach(x => {
-    const ruim = x.gap > 0;
-    h += '<tr><td>' + escAttr(x.it.nome) + '<small class="prc-cat">' + escAttr(x.it.cat) + '</small>'
-       + '<small class="cmp-op-mob">' + fmtR$0(x.c.rec) + ' no mês · margem ' + fmtPctRel(x.c.marg) + '</small></td>'
-       + '<td>' + escAttr(x.loja.nome) + '</td>'
-       + '<td class="n">' + fmtR$(x.c.preco) + '<small>' + fmtR$0(x.c.rec) + ' no mês</small></td>'
-       + '<td class="n">' + fmtR$(x.c.custo) + '</td>'
-       + '<td class="n' + (ruim ? ' rel-desce' : '') + '"><b>' + fmtPctRel(x.c.marg) + '</b></td>'
-       + '<td class="n">' + fmtPctRel(x.mediaCat) + '<small>' + x.nCat + ' produtos</small></td>'
-       + '<td class="n' + (ruim ? ' prc-sug' : '') + '">' + (ruim ? '<b>' + fmtR$(x.alvo) + '</b><small>+' + fmtR$0(x.ganho) + ' no mês</small>' : '<span class="cmp-sem">já está acima</span>') + '</td></tr>';
-  });
-  h += '</tbody></table></div>';
-  if (lista.length > PRC_EXC_TOPO){
-    h += '<div class="prc-mais"><button type="button" class="doc-chip prc-btn" onclick="prcVerExc()">'
-       + (prcExcTudo ? '↑ Mostrar só os ' + PRC_EXC_TOPO + ' maiores' : '↓ Ver todos os ' + lista.length + ' produtos')
-       + '</button><span class="prc-mais-n">' + (prcExcTudo ? 'mostrando os ' + lista.length : 'mostrando ' + PRC_EXC_TOPO + ' de ' + lista.length) + '</span></div>';
-  }
-  h += '<p class="nota-dash">Categoria com menos de 3 produtos na loja não vira régua — média de dois produtos não é média. '
-     + 'Produto sem preço ou sem custo de compra lançado também fica de fora.</p>';
-  return h;
-}
 
 /* ---------- tela ---------- */
 function alternarRelLoja(){
