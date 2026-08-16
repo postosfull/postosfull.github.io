@@ -3806,6 +3806,8 @@
       <button class="btn-claro" id="btnRelLoja" onclick="alternarRelLoja()"><span class="mi">🍫</span><span class="mt">Produtos e categorias</span></button>
       <!-- v367 - o menu da equipe da loja: o que precisa de reajuste -->
       <button class="btn-claro" id="btnReajustes" onclick="alternarReajustes()"><span class="mi">💹</span><span class="mt">Preços a reajustar</span></button>
+      <!-- v368 - o Full Center: a loja de troca de oleo DENTRO dos postos. emp:"postos", nao "conv" -->
+      <button class="btn-claro" id="btnFullCenter" onclick="alternarFullCenter()"><span class="mi">🔧</span><span class="mt">Troca de óleo</span></button>
       <button class="btn-claro" id="btnIfood" onclick="alternarIfood()"><span class="mi">🍔</span><span class="mt">iFood</span></button>
       <button class="btn-claro" id="btnInfleet" onclick="alternarInfleet()"><span class="mi">📡</span><span class="mt">APP Infleet</span></button>
       <button class="btn-claro" id="btnComprar" onclick="alternarComprar()"><span class="mi">🛒</span><span class="mt">O que comprar</span></button>
@@ -4356,6 +4358,21 @@
         <div class="desc-campo"><label>Mês</label><select id="rjtMes" onchange="rjtMuda('mes', this.value)"></select></div>
       </div>
       <div id="rjtBox"></div>
+    </div>
+  </div>
+
+  <div class="config" id="painelFullCenter">
+    <div class="grupo">
+      <h2>🔧 Troca de óleo</h2>
+      <p class="nota-dash">As lojas de <b>troca de óleo</b> dentro dos postos: o que <b>precisa de reajuste</b>, com o
+        <b>código de barras</b> para colar no Petros. Duas réguas: o <b>custo que subiu na última nota</b> e a
+        <b>margem abaixo da média da categoria</b>. A ordem é pelo <b>dinheiro</b> que cada produto deixa de dar por mês.
+        Vem do Petros pelo servidor, junto com os preços.</p>
+      <div class="evo-filtros">
+        <div class="desc-campo"><label>Unidade</label><select id="fcenLoja" onchange="fcenMuda('loja', this.value)"></select></div>
+        <div class="desc-campo"><label>Mês</label><select id="fcenMes" onchange="fcenMuda('mes', this.value)"></select></div>
+      </div>
+      <div id="fcenBox"></div>
     </div>
   </div>
 
@@ -5732,6 +5749,9 @@ const ICO_SVG = {
   financeiro:"<path d='M3.2 9.4 12 4.2l8.8 5.2'/><path d='M5.6 10.6v7.6M10 10.6v7.6M14 10.6v7.6M18.4 10.6v7.6'/><path d='M3 20.2h18'/>",
   analise:"<path d='M9.2 17.6h5.6'/><path d='M10 20.6h4'/><path d='M12 3.4a6 6 0 0 0-3.5 10.9c.5.4.7.9.7 1.3h5.6c0-.4.2-.9.7-1.3A6 6 0 0 0 12 3.4z'/>",
   relLoja:"<path d='M2.8 3.6h2.6l2.4 11.2h9.6l2-7.6H6.6'/><circle cx='9.4' cy='19' r='1.6'/><circle cx='16.6' cy='19' r='1.6'/>",
+  /* v368 - a chave inglesa do Full Center. 🔴 O ICO_SVG falha em SILENCIO: sem esta linha o menu
+     aparece e funciona, e so' o tema de DESENHO fica com o quadrado vazio (v317). */
+  fullcenter:"<path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z'/>",
   /* v367 - etiqueta de preco com a seta para cima. 🔴 O ICO_SVG falha em SILENCIO: sem esta
      linha o botao sai sem desenho e ninguem ve erro nenhum. */
   reajustes:"<path d='M3.9 12.6V4.9a1 1 0 0 1 1-1h7.7a1 1 0 0 1 .7.3l6.8 6.8a1 1 0 0 1 0 1.4l-7.4 7.4a1 1 0 0 1-1.4 0l-6.8-6.8a1 1 0 0 1-.6-1.4z'/><circle cx='7.8' cy='7.8' r='1.3'/><path d='M11.4 16.1V10.4'/><path d='M9.2 12.6l2.2-2.2 2.2 2.2'/>",
@@ -5772,7 +5792,7 @@ const ICO_SVG = {
   fechCaixa:"<rect x='3.2' y='9.4' width='17.6' height='11' rx='2.2'/><path d='M7.2 9.4V6.6a2 2 0 0 1 2-2h5.6a2 2 0 0 1 2 2v2.8'/><path d='M12 12.4v5.6'/><path d='M13.9 13.5c-.6-.6-3.2-.8-3.2.6 0 1.3 2.9.7 2.9 2 0 1.3-2.6 1.1-3.3.4'/>",
   g_ajustes:"<circle cx='12' cy='12' r='3.1'/><path d='M19.1 14.6a1.5 1.5 0 0 0 .3 1.7l.1.1a1.9 1.9 0 1 1-2.6 2.6l-.1-.1a1.5 1.5 0 0 0-2.6 1v.2a1.9 1.9 0 0 1-3.7 0v-.1a1.5 1.5 0 0 0-2.6-1l-.1.1a1.9 1.9 0 1 1-2.6-2.6l.1-.1a1.5 1.5 0 0 0-1-2.6h-.2a1.9 1.9 0 1 1 0-3.7h.1a1.5 1.5 0 0 0 1-2.6l-.1-.1a1.9 1.9 0 1 1 2.6-2.6l.1.1a1.5 1.5 0 0 0 1.7.3h.1a1.5 1.5 0 0 0 .9-1.4v-.2a1.9 1.9 0 0 1 3.7 0v.1a1.5 1.5 0 0 0 2.6 1l.1-.1a1.9 1.9 0 1 1 2.6 2.6l-.1.1a1.5 1.5 0 0 0 1 2.6h.2a1.9 1.9 0 0 1 0 3.7h-.1a1.5 1.5 0 0 0-1.4.9z'/>"
 };
-const ICO_BTN = {btnOperadores:"operadores",btnComprar:"comprar",btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnTanquesNivel:"tanquesNivel",btnRecebimento:"recebimento",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnDre:"dre",btnDespesasDet:"despesasDet",btnFechCaixa:"fechCaixa",btnAfericoes:"afericoes",btnClientes:"clientes",btnAnalise:"analise",btnRelLoja:"relLoja",btnReajustes:"reajustes",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnPendAdm:"pendAdm",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
+const ICO_BTN = {btnOperadores:"operadores",btnComprar:"comprar",btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnTanquesNivel:"tanquesNivel",btnRecebimento:"recebimento",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnDre:"dre",btnDespesasDet:"despesasDet",btnFechCaixa:"fechCaixa",btnAfericoes:"afericoes",btnClientes:"clientes",btnAnalise:"analise",btnRelLoja:"relLoja",btnReajustes:"reajustes",btnFullCenter:"fullcenter",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnPendAdm:"pendAdm",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
 const ICO_GRP = {dia:"g_dia",analise:"g_analise",finan:"g_finan",transp:"g_transp",org:"g_org",ajustes:"g_ajustes"};   /* v341 */
 /* 🔑 cor por GRUPO, tirada da paleta do MIV (laranja da marca + verde e dourado Petrobras).
    Assim a cor diz de que familia e' o menu, em vez de ser arco-iris. */
@@ -7870,6 +7890,14 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v368", data:"16/08/2026", tit:"🔧 Nasce o menu <b>Troca de óleo</b> — as lojas de troca de óleo dos três postos ganham a mesma régua da conveniência", itens:[
+    {t:"n", h:"O menu 🔧 <b>Troca de óleo</b>, do lado dos <b>postos</b>", d:"As lojas de troca de óleo que ficam dentro dos postos passaram a ter a tela delas: <b>o custo que subiu na última nota</b> e a <b>margem abaixo da média da categoria</b>, com o <b>código de barras</b> para colar no Petros e a ordem pelo <b>dinheiro</b> que cada produto deixa de dar por mês. O seletor tem as três unidades: <b>Troca de óleo - Teresina</b>, <b>Troca de óleo - Caxias</b> e <b>Troca de óleo - Dutra</b> — <b>o mesmo nome</b> que o cartão da sincronização já usava. 📏 Medido em 16/08, no mês corrente: <b>54</b> produtos em Caxias, <b>16</b> em Teresina e <b>16</b> em Dutra — com <b>25</b>, <b>3</b> e <b>2</b> apontamentos de custo. 🟢 E aqui o botão 📋 quase nunca fica sem o que copiar: só <b>2 de 54</b>, <b>3 de 16</b> e <b>2 de 16</b> não têm código de barras cadastrado, contra 63 a 69 de cerca de 400 na conveniência. ⚠️ <b>Ela é uma tela irmã, não uma quarta loja da conveniência</b>: a troca de óleo não aparece em 🍫 Produtos e categorias, nem em ⚖️ Comparar lojas, nem no Dashboard da Conveniência."},
+    {t:"n", h:"A régua do <b>“confira a nota antes”</b> é outra aqui: <b>100%</b>, não 50%", d:"Na conveniência, alta de custo acima de <b>50%</b> é quase sempre nota ou cadastro errado, e por isso a tela se recusa a sugerir preço. 📏 Nas lojas de óleo isso <b>não</b> se confirmou: dos 30 apontamentos, os <b>sete</b> que ficaram entre 50% e 100% são todos <b>lubrificante de marca</b> — o <b>LUBRAX 2T</b> aparece com <b>+72,7% em duas lojas ao mesmo tempo</b>, o que é preço de fornecedor e não erro de digitação. Acima de 100% ficou <b>um só</b>, e esse é erro de verdade: o <b>LIMPA PARA BRISA STP</b> de Teresina, de <b>R$ 2,86 para R$ 12,37 em doze dias</b>. 👉 Nesta tela o corte passou para <b>100%</b>; <b>na conveniência nada mudou</b>. ⚠️ São 30 apontamentos, não 219 — vale remedir depois de um mês de uso."},
+    {t:"n", h:"A tela <b>diz</b> quando uma categoria não tem régua", d:"A régua da média da categoria só vale quando há <b>três ou mais</b> produtos com custo lançado naquela categoria. 📏 Nas três unidades, <b>AUTOMOTIVOS</b> e <b>FLUIDOS</b> não chegam lá. Em vez de simplesmente não apontar nada e deixar parecer que está tudo certo, a tela escreve embaixo quais categorias ficaram de fora e por quê."},
+    {t:"c", h:"O seletor de meses do <b>Dashboard da Conveniência</b> podia passar a mostrar mês que não é dele", d:"Ele montava a lista de meses varrendo <b>todos</b> os documentos de loja, sem olhar de qual unidade era cada um. Com a troca de óleo gravando na mesma coleção, um mês que existisse só nele apareceria no seletor da conveniência. 📏 Hoje ainda não aparecia, porque os meses coincidem — o defeito estava <b>esperando</b> a primeira divergência."},
+    {t:"m", h:"As funções da v367 passaram a <b>receber</b> a lista de lojas, em vez de ganharem uma cópia", d:"A tela nova precisava das mesmas seis funções da 💹 Preços a reajustar, só que sobre outras lojas. 📏 Medido antes de escolher: <b>copiar</b> as seis custaria de 169 a 430 linhas duplicadas, sem um único teste cobrindo a cópia. Parametrizar mexeu em <b>menos de quarenta linhas</b> — e os 11 pontos onde a conveniência chama essas funções <b>não mudaram uma letra</b>. 🔑 Cópia não se conserta com disciplina — se conserta não criando a cópia."},
+    {t:"m", h:"O servidor passou a mandar <b>até que dia</b> ele contou", d:"O aviso de <b>“sem venda no mês”</b> depende de saber até que dia os dados vão. Esse dado vinha de outro passo da sincronização, que só roda nas três conveniências — então na tela nova a marca <b>nunca apareceria</b>. Agora o próprio passo dos preços grava a data da janela dele. ⚠️ <b>Julho ficou de fora</b>: foi gravado antes desta mudança, e por isso no mês de julho a marca de “sem venda” não aparece na troca de óleo."}
+  ]},
   {v:"v367", data:"15/08/2026", tit:"💹 Nasce o menu <b>Preços a reajustar</b> — e o app para de apontar produto que vocês <b>já reajustaram</b>", itens:[
     {t:"c", h:"🔴 O <b>\"Preço p/ recuperar\"</b> fugia quando o preço subia — e agora não foge mais", d:"Era a reclamação da loja, e ela estava certa: <i>“às vezes você aponta um produto pra ser feito reajuste sendo que elas já fizeram”</i>. A conta antiga media a margem <b>de antes</b> usando o <b>preço de hoje</b>, então <b>subir o preço subia o alvo na mesma proporção</b> — o produto nunca saía da lista e voltava pedindo mais. Agora o servidor manda o <b>preço que valia na época da compra antiga</b>, e o alvo é um <b>número fixo</b>: quando o preço alcança, o produto <b>sai da lista sozinho</b>. 📏 Medido nas três lojas em 15/08: dos <b>219</b> produtos apontados, <b>41 (18,7%)</b> já estavam reajustados o bastante — <b>8</b> em Teresina, <b>18</b> em Caxias, <b>15</b> em Dutra. 👉 Um exemplo real: o <b>CIG ROTHMANS RED SERIES</b> de Teresina foi reajustado de <b>R$ 14,99 para R$ 19,99</b>, e a conta antiga continuava pedindo <b>R$ 26,42</b>. A conta nova pede <b>R$ 19,81</b> — ou seja, <b>já está feito</b>. ⚠️ <b>O que esta conta ainda não sabe, dito na cara:</b> em <b>162</b> dos 219 o preço da época veio <b>igual ao de hoje</b>, e isso são duas coisas ao mesmo tempo — ou o preço não mudou desde aquela compra (e aí o alvo está certo), ou o servidor não achou o histórico e usou o preço atual (e aí o alvo volta a fugir). O app <b>não separa os dois casos</b>, e a tela diz isso embaixo da tabela em vez de prometer o que não pode."},
     {t:"n", h:"O <b>código de barras</b> na tela, com botão de <b>copiar</b>", d:"Cada produto agora mostra o código de barras embaixo do nome, com um botão <b>📋</b> que copia — é o que se cola no aplicativo do Petros. O código <b>interno</b> não serve para isso e por isso não aparece. ⚠️ <b>Nem todo produto tem:</b> 📏 medido no mesmo dia, <b>18 dos 219</b> apontados (8%) não têm código de barras cadastrado, e a linha deles <b>diz isso</b> em vez de mostrar um botão que não faz nada. Nas listas inteiras de preço são <b>200 de 1.238</b> (16%) — essa é uma tarefa de cadastro para a equipe."},
@@ -9569,6 +9597,10 @@ function iniciarSync(){
        primeiro snapshot ve "ainda nao temos" e CONGELA nessa frase (a licao da v357). */
     const pRjt = document.getElementById("painelReajustes");
     if (pRjt && pRjt.classList.contains("aberto")) renderReajustes();
+    /* v368 - a SETIMA peca, de novo: sem esta linha quem abre o Full Center antes do primeiro
+       snapshot ve "ainda nao temos" e a tela CONGELA na frase (a licao da v357). */
+    const pFC = document.getElementById("painelFullCenter");
+    if (pFC && pFC.classList.contains("aberto")) renderFullCenter();
     atualizarDashConv();                                     // v198 - Dashboard da Conveniencia
   }, ()=>{});
 
@@ -10428,6 +10460,11 @@ const MENUS_APP = [
      menu", e chave nova nao esta marcada em perfil nenhum. Alguem tem de marcar 💹 Precos a
      reajustar no Painel Administrativo para a equipe da loja enxergar. */
   {key:"reajustes",   btn:"btnReajustes",   pan:"painelReajustes",   emp:"conv",   nome:"Preços a reajustar"},   /* v367 */
+  /* v368 - 🔴 MENU NOVO NASCE INVISIVEL: o `_menuPermBase` devolve `false` para chave que
+     ninguem marcou, entao depois de publicar SO' O ADMINISTRADOR ve o 🔧 Full Center. A chave
+     `fullcenter` tem de ser marcada no Painel Administrativo NO MESMO MINUTO, como foi feito com
+     a `reajustes` na v367 — senao a equipe abre o app e nao ve nada de novo. */
+  {key:"fullcenter",  btn:"btnFullCenter",  pan:"painelFullCenter",  emp:"postos", nome:"Troca de óleo"},   /* v368 */
   {key:"ifood",       btn:"btnIfood",       pan:"painelIfood",       emp:"conv",   nome:"iFood"},
   {key:"clientes",    btn:"btnClientes",    pan:"painelClientes",    emp:"postos", nome:"Clientes"},   // v328 - a loja nao vende a prazo (v193)
   {key:"analise",     btn:"btnAnalise",     pan:"painelAnalise",     emp:"postos|conv|transp", nome:"Análise"},
@@ -10454,7 +10491,7 @@ const MENUS_APP = [
 const GRUPOS_MENU = [
   {key:"soltos",  nome:"",               icone:"",       itens:["dash"]},
   {key:"dia",     nome:"Dia a dia",      icone:"\ud83d\udd01", itens:["resumoDia","tanquesNivel","recebimento","registros","descontos","simular"]},
-  {key:"analise", nome:"Análise",        icone:"\ud83d\udcca", itens:["relPosto","afericoes","clientes","analise","operadores","relLoja","reajustes","ifood"]},
+  {key:"analise", nome:"Análise",        icone:"\ud83d\udcca", itens:["relPosto","afericoes","clientes","analise","operadores","relLoja","reajustes","fullcenter","ifood"]},
   {key:"finan",   nome:"Financeiro",     icone:"\ud83d\udcb0", itens:["despesasDet","dre","fechCaixa"]},   /* v341 - o DRE saiu da Analise e veio para ca'; v356 - o Fechamento do caixa */
   {key:"transp",  nome:"Transportadora", icone:"\ud83d\ude9a", itens:["infleet","comprar","pedido","cotacoes","puxadas"]},
   {key:"org",     nome:"Organização",    icone:"\ud83d\udcc1", itens:["calendario","vencimentos","caixa","pendAdm"]},   /* v251 - o 🗂 ninguem reconhecia */
@@ -11566,6 +11603,32 @@ const UNIDADES_REL = [
   { chave:"teresina", nome:"Teresina" },
   { chave:"caxias",   nome:"Caxias" },
   { chave:"dutra",    nome:"Dutra" }
+];
+/* v368 - A LISTA DA TROCA DE OLEO, e ela e' SEPARADA de proposito.
+   🔴 O NOME QUE A PESSOA LE E' "Troca de oleo", NAO "Full Center" — decisao dele depois de um
+   revisor achar que o app JA' chamava estas unidades assim (o cartao da sincronizacao monta
+   "Troca de oleo - <unidade>" no `frcRotuloUnidade`). 🔑 A mesma tela nao pode chamar o mesmo
+   produto por dois nomes (v335), e aqui eram duas telas do MESMO app.
+   ⚠️ As CHAVES continuam `fullcenter`/`lojateresina`/`lojadutra`, e os nomes de codigo tambem
+   (`UNIDADES_FC`, `renderFullCenter`, `painelFullCenter`): as chaves ja' estao gravadas no
+   Firestore e nao mudam mais. 👉 Chave e' endereco; nome e' o que a pessoa le'.
+   🔴 O Full Center NAO entra em `UNIDADES_REL`: se entrasse, ele apareceria nas telas da
+   CONVENIENCIA (🍫 Produtos e categorias, ⚖️ Comparar lojas, o Dashboard da Conveniencia) —
+   que e' exatamente o que o dono mandou nao misturar. Ele e' uma tela IRMA, do lado dos postos.
+   🔑 E e' por isso que as seis funcoes da v367 passaram a RECEBER a lista em vez de varrer
+   `UNIDADES_REL` direto: parametrizar em vez de copiar. Copia nao se conserta com disciplina —
+   se conserta apagando a copia. */
+/* v368 - a regua da alta suspeita da tela do Full Center. Ver o comentario da
+   `prcCustoSubiu`. ⚠️ O nome NAO comeca com `FC_` de proposito: `FC_` ja e' a familia do
+   FECHAMENTO DE CAIXA (`FC_EMPRESAS`, `FC_ATALHOS`, `FC_RECEB`, `FC_INICIO_CARGA`), e nao
+   comeca com `PRC_ALTA_SUSP` porque a suite extrai constante por PREFIXO DE LINHA e recusa
+   prefixo que apareca duas vezes — foi ela que pegou. 🔑 O nome diz o MOTIVO (oleo), que e' o
+   que a medicao achou, e nao a tela. */
+const ALTA_SUSP_OLEO = 100;
+const UNIDADES_FC = [
+  { chave:"lojateresina", nome:"Troca de óleo - Teresina" },
+  { chave:"fullcenter",   nome:"Troca de óleo - Caxias" },
+  { chave:"lojadutra",    nome:"Troca de óleo - Dutra" }
 ];
 const ABAS_REL_POSTO = [
   ["resultado", "💵 Resultado"],
@@ -15328,10 +15391,10 @@ function prcCodNorm(c){ return String(c == null ? "" : c).trim(); }
 function dataCurtaRel(iso){ const p = String(iso||"").split("-");
   return p.length === 3 ? p[2] + "/" + p[1] : (iso || "—"); }
 
-function dadosPrecoLojas(mes){
+function dadosPrecoLojas(mes, unidades){
   const lojas = [], mapa = {};
   let temAlgum = false, semPrecos = [];
-  UNIDADES_REL.forEach(u => {
+  (unidades || UNIDADES_REL).forEach(u => {
     const d = relLojas[u.chave + "_" + mes];
     if (!d) return;
     lojas.push({ chave:u.chave, nome:u.nome });
@@ -15570,12 +15633,19 @@ const PRC_MARG_ABSURDA = 90;
       inteira. Por isso a janela e' o mes escolhido SO' depois de RJT_DIA_MIN dias de dado; antes
       disso e' o mes anterior. Sem mes anterior guardado, a tela NAO MARCA NINGUEM — calar custa
       menos que mentir.                                                                          */
-function prcDiaDoAte(mes, chave){
+function prcDiaDoAte(mes, chave, unidades){
   let dia = 0;
-  UNIDADES_REL.forEach(u => {
+  (unidades || UNIDADES_REL).forEach(u => {
     if (chave && u.chave !== chave) return;
     const d = relLojas[u.chave + "_" + mes];
-    const p = (d && d.ate) ? String(d.ate).split("-") : null;
+    /* v368 - 🔴 O `ate` E' DO `analise.mjs`, QUE SO' RODA NAS TRES CONVENIENCIAS. Medido em
+       16/08 no Firestore: o `fullcenter_2026-08` nasceu sem `ate`, e sem ele este laco devolve
+       0, a `prcJanelaVenda` devolve INVALIDA e a marca "sem venda no mes" NUNCA dispara — uma
+       entrega da v367 morrendo em silencio. O `precosloja v4` passou a gravar o `precosAte`,
+       que e' o fim da janela DELE. 🔑 O `ate` continua ganhando onde existe: quem tem os dois
+       e' a conveniencia, e la' quem manda e' o `analise`. */
+    const fim = d && (d.ate || d.precosAte);
+    const p = fim ? String(fim).split("-") : null;
     if (p && p.length === 3) dia = Math.max(dia, parseInt(p[2], 10) || 0);
   });
   return dia;
@@ -15588,25 +15658,25 @@ function prcMesAnterior(mes){
   if (m < 1){ m = 12; a--; }
   return a + "-" + (m < 10 ? "0" + m : String(m));
 }
-function prcTemMes(mes, chave){
-  return !!mes && UNIDADES_REL.some(u => (!chave || u.chave === chave) && !!relLojas[u.chave + "_" + mes]);
+function prcTemMes(mes, chave, unidades){
+  return !!mes && (unidades || UNIDADES_REL).some(u => (!chave || u.chave === chave) && !!relLojas[u.chave + "_" + mes]);
 }
 /* 🔴 A JANELA E' POR LOJA, e isso foi achado pelo revisor: com `Math.max` do `ate` das TRES, uma
    loja atrasada (coletor que falhou, `ate` de dois dias atras) teria a lista inteira marcada como
    "sem venda", porque a janela seria a da loja mais adiantada. 🔑 O dado e' por loja; a regua
    tambem tem de ser. */
-function prcJanelaVenda(mes, chave){
-  const dia = prcDiaDoAte(mes, chave);
+function prcJanelaVenda(mes, chave, unidades){
+  const dia = prcDiaDoAte(mes, chave, unidades);
   if (!dia) return { mes:mes, valida:false, dia:0 };            // documento sem `ate`: nao da' para saber o tamanho da janela
   if (dia >= RJT_DIA_MIN) return { mes:mes, valida:true, dia:dia };
   const ant = prcMesAnterior(mes);
-  return prcTemMes(ant, chave) ? { mes:ant, valida:true, dia:prcDiaDoAte(ant, chave) }
+  return prcTemMes(ant, chave, unidades) ? { mes:ant, valida:true, dia:prcDiaDoAte(ant, chave, unidades) }
                                : { mes:mes, valida:false, dia:dia };
 }
 /* quem vendeu na janela, por loja: cod -> {qtd, rec, pmed} */
-function prcVendaDaJanela(mes){
+function prcVendaDaJanela(mes, unidades){
   const out = {};
-  UNIDADES_REL.forEach(u => {
+  (unidades || UNIDADES_REL).forEach(u => {
     const d = relLojas[u.chave + "_" + mes];
     const lista = (d && Array.isArray(d.precos)) ? d.precos : [];
     const m = {};
@@ -15622,9 +15692,9 @@ function prcVendaDaJanela(mes){
 }
 /* o mes mais recente, ATE a janela, em que cada produto vendeu naquela loja.
    Um mapa so' por rodada: procurar mes a mes por produto custaria a mesma varredura N vezes. */
-function prcMapaUltimaVenda(ate){
+function prcMapaUltimaVenda(ate, unidades){
   const out = {};
-  UNIDADES_REL.forEach(u => {
+  (unidades || UNIDADES_REL).forEach(u => {
     const m = {};
     mesesDisponiveis(relLojas, u.chave).filter(x => x <= ate).sort().forEach(mes => {   // crescente: o ultimo a escrever ganha
       const d = relLojas[u.chave + "_" + mes];
@@ -15674,7 +15744,11 @@ function prcCopiarBarras(ev, cod){
   if (ev && ev.stopPropagation) ev.stopPropagation();
   const txt = String(cod == null ? "" : cod).trim();
   const bt = (ev && ev.currentTarget) ? ev.currentTarget : null;
-  const msg = document.getElementById("rjtMsg");
+  /* v368 - 🔴 ACHADO DE REVISOR: a tela do Full Center tem o proprio paragrafo de aviso
+     (`fcenMsg`), e este `getElementById` so' conhecia o da conveniencia. Resultado medido: quem
+     copiava no Full Center ou nao via aviso nenhum, ou via o texto ir para um paragrafo que esta'
+     DENTRO de um painel fechado. 🔑 Id escrito a mao numa funcao que passou a servir duas telas. */
+  const msg = document.getElementById("fcenMsg") || document.getElementById("rjtMsg");
   if (!txt){ if (msg) msg.textContent = "Este produto não tem código de barras cadastrado no Petros."; return; }
   const fim = () => {
     if (bt){ const antes = bt.getAttribute("data-ico") || "📋";
@@ -15691,14 +15765,22 @@ function prcCopiarBarras(ev, cod){
 }
 
 /* ---- custo que subiu entre as duas ultimas compras, medido pela REGUA HONESTA ---- */
-function prcCustoSubiu(mes, cat, loja){
+/* v368 - 🔴 A REGUA DA ALTA SUSPEITA PASSA A SER DA TELA, e o motivo e' medicao.
+   O `PRC_ALTA_SUSP = 50` foi calibrado na CONVENIENCIA. 📏 Medido em 16/08 nos 30 apontamentos
+   das lojas dos postos: entre 50% e 100% ha' SETE, e sao todos LUBRIFICANTE de marca — o
+   `LUBRAX 2T` aparece com +72,7% em DUAS lojas ao mesmo tempo, o que e' preco de fornecedor e
+   nao nota errada. Acima de 100% ha' UM: o `LIMPA PARA BRISA STP`, +332,6% em DOZE dias, que e'
+   cadastro de verdade. 🔑 O corte ficou encurralado pelos dois lados, como o de 90% da v367.
+   ⚠️ Sao 30 apontamentos, nao 219: remedir depois de um mes de uso. */
+function prcCustoSubiu(mes, cat, loja, unidades, altaSusp){
+  const SUSP = altaSusp || PRC_ALTA_SUSP;
   const cacheV = {}, cacheU = {};   // um mapa por MES de janela, nao por loja: as lojas costumam compartilhar
   const out = [];
-  UNIDADES_REL.forEach(u => {
+  (unidades || UNIDADES_REL).forEach(u => {
     if (loja && u.chave !== loja) return;
-    const jan  = prcJanelaVenda(mes, u.chave);
-    const vend = cacheV[jan.mes] || (cacheV[jan.mes] = prcVendaDaJanela(jan.mes));
-    const ult  = cacheU[jan.mes] || (cacheU[jan.mes] = prcMapaUltimaVenda(jan.mes));
+    const jan  = prcJanelaVenda(mes, u.chave, unidades);
+    const vend = cacheV[jan.mes] || (cacheV[jan.mes] = prcVendaDaJanela(jan.mes, unidades));
+    const ult  = cacheU[jan.mes] || (cacheU[jan.mes] = prcMapaUltimaVenda(jan.mes, unidades));
     const d = relLojas[u.chave + "_" + mes];
     if (!d || !Array.isArray(d.custoSubiu)) return;
     d.custoSubiu.forEach(x => {
@@ -15716,7 +15798,7 @@ function prcCustoSubiu(mes, cat, loja){
       const margEpoca = (base - velho) / base * 100;
       const margAgora = (preco - novo) / preco * 100;
       const alvo      = margEpoca < 95 ? novo / (1 - margEpoca / 100) : preco;
-      const suspeito  = (novo / velho - 1) * 100 >= PRC_ALTA_SUSP;
+      const suspeito  = (novo / velho - 1) * 100 >= SUSP;
       /* 🔴 margem da epoca acima de 95% e' custo velho quebrado (medido em 15/08: os cinco casos
          de margem >= 90% do catalogo tem custo de R$ 0,21 a R$ 0,60 para preco de R$ 7 a R$ 10).
          Sem esta guarda o `alvo` cai em `preco` e o produto se declara RECUPERADO sozinho — sai da
@@ -15753,13 +15835,26 @@ function prcCustoSubiu(mes, cat, loja){
 }
 
 /* ---- bloco: o custo subiu e o preco nao ---- */
-function blocoReajusteCusto(mes, cat, loja){
-  const todos = prcCustoSubiu(mes, cat, loja);
-  const jan = prcJanelaVenda(mes);
+/* v368 - "nas tres lojas" estava escrito A MAO em tres lugares. A tela do Full Center tambem tem
+   tres unidades hoje — mas amanha pode ter uma, e a frase mentiria sem ninguem mexer nela.
+   🔑 Numero escrito a mao ao lado de uma lista que muda e' o proximo numero errado do arquivo. */
+function prcTxtTodas(unidades){
+  const n = (unidades || UNIDADES_REL).length;
+  /* v368 - ate' seis por extenso (achado de revisor: com quatro saia " nas 4 lojas", algarismo
+     solto no meio de um texto todo escrito por extenso). */
+  const POR_EXTENSO = ["", "", "duas", "três", "quatro", "cinco", "seis"];
+  return n <= 1 ? "" : " nas " + (POR_EXTENSO[n] || n) + " lojas";
+}
+function blocoReajusteCusto(mes, cat, loja, unidades, altaSusp){
+  const todos = prcCustoSubiu(mes, cat, loja, unidades, altaSusp);
+  const txtTodas = prcTxtTodas(unidades);
+  /* v368 - saiu daqui um `const jan = prcJanelaVenda(mes);` que NINGUEM lia: unica ocorrencia de
+     `jan` na funcao, provada por varredura. Codigo morto que chama funcao parametrizada e' pior
+     que codigo morto: ele parece que decide alguma coisa. */
   if (!todos.length)
     return '<h4 class="rel-h4">⬆️ O custo subiu e o preço não</h4>'
          + '<p class="nota-dash">Nenhum produto com alta de custo na última nota em ' + rotuloMesRel(mes)
-         + (loja ? ' nesta loja' : ' nas três lojas') + '.</p>';
+         + (loja ? ' nesta loja' : txtTodas) + '.</p>';
   const rec   = todos.filter(x => x.recuperado);
   const fila  = todos.filter(x => !x.recuperado);
   const lista = rjtVerRec ? rec : fila;
@@ -15775,14 +15870,17 @@ function blocoReajusteCusto(mes, cat, loja){
   /* o periodo de verdade da quantidade: as lojas podem estar em janelas diferentes */
   const janelas = [];
   todos.forEach(x => { if (x.janela && janelas.indexOf(x.janela.mes) < 0) janelas.push(x.janela.mes); });
-  const diaJan = janelas.length === 1 ? prcDiaDoAte(janelas[0], "") : 0;
+  /* v368 - 🔴 ACHADO DE REVISOR: com uma loja escolhida no seletor, o `""` fazia o dia sair do
+     `Math.max` das TRES — a tela dizia "(1 a 15)" para uma loja cuja coleta parou no dia 9.
+     🔑 O dado e' por loja; a janela tambem — a mesma licao da v367, que nao tinha chegado aqui. */
+  const diaJan = janelas.length === 1 ? prcDiaDoAte(janelas[0], loja, unidades) : 0;
   const rotPer = janelas.length === 1
     ? rjtMesPorExtenso(janelas[0], String(janelas[0]).split("-")[0]) + (diaJan && diaJan < 28 ? " (1 a " + diaJan + ")" : "")
     : "no mês de cada loja";
   let h = '<h4 class="rel-h4">⬆️ O custo subiu e o preço não</h4>' + cntEtiqueta(fila.length);
   h += '<div class="prc-alerta">Estes produtos foram comprados <b>mais caro na última nota</b> e o preço de venda '
      + 'continua o mesmo. <b>' + fila.length + '</b> ' + (fila.length === 1 ? 'produto' : 'produtos') + ' para reajustar'
-     + (loja ? '' : ' nas três lojas') + (cat ? ' nesta categoria' : '') + '.'
+     + (loja ? '' : txtTodas) + (cat ? ' nesta categoria' : '') + '.'
      + (rec.length ? ' <b>' + rec.length + '</b> ' + (rec.length === 1 ? 'já foi reajustado' : 'já foram reajustados')
                    + ' o bastante e ' + (rec.length === 1 ? 'saiu' : 'saíram') + ' da fila.' : '')
      + (total > 0 ? ' Somando o que falta, são <b>' + fmtR$0(total) + '</b> — a conta usa a quantidade vendida '
@@ -15874,7 +15972,8 @@ function prcAbaixoMedia(dados, loja){
   });
   return out.sort((a,b) => b.ganho - a.ganho || b.c.rec - a.c.rec);
 }
-function blocoAbaixoMedia(dados, mes, cat, loja){
+function blocoAbaixoMedia(dados, mes, cat, loja, unidades){
+  const txtTodas = prcTxtTodas(unidades);
   let lista = prcAbaixoMedia(dados, loja);
   if (cat) lista = lista.filter(x => x.it.cat === cat);
   if (!lista.length)
@@ -15883,14 +15982,14 @@ function blocoAbaixoMedia(dados, mes, cat, loja){
   const varias = lista.filter(x => x.nLojas > 1);
   const total  = lista.reduce((a,x) => a + x.ganho, 0);
   const mudo   = lista.length > 0 && lista.every(x => !x.c.barras);
-  const diaB   = prcDiaDoAte(mes, loja);
+  const diaB   = prcDiaDoAte(mes, loja, unidades);
   const foraDaMedia = (dados.todos || []).reduce((n, it) => n + it.todas.filter(l => {
     const c = it.por[l.chave]; return c && c.preco > 0 && c.custo > 0 && c.marg >= PRC_MARG_ABSURDA; }).length, 0);
   const mostrar = rjtMedTudo ? lista : lista.slice(0, PRC_EXC_TOPO);
   let h = '<h4 class="rel-h4">🏷️ Margem abaixo da média da categoria</h4>' + cntEtiqueta(lista.length);
   h += '<div class="prc-alerta neutro">A régua aqui é a <b>margem média da própria categoria naquela loja</b> — mesmo '
      + 'custo, mesmo público. <b>' + lista.length + '</b> ' + (lista.length === 1 ? 'produto está' : 'produtos estão')
-     + ' abaixo dela' + (cat ? ' nesta categoria' : '') + (loja ? '' : ' nas três lojas') + ', '
+     + ' abaixo dela' + (cat ? ' nesta categoria' : '') + (loja ? '' : txtTodas) + ', '
      + '<b>' + varias.length + '</b> ' + (varias.length === 1 ? 'deles vendido' : 'deles vendidos') + ' em mais de uma loja'
      /* 🔴 O MESMO CUIDADO DO BLOCO DE CIMA: som de 560 linhas com o mes pela metade nao e' "por
         mes", e reajustar TUDO ate' a media da categoria nao acontece. A frase do teto e' a mesma
@@ -15941,9 +16040,17 @@ function rjtMuda(campo, valor){
   rjtVerRec = false; rjtCstTudo = false; rjtMedTudo = false;
   renderReajustes();
 }
-function rjtVerRecuperados(){ rjtVerRec = !rjtVerRec; rjtCstTudo = false; renderReajustes(); }
-function rjtVerCst(){ rjtCstTudo = !rjtCstTudo; renderReajustes(); }
-function rjtVerMed(){ rjtMedTudo = !rjtMedTudo; renderReajustes(); }
+/* v368 - 🔴 OS TRES BOTOES SERVEM A DUAS TELAS AGORA. Chamar `renderReajustes()` direto
+   redesenharia a tela da CONVENIENCIA enquanto o dedo esta na do Full Center: o botao ficaria
+   parecendo morto. Quem responde e' o painel que esta ABERTO — e so' um abre por vez
+   (`abrirPainelExclusivo`). */
+function rjtRedesenha(){
+  const p = document.getElementById("painelFullCenter");
+  if (p && p.classList.contains("aberto")) renderFullCenter(); else renderReajustes();
+}
+function rjtVerRecuperados(){ rjtVerRec = !rjtVerRec; rjtCstTudo = false; rjtRedesenha(); }
+function rjtVerCst(){ rjtCstTudo = !rjtCstTudo; rjtRedesenha(); }
+function rjtVerMed(){ rjtMedTudo = !rjtMedTudo; rjtRedesenha(); }
 /* 🔑 `dcvMeses()` (do Dashboard da Conveniencia) ja faz exatamente isto sobre o mesmo `relLojas`.
    A primeira versao desta tela reescreveu o corpo dela caractere por caractere — quatro funcoes
    depois de eu ter escrito que a sexta copia de uma tabela e' a que envelhece calada. */
@@ -15951,8 +16058,106 @@ function alternarReajustes(){
   const aberto = abrirPainelExclusivo("painelReajustes");
   const b = document.getElementById("btnReajustes");
   if (b) b.classList.toggle("ativo", aberto);
+  /* v368 - as tres chaves de "ver tudo" sao COMPARTILHADAS com a tela do Full Center (uma fonte
+     so', de proposito). Por isso as duas telas as ZERAM ao abrir: sem isto, expandir numa deixaria
+     a outra aberta expandida sem ninguem ter pedido. */
+  rjtVerRec = false; rjtCstTudo = false; rjtMedTudo = false;
   if (aberto) renderReajustes();
 }
+/* ================================================================ v368 - A TELA DO FULL CENTER
+   🔴 ELA E' IRMA da 💹 Precos a reajustar, NAO uma quarta unidade dela. O dado mora na MESMA
+   colecao (`relatoriosLoja`) com chave PROPRIA — `fullcenter`, `lojateresina`, `lojadutra` —, e o
+   Full Center NAO entra em `UNIDADES_REL`: se entrasse, apareceria nas telas da conveniencia
+   (🍫 Produtos e categorias, ⚖️ Comparar lojas, o Dashboard da Conveniencia).
+   🔑 As funcoes sao AS MESMAS da v367, recebendo a lista de unidades. 📏 Medido antes de escolher:
+   copiar as seis custaria de 169 a 430 linhas duplicadas, e nenhuma das 113 assercoes da v367
+   cobriria a copia. Parametrizar mexeu em menos de quarenta linhas, com os 11 pontos de chamada
+   INTACTOS. ⚠️ O numero "18 linhas" que esta versao chegou a escrever era so' o miolo das seis:
+   o diff inteiro tem mais, e foi um revisor que pegou. */
+let fcenLoja = "", fcenMes = "";
+function fcenMuda(campo, valor){
+  if (campo === "loja") fcenLoja = valor; else if (campo === "mes") fcenMes = valor;
+  rjtVerRec = false; rjtCstTudo = false; rjtMedTudo = false;
+  renderFullCenter();
+}
+function alternarFullCenter(){
+  const aberto = abrirPainelExclusivo("painelFullCenter");
+  const b = document.getElementById("btnFullCenter");
+  if (b) b.classList.toggle("ativo", aberto);
+  rjtVerRec = false; rjtCstTudo = false; rjtMedTudo = false;
+  if (aberto) renderFullCenter();
+}
+function renderFullCenter(){
+  const box = document.getElementById("fcenBox");
+  if (!box) return;
+  const meses = dcvMeses(UNIDADES_FC);
+  if (!meses.length){
+    preencherSelectRel("fcenMes", [], "", null);
+    box.innerHTML = '<p class="nota-dash">Ainda não temos os preços da troca de óleo. Eles são montados no servidor, '
+                  + 'junto com os das lojas — peça ao Claude: "sincroniza os preços da troca de óleo".</p>';
+    return;
+  }
+  if (meses.indexOf(fcenMes) < 0) fcenMes = meses[0];
+  preencherSelectRel("fcenMes", meses, fcenMes, rotuloMesRel);
+  preencherSelectRel("fcenLoja", [""].concat(UNIDADES_FC.map(u => u.chave)), fcenLoja,
+    c => c ? ((UNIDADES_FC.find(u => u.chave === c) || {}).nome || c) : "Todas as unidades");
+  const dados = dadosPrecoLojas(fcenMes, UNIDADES_FC);
+  /* 🔴 MES SEM PRECO COLETADO nao pode responder "nenhum produto para reajustar": isso se le'
+     como "esta tudo em ordem". A tela irma aprendeu isto na v367. */
+  if (!dados.temAlgum){
+    box.innerHTML = '<p class="nota-dash">🔧 <b>Preços da troca de óleo</b> — ainda não coletados para '
+                  + rotuloMesRel(fcenMes) + '. Peça ao Claude: "sincroniza os preços da troca de óleo".</p>';
+    return;
+  }
+  /* v368 - 🔴 ACHADO DE REVISOR: o `temAlgum` acima e' GLOBAL as tres unidades — basta uma ter
+     preco para ele nao disparar. Com uma unidade escolhida e sem coleta dela, a tela respondia
+     "Nenhum produto com alta de custo", que se le' como "esta tudo em ordem". O `dadosPrecoLojas`
+     JA' SABE quem esta sem preco (`semPrecos`), e a tela ignorava. */
+  if (fcenLoja){
+    const un = UNIDADES_FC.find(u => u.chave === fcenLoja) || {};
+    if (!dados.lojas.some(l => l.chave === fcenLoja) || (dados.semPrecos || []).indexOf(un.nome) >= 0){
+      box.innerHTML = '<p class="nota-dash">🔧 <b>' + escAttr(un.nome || fcenLoja) + '</b> — os preços ainda não '
+                    + 'foram coletados para ' + rotuloMesRel(fcenMes) + '. Isso <b>não</b> quer dizer que está tudo '
+                    + 'em ordem: quer dizer que o app não sabe.</p>';
+      return;
+    }
+  }
+  let h = blocoReajusteCusto(fcenMes, "", fcenLoja, UNIDADES_FC, ALTA_SUSP_OLEO);
+  h += blocoAbaixoMedia(dados, fcenMes, "", fcenLoja, UNIDADES_FC);
+  h += fcenNotaCategorias(dados, fcenLoja);
+  h += '<p class="nota-dash" id="fcenMsg"></p>';
+  box.innerHTML = h;
+}
+/* 🔴 A TELA DIZ O QUE ELA NAO ALCANCA. A regua da media so' vale para categoria com TRES ou mais
+   produtos com custo lancado (`m.n < 3`), e 📏 medido em 16/08 a AUTOMOTIVOS e a FLUIDOS ficam de
+   fora nas tres unidades. Sem esta nota o produto some da lista sem motivo visivel.
+   🔑 Calar custa menos que mentir — mas so' quando a tela DIZ que calou. */
+function fcenNotaCategorias(dados, loja){
+  /* v368 - 🔴 DOIS ACHADOS DE REVISOR, e os dois faziam esta nota MENTIR:
+     (1) ela varria as tres unidades mesmo com UMA escolhida no seletor, e entao dizia que uma
+         categoria estava sem regua citando o dado de OUTRA loja;
+     (2) ela so' olhava o `prcMediaCategoria`, que **nao cria entrada** para categoria em que
+         nenhum produto tem custo lancado — ou seja, a categoria mais silenciosa de todas some
+         da tela E da nota que existe para explicar o silencio.
+     ✅ Agora a contagem sai de `dados.todos`, filtrada pela unidade escolhida, e categoria sem
+     custo nenhum conta como n = 0. 🔑 Nota que explica o silencio nao pode ter silencio proprio. */
+  const media = prcMediaCategoria(dados);
+  const nDe = {}, todas = {};
+  (dados.todos || []).forEach(it => it.todas.forEach(l => {
+    if (loja && l.chave !== loja) return;
+    const c = it.cat || "(sem categoria)";
+    todas[c] = 1;
+    const m = (media[l.chave] || {})[c];
+    nDe[c] = Math.max(nDe[c] || 0, m ? m.n : 0);
+  }));
+  const so = Object.keys(todas).filter(c => (nDe[c] || 0) < 3).sort();
+  if (!so.length) return "";
+  return '<p class="nota-dash">⚠️ <b>' + so.join(", ") + '</b> ' + (so.length === 1 ? 'tem' : 'têm')
+       + ' menos de três produtos com custo lançado, e por isso a régua da média da categoria não vale '
+       + (so.length === 1 ? 'nela' : 'nelas') + ' — o app não aponta nada ali, e isso é <b>desenho, não '
+       + 'falta de dado</b>.</p>';
+}
+
 function renderReajustes(){
   const box = document.getElementById("rjtBox");
   if (!box) return;
@@ -29534,9 +29739,15 @@ function atualizarDashConv(){
   const p = document.getElementById("painelDash");
   if (p && p.classList.contains("aberto") && dashEhConv()) renderDashConv();
 }
-function dcvMeses(){
+function dcvMeses(unidades){
+  /* v368 - 🔴 ISTO VARRIA O `relLojas` INTEIRO, SEM OLHAR A UNIDADE. Desde que o Full Center
+     passou a gravar em `relatoriosLoja` com chave propria, um mes que so' existisse nas chaves
+     novas apareceria no seletor do Dashboard da CONVENIENCIA. 📏 Medido em 16/08: hoje NAO vaza,
+     porque julho e agosto existem nas duas familias — o defeito estava LATENTE e acordaria no
+     primeiro mes em que as listas divergissem. 🔑 Vazamento latente e' o que ninguem conserta,
+     porque ninguem ve. */
   const s = {};
-  Object.keys(relLojas || {}).forEach(k => { const p = String(k).split("_"); if (p[1]) s[p[1]] = 1; });
+  (unidades || UNIDADES_REL).forEach(u => mesesDisponiveis(relLojas, u.chave).forEach(m => { s[m] = 1; }));
   return Object.keys(s).sort().reverse();
 }
 // DRE da loja no mes (relatoriosPetros). Sem DRE gravado, devolve null e a tela nao mostra despesa.
