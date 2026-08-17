@@ -1283,6 +1283,42 @@
   .cmp-card-ok{margin-top:8px;font-size:.76rem;color:#18a558;font-weight:600}
   .cmp-h5{margin:14px 0 2px;font-size:.8rem;color:var(--cinza);text-transform:uppercase;letter-spacing:.3px}
   .cmp-lider{background:#18a558}
+  /* ================== v370 - 📦 Ressuprimento (o estoque parado) ================== */
+  /* 🔴 As pastilhas do ultimo movimento. Tres delas sao, byte a byte, as `.rec-tag.ope-*` da
+     v357, ja' medidas nos dois temas. ⚠️ A `rsv-x` ("Nunca saiu") NAO e': o claro veio da
+     `.pnd-u0` e o `#FF8B8B` do escuro e' cor NOVA, que nao existia no arquivo. Por isso as
+     quatro foram MEDIDAS de novo, em Chromium, com a cor computada e o fundo composto:
+     📏 rsv-v 5,83 / 8,16 · rsv-t 5,91 / 8,00 · rsv-x 5,20 / 6,80 (claro / escuro) — a regua
+     do projeto reprova abaixo de 4,5. ⚠️ `--verde` deste app e' LARANJA (#FE7030); o verde de verdade e'
+     o literal #18a558. E a classe do tema escuro e' `body.tema-escuro`, nunca `body.escuro`. */
+  .rec-tag.rsv-v{background:rgba(34,197,94,.15);color:#0B6B35}
+  .rec-tag.rsv-t{background:rgba(234,179,8,.18);color:#7A5600}
+  .rec-tag.rsv-x{background:rgba(180,35,24,.14);color:#b42318}
+  .rec-tag.rsv-o{background:rgba(0,0,0,.06);color:var(--cinza)}
+  body.tema-escuro .rec-tag.rsv-v{background:rgba(34,197,94,.16);color:#5FE39B}
+  body.tema-escuro .rec-tag.rsv-t{background:rgba(234,179,8,.16);color:#F2C94C}
+  body.tema-escuro .rec-tag.rsv-x{background:rgba(225,29,72,.18);color:#FF8B8B}
+  body.tema-escuro .rec-tag.rsv-o{background:rgba(255,255,255,.10)}
+  .rsv-cat{display:block;font-size:.68rem;color:var(--cinza);text-transform:uppercase;letter-spacing:.3px}
+  /* o "mas entrou ha' N dias": e' a contradicao da propria linha, e por isso NAO e' cinza */
+  /* 🔴 A ESPECIFICIDADE. `.rel-tab td.n small` e' (0,2,2) e vencia `.rsv-alerta` (0,1,0): a marca
+     nascia CINZA e sem negrito no computador, que e' onde ele olha primeiro — e o comentario
+     dizia "por isso NAO e' cinza". Medido em Chromium sobre a propria foto. */
+  .rsv-alerta,.rel-tab td.n small.rsv-alerta,.rsv-tab td small.rsv-alerta{
+    display:block;font-size:.68rem;font-weight:600;color:var(--vermelho);white-space:normal}
+  .rsv-por{display:block;font-size:.68rem;color:var(--cinza);font-weight:400}
+  .rsv-sem{color:var(--cinza);font-weight:400}
+  /* 🔴 A coluna some no celular por CLASSE PROPRIA, nao por `:last-child` (o jeito do
+     #painelOperadores). Com `:last-child` quem acrescentar uma coluna no fim muda, sem
+     querer, QUAL coluna desaparece no celular. */
+  .rsv-mob{display:none}
+  @media (max-width:620px){
+    .rsv-tab th:first-child,.rsv-tab td:first-child{white-space:normal;max-width:150px;font-size:.78rem}
+    .rsv-tab th,.rsv-tab td{padding:6px 6px}
+    .rsv-tab .rsv-off{display:none}
+    .rsv-tab .rec-tag{padding:2px 6px}
+    .rsv-mob{display:block;font-size:.68rem;color:var(--cinza);white-space:normal;margin-top:2px}
+  }
   .cmp-op-mob{display:none}
   .prc-tab td small{display:block;font-size:.68rem;color:var(--cinza);font-weight:400;line-height:1.35}
   .prc-cat{text-transform:uppercase;letter-spacing:.3px}
@@ -3808,6 +3844,10 @@
       <button class="btn-claro" id="btnReajustes" onclick="alternarReajustes()"><span class="mi">💹</span><span class="mt">Preços a reajustar</span></button>
       <!-- v368 - o Full Center: a loja de troca de oleo DENTRO dos postos. emp:"postos", nao "conv" -->
       <button class="btn-claro" id="btnFullCenter" onclick="alternarFullCenter()"><span class="mi">🔧</span><span class="mt">Troca de óleo</span></button>
+      <!-- v370 - o 📦 Ressuprimento. Sao DOIS botoes com o MESMO nome: quem ve' um nunca ve' o
+           outro, porque um e' emp:"conv" e o outro emp:"postos". -->
+      <button class="btn-claro" id="btnRessupConv" onclick="alternarRessupConv()"><span class="mi">📦</span><span class="mt">Ressuprimento</span></button>
+      <button class="btn-claro" id="btnRessupPostos" onclick="alternarRessupPostos()"><span class="mi">📦</span><span class="mt">Ressuprimento</span></button>
       <button class="btn-claro" id="btnIfood" onclick="alternarIfood()"><span class="mi">🍔</span><span class="mt">iFood</span></button>
       <button class="btn-claro" id="btnInfleet" onclick="alternarInfleet()"><span class="mi">📡</span><span class="mt">APP Infleet</span></button>
       <button class="btn-claro" id="btnComprar" onclick="alternarComprar()"><span class="mi">🛒</span><span class="mt">O que comprar</span></button>
@@ -4373,6 +4413,39 @@
         <div class="desc-campo"><label>Mês</label><select id="fcenMes" onchange="fcenMuda('mes', this.value)"></select></div>
       </div>
       <div id="fcenBox"></div>
+    </div>
+  </div>
+
+  <!-- v370 - 📦 Ressuprimento da CONVENIENCIA. emp:"conv". A tela irma, dos postos, e' a de baixo:
+       sao DUAS telas de proposito (decisao dele em 15/08: "para nao misturarmos as coisas"). -->
+  <div class="config" id="painelRessupConv">
+    <div class="grupo">
+      <h2>📦 Ressuprimento</h2>
+      <p class="nota-dash">O <b>dinheiro parado</b> na conveniência: o que está no estoque e não sai há tempo demais,
+        do maior valor para o menor. A régua de dias é a <b>desta loja</b>, e vem do servidor junto com a lista.
+        Coletado do Petros quatro vezes por dia.</p>
+      <div class="evo-filtros">
+        <div class="desc-campo"><label>Mês</label><select id="rsvConvMes" onchange="rsvMuda('conv','mes',this.value)"></select></div>
+      </div>
+      <div class="doc-tools" id="rsvConvAbas"></div>
+      <div id="rsvConvBox"></div>
+    </div>
+  </div>
+
+  <!-- v370 - 📦 Ressuprimento da TROCA DE OLEO. emp:"postos". ⚠️ As abas sao as MESMAS tres cidades
+       da tela irma, NA MESMA ORDEM e escritas a' mao — se sairem da ordem das unidades, as duas
+       telas abrem em cidades diferentes. A aba "Caxias" e' a chave `fullcenter`. -->
+  <div class="config" id="painelRessupPostos">
+    <div class="grupo">
+      <h2>📦 Ressuprimento</h2>
+      <p class="nota-dash">O <b>dinheiro parado</b> nas lojas de <b>troca de óleo</b>: o que está no estoque e não sai há
+        tempo demais, do maior valor para o menor. A régua de dias é a <b>desta loja</b> — aqui ela é bem mais longa que
+        na conveniência, e vem do servidor junto com a lista.</p>
+      <div class="evo-filtros">
+        <div class="desc-campo"><label>Mês</label><select id="rsvPostosMes" onchange="rsvMuda('postos','mes',this.value)"></select></div>
+      </div>
+      <div class="doc-tools" id="rsvPostosAbas"></div>
+      <div id="rsvPostosBox"></div>
     </div>
   </div>
 
@@ -5782,6 +5855,11 @@ const ICO_SVG = {
   /* v368 - a chave inglesa do Full Center. 🔴 O ICO_SVG falha em SILENCIO: sem esta linha o menu
      aparece e funciona, e so' o tema de DESENHO fica com o quadrado vazio (v317). */
   fullcenter:"<path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z'/>",
+  /* v370 - a caixa do 📦 Ressuprimento, uma para cada empresa. 🔴 O ICO_SVG falha em SILENCIO:
+     sem estas duas linhas o menu aparece e funciona, e so' o tema de DESENHO fica com o quadrado
+     vazio (a licao da v317). */
+  ressupConv:"<path d='M3.4 7.6 12 3.3l8.6 4.3v8.8L12 20.7l-8.6-4.3z'/><path d='M3.4 7.6 12 11.9l8.6-4.3'/><path d='M12 11.9v8.8'/>",
+  ressupPostos:"<path d='M3.4 7.6 12 3.3l8.6 4.3v8.8L12 20.7l-8.6-4.3z'/><path d='M3.4 7.6 12 11.9l8.6-4.3'/><path d='M12 11.9v8.8'/>",
   /* v367 - etiqueta de preco com a seta para cima. 🔴 O ICO_SVG falha em SILENCIO: sem esta
      linha o botao sai sem desenho e ninguem ve erro nenhum. */
   reajustes:"<path d='M3.9 12.6V4.9a1 1 0 0 1 1-1h7.7a1 1 0 0 1 .7.3l6.8 6.8a1 1 0 0 1 0 1.4l-7.4 7.4a1 1 0 0 1-1.4 0l-6.8-6.8a1 1 0 0 1-.6-1.4z'/><circle cx='7.8' cy='7.8' r='1.3'/><path d='M11.4 16.1V10.4'/><path d='M9.2 12.6l2.2-2.2 2.2 2.2'/>",
@@ -5822,7 +5900,7 @@ const ICO_SVG = {
   fechCaixa:"<rect x='3.2' y='9.4' width='17.6' height='11' rx='2.2'/><path d='M7.2 9.4V6.6a2 2 0 0 1 2-2h5.6a2 2 0 0 1 2 2v2.8'/><path d='M12 12.4v5.6'/><path d='M13.9 13.5c-.6-.6-3.2-.8-3.2.6 0 1.3 2.9.7 2.9 2 0 1.3-2.6 1.1-3.3.4'/>",
   g_ajustes:"<circle cx='12' cy='12' r='3.1'/><path d='M19.1 14.6a1.5 1.5 0 0 0 .3 1.7l.1.1a1.9 1.9 0 1 1-2.6 2.6l-.1-.1a1.5 1.5 0 0 0-2.6 1v.2a1.9 1.9 0 0 1-3.7 0v-.1a1.5 1.5 0 0 0-2.6-1l-.1.1a1.9 1.9 0 1 1-2.6-2.6l.1-.1a1.5 1.5 0 0 0-1-2.6h-.2a1.9 1.9 0 1 1 0-3.7h.1a1.5 1.5 0 0 0 1-2.6l-.1-.1a1.9 1.9 0 1 1 2.6-2.6l.1.1a1.5 1.5 0 0 0 1.7.3h.1a1.5 1.5 0 0 0 .9-1.4v-.2a1.9 1.9 0 0 1 3.7 0v.1a1.5 1.5 0 0 0 2.6 1l.1-.1a1.9 1.9 0 1 1 2.6 2.6l-.1.1a1.5 1.5 0 0 0 1 2.6h.2a1.9 1.9 0 0 1 0 3.7h-.1a1.5 1.5 0 0 0-1.4.9z'/>"
 };
-const ICO_BTN = {btnOperadores:"operadores",btnComprar:"comprar",btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnTanquesNivel:"tanquesNivel",btnRecebimento:"recebimento",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnDre:"dre",btnDespesasDet:"despesasDet",btnFechCaixa:"fechCaixa",btnAfericoes:"afericoes",btnClientes:"clientes",btnAnalise:"analise",btnRelLoja:"relLoja",btnReajustes:"reajustes",btnFullCenter:"fullcenter",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnPendAdm:"pendAdm",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
+const ICO_BTN = {btnOperadores:"operadores",btnComprar:"comprar",btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnTanquesNivel:"tanquesNivel",btnRecebimento:"recebimento",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnDre:"dre",btnDespesasDet:"despesasDet",btnFechCaixa:"fechCaixa",btnAfericoes:"afericoes",btnClientes:"clientes",btnAnalise:"analise",btnRelLoja:"relLoja",btnReajustes:"reajustes",btnFullCenter:"fullcenter",btnRessupConv:"ressupConv",btnRessupPostos:"ressupPostos",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnPendAdm:"pendAdm",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
 const ICO_GRP = {dia:"g_dia",analise:"g_analise",finan:"g_finan",transp:"g_transp",org:"g_org",ajustes:"g_ajustes"};   /* v341 */
 /* 🔑 cor por GRUPO, tirada da paleta do MIV (laranja da marca + verde e dourado Petrobras).
    Assim a cor diz de que familia e' o menu, em vez de ser arco-iris. */
@@ -7920,6 +7998,14 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v370", data:"17/08/2026", tit:"📦 Nasce o menu <b>Ressuprimento</b>: o dinheiro que est\u00e1 parado no estoque, loja por loja", itens:[
+    {t:"n", h:"📦 <b>Ressuprimento</b> \u2014 dois menus, um na conveni\u00eancia e outro na troca de \u00f3leo", d:"Cada um abre nas <b>tr\u00eas cidades</b>, na mesma ordem: Teresina, Caxias e Presidente Dutra. A lista come\u00e7a pelo item que tem <b>mais dinheiro parado</b>. 📏 Medido em 17/08: as tr\u00eas conveni\u00eancias t\u00eam <b>R$ 18.418</b> parados, e as tr\u00eas lojas de troca de \u00f3leo, <b>R$ 45.073</b> \u2014 com estoque total parecido. O dado \u00e9 coletado do Petros <b>quatro vezes por dia</b>."},
+    {t:"n", h:"<b>Parado</b> aqui \u00e9 tempo sem <b>venda</b>, n\u00e3o tempo sem movimento", d:"Um item pode ter sa\u00eddo ontem e estar parado h\u00e1 meses: transfer\u00eancia entre lojas e acerto de invent\u00e1rio s\u00e3o sa\u00edda e <b>n\u00e3o s\u00e3o giro</b>. 📏 Na troca de \u00f3leo de Teresina, <b>9 dos 19</b> itens que pareciam girar giraram por transfer\u00eancia. A coluna <b>\u00daltimo movimento</b> mostra a diferen\u00e7a com uma pastilha colorida. \u26a0\ufe0f Quando o produto nunca foi vendido \u2014 caf\u00e9, leite e outros <b>insumos</b>, que saem do estoque sem passar pelo caixa \u2014 a conta usa a \u00faltima sa\u00edda, e s\u00f3 quando ele nunca saiu usa a entrada."},
+    {t:"n", h:"A r\u00e9gua de dias \u00e9 <b>de cada loja</b>, e d\u00e1 para mexer nela na tela", d:"Na conveni\u00eancia s\u00e3o <b>30 dias</b>; na troca de \u00f3leo, <b>180</b>, porque o giro normal l\u00e1 \u00e9 muito mais lento. Quem quiser olhar mais perto ou mais longe troca o corte nos bot\u00f5es \u2014 e isso muda s\u00f3 a lista da tela, nunca o n\u00famero publicado. A lista mostra os <b>15 maiores</b>, com um bot\u00e3o para ver todos."},
+    {t:"m", h:"Quando o app <b>n\u00e3o sabe</b>, ele diz que n\u00e3o sabe \u2014 em vez de mostrar R$ 0,00", d:"Se a coleta n\u00e3o passar na confer\u00eancia do pr\u00f3prio servidor, os n\u00fameros daquela loja ficam zerados de prop\u00f3sito. A tela mostra o aviso no lugar dos cart\u00f5es: <b>zero n\u00e3o quer dizer que est\u00e1 tudo em ordem</b>. O mesmo vale para o item sem venda em 90 dias, que ganha essa frase em vez de um n\u00famero de cobertura sem sentido."},
+    {t:"m", h:"O valor do estoque aparece <b>como o Petros o guarda</b>, e a tela avisa quando a conta n\u00e3o fecha", d:"Quando o valor do ERP e a conta <i>saldo \u00d7 custo</i> diferem mais de <b>10%</b>, a linha mostra os dois n\u00fameros; quando o produto est\u00e1 <b>sem custo cadastrado</b>, ela escreve isso em vez de fingir um valor. 📏 No Full Center, 182 itens est\u00e3o sem custo lan\u00e7ado."},
+    {t:"c", h:"\u26a0\ufe0f O que esta tela <b>ainda n\u00e3o</b> faz", d:"Ela mostra o que est\u00e1 parado, mas ainda <b>n\u00e3o sugere quanto comprar</b> nem aponta o que est\u00e1 prestes a faltar \u2014 o consumo m\u00e9dio ainda n\u00e3o \u00e9 coletado. E ela n\u00e3o diz <b>onde</b> a mercadoria est\u00e1 dentro da loja: o Full Center tem tr\u00eas locais de estoque, e por enquanto eles vêm somados."}
+  ]},
   {v:"v369", data:"17/08/2026", tit:"🗣️ As duas telas de <b>Pendências</b> voltaram a falar: elas avisavam quando algo dava errado, mas o aviso nascia <b>invisível</b>", itens:[
     {t:"c", h:"🔴 A caixa de aviso das <b>Pendências</b> nunca aparecia — e ninguém sabia", d:"Quando uma gravação falhava, o app escrevia a explicação numa caixa que o desenho mantinha <b>escondida</b>: o texto era gravado e a tela continuava igual. Então <b>todos</b> os botões dessas duas telas falhavam calados, não só o Reabrir."},
     {t:"c", h:"O botão <b>Reabrir</b> — que só quem administra o app enxerga — jogava o erro fora", d:"Além de a caixa estar escondida, esses dois botões nem escreviam nada: o erro era descartado numa linha. Agora eles avisam — e apagam o aviso sozinhos quando dá certo na segunda tentativa."},
@@ -9638,6 +9724,12 @@ function iniciarSync(){
        snapshot ve "ainda nao temos" e a tela CONGELA na frase (a licao da v357). */
     const pFC = document.getElementById("painelFullCenter");
     if (pFC && pFC.classList.contains("aberto")) renderFullCenter();
+    /* v370 - a SETIMA peca, uma para cada tela do 📦 Ressuprimento. Sem elas, quem abrir a tela
+       antes do primeiro snapshot le' "ainda nao temos" e CONGELA nessa frase. */
+    const pRsC = document.getElementById("painelRessupConv");
+    if (pRsC && pRsC.classList.contains("aberto")) renderRessup("conv");
+    const pRsP = document.getElementById("painelRessupPostos");
+    if (pRsP && pRsP.classList.contains("aberto")) renderRessup("postos");
     atualizarDashConv();                                     // v198 - Dashboard da Conveniencia
   }, ()=>{});
 
@@ -10502,6 +10594,13 @@ const MENUS_APP = [
      `fullcenter` tem de ser marcada no Painel Administrativo NO MESMO MINUTO, como foi feito com
      a `reajustes` na v367 — senao a equipe abre o app e nao ve nada de novo. */
   {key:"fullcenter",  btn:"btnFullCenter",  pan:"painelFullCenter",  emp:"postos", nome:"Troca de óleo"},   /* v368 */
+  /* v370 - 📦 Ressuprimento: DUAS entradas para a mesma tela, uma por empresa, porque ele decidiu
+     em 15/08 que a conveniencia e a troca de oleo nao se misturam. 🔴 As duas chaves nascem
+     INVISIVEIS: `_menuPermBase` devolve `false` para chave que ninguem marcou, entao `ressupConv` e
+     `ressupPostos` tem de ser marcadas no Painel Administrativo NO MESMO MINUTO da publicacao —
+     cada uma no bloco da SUA empresa, e nao copiando a marcacao da irma. */
+  {key:"ressupConv",  btn:"btnRessupConv",  pan:"painelRessupConv",  emp:"conv",   nome:"Ressuprimento"},   /* v370 */
+  {key:"ressupPostos",btn:"btnRessupPostos",pan:"painelRessupPostos",emp:"postos", nome:"Ressuprimento"},   /* v370 */
   {key:"ifood",       btn:"btnIfood",       pan:"painelIfood",       emp:"conv",   nome:"iFood"},
   {key:"clientes",    btn:"btnClientes",    pan:"painelClientes",    emp:"postos", nome:"Clientes"},   // v328 - a loja nao vende a prazo (v193)
   {key:"analise",     btn:"btnAnalise",     pan:"painelAnalise",     emp:"postos|conv|transp", nome:"Análise"},
@@ -10528,7 +10627,7 @@ const MENUS_APP = [
 const GRUPOS_MENU = [
   {key:"soltos",  nome:"",               icone:"",       itens:["dash"]},
   {key:"dia",     nome:"Dia a dia",      icone:"\ud83d\udd01", itens:["resumoDia","tanquesNivel","recebimento","registros","descontos","simular"]},
-  {key:"analise", nome:"Análise",        icone:"\ud83d\udcca", itens:["relPosto","afericoes","clientes","analise","operadores","relLoja","reajustes","fullcenter","ifood"]},
+  {key:"analise", nome:"Análise",        icone:"\ud83d\udcca", itens:["relPosto","afericoes","clientes","analise","operadores","relLoja","reajustes","ressupConv","fullcenter","ressupPostos","ifood"]},
   {key:"finan",   nome:"Financeiro",     icone:"\ud83d\udcb0", itens:["despesasDet","dre","fechCaixa"]},   /* v341 - o DRE saiu da Analise e veio para ca'; v356 - o Fechamento do caixa */
   {key:"transp",  nome:"Transportadora", icone:"\ud83d\ude9a", itens:["infleet","comprar","pedido","cotacoes","puxadas"]},
   {key:"org",     nome:"Organização",    icone:"\ud83d\udcc1", itens:["calendario","vencimentos","caixa","pendAdm"]},   /* v251 - o 🗂 ninguem reconhecia */
@@ -11626,7 +11725,7 @@ function alternarSimular(){
 
 /* ================== v168 - Relatórios do posto e da conveniência (Adaptive) ================== */
 // Firestore não guarda lista dentro de lista: as tabelas vêm como texto JSON.
-const CAMPOS_LISTA_REL = ["aten","hora","comb","lbm","receb","cat","itens","despDet","precos","custoSubiu","oper"];  // v194 - precos na v239, custoSubiu na v242
+const CAMPOS_LISTA_REL = ["aten","hora","comb","lbm","receb","cat","itens","despDet","precos","custoSubiu","oper","estoque"];  // v194 - precos na v239, custoSubiu na v242, estoque na v370
 function normalizaRel(o){
   if (!o) return o;
   CAMPOS_LISTA_REL.forEach(k => {
@@ -16193,6 +16292,419 @@ function fcenNotaCategorias(dados, loja){
        + ' menos de três produtos com custo lançado, e por isso a régua da média da categoria não vale '
        + (so.length === 1 ? 'nela' : 'nelas') + ' — o app não aponta nada ali, e isso é <b>desenho, não '
        + 'falta de dado</b>.</p>';
+}
+
+/* ================== v370 - 📦 RESSUPRIMENTO: o dinheiro parado nas seis lojas ==================
+   O dado vem do coletor `estoqueloja` (VPS, cron `49 7,11,15,19`), que grava o campo `estoque` em
+   relatoriosLoja/{loja}_{AAAA-MM} das SEIS lojas. Cada linha tem TREZE posicoes:
+
+     [0 cod · 1 nome · 2 categoria · 3 saldo · 4 valorEstoque · 5 ultimaSaida · 6 custoUn ·
+      7 precoUn · 8 barras · 9 tipoUltimaSaida · 10 ultimaVenda · 11 ultimaEntrada · 12 vendidos90d]
+
+   🔴 O campo `estoque` PRECISA estar em CAMPOS_LISTA_REL, senao ele chega como STRING e a tela
+   nao monta — foi o que derrubou o `oper` na v357.
+   ⚠️ Sao DUAS telas, uma por empresa, e isso e' decisao dele ("para nao misturarmos as coisas",
+   15/08). O codigo e' um so', parametrizado por `RSV_TELAS`. ================================== */
+
+const RSV_TOPO   = 15;                       /* teto de linhas, por dinheiro */
+const RSV_CORTES = [0, 30, 60, 90, 180, 365];/* 0 = a regua da PROPRIA loja (regra 1) */
+const RSV_DIVERG = 0.10;                     /* regra 4: acima disto a tela mostra os DOIS valores */
+const RSV_JANELA = 90;                       /* a janela de venda que o coletor manda (vendidos90d) */
+
+/* A letra da posicao 9. 🔴 Ela e' o que separa GIRAR de SO' TER MUDADO DE LUGAR: na troca de oleo
+   de Teresina, 9 dos 19 itens que "giravam" giraram por TRANSFERENCIA (medido em 17/08). */
+const RSV_MOV = {
+  V: {n:"Venda",                c:"rsv-v"},
+  D: {n:"Devolução de compra",  c:"rsv-o"},
+  T: {n:"Transferência",        c:"rsv-t"},
+  I: {n:"Acerto de inventário", c:"rsv-t"},
+  M: {n:"Medição de tanque",    c:"rsv-o"},
+  B: {n:"Bonificação",          c:"rsv-o"},
+  R: {n:"Reclassificação",      c:"rsv-t"},
+  O: {n:"Outro movimento",      c:"rsv-o"},
+  "":{n:"Nunca saiu",           c:"rsv-x"}
+};
+
+/* ⚠️ A ORDEM DAS ABAS E' FIXA, IGUAL NAS DUAS TELAS, e escrita a' mao de proposito: se ela saisse
+   da ordem das unidades, as duas telas abririam em cidades diferentes. A aba "Caxias" da troca de
+   oleo e' a chave `fullcenter` — o nome "Full Center" nao aparece mais como rotulo. */
+const RSV_TELAS = {
+  conv:   {pan:"painelRessupConv",   box:"rsvConvBox",   abas:"rsvConvAbas",   sel:"rsvConvMes",
+           unidades:UNIDADES_REL, quem:"conveniência",
+           abasRot:[["teresina","Teresina"],["caxias","Caxias"],["dutra","Presidente Dutra"]]},
+  postos: {pan:"painelRessupPostos", box:"rsvPostosBox", abas:"rsvPostosAbas", sel:"rsvPostosMes",
+           unidades:UNIDADES_FC,  quem:"loja de troca de óleo",
+           abasRot:[["lojateresina","Teresina"],["fullcenter","Caxias"],["lojadutra","Presidente Dutra"]]}
+};
+let rsvEst = {
+  conv:   {un:"teresina",     mes:"", corte:0, tudo:false},
+  postos: {un:"lojateresina", mes:"", corte:0, tudo:false}
+};
+
+/* Dias inteiros entre duas datas AAAA-MM-DD. 🔴 `Date.UTC`, e nao `new Date(texto)`: assim o numero
+   nao muda com o fuso do celular de quem abre a tela. */
+function rsvDiasEntre(deISO, ateISO){
+  const a = String(deISO || "").slice(0,10), b = String(ateISO || "").slice(0,10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(a) || !/^\d{4}-\d{2}-\d{2}$/.test(b)) return null;
+  const pa = a.split("-"), pb = b.split("-");
+  const ta = Date.UTC(+pa[0], +pa[1]-1, +pa[2]), tb = Date.UTC(+pb[0], +pb[1]-1, +pb[2]);
+  if (!isFinite(ta) || !isFinite(tb)) return null;
+  return Math.round((tb - ta) / 86400000);
+}
+
+/* 🔴 A IDADE EM TRES DEGRAUS — venda, senao saida, senao entrada. Ela e' a MESMA regua do coletor
+   (`idadeParado`), reimplementada aqui porque a tela recebe a lista e nao a conta.
+   👉 AS DUAS ANDAM JUNTAS: quem mudar a regua la' muda aqui, no mesmo dia. Cada degrau custou um
+   numero medido em 17/08: sem o da venda, transferencia vira giro; sem o da saida, o INSUMO (o cafe
+   moido, que nunca e' vendido em quilo) vira R$ 25.639,11 de falso positivo; sem o da entrada,
+   mercadoria recem-chegada vira encalhe (R$ 52.608 nas tres conveniencias). */
+function rsvIdade(l, ateISO){
+  const d1 = rsvDiasEntre(l[10], ateISO); if (d1 !== null) return {dias:d1, base:"venda"};
+  const d2 = rsvDiasEntre(l[5],  ateISO); if (d2 !== null) return {dias:d2, base:"saida"};
+  const d3 = rsvDiasEntre(l[11], ateISO); if (d3 !== null) return {dias:d3, base:"entrada"};
+  return {dias:null, base:""};
+}
+const RSV_BASE_TXT = {venda:"desde a última venda", saida:"desde a última saída", entrada:"desde que entrou"};
+
+/* Regra 3: `vendidos90d === 0` devolve NULO, e a tela escreve "sem venda em 90 dias".
+   🔴 NUNCA um numero de cobertura: a maior cobertura medida em 17/08 foi de 65.700 dias. */
+const RSV_MIN_VENDAS = 3;      /* amostra minima para projetar cobertura */
+function rsvCobertura(l){
+  const v = +l[12] || 0;
+  /* 🔴 A GUARDA NAO PODE SER "vendeu mais que zero". 📏 Medido no dado real de 17/08: com
+     `> 0` a tela escreve "cobertura de 65.700 dias" (180 anos) num item de Pres. Dutra que ESTA'
+     na lista hoje, e "630 dias" num fone de Teresina que vendeu UMA vez em 90 dias. Projetar
+     18 meses a partir de uma venda solta e' inventar precisao. Com menos de tres vendas a tela
+     diz QUANTAS foram, que e' o que ela sabe. 📏 Isso alcanca 15 · 10 · 11 itens nas tres
+     conveniencias. */
+  if (v < RSV_MIN_VENDAS) return null;
+  return (+l[3] || 0) / (v / RSV_JANELA);
+}
+const RSV_COB_TETO = 365;
+function rsvCoberturaTexto(l, cob){
+  /* 🔴 A AMOSTRA MINIMA NAO SEGURA O NUMERO — ela so' o encarece. 📏 Com saldo 543 e TRES vendas
+     em 90 dias a conta da' 16.290 dias (44 anos), e com 2.190 da' os mesmos 65.700 que a guarda
+     dizia ter eliminado. Acima de um ano a projecao deixa de informar: o que informa e' que
+     passou de um ano. */
+  if (cob !== null && cob > RSV_COB_TETO) return 'mais de 1 ano de estoque';
+  if (cob !== null) return fmtBR(cob, 0) + ' dias';
+  const v = +l[12] || 0;
+  return '<span class="rsv-sem">' + (v <= 0 ? 'sem venda em ' + RSV_JANELA + ' dias'
+       : (v === 1 ? 'só 1 venda' : 'só ' + fmtBR(v,0) + ' vendas') + ' em ' + RSV_JANELA + ' dias') + '</span>';
+}
+
+/* Regra 4: o dinheiro da tela nao e' necessariamente o do ERP. */
+function rsvValores(l){
+  const erp = +l[4] || 0, custo = +l[6] || 0, calc = (+l[3] || 0) * custo;
+  const base = Math.max(Math.abs(erp), Math.abs(calc));
+  /* 🔴 O `diverge` mede o valor que vai ser MOSTRADO contra o outro. Medindo contra o `erp`
+     enquanto se mostrava `erp || calc`, um item com valor zero no ERP e custo cadastrado
+     escrevia "R$ 500,00" e, do lado, "saldo × custo dá R$ 500,00" — o mesmo numero anunciado
+     como divergencia. */
+  const semValorNoErp = erp === 0 && calc > 0;
+  return {erp:erp, calc:calc, custo:custo, semValorNoErp:semValorNoErp,
+          diverge: !semValorNoErp && custo > 0 && base > 0 && Math.abs(erp - calc) / base > RSV_DIVERG,
+          ordem: erp || calc};
+}
+
+/* A parte PURA: recebe o documento e devolve o que a tela vai desenhar. Sem DOM, sem Firestore. */
+function rsvLinhas(d, corte){
+  const lista = Array.isArray(d.estoque) ? d.estoque : [];
+  const ate   = String(d.estoqueDia || "").slice(0,10) || hojeISO();
+  const regua = +d.estoqueReguaDias || 0;
+  const alvo  = corte > 0 ? corte : regua;
+  const fora  = [];
+  const dentro = [];
+  lista.forEach(l => {
+    const id = rsvIdade(l, ate);
+    /* data DEPOIS do dia da coleta da' idade negativa: e' cadastro torto, nao item novo.
+       Ela vai para a mesma sacola do "sem data", em vez de virar "parado há -106 dias". */
+    if (id.dias === null || id.dias < 0){ fora.push(l); return; }
+    /* 🔴 ESTRITAMENTE MAIOR QUE A REGUA, e o `=` custou uma medicao: com `>=` a tela mostrava
+       202 itens no Full Center ao lado de um cartao dizendo 200, e o coletor estava certo.
+       📏 Medido nas SEIS lojas em 17/08 pela aba logada: `> regua` bate com o `estoqueParados`
+       publicado em 6 de 6; `>= regua` erra em Caxias (+3), Dutra (+1) e Full Center (+2).
+       ⚠️ Teresina batia dos dois jeitos — nenhum item dela cai EXATAMENTE em cima da regua.
+       🔑 Se eu tivesse conferido so' a loja da foto, o defeito teria passado. */
+    if (alvo > 0 && id.dias <= alvo) return;
+    const v = rsvValores(l);
+    /* 🔴 A CONTRADICAO QUE A TELA PRECISA MOSTRAR, e ela nasce da regua que o coletor usa.
+       📏 Medido no dado real de 17/08, nas seis lojas: 26 itens (R$ 3.534,53) tem venda ANTIGA
+       — e por isso contam como parados — mas ENTRARAM ou SAIRAM dentro da propria regua da loja.
+       Em Teresina eles sao as linhas nº 2 e nº 3: o QUEIJO INSUMO (saiu 12/08, entrou 14/08) e o
+       PAO DE FORMA (entrou 15/08), os dois com "454 dias" e "474 dias" escritos ao lado.
+       🔑 Insumo tem UMA venda solta de 2025, e essa venda solta desliga para sempre o degrau da
+       saida que foi criado para ele. ⚠️ Quem conta os parados e' o COLETOR: a tela NAO tira o
+       item da lista por conta propria, senao os 26 sumiriam da lista e continuariam no cartao.
+       👉 Ela MOSTRA o movimento recente, e quem decide e' o dono. */
+    const dSai = rsvDiasEntre(l[5], ate), dEnt = rsvDiasEntre(l[11], ate);
+    /* 🔴 CONTRA A REGUA DA LOJA, nunca contra o corte da tela: medindo contra o corte, alargar o
+       corte ACRESCENTAVA advertencias — com 90 dias um item que saiu ha' 47 virava "dentro da
+       propria regua", e a regua e' 30.
+       🔴 E vale para os TRES degraus, nao so' para a venda: o insumo que NUNCA vendeu, saiu ha'
+       muito e acabou de entrar tem idade de base `saida` — e era exatamente ele que ficava sem
+       marca. 📏 `tem_saida_e_NUNCA_vendeu` = 11 · — · 5 · 17 · 0 · 1 nas seis lojas. */
+    const marca = regua > 0 ? regua : alvo;
+    const recente = (d, q) => (d !== null && d >= 0 && d <= marca && d < id.dias) ? {q:q, d:d} : null;
+    const mexeu = marca > 0 ? (recente(dEnt, "entrou") || recente(dSai, "saiu")) : null;
+    dentro.push({l:l, idade:id, v:v, cob:rsvCobertura(l), mexeu:mexeu});
+  });
+  dentro.sort((a,b) => b.v.ordem - a.v.ordem);
+  return {linhas:dentro, semData:fora.length, regua:regua, alvo:alvo, ate:ate, total:lista.length,
+          semCusto:dentro.filter(x => x.v.custo <= 0).length,
+          mexeram:dentro.filter(x => x.mexeu).length,
+          /* 🔴 SEM PRECO DE VENDA = nao sai pelo caixa. 📏 Em Teresina sao 7 itens e R$ 1.920,41
+             — 27,5% do "dinheiro parado" do cartao — entre insumos (queijo, pao) e MATERIAL DE
+             USO E CONSUMO, que e' material interno. Numa lista cuja acao implicita e' "venda
+             isto", um quarto do numero nao e' vendavel, e a tela tem de dizer. */
+          semPreco:dentro.filter(x => (+x.l[7] || 0) <= 0).length,
+          valorSemPreco:dentro.reduce((t,x) => t + ((+x.l[7] || 0) <= 0 ? x.v.ordem : 0), 0)};
+}
+
+function rsvPastilha(l){
+  const k = String(l[9] || "");
+  const m = RSV_MOV[k] || RSV_MOV.O;
+  return '<span class="rec-tag ' + m.c + '">' + escAttr(m.n) + '</span>';
+}
+
+/* O bloco inteiro da tela, em texto. Separado do `render` para a bancada poder chama-lo. */
+function blocoRessup(tela){
+  const cfg = RSV_TELAS[tela], est = rsvEst[tela];
+  const nome = (cfg.abasRot.find(a => a[0] === est.un) || [,est.un])[1];
+  const d = relLojas[est.un + "_" + est.mes] || {};
+
+  /* 🔴 REGRA 2, E E' A MAIS PERIGOSA DA TELA: com o selo derrubado os cinco numeros do documento
+     ficam em ZERO DE PROPOSITO. Quem os mostrar sem olhar o selo escreve "R$ 0,00 parado" para o
+     dono, que le' isso como "esta tudo em ordem". "Nao confiavel" nao e' "zero". */
+  if (d.estoqueOk === false){
+    return '<div class="prc-alerta"><h4 class="rel-h4">🛑 O app não sabe o estoque de ' + escAttr(nome) + '</h4>'
+         + '<p class="nota-dash">A última coleta <b>não passou na conferência do próprio servidor</b>, e por isso os '
+         + 'números desta loja ficaram <b>zerados de propósito</b>. <b>Zero aqui não quer dizer que não há dinheiro '
+         + 'parado: quer dizer que o app não sabe.</b> A tela volta sozinha na próxima coleta que passar — elas '
+         + 'acontecem quatro vezes por dia.'
+         + (d.estoqueDia ? ' Último dia com número publicado: <b>' + escAttr(dataCurtaRel(d.estoqueDia)) + '</b>.' : '')
+         + '</p></div>';
+  }
+  if (d.estoqueOk !== true || !(Array.isArray(d.estoque) && d.estoque.length)){
+    return '<p class="nota-dash">📦 <b>' + escAttr(nome) + '</b> — o estoque ainda não foi coletado para '
+         + rotuloMesRel(est.mes) + '. Isso <b>não</b> quer dizer que está tudo em ordem: quer dizer que o app '
+         + 'ainda não sabe. Ele é montado no servidor, quatro vezes por dia.</p>';
+  }
+
+  const r = rsvLinhas(d, est.corte);
+  const nItens   = +d.estoqueItens || r.total;
+  const nParados = +d.estoqueParados || 0;
+  const vParado  = +d.estoqueValorParado || 0;
+  const vTotal   = +d.estoqueValorTotal || 0;
+
+  /* Os quatro cards falam do que foi PUBLICADO (a regua da loja), nao do corte escolhido na tela —
+     e a linha de baixo diz o que o corte mudou. Assim o numero do card continua conferindo com o
+     do servidor mesmo quando alguem mexe no filtro. */
+  let h = '<div class="rel-kpis">'
+    + '<div class="rel-kpi' + (vParado > 0 ? ' ruim' : '') + '"><span>Dinheiro parado' + bul('rsvParado') + '</span><b>' + fmtR$0(vParado) + '</b></div>'
+    + '<div class="rel-kpi"><span>Itens parados</span><b>' + fmtBR(nParados,0) + '<small class="rsv-por">de ' + fmtBR(nItens,0) + ' no estoque</small></b></div>'
+    + '<div class="rel-kpi"><span>Estoque total</span><b>' + fmtR$0(vTotal) + '</b></div>'
+    + '<div class="rel-kpi"><span>Régua desta loja' + bul('rsvRegua') + '</span><b>'
+    + (r.regua > 0 ? fmtBR(r.regua,0) + ' dias' : '<span class="rsv-sem">não informada</span>') + '</b></div>'
+    + '</div>';
+
+  /* a data da coleta nao se inventa: sem `estoqueDia` a tela dizia "lido em 17/08" usando o
+     relogio de quem abriu, que e' uma data que ninguem mediu. */
+  h += '<p class="nota-dash">Estoque de <b>' + escAttr(nome) + '</b> '
+     + (d.estoqueDia ? 'lido em <b>' + escAttr(dataCurtaRel(r.ate)) + '</b>'
+                     : '<b>sem a data da coleta</b> — as contas de dias abaixo usam o dia de hoje')
+     + '. Parado aqui é o tempo <b>desde a última venda</b> — quando o item nunca foi vendido, vale a última '
+     + 'saída, e só quando ele nunca saiu vale a entrada. É por isso que <b>transferência não conta como giro</b>.</p>';
+
+  /* O corte de dias: filtra a LISTA e nao muda nada do que foi publicado. */
+  h += '<div class="rcb-filtro"><span class="rcb-filtro-rot">Parado há mais de:</span>';
+  RSV_CORTES.forEach(c => {
+    if (c === 0 && !(r.regua > 0)) return;
+    if (c > 0 && c === r.regua) return;   /* seria o mesmo botao da regua da loja, com outro nome */
+    h += '<button class="rcb-fbt' + (est.corte === c ? ' aceso' : '') + '" onclick="rsvCorte(\'' + tela + '\',' + c + ')">'
+       + (c === 0 ? 'A régua da loja (' + fmtBR(r.regua,0) + ' dias)' : fmtBR(c,0) + ' dias') + '</button>';
+  });
+  h += '</div>';
+
+  if (!r.linhas.length){
+    h += '<p class="nota-dash">' + (nParados > 0 ? '' : '✅ ') + 'Com o corte de <b>' + fmtBR(r.alvo,0)
+       + ' dias</b>, <b>nenhum item</b> de ' + escAttr(nome) + ' entra na lista'
+       + (nParados > 0 ? ' — mas o cartão acima conta <b>' + fmtBR(nParados,0) + '</b> pela régua da loja.' : '.')
+       + '</p>';
+    /* 🔴 aqui iam DOIS ZEROS: o rodape escrevia "a régua desta loja (180 dias, 0 itens)" ao lado
+       de um cartao dizendo 2, e ainda "R$ 0" — na tela cuja regra nº 1 e' nunca escrever zero
+       para o dono. O numero do cartao e' o publicado, e e' ele que tem de aparecer. */
+    return h + rsvRodape(r, 0, nParados, false, cfg.quem);
+  }
+
+  const mostra = est.tudo ? r.linhas : r.linhas.slice(0, RSV_TOPO);
+  /* 🔴 VERMELHO QUE APARECE POR ROTINA ENSINA A IGNORAR VERMELHO. 📏 Medido no Full Center em
+     17/08: 159 dos 200 itens parados — e 12 das 15 linhas do topo — estao com o custo unitario
+     ZERADO no Petros. Repetir "sem custo lançado" em 12 linhas de 15 nao informa: vira papel de
+     parede, e ainda sugere que o VALOR nao existe, quando ele existe (vem do ERP). Entao a marca
+     fica na linha enquanto for EXCECAO, e vira uma frase so' no rodape quando for a regra. */
+  /* 🔴 decide sobre a LISTA INTEIRA, nao sobre as 15 visiveis: decidindo sobre as visiveis, o
+     botao "Ver todos" trocava a tela de historia — o aviso do rodape sumia e nasciam 14 marcas
+     nas linhas, com o MESMO dado. */
+  const custoEhRegra = r.linhas.length > 0 && r.semCusto > r.linhas.length * 0.3;
+  const somaMostra = mostra.reduce((s,x) => s + x.v.ordem, 0);
+  const somaTudo   = r.linhas.reduce((s,x) => s + x.v.ordem, 0);
+
+  h += '<h4 class="rel-h4">📦 O que está parado, do maior valor para o menor' + cntEtiqueta(r.linhas.length) + '</h4>';
+  h += '<div class="rel-scroll"><table class="rel-tab rsv-tab"><thead><tr>'
+     + '<th>Produto</th><th class="n rsv-off">Saldo</th><th class="n rsv-off">Valor parado</th><th class="n">Parado há</th>'
+     + '<th class="rsv-off">Último movimento</th><th class="n rsv-off">Cobertura</th><th class="n rsv-off">Preço venda</th>'
+     + '</tr></thead><tbody>';
+
+  mostra.forEach(x => {
+    const l = x.l, v = x.v, preco = +l[7] || 0;
+    /* 🔴 SALDO FRACIONARIO NAO SE ARREDONDA: o QUEIJO INSUMO - KG tem 17,65 kg, e a tela
+       escrevia "18". Peso e volume sao saldo de verdade nesta lista (insumo e' vendido em kg). */
+    const sal = +l[3] || 0;
+    const salTxt = (sal === Math.round(sal)) ? fmtBR(sal, 0) : fmtBR(sal, 2);
+    const cobTxt = rsvCoberturaTexto(l, x.cob);
+    /* a ressalva do dinheiro, montada UMA vez: ela vai para a coluna E para o resumo do celular,
+       que antes ficava sem ela — e e' no celular que a equipe abre a tela. */
+    const ressalva = v.custo <= 0 ? (custoEhRegra ? '' : 'sem custo lançado')
+       : v.semValorNoErp ? 'valor pelo saldo × custo; o ERP não guarda valor para este item'
+       : v.diverge ? 'saldo × custo dá ' + fmtR$(v.calc) : '';
+    /* 🔴 A DATA DO ULTIMO MOVIMENTO. Sem ela a pastilha fala de um evento e a coluna "Parado há"
+       de OUTRO, lado a lado, sem nada dizendo isso: o QUEIJO INSUMO aparece com "454 dias" e
+       "Reclassificação", e a reclassificação foi anteontem. */
+    const dtMov = String(l[5] || "").slice(0,10);
+    const movTxt = rsvPastilha(l) + (dtMov ? '<small class="rsv-por">em ' + escAttr(dataCurtaRel(dtMov)) + '</small>' : '');
+    h += '<tr><td>' + escAttr(String(l[1] || ""))
+       + '<small class="rsv-cat">' + escAttr(String(l[2] || "(sem categoria)")) + '</small>'
+       /* 🔴 NO CELULAR ESTE `small` E' A LINHA INTEIRA: as colunas do dinheiro e do saldo somem
+          ali (elas cortavam a tela em 390px), entao o valor vem PRIMEIRO e em negrito. */
+       /* no celular a pastilha entra AQUI e a coluna dela some: com ela em coluna propria a tabela
+          nao cabia em 390px, e o que cortava era justamente a informacao do dinheiro. */
+       /* ⚠️ a marca NAO se repete aqui: a coluna "Parado há" sobrevive no celular e ja' a carrega.
+          Com as duas, a mesma frase aparecia duas vezes na mesma linha em 390px. */
+       + '<small class="rsv-mob">' + movTxt + '</small>'
+       + '<small class="rsv-mob"><b>' + fmtR$(v.ordem) + ' parado</b> · ' + salTxt + ' em estoque · '
+       + (x.cob === null ? rsvCoberturaTexto(l, null).replace(/<[^>]+>/g, "") : 'cobertura de ' + fmtBR(x.cob,0) + ' dias')
+       + (preco > 0 ? ' · vende a ' + fmtR$(preco) : ' · sem preço de venda')
+       + (ressalva ? ' · ' + ressalva : '') + '</small></td>'
+       + '<td class="n rsv-off">' + salTxt + '</td>'
+       + '<td class="n rsv-off"><b>' + fmtR$(v.ordem) + '</b>'
+       + (ressalva ? '<small class="rsv-sem">' + ressalva + '</small>' : '')
+       + '</td>'
+       + '<td class="n"><b>' + fmtBR(x.idade.dias, 0) + ' dias</b><small class="rsv-por">'
+       + (RSV_BASE_TXT[x.idade.base] || "")
+       + (x.mexeu ? '</small><small class="rsv-alerta">mas ' + x.mexeu.q + ' há '
+          + (x.mexeu.d === 0 ? 'hoje' : x.mexeu.d === 1 ? '1 dia' : fmtBR(x.mexeu.d,0) + ' dias') + '</small>'
+          : '</small>') + '</td>'
+       + '<td class="rsv-off">' + movTxt + '</td>'
+       + '<td class="n rsv-off">' + cobTxt + '</td>'
+       + '<td class="n rsv-off">' + (preco > 0 ? fmtR$(preco)
+          : '<span class="rsv-sem">sem preço de venda</span>') + '</td></tr>';
+  });
+  h += '</tbody></table></div>';
+
+  if (r.linhas.length > RSV_TOPO){
+    h += '<div class="prc-mais"><button type="button" class="doc-chip prc-btn" onclick="rsvVerTudo(\'' + tela + '\')">'
+       + (est.tudo ? '↑ Mostrar só os ' + RSV_TOPO + ' maiores' : '↓ Ver todos os ' + r.linhas.length + ' itens')
+       + '</button><span class="prc-mais-n">'
+       + (est.tudo ? 'mostrando os ' + r.linhas.length : 'mostrando ' + RSV_TOPO + ' de ' + r.linhas.length)
+       + ' · ' + fmtR$0(somaMostra) + ' de ' + fmtR$0(somaTudo) + '</span></div>';
+  }
+  return h + rsvRodape(r, somaTudo, nParados, custoEhRegra, cfg.quem);
+}
+
+function rsvRodape(r, soma, nParados, custoEhRegra, quem){
+  let h = "";
+  /* Quando o corte da tela nao e' a regua da loja, os cards e a lista falam de coisas diferentes —
+     e a tela DIZ isso, em vez de deixar o dono achar que um dos dois esta errado. */
+  if (r.alvo !== r.regua && r.regua > 0){
+    h += '<p class="nota-dash">Os cartões acima falam da régua desta loja (<b>' + fmtBR(r.regua,0) + ' dias</b>, '
+       + fmtBR(nParados,0) + ' itens). Com o corte de <b>' + fmtBR(r.alvo,0) + ' dias</b> escolhido aqui, '
+       + (r.linhas.length ? 'são <b>' + fmtBR(r.linhas.length,0) + ' itens</b> e <b>' + fmtR$0(soma) + '</b>.'
+                          : '<b>nenhum item</b> entra na lista.') + '</p>';
+  }
+  /* 🔴 os 26 itens medidos em 17/08: contam como parados pela regua da venda e se mexeram dentro
+     da propria regua da loja. A tela nao os esconde (quem conta e' o coletor) — ela os NOMEIA. */
+  if (r.mexeram){
+    h += '<p class="nota-dash">⚠️ <b>' + fmtBR(r.mexeram,0) + '</b> ' + (r.mexeram === 1 ? 'item desta lista entrou' : 'itens desta lista entraram')
+       + ' ou saíram do estoque <b>dentro da própria régua</b>, e mesmo assim ' + (r.mexeram === 1 ? 'conta' : 'contam')
+       + ' como parados — porque a conta é feita <b>desde a última venda</b>, e a última venda '
+       + (r.mexeram === 1 ? 'dele é' : 'deles é') + ' antiga. '
+       + (quem === "conveniência" ? 'É o caso dos <b>insumos</b> (café, queijo, pão), que saem do estoque sem passar pelo caixa. '
+                                  : 'É o caso do que sai do estoque <b>sem passar pelo caixa</b> — aplicado no serviço, transferido ou consumido na oficina. ')
+       + 'A linha diz <i>“mas entrou há N dias”</i> quando isso acontece.</p>';
+  }
+  if (!(r.regua > 0)){
+    h += '<p class="nota-dash">⚠️ Esta loja não informou a régua de dias, então a lista mostra <b>todos</b> os itens '
+       + 'ordenados pelo valor. O corte de dias continua funcionando.</p>';
+  }
+  if (custoEhRegra){
+    h += '<p class="nota-dash">⚠️ Em <b>' + fmtBR(r.semCusto,0) + ' dos ' + fmtBR(r.linhas.length,0) + '</b> itens '
+       + 'desta lista o <b>custo unitário não está cadastrado</b> no Petros. O valor mostrado é o que o ERP guarda '
+       + 'para o estoque — ele existe, mas não dá para conferir pela conta <i>saldo × custo</i>. '
+       + '👉 Isso é <b>cadastro a completar</b>, e mexe no número que esta tela mostra.</p>';
+  }
+  if (r.semPreco){
+    h += '<p class="nota-dash">📌 <b>' + fmtBR(r.semPreco,0) + '</b> ' + (r.semPreco === 1 ? 'item desta lista não tem' : 'itens desta lista não têm')
+       + ' <b>preço de venda</b> cadastrado, somando <b>' + fmtR$0(r.valorSemPreco) + '</b>. São <b>insumos</b> '
+       + (quem === "conveniência" ? '(café, queijo, pão) e <b>material de uso e consumo</b>' : 'e <b>material de uso e consumo</b>')
+       + ': eles saem do estoque sem passar pelo caixa, '
+       + 'então <b>não é caso de vender</b> — é caso de conferir consumo e compra.</p>';
+  }
+  if (r.semData){
+    h += '<p class="nota-dash">⚠️ <b>' + fmtBR(r.semData,0) + '</b> ' + (r.semData === 1 ? 'item do estoque desta loja ficou' : 'itens do estoque desta loja ficaram')
+       + ' de fora desta lista: ou não ' + (r.semData === 1 ? 'tem' : 'têm') + ' venda, saída nem entrada registrada, '
+       + 'ou ' + (r.semData === 1 ? 'a data dele está' : 'as datas deles estão') + ' <b>à frente do dia da coleta</b>. '
+       + 'Nos dois casos não dá para dizer há quanto tempo ' + (r.semData === 1 ? 'está parado' : 'estão parados')
+       + '. Isso é <b>cadastro a conferir no Petros</b>, não estoque em ordem.</p>';
+  }
+  return h;
+}
+
+function renderRessup(tela){
+  const cfg = RSV_TELAS[tela], est = rsvEst[tela];
+  const box = document.getElementById(cfg.box);
+  if (!box) return;
+  const abas = document.getElementById(cfg.abas);
+  /* ⚠️ `dcvMeses` COM a lista de unidades: varrer o `relLojas` inteiro faria o seletor de uma
+     empresa mostrar mes que so' existe na outra (o defeito latente consertado na v368). */
+  const meses = dcvMeses(cfg.unidades);
+  if (!meses.length){
+    if (abas) abas.innerHTML = "";
+    preencherSelectRel(cfg.sel, [], "", null);
+    box.innerHTML = '<p class="nota-dash">Ainda não temos o estoque destas lojas. Ele é montado no servidor, '
+                  + 'quatro vezes por dia, junto com os preços.</p>';
+    return;
+  }
+  if (meses.indexOf(est.mes) < 0) est.mes = meses[0];
+  preencherSelectRel(cfg.sel, meses, est.mes, rotuloMesRel);
+  if (cfg.abasRot.every(a => a[0] !== est.un)) est.un = cfg.abasRot[0][0];
+  if (abas) abas.innerHTML = cfg.abasRot.map(a =>
+    '<button class="doc-chip' + (est.un === a[0] ? ' ativo' : '') + '" onclick="rsvAba(\'' + tela + '\',\'' + escAttr(a[0]) + '\')">'
+    + escAttr(a[1]) + '</button>').join("");
+  box.innerHTML = blocoRessup(tela);
+}
+
+function rsvMuda(tela, campo, valor){
+  const est = rsvEst[tela];
+  if (campo === "mes") est.mes = valor;
+  est.tudo = false;
+  renderRessup(tela);
+}
+function rsvAba(tela, un){ rsvEst[tela].un = un; rsvEst[tela].tudo = false; renderRessup(tela); }
+function rsvCorte(tela, dias){ rsvEst[tela].corte = dias; rsvEst[tela].tudo = false; renderRessup(tela); }
+function rsvVerTudo(tela){ rsvEst[tela].tudo = !rsvEst[tela].tudo; renderRessup(tela); }
+
+function alternarRessupConv(){
+  const aberto = abrirPainelExclusivo("painelRessupConv");
+  const b = document.getElementById("btnRessupConv");
+  if (b) b.classList.toggle("ativo", aberto);
+  if (aberto) renderRessup("conv");
+}
+function alternarRessupPostos(){
+  const aberto = abrirPainelExclusivo("painelRessupPostos");
+  const b = document.getElementById("btnRessupPostos");
+  if (b) b.classList.toggle("ativo", aberto);
+  if (aberto) renderRessup("postos");
 }
 
 function renderReajustes(){
@@ -24150,7 +24662,11 @@ const BULAS = {
   contraAnoPassado: { t:"Contra o ano passado",
     d:"Compara com o mesmo per\u00edodo do ano anterior, contando s\u00f3 os meses j\u00e1 fechados dos dois lados." },
   cartoes: { t:"Cart\u00f5es",
-    d:"Cr\u00e9dito mais d\u00e9bito. Nas lojas \u00e9 a maior parte do que aparece como recebido." }
+    d:"Cr\u00e9dito mais d\u00e9bito. Nas lojas \u00e9 a maior parte do que aparece como recebido." },
+  rsvParado: { t:"Dinheiro parado",
+    d:"O valor em estoque dos itens que n\u00e3o t\u00eam venda h\u00e1 mais tempo que a r\u00e9gua desta loja. Quando o item nunca foi vendido vale a \u00faltima sa\u00edda, e s\u00f3 quando ele nunca saiu vale a entrada \u2014 por isso transfer\u00eancia e acerto de invent\u00e1rio n\u00e3o contam como giro." },
+  rsvRegua: { t:"R\u00e9gua desta loja",
+    d:"Quantos dias sem venda fazem um item entrar na lista. Ela vem do servidor, por loja: na conveni\u00eancia s\u00e3o 30 dias; na troca de \u00f3leo, 180, porque l\u00e1 o giro normal \u00e9 muito mais lento." }
 };
 
 /* o botaozinho. A chave vai escrita aqui, no lugar da chamada. */
