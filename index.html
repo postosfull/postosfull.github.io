@@ -5637,7 +5637,37 @@ const ERROS_AUTH = {
   "auth/invalid-action-code": "Este link de confirmação já foi usado ou não é mais válido. Faça o login de novo para receber outro.",
   "auth/expired-action-code": "Este link de confirmação expirou. Faça o login de novo para receber outro."
 };
-const msgErro = e => ERROS_AUTH[e.code] || ("Erro: " + (e.message || e.code || e));
+/* 🆕 v369 - OS ERROS DO BANCO. A `ERROS_AUTH` acima so' conhece codigo de LOGIN
+       (`auth/...`); o que aparece no dia a dia e' erro de GRAVAR, e ele caia no `else`
+       chegando em ingles na tela ("Missing or insufficient permissions").
+       🔴 NAO ENTRARAM, de proposito: `aborted` e `already-exists`. Eles so' nascem de
+       transacao e de `.create()`, e este app NAO usa nenhum dos dois (grep zero) -
+       frase que nao tem como aparecer e' peso morto que o proximo leitor acha que
+       ja' foi testado.
+       🔴 E o `failed-precondition` NAO fala em "os dados mudaram": neste app ele e'
+       indice faltando, que e' o que a tela de Fechamento de caixa ja' diz. */
+    const ERROS_BANCO = {
+      "permission-denied":   "Você não tem permissão para isso. Peça ao administrador.",
+      "unauthenticated":     "Sua sessão expirou. Use o botão 🚪 Sair, no fim do menu, e entre de novo.",
+      "unavailable":         "Sem conexão com o servidor. Verifique a internet.",
+      "deadline-exceeded":   "O servidor demorou demais para responder. Tente de novo.",
+      "not-found":           "O servidor não encontrou esse item.",
+      "failed-precondition": "O banco pediu um índice que ainda não existe para esta consulta. Quem resolve é quem administra o app — tentar de novo não adianta.",
+      "resource-exhausted":  "O app bateu no limite de uso do servidor. Avise o administrador.",
+      "cancelled":           "A gravação foi interrompida antes de terminar."
+    };
+    /* 🔑 Nestes dois, o texto do servidor CARREGA o diagnostico - a URL que cria o indice,
+       o caminho do documento. Traduzir e jogar fora o original apagaria a unica coisa que
+       resolve, entao a frase amigavel vem primeiro e o texto cru fica no fim, cortado. */
+    const ERROS_BANCO_DETALHE = ["failed-precondition", "not-found"];
+    const msgErro = e => {
+      const cod = (e && e.code) || "";
+      const amiga = ERROS_AUTH[cod] || ERROS_BANCO[cod];
+      if (!amiga) return "Erro: " + ((e && e.message) || cod || e);
+      return (ERROS_BANCO_DETALHE.indexOf(cod) >= 0 && e && e.message)
+        ? amiga + " (" + String(e.message).slice(0, 140) + ")"
+        : amiga;
+    };
 
 function avisoLogin(texto, tipo){
   const el = document.getElementById("msgLogin");
@@ -7890,6 +7920,13 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v369", data:"17/08/2026", tit:"🗣️ As duas telas de <b>Pendências</b> voltaram a falar: elas avisavam quando algo dava errado, mas o aviso nascia <b>invisível</b>", itens:[
+    {t:"c", h:"🔴 A caixa de aviso das <b>Pendências</b> nunca aparecia — e ninguém sabia", d:"Quando uma gravação falhava, o app escrevia a explicação numa caixa que o desenho mantinha <b>escondida</b>: o texto era gravado e a tela continuava igual. Então <b>todos</b> os botões dessas duas telas falhavam calados, não só o Reabrir."},
+    {t:"c", h:"O botão <b>Reabrir</b> — que só quem administra o app enxerga — jogava o erro fora", d:"Além de a caixa estar escondida, esses dois botões nem escreviam nada: o erro era descartado numa linha. Agora eles avisam — e apagam o aviso sozinhos quando dá certo na segunda tentativa."},
+    {t:"m", h:"Os avisos de erro passaram a falar <b>português</b> nas telas que usam a tradução", d:"O app já traduzia os erros de <b>entrar</b> (senha errada, e-mail inválido). Faltavam os de <b>gravar</b>: sem permissão, sem conexão, sessão vencida, servidor demorando. São <b>oito</b> mensagens novas."},
+    {t:"m", h:"Quando o erro carrega a <b>solução</b>, o texto técnico continua junto", d:"Em dois casos o recado do servidor traz uma pista técnica que ajuda a consertar. Nesses, a frase em português vem primeiro e o texto original fica no fim, entre parênteses — assim a foto que você manda no WhatsApp continua servindo para consertar."},
+    {t:"m", h:"⚠️ O que <b>continua</b> quebrado, e vai ser o próximo conserto", d:"<b>Dez outras telas ainda mostram o texto do servidor em inglês</b> — personalizar tanques, descontos, dashboard e ativar avisos, entre elas: elas não passam pela tradução e não foram tocadas. O botão <b>Reabrir da Caixa de entrada</b> continua descartando o erro, e ele apaga os comprovantes <b>antes</b> de gravar. As <b>Cotações do dia</b> escrevem <i>“✓ salvo na nuvem”</i> mesmo quando a gravação falha. E quando o app não consegue <b>ler</b> uma lista, a tela abre vazia sem dizer nada."}
+  ]},
   {v:"v368", data:"16/08/2026", tit:"🔧 Nasce o menu <b>Troca de óleo</b> — as lojas de troca de óleo dos três postos ganham a mesma régua da conveniência", itens:[
     {t:"n", h:"O menu 🔧 <b>Troca de óleo</b>, do lado dos <b>postos</b>", d:"As lojas de troca de óleo que ficam dentro dos postos passaram a ter a tela delas: <b>o custo que subiu na última nota</b> e a <b>margem abaixo da média da categoria</b>, com o <b>código de barras</b> para colar no Petros e a ordem pelo <b>dinheiro</b> que cada produto deixa de dar por mês. O seletor tem as três unidades: <b>Troca de óleo - Teresina</b>, <b>Troca de óleo - Caxias</b> e <b>Troca de óleo - Dutra</b> — <b>o mesmo nome</b> que o cartão da sincronização já usava. 📏 Medido em 16/08, no mês corrente: <b>54</b> produtos em Caxias, <b>16</b> em Teresina e <b>16</b> em Dutra — com <b>25</b>, <b>3</b> e <b>2</b> apontamentos de custo. 🟢 E aqui o botão 📋 quase nunca fica sem o que copiar: só <b>2 de 54</b>, <b>3 de 16</b> e <b>2 de 16</b> não têm código de barras cadastrado, contra 63 a 69 de cerca de 400 na conveniência. ⚠️ <b>Ela é uma tela irmã, não uma quarta loja da conveniência</b>: a troca de óleo não aparece em 🍫 Produtos e categorias, nem em ⚖️ Comparar lojas, nem no Dashboard da Conveniência."},
     {t:"n", h:"A régua do <b>“confira a nota antes”</b> é outra aqui: <b>100%</b>, não 50%", d:"Na conveniência, alta de custo acima de <b>50%</b> é quase sempre nota ou cadastro errado, e por isso a tela se recusa a sugerir preço. 📏 Nas lojas de óleo isso <b>não</b> se confirmou: dos 30 apontamentos, os <b>sete</b> que ficaram entre 50% e 100% são todos <b>lubrificante de marca</b> — o <b>LUBRAX 2T</b> aparece com <b>+72,7% em duas lojas ao mesmo tempo</b>, o que é preço de fornecedor e não erro de digitação. Acima de 100% ficou <b>um só</b>, e esse é erro de verdade: o <b>LIMPA PARA BRISA STP</b> de Teresina, de <b>R$ 2,86 para R$ 12,37 em doze dias</b>. 👉 Nesta tela o corte passou para <b>100%</b>; <b>na conveniência nada mudou</b>. ⚠️ São 30 apontamentos, não 219 — vale remedir depois de um mês de uso."},
@@ -19343,15 +19380,16 @@ function pndConfirmarConcluir(id){
     obs: obs
   }, { merge:true })
   .then(() => {
-    delete pndTxtTmp[id]; pndConcluindo = "";
+    delete pndTxtTmp[id]; pndConcluindo = ""; pndMsg = "";
     logAtividade({ acao:"concluiu", area:"Pendências", resumo:"Concluiu a pendência: " + (p.titulo || "") });
   })
-  .catch(e => { pndMsg = "Não consegui marcar como concluída: " + (e && e.message ? e.message : e); renderPendencias(); });
+  .catch(e => { pndMsg = "Não consegui marcar como concluída. " + msgErro(e); renderPendencias(); });
 }
 function pndReabrir(id){
   colPendencias.doc(id).set({ concluida:false, concluidaEm:0, concluidaPor:"", concluidaNome:"", obs:"",
                               verifDesligado:true }, { merge:true })      // v336 - a saida do humano
-    .catch(()=>{});
+    .then(() => { pndMsg = ""; renderPendencias(); })
+    .catch(e => { pndMsg = "Não consegui reabrir. " + msgErro(e); renderPendencias(); });
 }
 function pndEnviar(id){
   const txt = String(pndTxtTmp[id] || "").trim();
@@ -19359,7 +19397,7 @@ function pndEnviar(id){
   const msg = { quem:"tiago", nome: nomeUsuario || usuarioAtual || "", texto: txt, quando: Date.now() };
   colPendencias.doc(id).update({ conversa: firebase.firestore.FieldValue.arrayUnion(msg) })
     .then(() => { delete pndTxtTmp[id]; pndEscrevendo = ""; pndMsg = ""; })
-    .catch(e => { pndMsg = "Não consegui enviar: " + (e && e.message ? e.message : e); renderPendencias(); });
+    .catch(e => { pndMsg = "Não consegui enviar. " + msgErro(e); renderPendencias(); });
 }
 
 /* ----- desenho ----- */
@@ -19470,7 +19508,7 @@ function renderPendencias(){
       : '<p class="nota-dash">Nada concluído ainda.</p>';
   }
   const m = document.getElementById("pndMsg");
-  if (m){ m.textContent = pndMsg || ""; m.style.display = pndMsg ? "" : "none"; }
+  if (m){ m.textContent = pndMsg || ""; m.className = "msg-admin" + (pndMsg ? " erro" : ""); m.style.display = pndMsg ? "" : "none"; }
   atualizarBadgePendencias();
 }
 
@@ -19840,7 +19878,7 @@ function padmConfirmarResolver(id){
     delete padmTxtTmp[id]; padmResolvendo = ""; padmMsg = "";
     logAtividade({ acao:"concluiu", area:"Pendências Administrativas", resumo:"Resolveu: " + (p.titulo || "") });
   })
-  .catch(e => { padmMsg = "Não consegui marcar como resolvida: " + (e && e.message ? e.message : e); padmRender(); });
+  .catch(e => { padmMsg = "Não consegui marcar como resolvida. " + msgErro(e); padmRender(); });
 }
 function padmReabrir(id){
   if (!padmPodeAbrir()){ padmMsg = "Só quem abre pendência pode reabrir uma que já foi resolvida."; padmRender(); return; }
@@ -19850,7 +19888,8 @@ function padmReabrir(id){
      gente TAMBEM ficar gravada — senao a maquina tem a ultima palavra por teimosia. */
   colPendenciasAdm.doc(id).set({ concluida:false, concluidaEm:0, concluidaPor:"", concluidaNome:"", obs:"",
                                  verifDesligado:true }, { merge:true })
-    .catch(()=>{});
+    .then(() => { padmMsg = ""; padmRender(); })
+    .catch(e => { padmMsg = "Não consegui reabrir. " + msgErro(e); padmRender(); });
 }
 /* 🔴 A CONVERSA ENTRA POR `arrayUnion`, NUNCA REESCREVENDO O ARRAY: duas pessoas gravando o
    documento inteiro é o acidente da v183 com outro nome — e aqui são várias gerentes. */
@@ -19863,7 +19902,7 @@ function padmEnviarComentario(id){
                 texto: txt, quando: Date.now() };
   colPendenciasAdm.doc(id).update({ conversa: firebase.firestore.FieldValue.arrayUnion(msg) })
     .then(() => { delete padmTxtTmp[id]; padmComentando = ""; padmMsg = ""; })
-    .catch(e => { padmMsg = "Não consegui enviar: " + (e && e.message ? e.message : e); padmRender(); });
+    .catch(e => { padmMsg = "Não consegui enviar. " + msgErro(e); padmRender(); });
 }
 
 /* ----- abrir uma pendência (só quem pode) ----- */
@@ -20183,7 +20222,7 @@ function padmRender(){
       : '<p class="nota-dash">Nada resolvido ainda.</p>';
   }
   const m = document.getElementById("padmMsg");
-  if (m){ m.textContent = padmMsg || ""; m.style.display = padmMsg ? "" : "none"; }
+  if (m){ m.textContent = padmMsg || ""; m.className = "msg-admin" + (padmMsg ? " erro" : ""); m.style.display = padmMsg ? "" : "none"; }
   atualizarBadgePendAdm();
 }
 
