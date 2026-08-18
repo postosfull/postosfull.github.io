@@ -8131,6 +8131,10 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v373", data:"18/08/2026", tit:"🛢️ Conserto: o <b>mapa de tanques</b> da Reconciliação (LMC) voltou a aparecer", itens:[
+    {t:"c", h:"A tela dizia <b>“sem tanques com medição”</b> num posto com <b>cinco tanques</b>", d:"O <b>Mapa de estoque por tanque</b> e os cartões <b>Tanques</b> e <b>Estoque físico agora</b> nasceram vazios na v372. A causa: o documento que guarda o nível dos tanques usa <b>inicial maiúscula</b> no nome do posto (<code>Teresina</code>), e a tela procurava em minúscula. Não achava, e concluía que não havia tanque nenhum. 🔑 Agora ela <b>procura</b> o nome em vez de supô-lo — que é o que as telas vizinhas sempre fizeram."},
+    {t:"m", h:"E o livro dos meses anteriores foi carregado", d:"O coletor do LMC passou a rodar <b>três vezes ao dia</b>, e os meses de <b>abril a agosto</b> já foram para o app — os três postos, com a conta <i>contábil = abertura + recebimento − venda</i> conferida em <b>100%</b> das 2.009 linhas. 🔴 <b>Agosto tem livro só de Caxias</b>: em Teresina o último fechamento é de <b>31/07</b> e em Dutra de <b>29/07</b>, enquanto venda e compra dos dois seguem lançadas até hoje."}
+  ]},
   {v:"v372", data:"18/08/2026", tit:"⚖️ Nasce a <b>Reconciliação (LMC)</b>: em que <b>dia</b> o físico e o contábil se separaram, tanque por tanque", itens:[
     {t:"n", h:"⚖️ <b>Reconciliação (LMC)</b> — dentro do grupo <b>Análise</b>", d:"O livro de movimentação de cada tanque, <b>dia a dia</b>: o que tinha na abertura, o que o caminhão descarregou, o que saiu pelas bombas, <b>quanto deveria ter</b> (o número de papel) e <b>quanto foi medido</b> na régua. A tela existe para responder <b>uma</b> pergunta: em que dia a conta desandou. ⚠️ Ela é <b>leitura</b> — não escreve no Petros e não substitui a correção manual."},
     {t:"n", h:"O <b>padrão de cada tanque</b> — a leitura que separa erro de medição de perda de verdade", d:"É a parte que <b>não existe em relatório nenhum do Petros</b>. A tela olha o <b>sinal</b> da diferença ao longo dos dias: quando ela <b>troca de sinal</b> de um dia para o outro, é <b>régua ou sonda</b> — combustível não some e volta. Quando fica <b>sempre no mesmo sentido</b>, é <b>vazamento, bomba desregulada ou desvio</b>. Cada tanque ganha um cartão com o <b>total do mês</b> e essa leitura escrita por extenso — e quando os dias fora da faixa vão para um lado e o mês fecha para o outro, ela <b>diz isso também</b>."},
@@ -17599,9 +17603,25 @@ function lmcPadrao(linhas){
 
 /* 🩹 `null` = a escuta ainda nao respondeu (esqueleto, nao "sem dados"); `[]` = respondeu e nao
    ha' tanque. Os irmaos v278 e v308 ja faziam essa distincao e esta tela colapsava as duas. */
+/* 🔴 v373 - A CHAVE DO DOCUMENTO NAO E' A CHAVE DA TELA.
+   config/tanquesNivel.postos guarda "Teresina", "Caxias", "Dutra" - com inicial MAIUSCULA. A tela
+   trabalha com teresina/caxias/dutra (as chaves de LMC_UNID, que sao as mesmas de UNIDADES_REL e
+   as que o coletor grava em lmcDias[].posto). Indexar direto dava undefined, e a v372 concluiu
+   "sem tanques" num posto com CINCO - achado pelo Tiago na tela de verdade, ja publicada.
+   🔑 PROCURAR a chave em vez de supo-la e' o que as telas irmas sempre fizeram (cprGrupos e
+   cbdProdutosDoTanque percorrem Object.keys). E se o coletor mudar a caixa das letras um dia,
+   esta funcao continua achando. */
+function lmcChavePosto(){
+  const P = (tanquesNivel && tanquesNivel.postos) ? tanquesNivel.postos : null;
+  if (!P) return null;
+  const alvo = String(lmcEst.un || "").toLowerCase();
+  const k = Object.keys(P).find(x => String(x).toLowerCase() === alvo);
+  return k === undefined ? null : k;
+}
 function lmcTanquesDoPosto(){
   if (tanquesNivel === null) return null;
-  const p = (tanquesNivel && tanquesNivel.postos) ? tanquesNivel.postos[lmcEst.un] : null;
+  const k = lmcChavePosto();
+  const p = k ? tanquesNivel.postos[k] : null;
   return (p && Array.isArray(p.tanques)) ? p.tanques : [];
 }
 
