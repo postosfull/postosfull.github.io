@@ -2936,6 +2936,79 @@
   @media (max-width:900px){ .frc-txt{display:none} .frc-selo{width:34px;padding:0;justify-content:center;gap:0} }
   @media (max-width:560px){ .frc-selo{width:30px;height:32px} .frc-card{top:54px;right:8px;left:8px;width:auto} }
 
+  /* ===================== v372 - ⚖️ RECONCILIACAO (LMC) =====================
+     🔴 background-IMAGE, e nunca background-color, em tudo que pinta fundo: o modo escuro
+     forcado do Chrome apaga a segunda (a armadilha da v186). */
+  .lmc-padroes{display:grid;gap:10px;margin:10px 0 4px;
+    grid-template-columns:repeat(auto-fill, minmax(224px, 1fr))}
+  .lmc-pad{border:1px solid var(--borda);border-left-width:4px;border-radius:10px;padding:9px 11px 10px;
+    background-image:linear-gradient(var(--superficie),var(--superficie))}
+  .lmc-pad-top{display:flex;align-items:center;gap:7px}
+  .lmc-pad-top b{font-size:.86rem;color:var(--txt)}
+  .lmc-pad-selo{margin-left:auto;font-size:.64rem;font-weight:700;border-radius:999px;padding:2px 8px;
+    text-transform:uppercase;letter-spacing:.4px;color:var(--cinza);
+    background-image:linear-gradient(rgba(128,128,128,.14),rgba(128,128,128,.14))}
+  .lmc-pad-prod{font-size:.7rem;color:var(--cinza);margin-top:1px}
+  .lmc-pad-n{margin-top:7px;font-size:1.05rem;font-weight:700;color:var(--txt);display:flex;
+    flex-direction:column;line-height:1.25}
+  .lmc-pad-n small{font-size:.66rem;font-weight:500;color:var(--cinza)}
+  /* 🩹 o numero e' pintado pelo SINAL, independente da classe do cartao */
+  .lmc-pad-n.lmc-n-neg{color:#c0392b}
+  .lmc-pad-n.lmc-n-pos{color:#18a558}
+  .lmc-pad-txt{margin:6px 0 0;font-size:.7rem;line-height:1.4;color:var(--cinza)}
+  .lmc-pad-div{margin-top:5px;color:var(--txt);border-top:1px dashed var(--borda);padding-top:5px}
+  /* 🔑 A COR CARREGA A LEITURA, e nao a urgencia: "alterna" e' AMARELO (regua a conferir) e
+     "sempre falta" e' VERMELHO (produto sumindo). Um tanque pode ter acumulado pequeno e ser o
+     mais grave da lista, por estar sempre no mesmo sentido. */
+  .lmc-pad.lmc-falta{border-left-color:#c0392b}
+  .lmc-pad.lmc-falta .lmc-pad-selo{color:#c0392b;background-image:linear-gradient(rgba(192,57,43,.14),rgba(192,57,43,.14))}
+  .lmc-pad.lmc-sobra{border-left-color:#B07C00}
+  .lmc-pad.lmc-sobra .lmc-pad-selo,
+  .lmc-pad.lmc-alterna .lmc-pad-selo{color:#B07C00;background-image:linear-gradient(rgba(224,168,0,.18),rgba(224,168,0,.18))}
+  .lmc-pad.lmc-alterna{border-left-color:#E0A800}
+  .lmc-pad.lmc-ok{border-left-color:#18a558}
+  .lmc-pad.lmc-ok .lmc-pad-selo{color:#18a558;background-image:linear-gradient(rgba(24,165,88,.14),rgba(24,165,88,.14))}
+  .lmc-pad.lmc-poucos{border-left-color:var(--borda)}
+  .lmc-pad.lmc-semnum{border-left-color:var(--cinza)}
+  /* "?" - o app dizendo que nao sabe. Nunca confundir com zero. */
+  .lmc-sem{color:var(--cinza);font-weight:700}
+  .lmc-tab .lmc-neg{color:#c0392b}
+  .lmc-tab .lmc-pos{color:#18a558}
+  /* dentro da faixa o numero NAO some: fica apagado. Sumir seria esconder diferenca real. */
+  .lmc-tab .lmc-fx{opacity:.45;font-weight:500}
+  .lmc-tab .lmc-zero{color:var(--cinza)}
+  .lmc-tab tr.lmc-devol{opacity:.6}
+  .lmc-devol-selo{font-size:.66rem;color:var(--cinza)}
+  .lmc-cnt{margin-left:6px;font-size:.66rem;font-weight:700;opacity:.75}
+  .lmc-mapa-n{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:6px}
+  .lmc-mapa-n b{font-size:1rem;color:var(--txt)}
+  .lmc-mapa-n span{font-size:.7rem;color:var(--cinza)}
+  /* 🩹 O RESUMO DO CELULAR, segunda volta. A primeira punha o texto na 4a coluna e um revisor
+     mediu: so' 55% dele cabia, cortando em "Contábil 18.580 · Físi" - antes do numero que a tela
+     existe para dar. Agora ele e' LINHA PROPRIA e o conteudo fica PRESO na esquerda
+     (`position:sticky`), entao ele continua visivel por mais que a tabela role de lado.
+     🔑 O padrao veio da `.dsd-tab` da v341, que resolveu esta mesma tabela larga - a v372 tinha
+     inventado um segundo idioma para um problema que a casa ja sabia resolver. */
+  .lmc-cel-linha{display:none}
+  .lmc-cel-cel{display:inline-block}
+  /* a primeira coluna presa, para a data nao sumir quando a tabela rola */
+  .lmc-tab th:first-child,.lmc-tab td:first-child{position:sticky;left:0;z-index:1;
+    background:var(--superficie);background-image:linear-gradient(var(--superficie),var(--superficie))}
+  /* z-index 3 na quina: o thead do app ja e' sticky com z-index 2 (a mesma nota da .dsd-tab) */
+  .lmc-tab thead th:first-child{background:var(--thead-bg);
+    background-image:linear-gradient(var(--thead-bg),var(--thead-bg));z-index:3}
+  @media (max-width:700px){
+    .lmc-cel-linha{display:table-row}
+    /* 🔴 `text-align:left` NAO e' enfeite: a `.rel-tab` centraliza as celulas, e um `inline-block`
+       de 202px centralizado num `td` de 843px nasce em x=343 - fora da janela de 318px, que foi
+       exatamente onde a medicao pegou ele. Com o sticky e sem o alinhamento, o elemento ficava
+       preso num lugar que ninguem ve. */
+    .lmc-cel-linha td{padding:0 0 7px 9px;border-top:none;text-align:left}
+    .lmc-cel-cel{position:sticky;left:0;max-width:calc(100vw - 78px);white-space:normal;
+      font-size:.7rem;line-height:1.35;color:var(--cinza)}
+    .lmc-padroes{grid-template-columns:1fr}
+  }
+
   /* ===================== v253 - A BULA DE CADA NUMERO =====================
      Um "i" discreto colado no rotulo. Ele NAO pode competir com o numero: fica
      em cinza, pequeno, e so' acende quando a bula dele esta aberta. */
@@ -3850,6 +3923,8 @@
       <button class="btn-claro" id="btnTanquesNivel" onclick="alternarTanquesNivel()"><span class="mi">🛢️</span><span class="mt">Nível dos tanques</span></button>
       <!-- v316 - o recebimento de combustivel, remontado da serie do Veeder Root -->
       <button class="btn-claro" id="btnRecebimento" onclick="alternarRecebimento()"><span class="mi">📥</span><span class="mt">Recebimento de combustível</span></button>
+      <!-- v372 - a reconciliacao fisica x contabil. -->
+      <button class="btn-claro" id="btnLmc" onclick="alternarLmc()"><span class="mi">⚖️</span><span class="mt">Reconciliação (LMC)</span></button>
       <button class="btn-claro" id="btnRegistros" onclick="alternarRegistros()"><span class="mi">📋</span><span class="mt">Custos e preços</span></button>
       <button class="btn-claro" id="btnDescontos" onclick="alternarDescontos()"><span class="mi">🏷️</span><span class="mt">Descontos</span></button>
       <button class="btn-claro" id="btnSimular" onclick="alternarSimular()"><span class="mi">💰</span><span class="mt">Simular Margens</span></button>
@@ -4480,6 +4555,26 @@
       </div>
       <div class="doc-tools" id="rsvPostosAbas"></div>
       <div id="rsvPostosBox"></div>
+    </div>
+  </div>
+
+  <!-- ===== v372 - ⚖️ RECONCILIACAO (LMC) =====
+       A pergunta da tela: EM QUE DIA o fisico e o contabil se separaram, tanque por tanque.
+       🔴 O dado diario ainda NAO EXISTE: vem de um coletor novo (`lmc.mjs`, irmao do
+       `tanques.mjs`), que grava `relatoriosPosto/lmc_{AAAA-MM}`. Enquanto ele nao publica, a
+       tela DIZ QUE NAO SABE em vez de mostrar zero - a regra da casa desde a v370. -->
+  <div class="config" id="painelLmc">
+    <div class="grupo">
+      <h2>⚖️ Reconciliação (LMC)</h2>
+      <p class="nota-dash">O <b>livro de movimentação</b> de cada tanque, dia a dia: o que tinha, o que entrou,
+        o que saiu, <b>quanto deveria ter</b> e <b>quanto foi medido</b>. A tela existe para responder uma pergunta
+        só — <b>em que dia a conta desandou</b> — e para separar <b>erro de medição</b> de <b>perda de verdade</b>.
+        ⚠️ Ela é <b>leitura</b>: não escreve no Petros e não substitui a correção manual.</p>
+      <div class="doc-tools" id="lmcUnAbas"></div>
+      <div class="evo-filtros">
+        <div class="desc-campo"><label>Mês</label><select id="lmcMes" onchange="lmcMuda('mes',this.value)"></select></div>
+      </div>
+      <div id="lmcBox"></div>
     </div>
   </div>
 
@@ -5878,6 +5973,10 @@ function concluir2FASePreciso(){
 const ICO_SVG = {
   operadores:"<path d='M4.2 13.4a7.8 7.8 0 0 1 15.6 0'/><path d='M12 5.6v7.8'/>"+"<path d='M3.1 13.4h17.8'/><path d='M6.6 17.2h10.8'/><path d='M8.4 20.6h7.2'/>",   /* v357 */
   dash:"<path d='M3 17.5 9 11l4 3.5L21 6'/><path d='M15.5 6H21v5.5'/>",
+  /* v372 - a BALANCA da reconciliacao (o fisico de um lado, o contabil do outro).
+     🔴 ICO_SVG falha em SILENCIO: sem esta linha o menu abre e funciona, e so' os temas de
+     desenho ficam com o quadrado vazio (a licao da v317). */
+  lmc:"<path d='M12 4.2v15.6'/><path d='M6.6 6.6h10.8'/><path d='M3.4 13 6.6 6.8 9.8 13'/><path d='M14.2 13l3.2-6.2L20.6 13'/><path d='M3.4 13a3.2 3.2 0 0 0 6.4 0'/><path d='M14.2 13a3.2 3.2 0 0 0 6.4 0'/><path d='M8.6 20.2h6.8'/><circle cx='12' cy='4.2' r='1.3'/>",
   resumoDia:"<path d='M4 20V10M9.5 20V4M15 20v-7M20.5 20v-4'/>",
   registros:"<rect x='4.5' y='3.5' width='15' height='17' rx='2.5'/><path d='M8.5 8.5h7M8.5 12.5h7M8.5 16.5h4'/>",
   descontos:"<path d='M3.6 12.9V4.6a1 1 0 0 1 1-1h8.3a1 1 0 0 1 .7.3l7 7a1 1 0 0 1 0 1.4l-7.7 7.7a1 1 0 0 1-1.4 0l-7-7a1 1 0 0 1-.3-.7z'/><circle cx='8' cy='8' r='1.4'/>",
@@ -5934,7 +6033,7 @@ const ICO_SVG = {
   fechCaixa:"<rect x='3.2' y='9.4' width='17.6' height='11' rx='2.2'/><path d='M7.2 9.4V6.6a2 2 0 0 1 2-2h5.6a2 2 0 0 1 2 2v2.8'/><path d='M12 12.4v5.6'/><path d='M13.9 13.5c-.6-.6-3.2-.8-3.2.6 0 1.3 2.9.7 2.9 2 0 1.3-2.6 1.1-3.3.4'/>",
   g_ajustes:"<circle cx='12' cy='12' r='3.1'/><path d='M19.1 14.6a1.5 1.5 0 0 0 .3 1.7l.1.1a1.9 1.9 0 1 1-2.6 2.6l-.1-.1a1.5 1.5 0 0 0-2.6 1v.2a1.9 1.9 0 0 1-3.7 0v-.1a1.5 1.5 0 0 0-2.6-1l-.1.1a1.9 1.9 0 1 1-2.6-2.6l.1-.1a1.5 1.5 0 0 0-1-2.6h-.2a1.9 1.9 0 1 1 0-3.7h.1a1.5 1.5 0 0 0 1-2.6l-.1-.1a1.9 1.9 0 1 1 2.6-2.6l.1.1a1.5 1.5 0 0 0 1.7.3h.1a1.5 1.5 0 0 0 .9-1.4v-.2a1.9 1.9 0 0 1 3.7 0v.1a1.5 1.5 0 0 0 2.6 1l.1-.1a1.9 1.9 0 1 1 2.6 2.6l-.1.1a1.5 1.5 0 0 0 1 2.6h.2a1.9 1.9 0 0 1 0 3.7h-.1a1.5 1.5 0 0 0-1.4.9z'/>"
 };
-const ICO_BTN = {btnOperadores:"operadores",btnComprar:"comprar",btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnTanquesNivel:"tanquesNivel",btnRecebimento:"recebimento",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnDre:"dre",btnDespesasDet:"despesasDet",btnFechCaixa:"fechCaixa",btnAfericoes:"afericoes",btnClientes:"clientes",btnAnalise:"analise",btnRelLoja:"relLoja",btnReajustes:"reajustes",btnFullCenter:"fullcenter",btnRessupConv:"ressupConv",btnRessupPostos:"ressupPostos",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnPendAdm:"pendAdm",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
+const ICO_BTN = {btnOperadores:"operadores",btnComprar:"comprar",btnEmpresa:"empresa",btnDash:"dash",btnResumoDia:"resumoDia",btnTanquesNivel:"tanquesNivel",btnLmc:"lmc",btnRecebimento:"recebimento",btnRegistros:"registros",btnDescontos:"descontos",btnSimular:"simular",btnRelPosto:"relPosto",btnDre:"dre",btnDespesasDet:"despesasDet",btnFechCaixa:"fechCaixa",btnAfericoes:"afericoes",btnClientes:"clientes",btnAnalise:"analise",btnRelLoja:"relLoja",btnReajustes:"reajustes",btnFullCenter:"fullcenter",btnRessupConv:"ressupConv",btnRessupPostos:"ressupPostos",btnIfood:"ifood",btnInfleet:"infleet",btnPedido:"pedido",btnCotacoes:"cotacoes",btnPuxadas:"puxadas",btnCalendario:"calendario",btnVencimentos:"vencimentos",btnCaixa:"caixa",btnPendAdm:"pendAdm",btnConta:"conta",btnConfig:"config",btnUsuarios:"usuarios",btnNovidades:"novidades",btnOrdenarMenus:"ordenarMenus"};
 const ICO_GRP = {dia:"g_dia",analise:"g_analise",finan:"g_finan",transp:"g_transp",org:"g_org",ajustes:"g_ajustes"};   /* v341 */
 /* 🔑 cor por GRUPO, tirada da paleta do MIV (laranja da marca + verde e dourado Petrobras).
    Assim a cor diz de que familia e' o menu, em vez de ser arco-iris. */
@@ -8032,6 +8131,14 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v372", data:"18/08/2026", tit:"⚖️ Nasce a <b>Reconciliação (LMC)</b>: em que <b>dia</b> o físico e o contábil se separaram, tanque por tanque", itens:[
+    {t:"n", h:"⚖️ <b>Reconciliação (LMC)</b> — dentro do grupo <b>Análise</b>", d:"O livro de movimentação de cada tanque, <b>dia a dia</b>: o que tinha na abertura, o que o caminhão descarregou, o que saiu pelas bombas, <b>quanto deveria ter</b> (o número de papel) e <b>quanto foi medido</b> na régua. A tela existe para responder <b>uma</b> pergunta: em que dia a conta desandou. ⚠️ Ela é <b>leitura</b> — não escreve no Petros e não substitui a correção manual."},
+    {t:"n", h:"O <b>padrão de cada tanque</b> — a leitura que separa erro de medição de perda de verdade", d:"É a parte que <b>não existe em relatório nenhum do Petros</b>. A tela olha o <b>sinal</b> da diferença ao longo dos dias: quando ela <b>troca de sinal</b> de um dia para o outro, é <b>régua ou sonda</b> — combustível não some e volta. Quando fica <b>sempre no mesmo sentido</b>, é <b>vazamento, bomba desregulada ou desvio</b>. Cada tanque ganha um cartão com o <b>total do mês</b> e essa leitura escrita por extenso — e quando os dias fora da faixa vão para um lado e o mês fecha para o outro, ela <b>diz isso também</b>."},
+    {t:"n", h:"A <b>faixa do “fechou”</b> é sua, e está na tela", d:"Diferença menor que <b>0,6% do que se movimentou no dia</b> — o que entrou mais o que saiu — conta como fechada. 🔴 Não é limite legal nem regra da ANP: é <b>convenção desta tela</b>, e por isso é um <b>botão</b> (0,3% · 0,6% · 1% · qualquer diferença). 🔑 Dia <b>sem movimento nenhum</b> tem faixa de <b>1 litro</b>, de propósito: tanque parado que perde produto é o caso mais suspeito que existe, e não pode ser o que ganha a maior folga."},
+    {t:"m", h:"Quando a linha vem <b>sem número</b>, a tela escreve <b>?</b> — e não zero", d:"Campo ausente, nulo ou em formato que o app não entende vira <b>?</b>, fica <b>fora das somas</b> e é <b>contado</b> no cartão do tanque. Zero continua sendo travessão, e travessão continua querendo dizer <b>zero de verdade</b>. 🔴 O mesmo vale para o selo do livro: só um <b>sim explícito</b> do servidor libera os números — livro sem selo mostra aviso, não conta."},
+    {t:"m", h:"⏳ A tela já está no ar, mas o <b>livro ainda não é coletado</b> — e ela diz isso", d:"A linha diária por tanque vem de um <b>coletor que ainda não existe</b>. O que o app já lê hoje (<code>tanques_todos</code>) traz o <b>acumulado do mês</b>, e é justamente o <b>dia</b> que responde onde a conta desandou. Enquanto ele não chega, a tela mostra o <b>mapa de estoque por tanque</b> — com a <b>data da leitura</b> e o aviso quando ela está velha — e escreve com todas as letras que <b>não saber não é o mesmo que estar fechando</b>."},
+    {t:"m", h:"Cada coluna explica o que é, em português de gente", d:"<b>Abertura</b>, <b>Receb.</b>, <b>Venda</b>, <b>Contábil</b>, <b>Físico</b> e <b>Perda/Sobra</b> têm o <b>ⓘ</b> de sempre. O do Contábil, por exemplo: <i>“o que tinha no começo do dia, mais o que chegou, menos o que foi vendido — é o número «de papel», antes de conferir na régua”</i>. No <b>celular</b>, onde seis das dez colunas ficam fora da tela, a linha traz um <b>resumo</b> com contábil, físico e a diferença."}
+  ]},
   {v:"v371", data:"18/08/2026", tit:"⏳ O <b>Ressuprimento</b> ganha a outra metade: <b>quanto tempo o estoque ainda dura</b> — e um <b>ⓘ</b> em cada número", itens:[
     {t:"n", h:"⚠️ Aba nova <b>Vai faltar</b>: o que acaba antes da próxima compra", d:"O menu passou a ter <b>duas abas</b>. A de sempre, <b>📦 Está parado</b>, mostra o dinheiro encalhado; a nova, <b>⚠️ Vai faltar</b>, mostra o contrário — o que <b>acaba</b> dentro de 7, 15, 30 ou 60 dias, do mais urgente para o menos. Cada linha diz <b>quantos dias o saldo ainda dá</b>, <b>em que dia ele zera</b> e <b>quantas unidades comprar</b> para chegar ao corte escolhido. Vermelho é uma semana ou menos; amarelo, até quinze dias."},
     {t:"n", h:"A coluna <b>Cobertura</b> virou <b>Dura</b>, e agora diz o tempo em linguagem de gente", d:"“Cobertura” era palavra de quem já sabe o que ela quer dizer. A pergunta que se faz na frente da prateleira é <i>quanto tempo isso dura</i>, e o rótulo passou a ser a pergunta. O número exato continua ali, com a leitura ao lado: <b>127 dias</b> · <i>≈ 4 meses</i>. Acima de um ano ela escreve <b>mais de 1 ano</b>, porque aí o número exato não informa mais nada — e agora o <b>celular diz a mesma coisa que o computador</b>, que era onde ele escapava."},
@@ -9755,6 +9862,15 @@ function iniciarSync(){
     const pOp = document.getElementById("painelOperadores");
     if (pOp && pOp.classList.contains("aberto")) renderOperadores();
     atualizarDashPostos();                                   // v200
+    /* v372 - A SETIMA PECA. Sem ela quem abre a Reconciliacao antes do primeiro snapshot le'
+       "o coletor ainda nao publicou" e a tela CONGELA nessa frase. Licao da v357.
+       🔴 E ela vem DEPOIS do `atualizarDashPostos`, nunca antes: uma unica linha `null` dentro
+       de `lmcDias` fazia `renderLmc` lancar, e o throw MATAVA a atualizacao do Dashboard dos
+       postos - calado, e a cada snapshot (medido por revisor em 18/08).
+       🔑 A regra que sai disto: peca nova entra no FIM do callback, onde ela so' pode quebrar a
+       si mesma. A oitava peca ja estava certa por acidente; esta estava errada. */
+    const pLmc = document.getElementById("painelLmc");
+    if (pLmc && pLmc.classList.contains("aberto")) renderLmc();
   }, ()=>{});
   escutaRelLoja = colRelLoja.onSnapshot(snap => {
     const m = {}; snap.forEach(d => m[d.id] = normalizaRel(Object.assign({ id: d.id }, d.data()))); relLojas = m;
@@ -10097,6 +10213,13 @@ function iniciarSync(){
     verifSincronizar();
     const pt = document.getElementById("painelTanquesNivel");
     if (pt && pt.classList.contains("aberto")) renderTanquesNivel();
+    /* 🔴 v372 - A OITAVA PECA. A Reconciliacao le' DUAS fontes, e cada fonte tem o seu
+       listener: sem esta linha o mapa e o "Estoque fisico atual" nascem vazios e ficam vazios,
+       e em regime permanente eles envelhecem na tela enquanto o ⛽ Nivel dos tanques ao lado
+       atualiza de hora em hora. 🔑 A regra que faltava no CLAUDE.md: a peca do redesenho e'
+       POR FONTE que a tela le', e nao uma por menu. */
+    const pLmc2 = document.getElementById("painelLmc");
+    if (pLmc2 && pLmc2.classList.contains("aberto")) renderLmc();
   }, ()=>{ tanquesNivel = {}; });
 
   /* v315 - o ritmo de compra medido. 🔑 Documento AUSENTE vira `{}` e nao `null`: o `{}` quer
@@ -10647,6 +10770,14 @@ const MENUS_APP = [
   {key:"ressupPostos",btn:"btnRessupPostos",pan:"painelRessupPostos",emp:"postos", nome:"Ressuprimento"},   /* v370 */
   {key:"ifood",       btn:"btnIfood",       pan:"painelIfood",       emp:"conv",   nome:"iFood"},
   {key:"clientes",    btn:"btnClientes",    pan:"painelClientes",    emp:"postos", nome:"Clientes"},   // v328 - a loja nao vende a prazo (v193)
+  /* v372 - ⚖️ Reconciliacao (LMC). 🔴 CHAVE NOVA NASCE INVISIVEL: `_menuPermBase` devolve
+     false para chave que ninguem marcou, entao depois de publicar SO' O ADMINISTRADOR ve este
+     menu. A chave `lmc` tem de ser marcada no Painel Administrativo NO MESMO MINUTO da
+     publicacao - foi assim na v367, na v368 e nas duas da v370.
+     ⚠️ E o botao aparece no FIM do grupo Analise, nao na posicao que o GRUPOS_MENU sugere:
+     `GRUPOS_MENU.itens` define PERTENCIMENTO, nunca ordem - quem ordena e' config/ordemMenus,
+     e chave nova cai no fim (medido por revisor em 18/08). */
+  {key:"lmc",         btn:"btnLmc",         pan:"painelLmc",         emp:"postos", nome:"Reconciliação (LMC)"},   /* v372 */
   {key:"analise",     btn:"btnAnalise",     pan:"painelAnalise",     emp:"postos|conv|transp", nome:"Análise"},
   {key:"operadores",  btn:"btnOperadores",  pan:"painelOperadores",  emp:"postos", nome:"Operadores"},   /* v357 */
   {key:"calendario",  btn:"btnCalendario",  pan:"painelCalendario",  emp:"ambos",  nome:"Calendário"},
@@ -10671,7 +10802,7 @@ const MENUS_APP = [
 const GRUPOS_MENU = [
   {key:"soltos",  nome:"",               icone:"",       itens:["dash"]},
   {key:"dia",     nome:"Dia a dia",      icone:"\ud83d\udd01", itens:["resumoDia","tanquesNivel","recebimento","registros","descontos","simular"]},
-  {key:"analise", nome:"Análise",        icone:"\ud83d\udcca", itens:["relPosto","afericoes","clientes","analise","operadores","relLoja","reajustes","ressupConv","fullcenter","ressupPostos","ifood"]},
+  {key:"analise", nome:"Análise",        icone:"\ud83d\udcca", itens:["relPosto","afericoes","lmc","clientes","analise","operadores","relLoja","reajustes","ressupConv","fullcenter","ressupPostos","ifood"]},
   {key:"finan",   nome:"Financeiro",     icone:"\ud83d\udcb0", itens:["despesasDet","dre","fechCaixa"]},   /* v341 - o DRE saiu da Analise e veio para ca'; v356 - o Fechamento do caixa */
   {key:"transp",  nome:"Transportadora", icone:"\ud83d\ude9a", itens:["infleet","comprar","pedido","cotacoes","puxadas"]},
   {key:"org",     nome:"Organização",    icone:"\ud83d\udcc1", itens:["calendario","vencimentos","caixa","pendAdm"]},   /* v251 - o 🗂 ninguem reconhecia */
@@ -11769,7 +11900,12 @@ function alternarSimular(){
 
 /* ================== v168 - Relatórios do posto e da conveniência (Adaptive) ================== */
 // Firestore não guarda lista dentro de lista: as tabelas vêm como texto JSON.
-const CAMPOS_LISTA_REL = ["aten","hora","comb","lbm","receb","cat","itens","despDet","precos","custoSubiu","oper","estoque"];  // v194 - precos na v239, custoSubiu na v242, estoque na v370
+/* 🔑 Cada nome aqui e' um campo que o coletor grava como TEXTO JSON (documento do Firestore
+   tem teto de 1 MB). Quem esquece de acrescentar o nome novo recebe uma STRING onde esperava
+   lista, e a tela quebra no primeiro `.filter`.
+   🔴 v372 - `lmcDias` e `lmcCompras` e NAO `dias`/`compras`: o normalizador e' por NOME de
+   campo, nao por documento, e nome generico colide com campo de outro documento da colecao. */
+const CAMPOS_LISTA_REL = ["aten","hora","comb","lbm","receb","cat","itens","despDet","precos","custoSubiu","oper","estoque","lmcDias","lmcCompras"];  // v194 - precos na v239, custoSubiu na v242, estoque na v370, lmc na v372
 function normalizaRel(o){
   if (!o) return o;
   CAMPOS_LISTA_REL.forEach(k => {
@@ -16734,6 +16870,26 @@ const RSV_EXPL = {
 };
 function rsvI(k){ const e = RSV_EXPL[k]; return e ? dsdI(e[0], e[1]) : ""; }
 
+/* v372 - os textos do ⓘ da Reconciliacao (LMC).
+   🔴 CADA UM DELES E' UMA PROMESSA que o codigo tem de cumprir. Dois revisores derrubaram a
+   primeira volta achando divergencia entre o que o texto dizia e o que a conta fazia - e' o
+   defeito que este projeto classifica como o pior possivel. Mexeu na conta, releia o texto. */
+const LMC_EXPL = {
+  tanques:  ["Tanques", "Quantos tanques deste posto o app está enxergando <b>agora</b>, e a soma da capacidade deles. 🔴 Vem do <b>Nível dos tanques</b>, que é a posição de agora — <b>não é do mês escolhido acima</b>. Por isso ele aparece mesmo antes de o livro ser coletado."],
+  fisico:   ["Estoque físico agora", "Quantos litros existem <b>neste momento</b> nos tanques deste posto, somando todos. 🔴 Também é do Nível dos tanques, e <b>não do mês escolhido</b>: a data da leitura está escrita no mapa, mais abaixo. O til (~) aparece quando o número é conta e não medição de sonda."],
+  perda:    ["Perda no período", "A soma de <b>todos</b> os dias do mês escolhido em que a contagem física deu MENOS do que as contas diziam. 🔴 <b>A faixa não desconta nada daqui</b>: litro que sumiu sumiu, esteja o dia dentro ou fora dela. A faixa serve para <b>ler o padrão</b> de cada tanque, nunca para apagar litro do total — foi assim que uma versão anterior escreveu “Perda: 0 L” num tanque que perdeu 2.800 L em 28 dias."],
+  sobra:    ["Sobra no período", "A soma de <b>todos</b> os dias do mês escolhido em que a contagem física deu MAIS do que as contas diziam. Sobra repetida também é sinal de erro de medição: combustível não nasce no tanque."],
+  abertura: ["Abertura", "Quanto combustível havia no tanque no começo do dia — é o que sobrou do dia anterior."],
+  receb:    ["Receb.", "Quantos litros entraram no tanque naquele dia, ou seja, o que o caminhão descarregou."],
+  venda:    ["Venda", "Quantos litros saíram pelas bombas naquele dia, saindo daquele tanque."],
+  contabil: ["Contábil", "Quanto deveria estar no tanque pelas contas: o que tinha no começo do dia, mais o que chegou, menos o que foi vendido. É o número «de papel», antes de conferir na régua."],
+  fisicoC:  ["Físico", "Quanto realmente foi medido dentro do tanque no fim do dia. É a contagem de verdade, feita no posto."],
+  dif:      ["Perda/Sobra", "A diferença entre o que foi medido e o que deveria ter. Negativo é falta (evaporação, vazamento, bomba desregulada ou erro de medição); positivo é sobra. Uma diferença pequena é normal; a mesma diferença repetindo todo dia merece investigação. <b>?</b> quer dizer que a linha chegou <b>sem o número</b> — e isso não é o mesmo que zero."],
+  padrao:   ["O padrão de cada tanque", "É a leitura que separa erro de medição de perda de verdade, e não está em nenhum relatório do Petros. 🔑 O que ela olha é o <b>sinal</b> da diferença em <b>todos</b> os dias com número — não só nos dias que passaram da faixa. Sinal <b>no mesmo sentido</b> em 8 de cada 10 dias é <b>vazamento, bomba desregulada ou desvio</b>, e isso vale <b>mesmo quando cada dia sozinho cabe na faixa</b>: o que denuncia é a repetição, não o tamanho do dia. Sinal <b>trocando</b> perto de meio a meio é <b>régua ou sonda</b> — o combustível não some e volta. O número grande é o <b>total do mês</b>."],
+  faixa:    ["A faixa do «fechou»", "Diferença menor que esta porcentagem <b>do que se movimentou no dia</b> — o que entrou mais o que saiu — aparece <b>apagada</b> na tabela. 🔴 É convenção desta tela e <b>não</b> limite legal. 🔑 E ela faz <b>menos</b> do que parece, de propósito: <b>não tira litro nenhum</b> da Perda e da Sobra do período, e <b>não impede</b> um tanque de ser acusado — um tanque em que todo dia falta um pouco, sempre dentro da faixa, aparece como <b>sempre falta</b>. Ela só distingue o dia que <b>saltou</b> do dia que ficou no ruído."]
+};
+function lmcI(k){ const e = LMC_EXPL[k]; return e ? dsdI(e[0], e[1]) : ""; }
+
 /* A TELA DO QUE VAI FALTAR. 🔴 Ela nasce com a regra nº 1 da irma: numero que a tela nao sabe, ela
    NAO escreve — e o que ficou de fora aparece CONTADO, com o motivo escrito por extenso. */
 function blocoFaltar(tela, d, cfg){
@@ -17236,6 +17392,524 @@ function rsvVerTudo(tela){ rsvEst[tela].tudo = !rsvEst[tela].tudo; renderRessup(
    isto quem abrisse "ver todos os 200 parados" caia na aba do que vai faltar ja' com tudo aberto. */
 function rsvModo(tela, aba){ rsvEst[tela].aba = aba; rsvEst[tela].tudo = false; renderRessup(tela); }
 function rsvRup(tela, dias){ rsvEst[tela].rup = dias; rsvEst[tela].tudo = false; renderRessup(tela); }
+
+/* ============================ v372 - ⚖️ RECONCILIACAO (LMC) ============================
+   🔴 O CONTRATO COM O COLETOR QUE AINDA NAO EXISTE, escrito aqui porque este e' o documento
+   vivo dele. `relatoriosPosto/lmc_{AAAA-MM}`, um documento por mes, os tres postos dentro:
+     lmcOk      : true/false  - o selo. 🔴 SO' `true` LIBERA: ausente, null, "false" e 0 sao
+                  tratados como "nao confio", e nao como "pode mostrar" (achado de revisor).
+     lmcDia     : "AAAA-MM-DD" - ultimo dia com linha publicada
+     lmcDias    : TEXTO JSON de [{d,posto,tanque,produto,abertura,receb,venda,contabil,fisico,dif,qualidade}]
+     lmcCompras : TEXTO JSON de [{d,posto,fornecedor,produto,doc,qtd,custo,devol}]
+
+   🔴 O TIPO FAZ PARTE DO CONTRATO, e esta parte faltava. Todo campo numerico (abertura, receb,
+   venda, contabil, fisico, dif, qtd, custo) tem de ser NUMERO JSON, nunca texto. A tela tolera
+   texto so' quando ele e' INEQUIVOCO - "1.234,5", "1.234.567", "1,5", "12" - e recusa o resto:
+       "1.234"  -> ? (e' mil duzentos e trinta e quatro em BR e um virgula dois em ISO)
+       "1e3" · "0x10" · "12%" · "R$ 12" · true · [1,2]  -> ?
+   👉 `d` e' "AAAA-MM-DD"; hora junto e' aceita mas ignorada (a tela corta em 10 caracteres).
+   👉 `posto` e' obrigatorio (teresina|caxias|dutra): linha sem ele nao aparece em tela nenhuma,
+   e a tela CONTA quantas foram. `tanque` faltando agrupa por produto, como "Tanque ?".
+   🔑 Sem esta secao, quem escrever o coletor daqui a semanas nao tem como acertar - e um revisor
+   mediu, na segunda volta, "+1.234" virando 1,234 e "-1.234" virando -1234: mesmo modulo, sinais
+   opostos, fator MIL de diferenca, calado.
+   👉 A receita SQL esta' medida em docs/gasview-tela-estoque-lmc-desmontada.md: tipos de
+   movimento 2/8 -> Receb.; 7/3 -> Venda; 6/11 -> a diferenca. O relatorio
+   EFC2AAD2CE804735ADA35CA05BF305D6 ja agrega por empresa+tanque; basta acrescentar
+   `me.data_movimento` no SELECT e no GROUP BY.
+   🔑 `dif` vem do coletor e NAO e' recalculado aqui: `fisico - contabil` nos dois lugares daria
+   o mesmo numero hoje e numeros diferentes no dia em que um dos dois mudar de regra. */
+const LMC_UNID = [["teresina","Teresina"],["caxias","Caxias"],["dutra","Presidente Dutra"]];
+/* A FAIXA DO "FECHOU". 🔴 Nao e' limite legal nem regra da ANP - e' convencao DESTA TELA, dita
+   na propria tela, e por isso e' um botao e nao um numero escondido no codigo. */
+const LMC_TOLS = [0.3, 0.6, 1.0, 0];
+let lmcEst = {mes:"", un:"teresina", aba:"lmc", tol:0.6};
+
+/* 🩹 NUMERO OU NADA - o conserto que dois revisores pediram junto.
+   `+valor || 0` transformava ausente, null e texto em formato BR ("1.234,5") em ZERO - e zero
+   passava por "fechou", pintava o cartao de VERDE e imprimia o travessao que o codigo reserva
+   para o zero de verdade. Pior: `+"10.000"` e' 10, duas ordens de grandeza a menos, calado.
+   🔴 Devolve `null` quando nao sabe - e "nao sei" inclui "nao tenho como saber".
+   🔴 A SEGUNDA VOLTA DESTE PARSER, porque a primeira foi derrubada medindo: o regex aceitava `-`
+   e nao aceitava `+`, entao "-1.234" virava -1234 e "+1.234" virava +1,234 - mesmo modulo,
+   sinais opostos, FATOR MIL de diferenca, calado. E `Number()` engolia "1e3", "0x10" e "0b11".
+   🔑 E o caso que ensinou mais: **"1.234" e' AMBIGUO** - mil duzentos e trinta e quatro em BR,
+   um virgula dois em ISO. Um grupo unico de tres digitos depois do ponto nao tem como ser
+   resolvido sem adivinhar, e adivinhar aqui erra por mil vezes. Entao ele NAO adivinha: devolve
+   null, a tela escreve "?" e alguem conserta o coletor. Ambiguidade resolvida por chute e'
+   exatamente o defeito que esta tela existe para nao cometer. */
+function lmcNum(v){
+  if (v === null || v === undefined || v === "") return null;
+  if (typeof v === "number") return isFinite(v) ? v : null;
+  if (typeof v !== "string") return null;
+  const s = v.trim();
+  if (!s) return null;
+  /* 🔴 AMBIGUO: um grupo so' de 3 digitos depois do ponto, sem decimal por virgula. */
+  if (/^[+-]?\d{1,3}\.\d{3}$/.test(s)) return null;
+  let t = s;
+  /* BR sem ambiguidade: dois ou mais grupos de milhar, com ou sem decimal por virgula */
+  if (/^[+-]?\d{1,3}(\.\d{3}){2,}(,\d+)?$/.test(t)) t = t.replace(/\./g, "").replace(",", ".");
+  else if (/^[+-]?\d{1,3}(\.\d{3})+,\d+$/.test(t)) t = t.replace(/\./g, "").replace(",", ".");
+  else if (/^[+-]?\d+,\d+$/.test(t)) t = t.replace(",", ".");
+  /* 🔴 decimal e nada mais: fecha a porta para 1e3, 0x10, 0b11, "12px" e "  12  " com lixo */
+  if (!/^[+-]?\d+(\.\d+)?$/.test(t)) return null;
+  const n = Number(t);
+  return isFinite(n) ? n : null;
+}
+/* celula que diz "?" quando nao sabe, em vez de escrever um zero que ninguem mediu */
+function lmcCel(v){ const n = lmcNum(v); return n === null ? '<span class="lmc-sem">?</span>' : fmtBR(n, 0); }
+/* 🩹 data com hora (2026-08-12T23:30) quebrava a ordenacao E a exibicao */
+function lmcDiaDe(v){ return String(v || "").slice(0, 10); }
+/* 🩹 "1" e "01" produziam DOIS cartoes com o mesmo titulo, cada um com metade dos dias - e os
+   dois caiam em "poucos dias fora", que e' cinza. O alarme sumia por causa de um zero.
+   🔴 A EXPRESSAO E' A MESMA DO ⛽ NIVEL DOS TANQUES (`replace(/^0+/, "") || original`), byte a
+   byte, de proposito: com regras diferentes o mesmo tanque ganhava rotulos diferentes nas duas
+   telas ("0.5" x ".5", "0" x "00"), e ninguem descobriria isso olhando so' uma delas. */
+function lmcChaveTanque(t){
+  const s = String(t == null ? "" : t).trim();
+  if (!s) return "?";
+  return s.replace(/^0+/, "") || s;
+}
+
+function lmcDoc(){ return relPostos["lmc_" + lmcEst.mes] || null; }
+function lmcMeses(){
+  return Object.keys(relPostos || {}).filter(k => k.indexOf("lmc_") === 0)
+    .map(k => k.slice(4)).filter(m => /^\d{4}-\d{2}$/.test(m)).sort().reverse();
+}
+/* 🔴 `l && typeof l === "object"`: uma unica linha `null` dentro do array fazia a tela LANCAR, e
+   o throw derrubava junto o resto do callback do Firestore. A tela se defendia de todo escalar
+   sujo e nao se defendia do elemento nulo (achado de revisor em 18/08). */
+function lmcLista(doc, campo){
+  const v = doc ? doc[campo] : null;
+  return Array.isArray(v) ? v.filter(l => l && typeof l === "object") : [];
+}
+
+/* 🩹 A TOLERANCIA E' % DO MOVIMENTO - o que ENTROU mais o que SAIU.
+   🔴 A primeira volta usava `abertura + receb`, e `abertura` e' SALDO, nao movimento: a folga
+   crescia com o que estava PARADO dentro do tanque. Medido por revisor em 18/08 - um tanque de
+   15.000 L, parado, perdendo 89 L por dia (2.670 L no mes) saia VERDE, "fechou todo dia", com
+   "Perda no periodo: 0 L". O caso mais suspeito que existe ganhava a maior tolerancia. */
+function lmcTolLitros(l){
+  if (!(lmcEst.tol > 0)) return 0;
+  const base = Math.abs(lmcNum(l.receb) || 0) + Math.abs(lmcNum(l.venda) || 0);
+  return Math.max(1, base * lmcEst.tol / 100);
+}
+function lmcDif(l){ return lmcNum(l.dif); }
+/* 🔴 sem numero NAO e' "fechou": e' "nao sei", e quem nao sabe nao entra na conta. */
+function lmcFechou(l){ const d = lmcDif(l); return d !== null && Math.abs(d) <= lmcTolLitros(l); }
+
+/* A LEITURA DO PADRAO, tanque por tanque - o coracao da tela para o caso do Tiago
+   ("o fisico e o contabil nao fecham"): o SINAL da diferenca ao longo dos dias.
+
+   🔴 TERCEIRA VOLTA, e a licao vale mais que o codigo. A segunda volta consertou o NUMERO do
+   cartao (passou a somar todos os dias) e deixou a LEITURA e a COR sendo calculadas so' sobre os
+   dias FORA da faixa. Numero e frase passaram a vir de POPULACOES DIFERENTES - e o que sai disso
+   um revisor mediu:
+       Tanque 3 · ALTERNA DE SINAL · -2.100 L no mes
+       "O combustivel nao some e volta - isto e' a regua ou a sonda, NAO PERDA DE PRODUTO."
+   O app escrevendo, por extenso, que nao ha perda, embaixo de dois mil e cem litros sumidos.
+   E a outra face: 28 dias perdendo 100 L num tanque que vende 20.000 L/dia (faixa de 120 L)
+   saia "FECHOU TODO DIA", verde, com "Perda no periodo: 0 L".
+   🔑 A REGRA GERAL: **numero, cor e frase tem de sair da MESMA populacao.** Enquanto vinham da
+   mesma, elas nao podiam se contradizer; bastou separar para a tela comecar a mentir.
+   👉 Agora o SINAL e' contado sobre TODOS os dias com numero, e a faixa decide so' duas coisas:
+   qual numero aparece apagado na tabela, e se o vaivem cabe em "fechou". */
+function lmcPadrao(linhas){
+  const porTanque = {};
+  linhas.forEach(l => {
+    /* 🩹 sem `tanque`, o produto entra na chave: tres produtos diferentes eram fundidos num
+       cartao so', rotulados com o nome do primeiro e acusados de vazamento (achado de revisor). */
+    const cru = lmcChaveTanque(l.tanque);
+    const k = (cru === "?") ? "?|" + String(l.produto || "") : cru;
+    if (!porTanque[k]) porTanque[k] = {tanque:cru, produto:l.produto || l.tanque || "",
+                                       dias:0, semNum:0, neg:0, pos:0, fora:0,
+                                       somaMes:0, somaFora:0, tolMax:0, tolSoma:0};
+    const t = porTanque[k];
+    t.dias++;
+    const d = lmcDif(l);
+    if (d === null){ t.semNum++; return; }
+    t.somaMes += d;
+    t.tolMax = Math.max(t.tolMax, lmcTolLitros(l));
+    /* 🔴 A folga ACUMULADA, e nao a de um dia. Com o limiar de um dia so', 18 L espalhados por 5
+       dias de um tanque que vende 980 L/dia eram anunciados como "vies" - e 18 litros nao sao
+       vies de nada. O que se quer saber e' se a soma do mes sai do ruido do PERIODO INTEIRO. */
+    t.tolSoma += lmcTolLitros(l);
+    /* o SINAL conta em todos os dias - inclusive nos que ficaram dentro da faixa */
+    if (d < 0) t.neg++; else if (d > 0) t.pos++;
+    if (lmcFechou(l)) return;
+    t.fora++;
+    t.somaFora += d;
+  });
+  return Object.keys(porTanque).map(k => {
+    const t = porTanque[k];
+    const comNum = t.dias - t.semNum, comSinal = t.neg + t.pos;
+    /* 🔑 DOMINANCIA DO SINAL, e nao "todos ou nenhum": 23 dias faltando e 2 sobrando e' um vies
+       diario, nao um vaivem. Vaivem de verdade fica perto de meio a meio. */
+    const dom = comSinal ? Math.max(t.neg, t.pos) / comSinal : 0;
+    /* o mes so' "pesa" quando passa do ruido de UM dia; abaixo disso e' poeira de regua */
+    t.material = Math.abs(t.somaMes) > Math.max(t.tolSoma, 1);
+
+    if (t.semNum === t.dias)
+      t.leitura = ["semnum", "sem número no livro", "As linhas deste tanque chegaram sem o campo da diferença. O app não sabe se ele fechou — e não vai chutar que sim."];
+    /* 🔴 TRES dias com numero e' o minimo para falar em padrao: com um dia so' nao ha' o que
+       distinguir - um dia negativo e' "um dia negativo", nao "sempre falta". */
+    else if (comNum < 3)
+      t.leitura = ["poucos", comNum + (comNum === 1 ? " dia com número" : " dias com número"), "Poucos dias para falar em padrão — vale olhar o dia, não o tanque."];
+    else if (comSinal === 0)
+      t.leitura = ["ok", "fechou todo dia", "Todos os dias fecharam exatos."];
+    else if (dom >= 0.8 && t.neg > t.pos)
+      t.leitura = ["falta", "sempre falta", "A diferença fica no MESMO sentido — falta — em " + fmtBR(t.neg,0) + " de " + fmtBR(comSinal,0) + " dias. Falta que não volta não é erro de régua: é vazamento, bomba desregulada ou desvio. 🔴 Vale mesmo quando cada dia sozinho cabe na faixa: o que denuncia é a repetição, não o tamanho do dia."];
+    else if (dom >= 0.8 && t.pos > t.neg)
+      t.leitura = ["sobra", "sempre sobra", "A diferença fica no MESMO sentido — sobra — em " + fmtBR(t.pos,0) + " de " + fmtBR(comSinal,0) + " dias. Combustível não nasce no tanque: sobra repetida costuma ser erro de medição, ou venda que não foi lançada."];
+    else if (t.fora === 0)
+      t.leitura = ["ok", "fechou todo dia", "A diferença troca de lado e nenhum dia passou da faixa: é o vaivém normal da régua."];
+    else
+      t.leitura = ["alterna", "alterna de sinal", "A diferença troca de sinal de um dia para o outro (" + fmtBR(t.neg,0) + " para baixo, " + fmtBR(t.pos,0) + " para cima). Combustível não some e volta, então o vaivém em si é régua ou sonda."];
+
+    /* 🩹 O AVISO que faltava, e agora ele nasce da MESMA conta que o resto. A segunda volta
+       desligava-o justo nos dois casos em que ele era a explicacao (soma do mes zero, ou soma
+       dos dias fora zero). Aqui a pergunta e' simples: o vaivem fecha o mes em zero, ou nao? */
+    t.aviso = "";
+    if (t.leitura[0] === "alterna" && t.material)
+      /* 🔴 a frase muda com o SINAL. "e' esse numero que sumiu do tanque" escrito sobre uma SOBRA
+         diz o contrario do que aconteceu - nada sumiu, apareceu. Texto que nao acompanha a conta
+         e' o defeito que derrubou esta versao duas vezes; ele nao volta por descuido de redacao. */
+      t.aviso = "⚠️ Mas o mês NÃO fecha em zero: sobram " + (t.somaMes > 0 ? "+" : "") + fmtBR(t.somaMes,0)
+              + " L. Além do vaivém da régua há um viés no sentido de "
+              + (t.somaMes < 0 ? "FALTA — e é esse número que sumiu do tanque."
+                               : "SOBRA — e é esse número que apareceu a mais.");
+    /* 🔴 O NUMERO, e nao o adjetivo. "fecha praticamente em zero" escrito sobre -550 L e' a tela
+       escolhendo uma palavra generosa para um numero que ela tem na mao. Aqui ela diz o quanto
+       fechou E contra o que esta comparando, e quem le' decide se aquilo e' pouco. */
+    else if (t.leitura[0] === "alterna" && !t.material && comSinal >= 3)
+      t.aviso = "🔑 E o mês fecha em " + (t.somaMes > 0 ? "+" : "") + fmtBR(t.somaMes,0) + " L, dentro da folga do período ("
+              + fmtBR(t.tolSoma,0) + " L): o que falta num dia volta no outro, que é a assinatura de erro de medição.";
+    else if ((t.leitura[0] === "falta" || t.leitura[0] === "sobra") && t.fora === 0)
+      t.aviso = "🔑 Nenhum dia sozinho passou da faixa — o que acusa este tanque é a <b>repetição</b>, dia após dia, e ela não aparece olhando um dia de cada vez.";
+    return t;
+  })
+  /* 🩹 ORDEM POR GRAVIDADE, e depois por tamanho. A segunda volta ordenava so' por |soma| e
+     colocava o cartao VERDE na frente do alarme (achado de revisor). */
+  .sort((a, b) => {
+    const R = {falta:0, sobra:1, alterna:2, poucos:3, semnum:4, ok:5};
+    const d = R[a.leitura[0]] - R[b.leitura[0]];
+    return d !== 0 ? d : Math.abs(b.somaMes) - Math.abs(a.somaMes);
+  });
+}
+
+/* 🩹 `null` = a escuta ainda nao respondeu (esqueleto, nao "sem dados"); `[]` = respondeu e nao
+   ha' tanque. Os irmaos v278 e v308 ja faziam essa distincao e esta tela colapsava as duas. */
+function lmcTanquesDoPosto(){
+  if (tanquesNivel === null) return null;
+  const p = (tanquesNivel && tanquesNivel.postos) ? tanquesNivel.postos[lmcEst.un] : null;
+  return (p && Array.isArray(p.tanques)) ? p.tanques : [];
+}
+
+function lmcCards(linhas){
+  const tq = lmcTanquesDoPosto();
+  const carregando = (tq === null);
+  const lista = tq || [];
+  /* 🩹 o `|| 0` que saiu da tabela tinha FICADO aqui e no mapa: tanque sem `litros` somava zero e
+     a tela escrevia "~0 L" ao lado de "?" na mesma pagina (achado de revisor). Agora o
+     desconhecido e' CONTADO e dito, nunca somado como zero. */
+  let cap = 0, lit = 0, semCap = 0, semLit = 0;
+  lista.forEach(t => {
+    const c = lmcNum(t.cap), l = lmcNum(t.litros);
+    if (c === null) semCap++; else cap += c;
+    if (l === null) semLit++; else lit += l;
+  });
+  const temEstimado = lista.some(t => t.qualidade && t.qualidade !== "medido");
+  /* 🩹 PERDA E SOBRA SOMAM O MES INTEIRO, e nao so' os dias fora da faixa. A segunda volta
+     escrevia "Perda no periodo: 0 L" para um tanque que perdeu 2.800 L em 28 dias de 100 L,
+     porque cada dia sozinho cabia na faixa. 🔑 A faixa serve para LER o padrao, nunca para
+     apagar litro do total - litro que sumiu sumiu, esteja ele dentro ou fora da faixa. */
+  let perda = 0, sobra = 0, comNum = 0;
+  linhas.forEach(l => {
+    const d = lmcDif(l);
+    if (d === null) return;
+    comNum++;
+    if (d < 0) perda += -d; else if (d > 0) sobra += d;
+  });
+  const semLivro = '<span class="rsv-sem">sem o livro ainda</span>';
+  const esperando = '<span class="rsv-sem">carregando…</span>';
+  return '<div class="rel-kpis">'
+    + '<div class="rel-kpi"><span>Tanques' + lmcI("tanques") + '</span><b>'
+      + (carregando ? esperando : fmtBR(lista.length, 0)
+        + (cap > 0 ? '<small class="rsv-por">' + fmtBR(cap, 0) + ' L de capacidade'
+                   + (semCap ? ' · <b class="lmc-sem">' + fmtBR(semCap,0) + ' sem capacidade</b>' : '') + '</small>' : '')) + '</b></div>'
+    + '<div class="rel-kpi"><span>Estoque físico agora' + lmcI("fisico") + '</span><b>'
+      + (carregando ? esperando
+         : (!lista.length ? '<span class="rsv-sem">sem medição</span>'
+           : (semLit === lista.length ? '<span class="lmc-sem">?</span>'
+             : (temEstimado ? "~" : "") + fmtBR(lit, 0) + ' L'
+               + (semLit ? '<small class="rsv-por"><b class="lmc-sem">' + fmtBR(semLit,0) + ' tanque(s) sem leitura</b> fora desta soma</small>' : '')))) + '</b></div>'
+    + '<div class="rel-kpi' + (perda > 0 ? ' ruim' : '') + '"><span>Perda no período' + lmcI("perda") + '</span><b>'
+      + (comNum ? fmtBR(perda, 0) + ' L' : semLivro) + '</b></div>'
+    + '<div class="rel-kpi"><span>Sobra no período' + lmcI("sobra") + '</span><b>'
+      + (comNum ? fmtBR(sobra, 0) + ' L' : semLivro) + '</b></div>'
+    + '</div>';
+}
+
+function lmcBlocoPadrao(linhas){
+  const ps = lmcPadrao(linhas);
+  if (!ps.length) return "";
+  let h = '<h4 class="rel-h4">O padrão de cada tanque' + lmcI("padrao") + '</h4>'
+        + '<p class="nota-dash">Esta é a leitura que o relatório do Petros não dá: <b>o sinal da diferença ao longo dos dias</b>.</p>'
+        + '<div class="lmc-padroes">';
+  ps.forEach(t => {
+    /* 🩹 o NUMERO e' pintado pelo sinal SEMPRE, inclusive em "poucos dias" e em "fechou": a cor
+       do cartao carrega a LEITURA, a cor do numero carrega o SINAL, e as duas nao se substituem. */
+    const corN = t.somaMes < 0 ? " lmc-n-neg" : (t.somaMes > 0 ? " lmc-n-pos" : "");
+    h += '<div class="lmc-pad lmc-' + t.leitura[0] + '">'
+       + '<div class="lmc-pad-top"><b>Tanque ' + escAttr(t.tanque) + '</b>'
+       + '<span class="lmc-pad-selo">' + escAttr(t.leitura[1]) + '</span></div>'
+       + '<div class="lmc-pad-prod">' + escAttr(t.produto) + '</div>'
+       + '<div class="lmc-pad-n' + corN + '">'
+       + (t.semNum === t.dias ? '<span class="lmc-sem">?</span>'
+          : (t.somaMes === 0 ? '—' : (t.somaMes > 0 ? '+' : '') + fmtBR(t.somaMes, 0) + ' L'))
+       + '<small>no mês, somando <b>todos</b> os dias</small>'
+       + '<small>' + fmtBR(t.fora, 0) + ' de ' + fmtBR(t.dias, 0) + (t.dias === 1 ? ' dia' : ' dias') + ' fora da faixa'
+       + (t.semNum ? ' · <b class="lmc-sem">' + fmtBR(t.semNum, 0) + ' sem número</b>' : '') + '</small></div>'
+       + '<p class="lmc-pad-txt">' + t.leitura[2] + '</p>'
+       + (t.aviso ? '<p class="lmc-pad-txt lmc-pad-div">' + t.aviso + '</p>' : '')
+       + '</div>';
+  });
+  return h + '</div>';
+}
+
+function lmcBlocoMapa(){
+  const tq = lmcTanquesDoPosto();
+  /* 🩹 esqueleto enquanto a escuta nao respondeu - afirmar "sem tanques" antes de olhar foi o
+     defeito que a v248 consertou no Financeiro, e ele voltou aqui. */
+  if (tq === null) return esqueletoCaixa(4);
+  if (!tq.length) return '<p class="nota-dash">Sem tanques com medição para o posto selecionado.</p>';
+  /* 🩹 DE QUANDO E' ESTE NUMERO. O ⛽ Nivel dos tanques escreve a posicao e grita quando a
+     leitura passa de 3h; esta tela copiava os mesmos litros sem data e sem aviso de idade. */
+  const q = (tanquesNivel && tanquesNivel.atualizadoEm) || "";
+  const idade = q ? (Date.now() - Date.parse(q)) / 3600000 : null;
+  let h = '<h4 class="rel-h4">Mapa de estoque por tanque</h4>'
+        + '<p class="nota-dash">Vem do <b>Nível dos tanques</b> (o coletor <code>tanques.mjs</code>), e não do livro — '
+        + 'por isso ele aparece mesmo antes de o LMC ser coletado. Posição em <b>'
+        + escAttr(fmtQuandoLocal(q) || "?") + '</b>'
+        + (idade !== null && idade > 3
+           ? ' <span class="tqv-velho">⚠️ a última leitura tem ' + fmtBR(idade, 0) + ' horas</span>' : '')
+        + '.</p><div class="tqv-grade">';
+  tq.forEach(t => {
+    const cap = lmcNum(t.cap), lit = lmcNum(t.litros), pctN = lmcNum(t.pct);
+    const pct = (pctN !== null) ? pctN : ((cap && cap > 0 && lit !== null) ? (lit / cap) * 100 : 0);
+    const til = (t.qualidade === "medido") ? "" : "~";
+    /* 🩹 a classe `lmc-tqv` saiu daqui: ela era emitida em todo cartao e NAO tinha regra CSS
+       nenhuma - gancho morto, a mesma familia de falha silenciosa do ICO_SVG (achado de revisor). */
+    h += '<div class="tqv-card" style="--tqcor:' + tqvCorProduto(t.produto || t.tanque) + '">'
+       + '<div class="tqv-top"><span class="tqv-pt"></span>'
+       + '<span class="tqv-n">Tanque ' + escAttr(lmcChaveTanque(t.n)) + '</span>'
+       + '<span class="tqv-prod" title="' + escAttr(t.produto || t.tanque || "") + '">'
+       + escAttr(t.produto || t.tanque || "") + '</span></div>'
+       + tqvDesenho(pct, "lmc_" + lmcEst.un + "_" + t.n)
+       + '<div class="lmc-mapa-n"><b>' + fmtBR(pct, 0) + '%</b><span>' + til + lmcCel(t.litros)
+       + ' L / ' + lmcCel(t.cap) + ' L</span></div>'
+       + '</div>';
+  });
+  return h + '</div>';
+}
+
+function lmcTabelaLmc(linhas){
+  if (!linhas.length) return "";
+  const rot = (l) => (LMC_UNID.find(u => u[0] === l.posto) || [, l.posto])[1];
+  let h = '<div class="rel-scroll"><table class="rel-tab lmc-tab"><thead><tr>'
+    + '<th>Data</th><th>Posto</th><th>Tanque</th><th>Combustível</th>'
+    + '<th class="n">Abertura' + lmcI("abertura") + '</th>'
+    + '<th class="n">Receb.' + lmcI("receb") + '</th>'
+    + '<th class="n">Venda' + lmcI("venda") + '</th>'
+    + '<th class="n">Contábil' + lmcI("contabil") + '</th>'
+    + '<th class="n">Físico' + lmcI("fisicoC") + '</th>'
+    + '<th class="n">Perda/Sobra' + lmcI("dif") + '</th>'
+    + '</tr></thead><tbody>';
+  linhas.forEach(l => {
+    const d = lmcDif(l), fechou = lmcFechou(l);
+    /* 🔴 TRES estados, e nao dois: "?" quando nao ha' numero, travessao so' para o ZERO de
+       verdade, e o numero apagado quando ele esta' dentro da faixa (dentro da faixa TEM
+       diferenca, e esconde-la seria a tela mentindo por uma convencao que ela mesma escolheu). */
+    const cel = (d === null) ? '<span class="lmc-sem">?</span>'
+              : (d === 0)    ? '<span class="lmc-zero">—</span>'
+              : '<b class="' + (d < 0 ? 'lmc-neg' : 'lmc-pos') + (fechou ? ' lmc-fx' : '') + '">'
+                + (d > 0 ? '+' : '') + fmtBR(d, 0) + ' L</b>';
+    /* 🩹 SEGUNDA VOLTA DO RESUMO DE CELULAR. A primeira punha o resumo na 4a coluna, que comeca
+       em x=231 de uma janela de 318px: um revisor mediu e so' 55% dele cabia - a tela cortava em
+       "Contábil 18.580 · Físi", justo antes do numero que ela existe para dar.
+       🔑 O remedio certo ja estava na casa, na `.dsd-tab` da v341: PRIMEIRA COLUNA PRESA
+       (`position:sticky; left:0`). Aqui o resumo virou LINHA PROPRIA com o conteudo presouma vez
+       na esquerda, entao ele fica visivel por mais que a tabela role de lado. */
+    const resumo = '<tr class="lmc-cel-linha"><td colspan="10"><span class="lmc-cel-cel">'
+                 + 'Contábil ' + lmcCel(l.contabil) + ' · Físico ' + lmcCel(l.fisico)
+                 + ' · <b class="' + (d === null ? 'lmc-sem' : (d < 0 ? 'lmc-neg' : (d > 0 ? 'lmc-pos' : ''))) + '">'
+                 + (d === null ? '?' : (d === 0 ? '—' : (d > 0 ? '+' : '') + fmtBR(d, 0) + ' L')) + '</b>'
+                 + '</span></td></tr>';
+    h += '<tr><td>' + escAttr(dataCurtaRel(lmcDiaDe(l.d))) + '</td><td>' + escAttr(rot(l)) + '</td>'
+       + '<td>' + escAttr(lmcChaveTanque(l.tanque)) + '</td>'
+       + '<td>' + escAttr(l.produto || "") + '</td>'
+       + '<td class="n">' + lmcCel(l.abertura) + '</td>'
+       + '<td class="n">' + lmcCel(l.receb) + '</td>'
+       + '<td class="n">' + lmcCel(l.venda) + '</td>'
+       + '<td class="n">' + lmcCel(l.contabil) + '</td>'
+       + '<td class="n">' + lmcCel(l.fisico) + '</td>'
+       + '<td class="n">' + cel + '</td></tr>' + resumo;
+  });
+  return h + '</tbody></table></div>';
+}
+
+function lmcTabelaCompras(linhas){
+  if (!linhas.length) return '<p class="nota-dash">Nenhuma compra de combustível publicada para este mês.</p>';
+  const rot = (l) => (LMC_UNID.find(u => u[0] === l.posto) || [, l.posto])[1];
+  let h = '<div class="rel-scroll"><table class="rel-tab lmc-tab"><thead><tr>'
+    + '<th>Data</th><th>Posto</th><th>Fornecedor</th><th>Produto</th><th>Documento</th>'
+    + '<th class="n">Qtd.</th><th class="n">Custo</th></tr></thead><tbody>';
+  linhas.forEach(l => {
+    const c = lmcNum(l.custo);
+    h += '<tr class="' + (l.devol ? 'lmc-devol' : '') + '"><td>' + escAttr(dataCurtaRel(lmcDiaDe(l.d))) + '</td>'
+       + '<td>' + escAttr(rot(l)) + '</td><td>' + escAttr(l.fornecedor || "") + '</td>'
+       + '<td>' + escAttr(l.produto || "") + (l.devol ? ' <span class="lmc-devol-selo">(devol.)</span>' : '') + '</td>'
+       + '<td>' + escAttr(l.doc || "") + '</td>'
+       + '<td class="n">' + lmcCel(l.qtd) + ' L</td>'
+       + '<td class="n">' + (c === null ? '<span class="lmc-sem">?</span>' : fmtR$0(c)) + '</td></tr>';
+  });
+  return h + '</tbody></table></div>';
+}
+
+function blocoLmc(){
+  const doc = lmcDoc();
+  const nome = (LMC_UNID.find(u => u[0] === lmcEst.un) || [, lmcEst.un])[1];
+
+  /* 🔴 PRIMEIRO GUARDA: o servidor disse que nao confia. Com `lmcOk === false` os numeros ficam
+     zerados DE PROPOSITO la', e mostra-los escreveria "nenhuma perda" para o dono.
+     "Nao confiavel" NAO e' "zero" - a regra mais perigosa da tela irma (v370). */
+  if (doc && doc.lmcOk === false){
+    return '<div class="prc-alerta"><h4 class="rel-h4">🛑 O app não confia no livro deste mês</h4>'
+         + '<p class="nota-dash">A última coleta <b>não passou na conferência do próprio servidor</b>, e os '
+         + 'números ficaram <b>zerados de propósito</b>. <b>Zero aqui não quer dizer que o LMC fechou: quer '
+         + 'dizer que o app não sabe.</b>'
+         + (doc.lmcDia ? ' Último dia com linha publicada: <b>' + escAttr(dataCurtaRel(lmcDiaDe(doc.lmcDia))) + '</b>.' : '')
+         + '</p></div>' + lmcBlocoMapa();
+  }
+  /* 🩹 SEGUNDO GUARDA - o que faltava, e a tela irma tem os DOIS (o comentario da v371 diz por
+     extenso "as abas entram depois dos DOIS guardas do selo"). Sem ele, `lmcOk` ausente, null,
+     0 ou a STRING "false" (o que sai de um JSON mal serializado) liberavam a tela inteira com
+     cara de numero conferido. 🔴 SO' `=== true` libera. */
+  if (doc && doc.lmcOk !== true){
+    return lmcCards([])
+      + '<div class="prc-alerta"><h4 class="rel-h4">🛑 O livro deste mês veio sem o selo de conferência</h4>'
+      + '<p class="nota-dash">O documento existe, mas <b>não diz que passou na conferência do servidor</b> — e o app '
+      + 'só mostra número de livro que se declara conferido. <b>Isto não quer dizer que o LMC não fechou: quer dizer '
+      + 'que ninguém garantiu que ele fechou.</b> Em geral é coleta interrompida no meio.</p></div>'
+      + lmcBlocoMapa();
+  }
+
+  const todas = lmcLista(doc, "lmcDias");
+  /* 🩹 linha sem `posto` era descartada em silencio: agora ela e' CONTADA e dita no rodape. */
+  const semPosto = todas.filter(l => !l.posto).length;
+  const linhas = todas.filter(l => String(l.posto || "") === lmcEst.un)
+                      .sort((a, b) => lmcDiaDe(b.d).localeCompare(lmcDiaDe(a.d)));
+  const compras = lmcLista(doc, "lmcCompras").filter(l => String(l.posto || "") === lmcEst.un)
+                      .sort((a, b) => lmcDiaDe(b.d).localeCompare(lmcDiaDe(a.d)));
+
+  const semTanque = todas.filter(l => !l.tanque && String(l.posto || "") === lmcEst.un).length;
+  let h = lmcCards(linhas);
+
+  /* 🩹 O AVISO SO' SAI QUANDO NAO HA NADA. A segunda volta dava `return` aqui assim que as linhas
+     diarias faltavam, e com isso COMPRAS PUBLICADAS ficavam invisiveis - sem aba, sem contagem,
+     sem uma palavra (achado de revisor: documento com selo true, compras de Teresina e linhas so'
+     de Caxias imprimia "ainda nao foi coletado" e escondia a nota fiscal). */
+  if (!linhas.length && !compras.length){
+    h += '<div class="prc-alerta"><h4 class="rel-h4">⏳ O livro de ' + escAttr(nome) + ' ainda não foi coletado</h4>'
+       + '<p class="nota-dash">A linha diária por tanque — <b>abertura, recebimento, venda, contábil e físico</b> — '
+       + 'vem de um <b>coletor que ainda não existe</b>. Ela não está em nenhum relatório que o app já lê: o '
+       + '<code>tanques_todos</code> traz o <b>acumulado do mês</b>, e é justamente o <b>dia</b> que responde onde a '
+       + 'conta desandou. <b>Isto não quer dizer que o LMC está fechando</b> — quer dizer que o app ainda não sabe.</p>'
+       + (semPosto ? '<p class="nota-dash">⚠️ O livro tem <b>' + fmtBR(semPosto, 0) + '</b> linha(s) <b>sem o posto</b> '
+                   + 'preenchido, e por isso elas não entram em tela nenhuma.</p>' : '')
+       + '</div>';
+    return h + lmcBlocoMapa();
+  }
+
+  /* quando so' ha compras, o aviso do livro continua sendo dito - mas as abas aparecem */
+  if (!linhas.length){
+    h += '<p class="nota-dash">⏳ O <b>livro diário</b> de ' + escAttr(nome) + ' ainda não foi coletado — '
+       + 'o que existe abaixo são as <b>compras</b>. Isto <b>não</b> quer dizer que o LMC está fechando.</p>';
+  }
+
+  if (linhas.length){
+    h += '<div class="rcb-filtro"><span class="rcb-filtro-rot">Conta como fechado até:' + lmcI("faixa") + '</span>';
+    LMC_TOLS.forEach(t => {
+      h += '<button class="rcb-fbt' + (lmcEst.tol === t ? ' aceso' : '') + '" onclick="lmcTol(' + t + ')">'
+         + (t === 0 ? 'qualquer diferença conta' : fmtBR(t, 1).replace(",0", "") + '% do movimento') + '</button>';
+    });
+    h += '</div>';
+    h += lmcBlocoPadrao(linhas);
+  }
+
+  const ABAS = [["lmc", "⚖️ Reconciliação (LMC)"], ["compras", "🚛 Compras (combustível)"]];
+  h += '<div class="doc-tools">' + ABAS.map(a =>
+        '<button class="doc-chip' + (lmcEst.aba === a[0] ? ' ativo' : '') + '" onclick="lmcAba(\'' + a[0] + '\')">'
+        + a[1] + '<small class="lmc-cnt">' + fmtBR(a[0] === "lmc" ? linhas.length : compras.length, 0) + '</small></button>').join("")
+     + '</div>';
+
+  h += (lmcEst.aba === "compras") ? lmcTabelaCompras(compras) : lmcTabelaLmc(linhas);
+
+  if (semPosto) h += '<p class="nota-dash">⚠️ <b>' + fmtBR(semPosto, 0) + '</b> linha(s) do livro vieram <b>sem o posto</b> e não aparecem em tela nenhuma.</p>';
+  /* 🩹 simetria: linha sem `posto` ja era contada e dita; linha sem `tanque` era fundida num
+     cartao "Tanque ?" em silencio. As duas agora falam. */
+  if (semTanque) h += '<p class="nota-dash">⚠️ <b>' + fmtBR(semTanque, 0) + '</b> linha(s) deste posto vieram <b>sem o número do tanque</b> — elas aparecem agrupadas por produto, como <b>Tanque ?</b>.</p>';
+  if (doc && doc.atualizadoEm){
+    h += '<p class="nota-dash">Livro atualizado em <b>' + escAttr(lmcDiaDe(doc.atualizadoEm).split("-").reverse().join("/")) + '</b>.</p>';
+  }
+  return h + lmcBlocoMapa();
+}
+
+function renderLmc(){
+  const box = document.getElementById("lmcBox");
+  if (!box) return;
+
+  const abas = document.getElementById("lmcUnAbas");
+  if (abas) abas.innerHTML = LMC_UNID.map(u =>
+    '<button class="doc-chip' + (lmcEst.un === u[0] ? ' ativo' : '') + '" onclick="lmcMuda(\'un\',\'' + u[0] + '\')">'
+    + u[1] + '</button>').join("");
+
+  const meses = lmcMeses();
+  const sel = document.getElementById("lmcMes");
+  if (sel){
+    if (!lmcEst.mes || meses.indexOf(lmcEst.mes) < 0) lmcEst.mes = meses[0] || "";
+    if (meses.length){
+      sel.innerHTML = meses.map(m => '<option value="' + m + '"' + (m === lmcEst.mes ? ' selected' : '') + '>'
+                    + escAttr(rotuloMesRel(m)) + '</option>').join("");
+      if (sel.parentNode) sel.parentNode.style.display = "";
+    } else if (sel.parentNode) sel.parentNode.style.display = "none";
+  }
+
+  /* 🩹 O WRAP DO BALAO. Sem `.dsd-wrap` + `.dsd-tip`, `ligarTipsEm` nao acha onde pendurar e os
+     doze ⓘ ficam DESENHADOS E MORTOS: passa o mouse e nao acontece nada. Falha 100% silenciosa,
+     e a bancada dizia verde porque contava os nos no DOM sem nunca passar o mouse - a Regra 3
+     cobrando dentro da propria ferramenta de prova. O irmao v371 sempre teve esta linha. */
+  /* 🩹 A ROLAGEM DE LADO SOBREVIVE AO REDESENHO. O callback do `tanquesNivel` roda de hora em
+     hora, e `innerHTML` troca a arvore inteira: um revisor mediu `scrollLeft` indo de 626 para
+     ZERO no meio da leitura. Na tabela mais larga do app, no celular, isso e' o coletor puxando
+     o leitor de volta para a esquerda sozinho. */
+  const rolAntes = (box.querySelector(".rel-scroll") || {}).scrollLeft || 0;
+  box.innerHTML = '<div class="dsd-wrap">' + blocoLmc() + '<div class="evo-tip dsd-tip"></div></div>';
+  if (rolAntes){
+    const rol = box.querySelector(".rel-scroll");
+    if (rol) rol.scrollLeft = rolAntes;
+  }
+  ligarTipsEm("lmcBox");
+}
+function lmcMuda(campo, valor){ lmcEst[campo] = valor; renderLmc(); }
+function lmcAba(a){ lmcEst.aba = a; renderLmc(); }
+function lmcTol(t){ lmcEst.tol = t; renderLmc(); }
+function alternarLmc(){
+  const aberto = abrirPainelExclusivo("painelLmc");
+  const b = document.getElementById("btnLmc");
+  if (b) b.classList.toggle("ativo", aberto);
+  if (aberto) renderLmc();
+}
 
 function alternarRessupConv(){
   const aberto = abrirPainelExclusivo("painelRessupConv");
@@ -30148,7 +30822,14 @@ function dpsResDe(posto, mes){
 }
 function dpsMeses(){
   const m = {};
-  Object.keys(relPostos || {}).forEach(k => { const p = String(k).split("_"); if (p[1]) m[p[1]] = 1; });
+  /* 🔴 v372 - LISTA BRANCA, e nao lista negra. `lmc_{mes}` nao e' relatorio de unidade e faria o
+     Dashboard oferecer um mes sem relatorio nenhum dentro. A primeira tentativa foi `if
+     (indexOf("lmc_") === 0) return` - e um revisor derrubou em dois minutos: `LMC_2026-09`
+     passava. 🔑 Lista negra tapa o caso que voce imaginou; lista branca fecha a CLASSE. Quem
+     acrescentar outro documento de tela nesta colecao nao precisa lembrar de passar por aqui. */
+  Object.keys(relPostos || {}).forEach(k => {
+    if (!UNIDADES_REL.some(u => String(k).indexOf(u.chave + "_") === 0)) return;
+    const p = String(k).split("_"); if (p[1]) m[p[1]] = 1; });
   // v229 - mes que so' tem DRE tambem entra no seletor do card
   Object.keys(relPetros || {}).forEach(k => { const p = String(k).split("_"); if (p[0] === "dre" && p[1] === "postos" && p[3]) m[p[3]] = 1; });
   return Object.keys(m).sort().reverse();
