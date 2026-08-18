@@ -1319,6 +1319,32 @@
     .rsv-tab .rec-tag{padding:2px 6px}
     .rsv-mob{display:block;font-size:.68rem;color:var(--cinza);white-space:normal;margin-top:2px}
   }
+  /* ============ v371 - o "i" no cabecalho e o veredito em DIAS ============
+     🔑 NENHUMA COR NOVA NASCE AQUI, e essa e' a peca principal desta folha: os tres vereditos de
+     tempo reusam as pastilhas `.rec-tag.rsv-x`, `.rsv-t` e `.rsv-v` que a v370 ja' MEDIU em
+     Chromium nos dois temas. 📏 Remedidas em 18/08 por um revisor independente, na composicao
+     sobre o fundo real da linha: claro 5,20 · 5,91 · 5,83 · escuro 6,71 · 7,84 · 7,98, contra a
+     regua de 4,5 do projeto. Inventar uma sexta cor seria inventar uma medicao que ninguem fez —
+     e ela passaria despercebida, porque contraste ruim NAO da' erro.
+     ⚠️ E o mesmo revisor achou que a bancada de contraste da v370 esta' INERTE (le' `foto.html`,
+     que nao existe na pasta, e nao sai com erro). O numero acima e' dele, medido; nao da' bancada. */
+  /* o "i" encolhe dentro do cabecalho, como no #painelOperadores da v359: em 14px ele empurrava
+     "Valor parado" para duas linhas e serrilhava a tira do cabecalho. */
+  .rsv-tab thead i.dsd-i{width:12px;height:12px;margin-left:3px;font-size:.54rem}
+  /* 🔴 A ESPECIFICIDADE, PELA TERCEIRA VEZ NESTA MESMA TABELA (v367, v370 e agora). Dentro de
+     `td.n` o seletor `.rel-tab td.n small` e' (0,2,2) e atropela classe solta (0,1,0) — foi assim,
+     em silencio, que a v370 perdeu a cor do `.rsv-alerta`. Esta ja' nasce com o peso escrito por
+     extenso, em vez de esperar alguem descobrir.
+     🔴 E ela NAO E' VERMELHA, de proposito. "Mais de 1 ano de estoque" e' o caso COMUM numa lista
+     que so' contem item parado, e a propria v370 escreveu a regra: vermelho que aparece por rotina
+     ensina a ignorar vermelho. */
+  .rsv-dur,.rel-tab td.n small.rsv-dur,.rsv-tab td small.rsv-dur{
+    display:block;font-size:.68rem;font-weight:600;color:var(--txt);white-space:normal}
+  /* a data logo abaixo da pastilha do veredito, dentro da mesma celula */
+  .rsv-tab td .rec-tag + .rsv-por,.rsv-tab td .rec-tag + .rsv-alerta{margin-top:3px}
+  /* as duas abas do menu (Esta' parado / Vai faltar) ficam coladas no topo: elas trocam a tela
+     INTEIRA, entao nao podem parecer mais um filtro no meio dos filtros. */
+  .doc-tools.rsv-modo{margin:0 0 10px}
   .cmp-op-mob{display:none}
   .prc-tab td small{display:block;font-size:.68rem;color:var(--cinza);font-weight:400;line-height:1.35}
   .prc-cat{text-transform:uppercase;letter-spacing:.3px}
@@ -4421,9 +4447,15 @@
   <div class="config" id="painelRessupConv">
     <div class="grupo">
       <h2>📦 Ressuprimento</h2>
-      <p class="nota-dash">O <b>dinheiro parado</b> na conveniência: o que está no estoque e não sai há tempo demais,
-        do maior valor para o menor. A régua de dias é a <b>desta loja</b>, e vem do servidor junto com a lista.
-        Coletado do Petros quatro vezes por dia.</p>
+      <!-- 🔴 v371 - ESTE PARAGRAFO E' FIXO NO HTML e NAO muda com a aba. Ate' a v370 isso estava
+           certo, porque havia uma tela so'. Com as duas abas ele passou a dizer "o dinheiro parado"
+           por cima da lista do que VAI FALTAR — foi a FOTO que pegou, nenhuma assercao de texto
+           olhava para ele. 👉 Agora ele descreve o MENU; cada aba continua com a frase dela, logo
+           abaixo dos cartoes, onde ela pode falar da conta que aquela aba faz. -->
+      <p class="nota-dash">Duas perguntas sobre o mesmo estoque da conveniência: <b>📦 Está parado</b> mostra o
+        dinheiro que não sai há tempo demais, e <b>⚠️ Vai faltar</b> mostra o que acaba antes da próxima compra.
+        A régua de dias é a <b>desta loja</b>, e vem do servidor junto com a lista. Coletado do Petros
+        quatro vezes por dia.</p>
       <div class="evo-filtros">
         <div class="desc-campo"><label>Mês</label><select id="rsvConvMes" onchange="rsvMuda('conv','mes',this.value)"></select></div>
       </div>
@@ -4438,9 +4470,11 @@
   <div class="config" id="painelRessupPostos">
     <div class="grupo">
       <h2>📦 Ressuprimento</h2>
-      <p class="nota-dash">O <b>dinheiro parado</b> nas lojas de <b>troca de óleo</b>: o que está no estoque e não sai há
-        tempo demais, do maior valor para o menor. A régua de dias é a <b>desta loja</b> — aqui ela é bem mais longa que
-        na conveniência, e vem do servidor junto com a lista.</p>
+      <!-- v371 - o mesmo conserto da tela irma: ele descreve o MENU, e nao uma das duas abas. -->
+      <p class="nota-dash">Duas perguntas sobre o mesmo estoque das lojas de <b>troca de óleo</b>:
+        <b>📦 Está parado</b> mostra o dinheiro que não sai há tempo demais, e <b>⚠️ Vai faltar</b> mostra o que
+        acaba antes da próxima compra. A régua de dias é a <b>desta loja</b> — aqui ela é bem mais longa que na
+        conveniência — e vem do servidor junto com a lista.</p>
       <div class="evo-filtros">
         <div class="desc-campo"><label>Mês</label><select id="rsvPostosMes" onchange="rsvMuda('postos','mes',this.value)"></select></div>
       </div>
@@ -7998,6 +8032,16 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v371", data:"18/08/2026", tit:"⏳ O <b>Ressuprimento</b> ganha a outra metade: <b>quanto tempo o estoque ainda dura</b> — e um <b>ⓘ</b> em cada número", itens:[
+    {t:"n", h:"⚠️ Aba nova <b>Vai faltar</b>: o que acaba antes da próxima compra", d:"O menu passou a ter <b>duas abas</b>. A de sempre, <b>📦 Está parado</b>, mostra o dinheiro encalhado; a nova, <b>⚠️ Vai faltar</b>, mostra o contrário — o que <b>acaba</b> dentro de 7, 15, 30 ou 60 dias, do mais urgente para o menos. Cada linha diz <b>quantos dias o saldo ainda dá</b>, <b>em que dia ele zera</b> e <b>quantas unidades comprar</b> para chegar ao corte escolhido. Vermelho é uma semana ou menos; amarelo, até quinze dias."},
+    {t:"n", h:"A coluna <b>Cobertura</b> virou <b>Dura</b>, e agora diz o tempo em linguagem de gente", d:"“Cobertura” era palavra de quem já sabe o que ela quer dizer. A pergunta que se faz na frente da prateleira é <i>quanto tempo isso dura</i>, e o rótulo passou a ser a pergunta. O número exato continua ali, com a leitura ao lado: <b>127 dias</b> · <i>≈ 4 meses</i>. Acima de um ano ela escreve <b>mais de 1 ano</b>, porque aí o número exato não informa mais nada — e agora o <b>celular diz a mesma coisa que o computador</b>, que era onde ele escapava."},
+    {t:"n", h:"Um <b>ⓘ</b> em cada número, e ele abre só de <b>passar o mouse</b>", d:"Os quatro cartões e as colunas das duas abas ganharam o <b>ⓘ</b> que já existe nas telas de Despesas e de Operadores: passe o mouse (ou toque, no celular) e ele explica <b>o que aquele número é</b>, em duas ou três frases. Antes só dois dos quatro cartões tinham explicação — e ela abria no clique, num jeito diferente do resto do app. ⚠️ No celular algumas colunas não cabem na tela e somem; o <b>ⓘ</b> delas some junto, e o que elas diriam está no resumo embaixo do nome do produto."},
+    {t:"c", h:"A v370 dizia que isto <b>ainda não dava</b>. Dava.", d:"O aviso da versão passada terminava com <i>“ainda não aponta o que está prestes a faltar — o consumo médio ainda não é coletado”</i>. Estava errado no dia em que foi escrito: o quanto cada item vendeu nos <b>últimos 90 dias</b> vem do Petros desde a <b>primeira coleta</b>. O que faltava não era o dado — era a tela."},
+    {t:"c", h:"E onde a tela dizia <b>“vendas”</b>, o número era de <b>unidades</b>", d:"O que o servidor manda é <b>quanto foi vendido</b> em 90 dias, e não <b>quantas vezes</b>. A tela dizia “só 3 vendas” para uma caixa com 3 unidades levada de uma vez só. Agora ela diz <b>unidades</b> em toda parte — inclusive na coluna <b>Dura</b> da aba de sempre, que trazia esse erro desde a versão passada."},
+    {t:"m", h:"⚠️ O que esta conta <b>não</b> sabe, dito na própria tela", d:"O ritmo é a <b>média plana dos últimos 90 dias</b>: não pesa dia da semana nem estação, então item de data (Natal, festa junina, volta às aulas) sai errado nos dois sentidos. O <b>prazo de entrega do seu fornecedor não entra na conta</b> — isso você sabe e o app não. Quem vendeu <b>menos de 3 unidades</b> em 90 dias fica de fora, e agora tem <b>cartão próprio</b>: <i>Sem projeção</i>. E o valor da compra é um <b>piso</b>: item sem custo cadastrado no Petros entra somando zero. 🔴 <b>Esta lista também não enxerga o que já acabou</b>: o servidor só publica item com saldo maior que zero, então ruptura já consumada não chega até ela."},
+    {t:"m", h:"A data de <b>“acaba em”</b> é contada do dia da <b>coleta</b>, não de hoje", d:"Se a coleta atrasar, a tela avisa <b>há quantos dias</b> ela é e lembra que o que saiu do estoque desde então não está ali — e quando o atraso já passou do tempo que o item tinha, a linha diz <b>“já deveria ter acabado”</b> em vez de escrever uma data no passado. Somar dias no relógio de quem abriu a tela produziria uma data que ninguém mediu."},
+    {t:"m", h:"O balão do <b>ⓘ</b> parou de nascer fora da tela", d:"Ele se ajeitava dentro do painel, e não dentro da <b>janela</b> — num painel alto isso deixava mais de cem pixels do balão abaixo da dobra no celular, e o gesto de rolar para ler era o gesto que o fechava. Agora ele se ajeita pela janela. 👉 Vale também para <b>Despesas</b> e <b>Operadores</b>, que usam o mesmo balão."}
+  ]},
   {v:"v370", data:"17/08/2026", tit:"📦 Nasce o menu <b>Ressuprimento</b>: o dinheiro que est\u00e1 parado no estoque, loja por loja", itens:[
     {t:"n", h:"📦 <b>Ressuprimento</b> \u2014 dois menus, um na conveni\u00eancia e outro na troca de \u00f3leo", d:"Cada um abre nas <b>tr\u00eas cidades</b>, na mesma ordem: Teresina, Caxias e Presidente Dutra. A lista come\u00e7a pelo item que tem <b>mais dinheiro parado</b>. 📏 Medido em 17/08: as tr\u00eas conveni\u00eancias t\u00eam <b>R$ 18.418</b> parados, e as tr\u00eas lojas de troca de \u00f3leo, <b>R$ 45.073</b> \u2014 com estoque total parecido. O dado \u00e9 coletado do Petros <b>quatro vezes por dia</b>."},
     {t:"n", h:"<b>Parado</b> aqui \u00e9 tempo sem <b>venda</b>, n\u00e3o tempo sem movimento", d:"Um item pode ter sa\u00eddo ontem e estar parado h\u00e1 meses: transfer\u00eancia entre lojas e acerto de invent\u00e1rio s\u00e3o sa\u00edda e <b>n\u00e3o s\u00e3o giro</b>. 📏 Na troca de \u00f3leo de Teresina, <b>9 dos 19</b> itens que pareciam girar giraram por transfer\u00eancia. A coluna <b>\u00daltimo movimento</b> mostra a diferen\u00e7a com uma pastilha colorida. \u26a0\ufe0f Quando o produto nunca foi vendido \u2014 caf\u00e9, leite e outros <b>insumos</b>, que saem do estoque sem passar pelo caixa \u2014 a conta usa a \u00faltima sa\u00edda, e s\u00f3 quando ele nunca saiu usa a entrada."},
@@ -14518,6 +14562,12 @@ function ligarTipsEm(raizId){
        sequestrar o balao do de dentro, calado. */
     const tip = wrap.querySelector(":scope > .dsd-tip");
     if (!tip) return;
+    /* 🔴 v371 - ESTE WRAP RECORTA? A resposta decide se o balao pode sair dele para caber na TELA.
+       Medida UMA VEZ por wrap, e nao a cada movimento do mouse: `getComputedStyle` dentro de um
+       `mousemove` seria conta a sessenta quadros por segundo para responder algo que nao muda.
+       📏 Dos cinco wraps do app, so' os dois `.dsd-cartao` das Despesas recortam. */
+    const _est = (typeof getComputedStyle === "function") ? getComputedStyle(wrap) : null;
+    const corta = !!_est && /hidden|auto|scroll/.test(String(_est.overflowY) + " " + String(_est.overflowX));
     const mostrar = (ev) => {
       const alvo = (ev.target && ev.target.closest) ? ev.target.closest("[data-tip]") : null;
       if (!alvo){ tip.style.display = "none"; return; }
@@ -14525,13 +14575,53 @@ function ligarTipsEm(raizId){
       tip.style.display = "block";
       const r = wrap.getBoundingClientRect();
       const lt = tip.offsetWidth, at = tip.offsetHeight;
-      let x = ev.clientX - r.left + 14, y = ev.clientY - r.top + 14;
-      if (x + lt > r.width - 4) x = ev.clientX - r.left - lt - 14;
-      if (x < 4) x = 4;
-      if (y + at > r.height - 4) y = Math.max(4, ev.clientY - r.top - at - 14);
-      if (y < 4) y = 4;
-      tip.style.left = x + "px";
-      tip.style.top = y + "px";
+      /* 🔴 v371 - O TETO E' A JANELA, E NAO O WRAP, e essa troca conserta um defeito que estava
+         aqui desde a v348 sem doer. O `r` e' o retangulo do WRAP. Enquanto o wrap era um cartao de
+         grafico, "caber no wrap" e "caber na tela" davam quase no mesmo. Desde a v371 o wrap do
+         Ressuprimento e' o PAINEL INTEIRO — 📏 1.119px medidos, e muito mais com "Ver todos" —
+         entao o balao SEMPRE cabia no wrap e o tombo para cima NUNCA disparava.
+         📏 Medido por um revisor independente em 18/08: 83px do balao abaixo da dobra num
+         notebook de 520px de altura, 129px num celular em pe' e 111px num celular deitado.
+         🔴 E no celular era pior que ler rolando: o `pointerdown` da rolagem tem alvo sem
+         `[data-tip]`, entao o gesto de rolar para ler e' o gesto que FECHA o balao.
+         🔑 A conta passa a ser feita em coordenada de JANELA e so' no fim volta para dentro do
+         wrap (o `.dsd-tip` e' `position:absolute` dentro de um `position:relative`).
+         ⚠️ Isto vale tambem para Despesas e Operadores, que usam a mesma funcao — e nos dois e'
+         estritamente melhor: balao que cabia continua cabendo, balao que vazava para de vazar. */
+      /* 🔴 A CAIXA QUE PRENDE O BALAO E' A JANELA — E O WRAP SO' QUANDO O WRAP RECORTA.
+         Esta linha levou TRES tentativas, e as duas primeiras eu escrevi afirmando que estavam
+         certas sem ter medido as outras telas. O registro fica porque a conta e' contraintuitiva:
+           1. so' o WRAP (ate' a v370): certo nas Despesas, onde o wrap E' o `.dsd-cartao` com
+              `overflow:hidden` — errado no Ressuprimento, cujo wrap tem 1.119px: o balao sempre
+              cabia nele e vazava 129px para fora da TELA no celular.
+           2. so' a JANELA (1ª tentativa da v371): consertou o Ressuprimento e APAGOU o balao das
+              Despesas — 📏 86 dos 97px saiam do cartao e o `overflow:hidden` os comia.
+           3. a INTERSECAO (2ª tentativa): reintroduziu o defeito nº 1 em TODO wrap baixo, porque
+              `Math.max(4, r.top + 4)` mata o tombo para cima quando o "i" esta' no topo de um wrap
+              curto — e e' ali que mora todo "i" de cabecalho. 📏 Medido nos nove "i" reais:
+              169px escondidos na tira das Despesas, 120px nos KPIs, 123px nos Operadores.
+         🔑 O QUE SEPARA OS CASOS NAO E' O TAMANHO DO WRAP: e' se ele RECORTA. Prender no wrap so'
+         protege de alguma coisa quando sair do wrap significa sumir. 📏 Dos cinco wraps do app,
+         so' os dois `.dsd-cartao` recortam.
+         ⚠️ Num wrap que recorta E e' menor que o balao (a rosca "sem categoria", 117px contra
+         115px) nao ha' resposta boa: fora do wrap o balao seria apagado. Fica preso no wrap,
+         perdendo 3px — que e' o comportamento da v348, e o menos ruim dos dois.
+         ⚠️ `clientWidth/clientHeight` antes de `innerWidth/innerHeight`: os primeiros excluem a
+         barra de rolagem classica, os segundos nao. */
+      const raiz = (typeof document !== "undefined" && document.documentElement) || null;
+      const lj = (raiz && raiz.clientWidth)  || (typeof window !== "undefined" && window.innerWidth)  || r.width;
+      const aj = (raiz && raiz.clientHeight) || (typeof window !== "undefined" && window.innerHeight) || r.height;
+      const x0 = corta ? Math.max(4, r.left + 4) : 4;
+      const x1 = corta ? Math.min(lj - 4, r.right  - 4) : lj - 4;
+      const y0 = corta ? Math.max(4, r.top  + 4) : 4;
+      const y1 = corta ? Math.min(aj - 4, r.bottom - 4) : aj - 4;
+      let vx = ev.clientX + 14, vy = ev.clientY + 14;
+      if (vx + lt > x1) vx = ev.clientX - lt - 14;
+      if (vx < x0) vx = x0;
+      if (vy + at > y1) vy = ev.clientY - at - 14;
+      if (vy < y0) vy = y0;
+      tip.style.left = (vx - r.left) + "px";
+      tip.style.top = (vy - r.top) + "px";
     };
     wrap.addEventListener("mousemove", mostrar);
     wrap.addEventListener("pointerdown", mostrar);
@@ -16311,6 +16401,164 @@ const RSV_CORTES = [0, 30, 60, 90, 180, 365];/* 0 = a regua da PROPRIA loja (reg
 const RSV_DIVERG = 0.10;                     /* regra 4: acima disto a tela mostra os DOIS valores */
 const RSV_JANELA = 90;                       /* a janela de venda que o coletor manda (vendidos90d) */
 
+/* ============ v371 - A OUTRA METADE: QUANTO TEMPO O QUE ESTA' AI' AINDA DA' ============
+   A v370 respondeu "ha' quanto tempo isto esta' parado". Faltava a pergunta irma, que e' a que faz
+   COMPRAR: "quanto tempo o saldo ainda dura?". As duas saem do MESMO documento e da MESMA coleta —
+   sao abas diferentes porque a ACAO e' diferente (vender o que sobra x comprar o que falta).
+   🔴 O PROPRIO AVISO DA v370 DIZIA QUE ISTO NAO DAVA: "ainda nao aponta o que esta' prestes a
+   faltar — o consumo medio ainda nao e' coletado". Estava errado no dia em que foi escrito: o
+   `vendidos90d` e' a posicao 12 e vem desde a primeira coleta. O que faltava era a TELA.
+
+   🔴 DUAS COISAS QUE UM REVISOR INDEPENDENTE ACHOU EM 18/08, LENDO O COLETOR — e que a bancada
+   desta tela NAO podia achar, porque ela olha o `index.html` e nao o SQL do outro lado:
+
+   1. **`vendidos90d` E' `SUM(quantidade)`, NAO CONTAGEM DE VENDAS** (`estoqueloja` v8, CTE `vjan`).
+      A primeira escrita desta tela dizia "pelo menos 3 VENDAS" em seis lugares. Uma caixa com 6
+      unidades levada num unico ticket passava pela guarda que existe justamente para barrar a
+      venda solta. 👉 Agora a tela diz **UNIDADES** em toda parte, que e' o que o numero e'.
+      ⚠️ A guarda continua sendo 3, e continua sendo `RSV_MIN_VENDAS` — o nome da constante e' da
+      v370 e mente um pouco; trocar o nome dela era mexer na cobertura, e isso e' outra versao.
+
+   2. **O COLETOR TERMINA EM `WHERE it.q > 0`.** Item com saldo ZERO nao existe no documento — e
+      a primeira escrita desta tela tinha um cartao "Ja' esta' zerado", uma pastilha "acabou" e um
+      aviso de rodape para ele. 📏 Os tres eram **estruturalmente sempre zero em producao**, e a
+      bancada ficou verde porque a MINHA SEMENTE tinha uma linha com saldo 0 que a producao proibe.
+      🔑 *Bancada que semeia o que o coletor nao produz diz verde sobre um mundo que nao existe.*
+      👉 Os tres sairam, e no lugar entrou uma frase que diz o que o app NAO enxerga.
+
+   🔴 A CONTA E' A DA COBERTURA, E A GUARDA TAMBEM: com menos de tres unidades vendidas na janela a
+   tela NAO projeta. Foi inventar denominador que matou a `vendaDia` em quatro versoes do coletor,
+   e a maior cobertura ja' medida foi de 65.700 dias — 180 anos, num item que estava na lista.
+   ⚠️ E a media e' PLANA, dos 90 dias: sem peso por dia da semana e sem peso por estacao. Item de
+   data (Natal, festa junina, volta as aulas) sai errado nos DOIS sentidos, e a tela diz isso no
+   rodape em vez de deixar o numero parecer promessa. 👉 O GASview faz a media do MESMO DIA DA
+   SEMANA nas ultimas tres semanas; o nosso coletor manda um total de 90 dias, e nao da' para
+   fingir que manda mais do que manda. */
+const RSV_MODOS      = [{k:"parado", n:"📦 Está parado"}, {k:"faltar", n:"⚠️ Vai faltar"}];
+const RSV_RUP_CORTES = [7, 15, 30, 60];   /* "acaba em menos de N dias" */
+const RSV_RUP_PADRAO = 15;
+/* 🔴 UM BOTAO, UMA IDEIA: o mesmo N e' o corte da lista E o alvo da coluna "Comprar". Com dois
+   controles — um para filtrar, outro para dimensionar a compra — a tela passa a ter duas reguas de
+   dias na mesma linha de raciocinio, e ninguem lembra qual e' qual depois de fechar a tela. */
+const RSV_RUP_CRIT   = 7;                 /* ate' aqui a pastilha e' vermelha */
+const RSV_RUP_ATEN   = 15;                /* ate' aqui, amarela; acima disso, verde */
+const RSV_FRESCOR    = 2;                 /* atraso da coleta que ja' compromete a data projetada */
+
+/* A escala humana do numero de dias. 🔑 "127 dias" ninguem sente; "≈ 4 meses" decide. O numero
+   exato NAO sai da tela — o que entra e' a leitura dele, ao lado.
+   🔴 O PISO E' 60 DIAS, e nao 45: com 45 a conta da' 1,5 e arredonda para 2, entao a tela escrevia
+   "45 dias · ≈ 2 meses" — 33% a mais, num rotulo que a pessoa le' como traducao e nao como
+   aproximacao. De 60 para cima o pior caso e' 74 dias lidos como 2 meses, e o "≈" cobre isso. */
+function rsvEmMeses(dias){
+  if (dias === null || !isFinite(dias) || dias < 60) return "";
+  return "≈ " + fmtBR(dias / 30, 0) + " meses";
+}
+
+/* A data em que o saldo zera. 🔴 Contada do DIA DA COLETA, nunca de hoje: a coleta pode ser de
+   ontem, e somar dias no relogio de quem abriu a tela produz uma data que ninguem mediu — o mesmo
+   defeito que a v370 tirou do "lido em". 🔴 `Date.UTC`, e nao `new Date(texto)`: assim a data nao
+   muda com o fuso do celular de quem abre a tela. */
+function rsvDiaQueAcaba(ateISO, dias){
+  /* 🔴 A MESMA GUARDA ESTRITA DA `rsvDiasEntre`, e nao um `split` de tres pedacos. "2026-8-1" tem
+     tres pedacos e viraria uma data: a bancada pegou esta funcao escrevendo "04/08" para um texto
+     que o resto da tela RECUSA. 🔑 Data que o app nao aceita para MEDIR ele nao pode aceitar para
+     PROJETAR — seria a mesma coleta valendo numa conta e nao valendo na outra, na mesma tela. */
+  const a = String(ateISO || "").slice(0,10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(a)) return "";
+  const p = a.split("-");
+  const t = Date.UTC(+p[0], +p[1]-1, +p[2]) + Math.round(dias) * 86400000;
+  if (!isFinite(t)) return "";
+  const dt = new Date(t), ano = dt.getUTCFullYear();
+  const iso = ano + "-" + String(dt.getUTCMonth()+1).padStart(2,"0")
+                  + "-" + String(dt.getUTCDate()).padStart(2,"0");
+  /* 🔴 O ANO SO' APARECE QUANDO ELE MUDA — e ele muda. 📏 Um revisor mediu: em 20/12, com o corte
+     de 60 dias, a tela escrevia "acaba em 18/02" sem nada dizer que era o ano seguinte. Poe-lo
+     sempre encheria de "/26" quinze linhas que estao todas no mesmo ano. */
+  return dataCurtaRel(iso) + (ano !== +p[0] ? "/" + String(ano).slice(2) : "");
+}
+
+/* A parte PURA do que vai faltar: recebe o documento e o corte, devolve o que a tela desenha.
+   Sem DOM e sem Firestore, como a `rsvLinhas` — e pelo mesmo motivo: a bancada precisa chamar. */
+function rsvFaltando(d, corte){
+  const lista = Array.isArray(d.estoque) ? d.estoque : [];
+  const ate   = String(d.estoqueDia || "").slice(0,10) || hojeISO();
+  const alvo  = corte > 0 ? corte : RSV_RUP_PADRAO;
+  const linhas = [];
+  let semAmostra = 0;
+  /* 🔴 O ATRASO E' MEDIDO ANTES DO LACO, e nao depois: quem ja' deveria ter acabado precisa ser
+     marcado NA LINHA, e a marca tem de alcancar a pastilha, a cor E a contagem do cartao. Na
+     primeira reescrita ela so' alcancava a data — e um revisor mediu "3 dias" numa pastilha
+     vermelha com "ja' deveria ter acabado" DOIS MILIMETROS ABAIXO, na mesma celula.
+     🔑 O `rot` unificou o NUMERO; faltava unificar a VERDADE. */
+  const atraso = rsvDiasEntre(ate, hojeISO());
+  lista.forEach(l => {
+    const vend = +l[12] || 0, sal = +l[3] || 0;
+    /* 🔴 A MESMA GUARDA DA COBERTURA, e aqui ela e' o coracao da aba: sem tres UNIDADES vendidas
+       na janela nao ha' ritmo, e sem ritmo "acaba em 3 dias" e' chute com cara de medicao.
+       📏 O coletor mediu 48 · 33 · 29 · 223 de 344 · 6 · 6 itens SEM VENDA NENHUMA nas seis lojas
+       — no Full Center e' a maioria. Eles nao somem calados: sao um CARTAO, nao uma nota de pe'. */
+    if (vend < RSV_MIN_VENDAS){ semAmostra++; return; }
+    const vd = vend / RSV_JANELA;
+    /* `Math.max(0, ...)` aqui e' amarra e nao conta: o coletor filtra `it.q > 0`, entao saldo
+       negativo nao chega. Se um dia chegar, ele vira zero em vez de virar dia negativo. */
+    const dias = Math.max(0, sal / vd);
+    if (dias > alvo) return;
+    /* 🔴 UM ARREDONDAMENTO SO', E A TELA INTEIRA USA ELE: a pastilha, a COR, a contagem do cartao
+       e a data. 📏 Um revisor mediu a versao anterior com duas linhas escrevendo "7 dias" em cores
+       DIFERENTES e o cartao contando 2 onde o olho conta 3 — porque o rotulo arredondava e a cor e
+       a contagem liam o numero cru. 🔑 Numero que a tela MOSTRA e numero que a tela CONTA tem de
+       ser o mesmo numero, senao quem conferir um contra o outro conclui que ha' defeito. */
+    const rot = dias < 1 ? 0 : Math.round(dias);
+    /* 🔴 EM UNIDADE INTEIRA E PARA CIMA: 0,4 unidade faltando e' uma unidade a comprar. */
+    const precisa = Math.max(0, Math.ceil(vd * alvo - sal));
+    /* 🔴 E O PISO VALE PARA O CUSTO TAMBEM, nao so' para a quantidade. Custo unitario NEGATIVO
+       passa pelo coletor (ele so' checa `Number.isFinite`) e entrava SUBTRAINDO: 📏 um revisor
+       mediu "R$ -1.220" no cartao que a propria tela chama de PISO, com o rodape jurando que
+       aquele item somou zero. O `Math.max(0, ...)` estava no `precisa` e faltava aqui. */
+    const custoUn = Math.max(0, +l[6] || 0);
+    /* ⚠️ E o custo NEGATIVO nao e' a mesma coisa que custo AUSENTE. Com os dois virando zero, a
+       tela mandava o dono procurar um campo vazio no Petros onde havia `-40`. Numero errado nao
+       pode virar frase errada — a linha diz qual dos dois casos e'. */
+    const custoTorto = (+l[6] || 0) < 0;
+    linhas.push({l:l, dias:dias, rot:rot, vd:vd, precisa:precisa, sal:sal,
+                 custoUn:custoUn, custoTorto:custoTorto, custo: precisa * custoUn,
+                 passou: atraso !== null && rot < atraso});
+  });
+  /* o que acaba primeiro vem primeiro; empatou, decide quem vende mais por dia */
+  linhas.sort((a,b) => a.dias - b.dias || b.vd - a.vd);
+  return {linhas:linhas, alvo:alvo, ate:ate, total:lista.length, semAmostra:semAmostra,
+          /* 🔴 quem JA' deveria ter acabado conta como critico, seja qual for o `rot`: um item que
+             tinha 20 dias numa coleta de 25 dias atras ja' acabou, e deixa-lo fora do cartao de
+             urgencia por causa do numero antigo seria contar a projecao em vez do fato. */
+          criticos: linhas.filter(x => x.passou || x.rot <= RSV_RUP_CRIT).length,
+          /* 🔴 O CUSTO DA COMPRA E' UM PISO, NAO UM ORCAMENTO: item sem custo unitario no Petros
+             entra somando ZERO. 📏 No Full Center sao 159 dos 200 parados assim. Contar quantos
+             ficaram de fora e' o que impede o numero de virar promessa. */
+          /* 🔴 AUSENTE E NEGATIVO SAO CONTADOS SEPARADOS, e nao por preciosismo: um revisor mediu
+             a LINHA dizendo "custo unitário negativo no cadastro" e o RODAPE, a trezentos pixels
+             dali, dizendo "não está cadastrado" — sobre o MESMO item. O conserto anterior chegou
+             a' linha e nao ao resumo. 🔑 Numero que a tela junta, ela junta na frase tambem. */
+          semCusto:   linhas.filter(x => x.custoUn <= 0 && !x.custoTorto).length,
+          custoTorto: linhas.filter(x => x.custoTorto).length,
+          custoTotal: linhas.reduce((t,x) => t + x.custo, 0),
+          atraso: atraso};
+}
+
+/* 🔑 NENHUMA COR NOVA: sao as tres pastilhas que a v370 ja' mediu nos dois temas.
+   ⚠️ E a regua e' de TEMPO, nao de entrega: o app NAO sabe o prazo do seu fornecedor, e o "i" da
+   coluna diz isso com essas palavras. Pintar de vermelho fingindo que sabe seria pior que nada.
+   🔴 Ela le' `x.rot` — o MESMO numero que o cartao conta. Ver a nota do arredondamento acima.
+   🔴 E ELA LE' `x.passou` ANTES DE TUDO. Um revisor mediu a versao anterior escrevendo "3 dias"
+   numa pastilha vermelha com "ja' deveria ter acabado" logo abaixo, na MESMA CELULA — duas frases
+   a dois milimetros uma da outra dizendo o oposto, porque a marca so' alcancava a data.
+   🔑 UM VEREDITO POR CELULA. O numero antigo vira o detalhe, e nao o titulo. */
+function rsvPastilhaDias(x){
+  if (x.passou) return '<span class="rec-tag rsv-x">já deveria ter acabado</span>';
+  const c = x.rot <= RSV_RUP_CRIT ? "rsv-x" : x.rot <= RSV_RUP_ATEN ? "rsv-t" : "rsv-v";
+  const n = x.rot === 0 ? "menos de 1 dia" : x.rot === 1 ? "1 dia" : fmtBR(x.rot, 0) + " dias";
+  return '<span class="rec-tag ' + c + '">' + n + '</span>';
+}
+
 /* A letra da posicao 9. 🔴 Ela e' o que separa GIRAR de SO' TER MUDADO DE LUGAR: na troca de oleo
    de Teresina, 9 dos 19 itens que "giravam" giraram por TRANSFERENCIA (medido em 17/08). */
 const RSV_MOV = {
@@ -16336,9 +16584,13 @@ const RSV_TELAS = {
            unidades:UNIDADES_FC,  quem:"loja de troca de óleo",
            abasRot:[["lojateresina","Teresina"],["fullcenter","Caxias"],["lojadutra","Presidente Dutra"]]}
 };
+/* v371 - `aba` escolhe qual das duas perguntas a tela responde, e `rup` e' o corte de dias da aba
+   do que vai faltar. 🔴 OS DOIS CORTES VIVEM SEPARADOS DE PROPOSITO: o `corte` e' "parado ha' mais
+   de N dias" e o `rup` e' "acaba em menos de N dias" — mesma unidade, sentidos opostos. Um campo
+   so' faria trocar de aba mexer no filtro da outra, calado. */
 let rsvEst = {
-  conv:   {un:"teresina",     mes:"", corte:0, tudo:false},
-  postos: {un:"lojateresina", mes:"", corte:0, tudo:false}
+  conv:   {un:"teresina",     mes:"", corte:0, tudo:false, aba:"parado", rup:RSV_RUP_PADRAO},
+  postos: {un:"lojateresina", mes:"", corte:0, tudo:false, aba:"parado", rup:RSV_RUP_PADRAO}
 };
 
 /* Dias inteiros entre duas datas AAAA-MM-DD. 🔴 `Date.UTC`, e nao `new Date(texto)`: assim o numero
@@ -16381,16 +16633,266 @@ function rsvCobertura(l){
   return (+l[3] || 0) / (v / RSV_JANELA);
 }
 const RSV_COB_TETO = 365;
-function rsvCoberturaTexto(l, cob){
+/* 🔴 v371 - O PARAMETRO `plano` NASCEU DE UMA DIVERGENCIA MEDIDA. O resumo do celular NAO chamava
+   esta funcao: ele reescrevia o texto por conta propria, e por isso escapava do teto de um ano —
+   um revisor mediu o telefone dizendo "cobertura de 16.290 dias" (44 anos) ao lado da coluna do
+   computador dizendo "mais de 1 ano", na MESMA LINHA. E usava a palavra "cobertura", que esta
+   versao acabou de aposentar do cabecalho.
+   🔑 O comentario do "i", dez linhas acima, dizia "informacao copiada para dois lugares diverge —
+   e' questao de tempo, nao de cuidado". Era o proprio paragrafo sendo desmentido cem linhas abaixo.
+   👉 Agora ha' UMA funcao e DUAS roupas: `plano` devolve texto puro, com " · " no lugar da
+   marcacao, porque no celular a linha e' corrida. */
+function rsvCoberturaTexto(l, cob, plano){
   /* 🔴 A AMOSTRA MINIMA NAO SEGURA O NUMERO — ela so' o encarece. 📏 Com saldo 543 e TRES vendas
      em 90 dias a conta da' 16.290 dias (44 anos), e com 2.190 da' os mesmos 65.700 que a guarda
      dizia ter eliminado. Acima de um ano a projecao deixa de informar: o que informa e' que
      passou de um ano. */
-  if (cob !== null && cob > RSV_COB_TETO) return 'mais de 1 ano de estoque';
-  if (cob !== null) return fmtBR(cob, 0) + ' dias';
+  if (cob !== null && cob > RSV_COB_TETO)
+    return plano ? 'mais de 1 ano de estoque' : '<small class="rsv-dur">mais de 1 ano</small>';
+  /* v371 - o numero exato FICA, e ganha a leitura humana ao lado. 🔑 "127 dias" ninguem sente;
+     "≈ 4 meses" decide. Trocar um pelo outro perderia a medicao; mostrar so' o numero foi o que
+     fez esta coluna passar despercebida desde a v370. */
+  if (cob !== null){
+    const m = rsvEmMeses(cob);
+    /* ⚠️ SINGULAR E PISO, os dois achados de um revisor: a irma `rsvPastilhaDias` ja' escrevia
+       "1 dia", e esta escrevia "1 dias" — mesmo numero, duas gramaticas, duas abas. E abaixo de
+       meio dia ela escrevia "0 dias", que num item que ESTA' na lista nao quer dizer nada. */
+    const n = cob < 1 ? 'menos de 1 dia'
+            : Math.round(cob) === 1 ? '1 dia' : fmtBR(cob, 0) + ' dias';
+    if (plano) return n + (m ? ' · ' + m : '');
+    return n + (m ? '<small class="rsv-por">' + m + '</small>' : '');
+  }
+  /* 🔴 v371 - "VENDAS" VIROU "UNIDADES VENDIDAS", e nao e' preciosismo de redacao: o `vendidos90d`
+     e' `SUM(quantidade)` no coletor, nao `count(*)`. Uma caixa com 6 unidades levada num unico
+     ticket dava "só 6 vendas" nesta linha. 🔑 O erro vem da v370 e passou despercebido porque a
+     palavra parecia certa; quem achou foi um revisor lendo o SQL do outro lado. */
   const v = +l[12] || 0;
-  return '<span class="rsv-sem">' + (v <= 0 ? 'sem venda em ' + RSV_JANELA + ' dias'
-       : (v === 1 ? 'só 1 venda' : 'só ' + fmtBR(v,0) + ' vendas') + ' em ' + RSV_JANELA + ' dias') + '</span>';
+  /* ⚠️ FRACAO NAO ARREDONDA PARA ZERO AQUI. 📏 Achado de revisor: com `vendidos90d = 0,4` (queijo
+     em quilo) o `fmtBR(v,0)` escrevia "só 0 unidades vendidas em 90 dias" — a mesma frase afirmando
+     e negando venda. O ramo de cima e' quem diz "sem venda"; este diz QUANTO foi. */
+  const txt = v <= 0 ? 'sem venda em ' + RSV_JANELA + ' dias'
+            : 'só ' + fmtBR(v, v < 1 ? 2 : 0) + (v === 1 ? ' unidade vendida' : ' unidades vendidas')
+              + ' em ' + RSV_JANELA + ' dias';
+  return plano ? txt : '<span class="rsv-sem">' + txt + '</span>';
+}
+
+/* ===================== v371 - o "i" QUE ABRE NO PASSAR DO MOUSE =====================
+   🔑 NAO e' mecanismo novo: e' o `dsdI()` da v349, o mesmo das Despesas e dos Operadores. O que
+   esta tela tinha eram DOIS `bul()` (v253), que abrem no CLIQUE num cartao fixo, e so' em dois dos
+   quatro cartoes. Eles foram APOSENTADOS aqui, com o texto deles trazido inteiro: dois "i" lado a
+   lado, um abrindo no clique e outro no hover, e' a mesma casa com dois idiomas — e o comentario
+   do proprio `.dsd-i` ja' avisava disso desde a v349 ("se um dia valer generalizar, e' o `bul()`
+   que ganha hover").
+   🔴 O TEXTO MORA NUM LUGAR SO'. A tela desenha o mesmo rotulo em ate' tres lugares (a coluna do
+   computador, o resumo do celular e o cartao), e informacao copiada para dois lugares diverge —
+   e' questao de tempo, nao de cuidado.
+   🔴 E NENHUM NUMERO E' ESCRITO A' MAO AQUI. Na primeira escrita, o "i" da regua cravava "30 dias
+   na conveniencia, 180 na troca de oleo" ao lado de um cartao que LE' `d.estoqueReguaDias` do
+   servidor — mudou la', os dois discordam calados. Um revisor pegou; agora tudo interpola a
+   constante ou remete ao cartao.
+   ⚠️ POR ISSO ESTE BLOCO MORA AQUI, e nao junto com as constantes: ele LE' `RSV_MIN_VENDAS` e
+   `RSV_JANELA` no momento em que o arquivo carrega, e as duas sao declaradas logo acima. Subi-lo
+   seria TDZ — tela branca, e o `node --check` passa. A ordem e' cobrada pela assercao A18. */
+const RSV_EXPL = {
+  parado: ["Dinheiro parado",
+    "O valor em estoque dos itens que não têm venda há mais tempo que a régua desta loja. Quando o item nunca foi vendido vale a última saída, e só quando ele nunca saiu vale a entrada — por isso transferência e acerto de inventário não contam como giro."],
+  itens: ["Itens parados",
+    "Quantos produtos diferentes passaram da régua, e quantos existem no estoque desta loja. Quem conta é o servidor, na coleta. Se você mudar o corte de dias aqui na tela, a lista muda mas este número não — e o rodapé avisa quando os dois deixam de falar da mesma coisa."],
+  total: ["Estoque total",
+    "O valor de tudo o que está no estoque desta loja, parado ou não. É o denominador: cinco mil reais parados pesam muito num estoque de vinte mil e pouco num de duzentos mil."],
+  regua: ["Régua desta loja",
+    "Quantos dias sem venda fazem um item entrar na lista. Ela vem do servidor, por loja, e o número desta loja é o que está no cartão — na conveniência ela é curta, e na troca de óleo bem mais longa, porque lá o giro normal é muito mais lento."],
+  produto: ["Produto",
+    "O nome e a categoria como estão cadastrados no Petros. No celular esta linha carrega também, em resumo, o que as colunas escondidas diriam — porque ali elas não cabem na tela."],
+  saldo: ["Saldo",
+    "Quantas unidades existiam no estoque no dia da coleta, e não neste instante. Peso e volume não são arredondados: insumo vendido em quilo aparece com a fração, porque 17,65 kg não é 18 kg."],
+  valor: ["Valor parado",
+    "O valor que o ERP guarda para este item no estoque. Quando ele diverge de saldo vezes custo em mais de 10%, a tela mostra os dois números em vez de escolher um; quando o ERP não guarda valor nenhum, ela usa saldo vezes custo e diz que usou."],
+  idade: ["Parado há",
+    "Dias desde a última venda. Se o item nunca foi vendido vale a última saída, e só se ele nunca saiu vale a entrada — a linha diz qual dos três está valendo. Quando o item se mexeu dentro da própria régua mesmo assim, aparece “mas entrou há N dias”: é uma contradição real do dado, e quem decide é você."],
+  movimento: ["Último movimento",
+    "Que tipo de movimento foi o último a mexer neste item, e quando. Ele quase nunca é a venda: transferência, acerto de inventário e reclassificação mudam o saldo sem que o produto tenha girado."],
+  dura: ["Dura quanto tempo",
+    "Quantos dias este saldo ainda dá, no ritmo dos últimos " + RSV_JANELA + " dias. Com menos de " + RSV_MIN_VENDAS + " unidades vendidas nessa janela a tela não projeta e diz quantas foram — projetar a partir de uma venda solta já produziu “65.700 dias de estoque” num item de verdade. Acima de um ano ela escreve “mais de 1 ano”, porque aí o número exato não informa mais nada."],
+  preco: ["Preço de venda",
+    "O preço cadastrado no Petros. Quem não tem preço não sai pelo caixa: é insumo ou material de uso e consumo, que sai do estoque sem passar por venda. Numa lista cuja ação implícita é “venda isto”, esses itens não são caso de vender — são caso de conferir consumo e compra."],
+  rupCritico: ["Acaba em até " + RSV_RUP_CRIT + " dias",
+    "Quantos itens da lista têm saldo para " + RSV_RUP_CRIT + " dias ou menos, no ritmo dos últimos " + RSV_JANELA + " dias. Não é a régua de nenhuma entrega: é só o tempo que resta. O prazo do seu fornecedor você conhece e o app não."],
+  rupLista: ["Na lista",
+    /* ⚠️ "no cartão ao lado" era falso: os dois não são vizinhos, e no celular os quatro empilham. */
+    "Quantos itens acabam dentro do corte de dias escolhido, e quantos existem no estoque desta loja. Quem vendeu menos de " + RSV_MIN_VENDAS + " unidades em " + RSV_JANELA + " dias fica de fora, e está contado no cartão “Sem projeção”."],
+  rupSemProjecao: ["Sem projeção",
+    "Itens que venderam menos de " + RSV_MIN_VENDAS + " unidades nos últimos " + RSV_JANELA + " dias. Sem ritmo não há projeção, e projetar a partir de uma venda solta já produziu “65.700 dias de estoque” num item de verdade. Eles não estão em ordem nem fora de ordem: o app simplesmente não sabe dizer. Quem está encalhado aparece na outra aba."],
+  rupCusto: ["Comprar, em dinheiro",
+    "O custo de comprar o que falta para todos os itens da lista chegarem ao corte de dias escolhido, pelo custo unitário do Petros. É um piso, não um orçamento: item com custo não cadastrado entra somando zero, e o rodapé diz quantos são."],
+  rupDias: ["Dura quanto tempo",
+    "Quantos dias o saldo ainda dá, no ritmo dos últimos " + RSV_JANELA + " dias, e a data em que ele zera — contada a partir do dia da coleta, não de hoje. Vermelho é " + RSV_RUP_CRIT + " dias ou menos; amarelo, até " + RSV_RUP_ATEN + ". O prazo de entrega do fornecedor não está nesta conta."],
+  rupVenda: ["Venda por dia",
+    "O total de unidades vendidas nos últimos " + RSV_JANELA + " dias dividido por " + RSV_JANELA + ". É uma média plana: não pesa dia da semana nem estação, então item de data sai errado nos dois sentidos."],
+  rupComprar: ["Comprar, em unidades",
+    "Quantas unidades faltam para este item chegar ao corte de dias escolhido acima, no ritmo atual. Sempre arredondado para cima: 0,4 unidade faltando é uma unidade a comprar."]
+};
+function rsvI(k){ const e = RSV_EXPL[k]; return e ? dsdI(e[0], e[1]) : ""; }
+
+/* A TELA DO QUE VAI FALTAR. 🔴 Ela nasce com a regra nº 1 da irma: numero que a tela nao sabe, ela
+   NAO escreve — e o que ficou de fora aparece CONTADO, com o motivo escrito por extenso. */
+function blocoFaltar(tela, d, cfg){
+  const est = rsvEst[tela];
+  const nome = (cfg.abasRot.find(a => a[0] === est.un) || [,est.un])[1];
+  const f = rsvFaltando(d, est.rup);
+
+  /* 🔴 O QUARTO CARTAO E' O QUE A TELA NAO SABE, e ele nao esta' ali por simetria. Na primeira
+     escrita este lugar era "Ja' esta' zerado" — que o coletor torna estruturalmente ZERO, porque
+     ele termina em `WHERE it.q > 0`. Um zero duro sobre a coisa que o app nao enxerga e' o defeito
+     que a regra nº 1 desta tela existe para impedir. 👉 Trocado pelo numero que e' VERDADE e que
+     ninguem tinha: quantos itens ficaram de fora por falta de amostra. */
+  let h = '<div class="rel-kpis">'
+    + '<div class="rel-kpi' + (f.criticos > 0 ? ' ruim' : '') + '"><span>Acaba em até ' + fmtBR(RSV_RUP_CRIT,0) + ' dias' + rsvI("rupCritico") + '</span><b>'
+    + fmtBR(f.criticos,0) + '</b></div>'
+    + '<div class="rel-kpi"><span>Na lista' + rsvI("rupLista") + '</span><b>' + fmtBR(f.linhas.length,0)
+    + '<small class="rsv-por">de ' + fmtBR(f.total,0) + ' no estoque</small></b></div>'
+    + '<div class="rel-kpi"><span>Comprar p/ ' + fmtBR(f.alvo,0) + ' dias' + rsvI("rupCusto") + '</span><b>'
+    + fmtR$0(f.custoTotal) + '</b></div>'
+    + '<div class="rel-kpi"><span>Sem projeção' + rsvI("rupSemProjecao") + '</span><b>' + fmtBR(f.semAmostra,0)
+    + '<small class="rsv-por">' + (f.semAmostra === 1 ? 'item que o app não sabe medir' : 'itens que o app não sabe medir') + '</small></b></div>'
+    + '</div>';
+
+  /* a data da coleta nao se inventa — a mesma frase da aba irma, pelo mesmo motivo */
+  h += '<p class="nota-dash">Estoque de <b>' + escAttr(nome) + '</b> '
+     + (d.estoqueDia ? 'lido em <b>' + escAttr(dataCurtaRel(f.ate)) + '</b>'
+                     : '<b>sem a data da coleta</b> — as contas de dias abaixo usam o dia de hoje')
+     + '. O ritmo é a <b>média dos últimos ' + RSV_JANELA + ' dias</b>, e só entra na conta quem vendeu '
+     + '<b>pelo menos ' + RSV_MIN_VENDAS + ' unidades</b> nessa janela.</p>';
+
+  h += '<div class="rcb-filtro"><span class="rcb-filtro-rot">Acaba em menos de:</span>';
+  RSV_RUP_CORTES.forEach(c => {
+    h += '<button class="rcb-fbt' + (f.alvo === c ? ' aceso' : '') + '" onclick="rsvRup(\'' + tela + '\',' + c + ')">'
+       + fmtBR(c,0) + ' dias</button>';
+  });
+  h += '</div>';
+
+  if (!f.linhas.length){
+    /* 🔴 O ✅ SO' SAI QUANDO NAO HA' NADA QUE O APP NAO SAIBA MEDIR, e este conserto veio de um
+       revisor. 📏 Numa loja em que 13 de 13 itens ficaram sem amostra, a aba nova escrevia
+       "✅ Nenhum item acaba dentro de 60 dias" — um ✅ categorico sobre uma loja da qual o app nao
+       consegue medir NENHUM item. E' a regra nº 1 desta tela, e a ABA IRMA JA' A TINHA CURADO: o
+       `blocoRessup` faz `(nParados > 0 ? '' : '✅ ')` desde a v370, com o comentario "na tela cuja
+       regra nº 1 e' nunca escrever zero para o dono".
+       🔑 A aba nova nasceu com o defeito que a aba velha ja' tinha consertado — copiar a forma sem
+       copiar a cicatriz. 📏 E nao e' hipotese: o coletor mediu 223 de 344 itens sem venda nenhuma
+       no Full Center, e a troca de oleo e' justamente onde o giro e' lento. */
+    h += '<p class="nota-dash">' + (f.semAmostra > 0 ? '' : '✅ ')
+       + 'Nenhum item de <b>' + escAttr(nome) + '</b> acaba dentro de <b>'
+       + fmtBR(f.alvo,0) + ' dias</b>, no ritmo dos últimos ' + RSV_JANELA + ' dias'
+       + (f.semAmostra > 0
+          ? ' — mas <b>' + fmtBR(f.semAmostra,0) + '</b> ' + (f.semAmostra === 1 ? 'item desta loja não tem' : 'itens desta loja não têm')
+            + ' venda suficiente para o app projetar' + (f.semAmostra >= f.total
+              ? ', e <b>são todos os que existem no estoque</b>: aqui o app não sabe dizer nada.'
+              : '. Eles estão no cartão <b>Sem projeção</b>.')
+          : '.') + '</p>';
+    return h + rsvRodapeFaltar(f);
+  }
+
+  const mostra = est.tudo ? f.linhas : f.linhas.slice(0, RSV_TOPO);
+  h += '<h4 class="rel-h4">⏳ O que acaba primeiro' + cntEtiqueta(f.linhas.length) + '</h4>';
+  h += '<div class="rel-scroll"><table class="rel-tab rsv-tab"><thead><tr>'
+     + '<th>Produto' + rsvI("produto") + '</th><th class="n rsv-off">Saldo' + rsvI("saldo") + '</th>'
+     + '<th class="n">Dura' + rsvI("rupDias") + '</th>'
+     + '<th class="n rsv-off">Venda/dia' + rsvI("rupVenda") + '</th>'
+     + '<th class="n rsv-off">Comprar p/ ' + fmtBR(f.alvo,0) + 'd' + rsvI("rupComprar") + '</th>'
+     + '</tr></thead><tbody>';
+
+  mostra.forEach(x => {
+    const l = x.l;
+    /* 🔴 SALDO FRACIONARIO NAO SE ARREDONDA — a mesma regra da aba irma, e pelo mesmo motivo:
+       peso e volume sao saldo de verdade nesta lista. */
+    const salTxt = (x.sal === Math.round(x.sal)) ? fmtBR(x.sal, 0) : fmtBR(x.sal, 2);
+    /* venda por dia com duas casas quando e' pequena: "0" no lugar de "0,42" apagaria justamente
+       o item de giro lento, que e' o que acaba sem ninguem ver. */
+    const vdTxt = fmtBR(x.vd, x.vd < 10 ? 2 : 0);
+    /* ⚠️ custo AUSENTE e custo NEGATIVO viram o mesmo zero na conta, mas nao a mesma frase: mandar
+       o dono procurar um campo vazio onde ha' `-40` e' trocar um numero errado por uma frase errada. */
+    const semCustoTxt = x.custoTorto ? 'custo unitário negativo no cadastro' : 'sem custo lançado';
+    const compraTxt = x.precisa > 0
+      ? '<b>' + fmtBR(x.precisa,0) + '</b>' + (x.custoUn > 0
+          ? '<small class="rsv-por">' + fmtR$(x.precisa * x.custoUn) + '</small>'
+          : '<small class="rsv-sem">' + semCustoTxt + '</small>')
+      : '<span class="rsv-sem">nada</span>';
+    /* 🔴 A DATA NAO PODE SER NO PASSADO. Quando a coleta atrasa mais do que o item durava, a data
+       projetada cai para tras — e uma data de anteontem escrita como previsao e' pior que nenhuma.
+       📏 Um revisor mediu isso com atraso de exatamente 2 dias, que e' o limite em que o aviso de
+       frescor do rodape ainda nao dispara. Nesse caso a celula inteira — pastilha, cor, contagem
+       e detalhe — passa a falar do FATO, e o numero antigo vira o detalhe. */
+    const quando = x.passou ? "" : rsvDiaQueAcaba(f.ate, x.rot);
+    h += '<tr><td>' + escAttr(String(l[1] || ""))
+       + '<small class="rsv-cat">' + escAttr(String(l[2] || "(sem categoria)")) + '</small>'
+       /* 🔴 NO CELULAR ESTE `small` E' A LINHA INTEIRA: as tres colunas da direita somem, e sem
+          ele o telefone mostraria so' nome e pastilha — e' no celular que a equipe abre a tela. */
+       + '<small class="rsv-mob">' + salTxt + ' em estoque · vende ' + vdTxt + '/dia'
+       + (x.precisa > 0 ? ' · comprar ' + fmtBR(x.precisa,0)
+            + (x.custoUn > 0 ? ' (' + fmtR$(x.precisa * x.custoUn) + ')' : ' (' + semCustoTxt + ')') : '')
+       + '</small></td>'
+       + '<td class="n rsv-off">' + salTxt + '</td>'
+       + '<td class="n">' + rsvPastilhaDias(x)
+       + (x.passou ? '<small class="rsv-por">tinha ' + (x.rot === 1 ? '1 dia' : fmtBR(x.rot,0) + ' dias') + ' na coleta</small>'
+                   : (quando ? '<small class="rsv-por">acaba em ' + escAttr(quando) + '</small>' : '')) + '</td>'
+       + '<td class="n rsv-off">' + vdTxt + '</td>'
+       + '<td class="n rsv-off">' + compraTxt + '</td></tr>';
+  });
+  h += '</tbody></table></div>';
+
+  if (f.linhas.length > RSV_TOPO){
+    h += '<div class="prc-mais"><button type="button" class="doc-chip prc-btn" onclick="rsvVerTudo(\'' + tela + '\')">'
+       + (est.tudo ? '↑ Mostrar só os ' + RSV_TOPO + ' primeiros' : '↓ Ver todos os ' + f.linhas.length + ' itens')
+       + '</button><span class="prc-mais-n">'
+       + (est.tudo ? 'mostrando os ' + f.linhas.length : 'mostrando ' + RSV_TOPO + ' de ' + f.linhas.length)
+       + '</span></div>';
+  }
+  return h + rsvRodapeFaltar(f);
+}
+
+function rsvRodapeFaltar(f){
+  let h = "";
+  /* 🔴 O SELO DE FRESCOR, que e' a ideia nº 1 da varredura do GASview (05/08). Aqui ele nao e'
+     enfeite: esta aba afirma uma data NO FUTURO, e projecao feita sobre coleta velha erra pelo
+     atraso inteiro. A aba irma nao precisa dele — "parado ha' N dias" ja' esta' ancorado no dia
+     da coleta e nao anda sozinho.
+     ⚠️ Ele nao e' a unica defesa: a LINHA de quem ja' deveria ter acabado diz isso por conta
+     propria, porque o atraso de exatamente 2 dias fica abaixo deste limite. */
+  if (f.atraso !== null && f.atraso > RSV_FRESCOR){
+    h += '<p class="nota-dash">⏳ A coleta desta loja é de <b>' + escAttr(dataCurtaRel(f.ate)) + '</b>, há <b>'
+       + fmtBR(f.atraso,0) + ' dias</b>. As datas de “acaba em” são contadas <b>a partir do dia da coleta</b>, '
+       + 'não de hoje — o que saiu do estoque desde então <b>não está aqui</b>. Normalmente a coleta acontece '
+       + 'quatro vezes por dia.</p>';
+  }
+  if (f.semAmostra){
+    h += '<p class="nota-dash">📌 <b>' + fmtBR(f.semAmostra,0) + '</b> ' + (f.semAmostra === 1 ? 'item ficou' : 'itens ficaram')
+       + ' de fora desta lista por ter vendido menos de <b>' + RSV_MIN_VENDAS + ' unidades</b> em ' + RSV_JANELA + ' dias: '
+       + 'sem ritmo não há projeção, e projetar a partir de uma venda solta já produziu <i>“65.700 dias de '
+       + 'estoque”</i> num item de verdade. 👉 Quem está encalhado aparece na outra aba, <b>📦 Está parado</b>.</p>';
+  }
+  /* 🔴 DUAS FRASES PORQUE SAO DOIS CADASTROS DIFERENTES, e a linha ja' fazia essa distincao. */
+  if (f.semCusto){
+    h += '<p class="nota-dash">⚠️ Em <b>' + fmtBR(f.semCusto,0) + '</b> ' + (f.semCusto === 1 ? 'item' : 'itens')
+       + ' desta lista o <b>custo unitário não está cadastrado</b> no Petros, então '
+       + (f.semCusto === 1 ? 'ele entra' : 'eles entram') + ' somando <b>zero</b> no valor da compra. '
+       + 'O número do cartão é um <b>piso</b>, não um orçamento.</p>';
+  }
+  if (f.custoTorto){
+    h += '<p class="nota-dash">⚠️ E em <b>' + fmtBR(f.custoTorto,0) + '</b> ' + (f.custoTorto === 1 ? 'item' : 'itens')
+       + ' o <b>custo unitário está NEGATIVO</b> no Petros. ' + (f.custoTorto === 1 ? 'Ele entra' : 'Eles entram')
+       + ' somando <b>zero</b> — um custo negativo abateria o valor da compra em vez de somar. '
+       + '👉 Isso não é custo faltando: é <b>cadastro errado</b>, e o campo tem conteúdo.</p>';
+  }
+  /* ⚠️ ESTA FRASE SAI SEMPRE, e e' a unica da tela que sai sempre. Ela nao e' aviso de excecao: e'
+     a definicao do que o numero E' e do que ele NAO alcanca. Sem ela, "acaba em 21/08" parece uma
+     data medida — e o segundo periodo dela e' o unico lugar do app que conta o ponto cego. */
+  h += '<p class="nota-dash">📌 O ritmo é a <b>média plana dos últimos ' + RSV_JANELA + ' dias</b>: não há peso por '
+     + 'dia da semana nem por estação, e o <b>prazo de entrega do fornecedor não entra na conta</b>. Item de data '
+     + '(Natal, festa junina, volta às aulas) sai errado nos dois sentidos — e é você quem sabe qual é qual. '
+     + '🔴 E esta lista <b>não enxerga o que já acabou</b>: o servidor só publica item com <b>saldo maior que '
+     + 'zero</b>, então ruptura já consumada não chega até aqui.</p>';
+  return h;
 }
 
 /* Regra 4: o dinheiro da tela nao e' necessariamente o do ERP. */
@@ -16491,6 +16993,19 @@ function blocoRessup(tela){
          + 'ainda não sabe. Ele é montado no servidor, quatro vezes por dia.</p>';
   }
 
+  /* v371 - AS DUAS PERGUNTAS DO RESSUPRIMENTO, e elas nao cabem na mesma lista: uma olha o que
+     sobra ha' tempo demais, a outra o que acaba antes da proxima compra. Mesmo documento, mesma
+     coleta, mesma loja — abas diferentes porque a ACAO e' diferente (vender x comprar).
+     🔴 AS ABAS ENTRAM DEPOIS DOS DOIS GUARDAS DO SELO. Numa loja cujo estoque o app nao sabe,
+     oferecer duas maneiras de olhar o que ele nao sabe e' pior do que oferecer uma.
+     ⚠️ CUSTO ACEITO, medido por um revisor: quem estiver na aba "Vai faltar" e trocar para uma
+     loja com o selo derrubado nao ve' as abas enquanto estiver ali, e o `est.aba` continua em
+     "faltar". Nao fica preso — as pastilhas de cidade continuam acima — mas pode estranhar. */
+  const abas = '<div class="doc-tools rsv-modo">' + RSV_MODOS.map(m =>
+    '<button class="doc-chip' + (est.aba === m.k ? ' ativo' : '') + '" onclick="rsvModo(\'' + tela + '\',\'' + m.k + '\')">'
+    + m.n + '</button>').join("") + '</div>';
+  if (est.aba === "faltar") return abas + blocoFaltar(tela, d, cfg);
+
   const r = rsvLinhas(d, est.corte);
   const nItens   = +d.estoqueItens || r.total;
   const nParados = +d.estoqueParados || 0;
@@ -16500,11 +17015,14 @@ function blocoRessup(tela){
   /* Os quatro cards falam do que foi PUBLICADO (a regua da loja), nao do corte escolhido na tela —
      e a linha de baixo diz o que o corte mudou. Assim o numero do card continua conferindo com o
      do servidor mesmo quando alguem mexe no filtro. */
-  let h = '<div class="rel-kpis">'
-    + '<div class="rel-kpi' + (vParado > 0 ? ' ruim' : '') + '"><span>Dinheiro parado' + bul('rsvParado') + '</span><b>' + fmtR$0(vParado) + '</b></div>'
-    + '<div class="rel-kpi"><span>Itens parados</span><b>' + fmtBR(nParados,0) + '<small class="rsv-por">de ' + fmtBR(nItens,0) + ' no estoque</small></b></div>'
-    + '<div class="rel-kpi"><span>Estoque total</span><b>' + fmtR$0(vTotal) + '</b></div>'
-    + '<div class="rel-kpi"><span>Régua desta loja' + bul('rsvRegua') + '</span><b>'
+  /* v371 - os QUATRO cartoes ganham o "i", e nao mais so' dois. 🔑 Cartao sem explicacao ao lado
+     de cartao com explicacao ensina que os sem "i" nao tem o que explicar — e "Itens parados" e
+     "Estoque total" sao justamente os dois que a pessoa confunde com outra coisa. */
+  let h = abas + '<div class="rel-kpis">'
+    + '<div class="rel-kpi' + (vParado > 0 ? ' ruim' : '') + '"><span>Dinheiro parado' + rsvI("parado") + '</span><b>' + fmtR$0(vParado) + '</b></div>'
+    + '<div class="rel-kpi"><span>Itens parados' + rsvI("itens") + '</span><b>' + fmtBR(nParados,0) + '<small class="rsv-por">de ' + fmtBR(nItens,0) + ' no estoque</small></b></div>'
+    + '<div class="rel-kpi"><span>Estoque total' + rsvI("total") + '</span><b>' + fmtR$0(vTotal) + '</b></div>'
+    + '<div class="rel-kpi"><span>Régua desta loja' + rsvI("regua") + '</span><b>'
     + (r.regua > 0 ? fmtBR(r.regua,0) + ' dias' : '<span class="rsv-sem">não informada</span>') + '</b></div>'
     + '</div>';
 
@@ -16552,8 +17070,15 @@ function blocoRessup(tela){
 
   h += '<h4 class="rel-h4">📦 O que está parado, do maior valor para o menor' + cntEtiqueta(r.linhas.length) + '</h4>';
   h += '<div class="rel-scroll"><table class="rel-tab rsv-tab"><thead><tr>'
-     + '<th>Produto</th><th class="n rsv-off">Saldo</th><th class="n rsv-off">Valor parado</th><th class="n">Parado há</th>'
-     + '<th class="rsv-off">Último movimento</th><th class="n rsv-off">Cobertura</th><th class="n rsv-off">Preço venda</th>'
+     + '<th>Produto' + rsvI("produto") + '</th><th class="n rsv-off">Saldo' + rsvI("saldo") + '</th>'
+     + '<th class="n rsv-off">Valor parado' + rsvI("valor") + '</th>'
+     + '<th class="n">Parado há' + rsvI("idade") + '</th>'
+     + '<th class="rsv-off">Último movimento' + rsvI("movimento") + '</th>'
+     /* v371 - "Cobertura" era jargao de quem ja' sabe o que a palavra quer dizer. A pergunta que a
+        pessoa faz na frente da prateleira e' "quanto tempo isso dura", e o rotulo passa a ser a
+        pergunta. O numero por tras nao mudou uma linha. */
+     + '<th class="n rsv-off">Dura' + rsvI("dura") + '</th>'
+     + '<th class="n rsv-off">Preço venda' + rsvI("preco") + '</th>'
      + '</tr></thead><tbody>';
 
   mostra.forEach(x => {
@@ -16583,7 +17108,13 @@ function blocoRessup(tela){
           Com as duas, a mesma frase aparecia duas vezes na mesma linha em 390px. */
        + '<small class="rsv-mob">' + movTxt + '</small>'
        + '<small class="rsv-mob"><b>' + fmtR$(v.ordem) + ' parado</b> · ' + salTxt + ' em estoque · '
-       + (x.cob === null ? rsvCoberturaTexto(l, null).replace(/<[^>]+>/g, "") : 'cobertura de ' + fmtBR(x.cob,0) + ' dias')
+       /* 🔴 v371 - CHAMA A MESMA FUNCAO DA COLUNA, no modo `plano`. Esta linha REESCREVIA o texto
+          por conta propria, e por isso escapava do teto de um ano: um revisor mediu o celular
+          dizendo "cobertura de 16.290 dias" — 44 anos — ao lado da coluna dizendo "mais de 1 ano".
+          📏 E ele provou que ninguem olhava: trocando o texto por "cobertura de 99.999 dias" a
+          suite dava 155/155 e a tela 23/23. 🔑 Pedaco de tela que nenhuma assercao alcanca fica
+          verde do mesmo jeito — a mesma forma do paragrafo de abertura que a foto pegou. */
+       + rsvCoberturaTexto(l, x.cob, true)
        + (preco > 0 ? ' · vende a ' + fmtR$(preco) : ' · sem preço de venda')
        + (ressalva ? ' · ' + ressalva : '') + '</small></td>'
        + '<td class="n rsv-off">' + salTxt + '</td>'
@@ -16681,7 +17212,15 @@ function renderRessup(tela){
   if (abas) abas.innerHTML = cfg.abasRot.map(a =>
     '<button class="doc-chip' + (est.un === a[0] ? ' ativo' : '') + '" onclick="rsvAba(\'' + tela + '\',\'' + escAttr(a[0]) + '\')">'
     + escAttr(a[1]) + '</button>').join("");
-  box.innerHTML = blocoRessup(tela);
+  /* v371 - o balao do "i" mora DENTRO do wrap, e o wrap embrulha a tela inteira. 🔑 E' a amarra
+     do #painelOperadores (v359), com o motivo dela: `ligarTipsEm` posiciona o balao pelo retangulo
+     do wrap, e um wrap por tabela faria o balao da ultima coluna ser cortado pela propria borda.
+     🔴 E foi por causa DESTE wrap — o painel inteiro, 1.119px — que o teto vertical do balao
+     precisou passar a ser a JANELA e nao o wrap; ver a nota dentro do `ligarTipsEm`.
+     🔑 Nao ha' o que desligar: este `innerHTML` troca a arvore inteira, e os listeners morrem
+     junto com os nos antigos. */
+  box.innerHTML = '<div class="dsd-wrap">' + blocoRessup(tela) + '<div class="evo-tip dsd-tip"></div></div>';
+  ligarTipsEm(cfg.box);
 }
 
 function rsvMuda(tela, campo, valor){
@@ -16693,6 +17232,10 @@ function rsvMuda(tela, campo, valor){
 function rsvAba(tela, un){ rsvEst[tela].un = un; rsvEst[tela].tudo = false; renderRessup(tela); }
 function rsvCorte(tela, dias){ rsvEst[tela].corte = dias; rsvEst[tela].tudo = false; renderRessup(tela); }
 function rsvVerTudo(tela){ rsvEst[tela].tudo = !rsvEst[tela].tudo; renderRessup(tela); }
+/* v371 - trocar de aba ou de corte SEMPRE recolhe a lista: as duas abas usam o mesmo `tudo`, e sem
+   isto quem abrisse "ver todos os 200 parados" caia na aba do que vai faltar ja' com tudo aberto. */
+function rsvModo(tela, aba){ rsvEst[tela].aba = aba; rsvEst[tela].tudo = false; renderRessup(tela); }
+function rsvRup(tela, dias){ rsvEst[tela].rup = dias; rsvEst[tela].tudo = false; renderRessup(tela); }
 
 function alternarRessupConv(){
   const aberto = abrirPainelExclusivo("painelRessupConv");
@@ -24662,11 +25205,15 @@ const BULAS = {
   contraAnoPassado: { t:"Contra o ano passado",
     d:"Compara com o mesmo per\u00edodo do ano anterior, contando s\u00f3 os meses j\u00e1 fechados dos dois lados." },
   cartoes: { t:"Cart\u00f5es",
-    d:"Cr\u00e9dito mais d\u00e9bito. Nas lojas \u00e9 a maior parte do que aparece como recebido." },
-  rsvParado: { t:"Dinheiro parado",
-    d:"O valor em estoque dos itens que n\u00e3o t\u00eam venda h\u00e1 mais tempo que a r\u00e9gua desta loja. Quando o item nunca foi vendido vale a \u00faltima sa\u00edda, e s\u00f3 quando ele nunca saiu vale a entrada \u2014 por isso transfer\u00eancia e acerto de invent\u00e1rio n\u00e3o contam como giro." },
-  rsvRegua: { t:"R\u00e9gua desta loja",
-    d:"Quantos dias sem venda fazem um item entrar na lista. Ela vem do servidor, por loja: na conveni\u00eancia s\u00e3o 30 dias; na troca de \u00f3leo, 180, porque l\u00e1 o giro normal \u00e9 muito mais lento." }
+    d:"Cr\u00e9dito mais d\u00e9bito. Nas lojas \u00e9 a maior parte do que aparece como recebido." }
+  /* 🔴 v371 - as duas bulas do Ressuprimento SAIRAM DAQUI, e o texto delas nao foi apagado: esta',
+     palavra por palavra, em RSV_EXPL.parado e RSV_EXPL.regua. O menu passou a usar o "i" de HOVER
+     (dsdI, v349) nos QUATRO cartoes, e nao mais o "i" de CLIQUE em dois deles. Deixar as duas aqui
+     produziria dois "i" com comportamentos diferentes na mesma fileira de cartoes — e manteria o
+     mesmo texto em dois lugares, que e' exatamente a forma de ele divergir.
+     ⚠️ A da regua foi REESCRITA na mudanca: ela cravava "30 dias" e "180 dias" ao lado de um
+     cartao que LE' esses numeros do servidor. Numero escrito a' mao ao lado de numero medido e'
+     divergencia esperando o dia. */
 };
 
 /* o botaozinho. A chave vai escrita aqui, no lugar da chamada. */
