@@ -6944,7 +6944,8 @@ function setPoderPerfil(id, chave, on){
   if (chave === "admin" && !podeMexerEmAdmin()) return negarAdminPoder("msgPerfis");
   if (!perfisAcesso[id].poderes) perfisAcesso[id].poderes = {};
   if (on) perfisAcesso[id].poderes[chave] = true; else delete perfisAcesso[id].poderes[chave];
-  docPerfisAcesso.set({ perfis: perfisAcesso })
+  const _resumoPerfil = (on ? "Ligou" : "Desligou") + " o poder " + chave + " do perfil " + nomePerfilAdm(id);
+  gravarPerfisAcessoAdm(_resumoPerfil)
     .then(()=>{ aplicarVisibilidadeMenus(); renderAbaAdm(); })
     .catch(er => avisoAdmin("msgPerfis", msgErro(er), "erro"));
 }
@@ -6975,7 +6976,8 @@ function setEmpresaPerfil(id, sig, on){
   const p = perfisAcesso[id];
   if (!p.empresas) { p.empresas = {}; EMPRESAS_ADM.forEach(x => p.empresas[x.sig] = true); }
   if (on) p.empresas[sig] = true; else p.empresas[sig] = false;
-  docPerfisAcesso.set({ perfis: perfisAcesso })
+  const _resumoPerfil = (on ? "Ligou" : "Desligou") + " a empresa " + sig + " no perfil " + nomePerfilAdm(id);
+  gravarPerfisAcessoAdm(_resumoPerfil)
     .then(()=>{ aplicarVisibilidadeMenus(); renderEditorPerfil(); })
     .catch(er => avisoAdmin("msgPerfis", msgErro(er), "erro"));
 }
@@ -6989,6 +6991,38 @@ function setEmpresaUsuario(email, sig, on){
   gravarPermissoesAdm("Empresas de " + admNomeDe(email) + " atualizadas.");
 }
 
+/* 🔴 v376 - O CAMINHO UNICO ATE' `config/perfisAcesso`, no molde que a v320 deu ao
+   `config/permissoes`. Eram OITO lugares chamando `docPerfisAcesso.set` por conta propria, e
+   cada um grava o documento INTEIRO, sem merge, a partir da global `perfisAcesso`.
+   🔑 Por que agora: desde a v375 essa global fica EMPRESTADA para a foto do servidor dentro de
+   `comFotoDeAcesso`. Gravar de dentro da janela do emprestimo nao escreveria "um perfil errado":
+   escreveria a foto por cima dos perfis do app todo. Hoje nada alcanca isto de dentro da janela
+   (os oito sao handlers de clique, sincronos) - e e' por isso que a trava tem de existir: para
+   continuar verdade quando alguem mudar aquele calculo sem ler o comentario.
+   ⚠️ Devolve promessa: os oito chamadores continuam encadeando `.then`/`.catch` como antes. E a
+   recusa vai pela REJEICAO, nao por `avisoAdmin` daqui - senao o `.catch` de cada chamador
+   escreveria por cima da minha mensagem na mesma caixa. */
+let _perfisAcessoBom = null;      // v376b - ver desfazerPerfisAcesso()
+/* 🔴 v376b - DESFAZER A MUTACAO, nao so' recusar a escrita. Os oito chamadores mudam a global
+   ANTES de chamar aqui, e todos gravam o documento INTEIRO: sem isto, a mudanca que a tela disse
+   que nao salvou ia junto na PROXIMA gravacao aceita, e sem rastro nenhum. Medido por revisor em
+   19/08: `removerPerfilAcesso` recusado por `permission-denied` deixava o perfil apagado na
+   memoria, e um clique legitimo em OUTRO perfil publicava a exclusao no servidor.
+   🔑 A tela dizia "nao salvou" e o dado tinha ido - a forma fixa do pior defeito deste projeto. */
+function desfazerPerfisAcesso(){
+  if (_perfisAcessoBom === null) return;
+  perfisAcesso = JSON.parse(_perfisAcessoBom);
+  aplicarVisibilidadeMenus(); renderAbaAdm();
+}
+function gravarPerfisAcessoAdm(resumo){
+  if (_emprestandoFotoDeAcesso){
+    desfazerPerfisAcesso();
+    return Promise.reject(new Error("o app estava conferindo os acessos no servidor. Sua mudança NÃO foi gravada — tente de novo."));
+  }
+  return docPerfisAcesso.set({ perfis: perfisAcesso })
+    .then(r => { if (resumo) logAtividade({ acao:"editou", area:"Perfis de acesso", resumo: escAttr(resumo) }); return r; })
+    .catch(e => { desfazerPerfisAcesso(); throw e; });   // v376b - erro de rede tambem desfaz
+}
 /* ----- gravacao comum ----- */
 /* 🔴 v320 — ESTE E' O UNICO CAMINHO ATE' `config/permissoes`. Antes eram DEZ lugares chamando
    `docPermissoes.set` por conta propria; cinco passavam por aqui e cinco nao. Agora todos passam,
@@ -7013,7 +7047,19 @@ function gravarPermissoesAdm(msgOk, depois, caixa){
   protegerDonoAntesDeGravar();
   const cx = caixa || "msgAdminLista";
   docPermissoes.set({ porUsuario: permissoesTodos })
-    .then(()=>{ if (msgOk) avisoAdmin(cx, msgOk, "ok"); if (typeof depois === "function") depois(); })
+    /* 🔴 v376 - A PENDENCIA NOMEADA NA FICHA DA v375. Mudanca de perfil de acesso nao deixava
+       rastro nenhum no Historico: em 19/08, investigando por que a tarefa "esperando perfil"
+       voltava, nao deu para medir de fora a que horas o perfil tinha sido escolhido - e essa era
+       a medicao que separava "defeito" de "a tarefa estava certa". 🔑 O que nao se registra nao
+       se mede depois. O texto e' o MESMO que a tela mostra, entao os dois nao podem divergir. */
+    .then(()=>{ if (msgOk){ avisoAdmin(cx, msgOk, "ok");
+                            /* 🔴 escAttr AQUI, e nao no aviso: `renderAtividadesFunc` injeta o
+                               resumo CRU no innerHTML (index.html:7956) enquanto `avisoAdmin` usa
+                               textContent. A convencao dos ~25 chamadores antigos e' escapar ANTES
+                               de gravar, e a v376 a quebrou. Medido por revisor: nome de perfil com
+                               `<img onerror>` executava no navegador de quem abrisse o Historico. */
+                            logAtividade({ acao:"editou", area:"Pessoas", resumo: escAttr(msgOk) }); }
+                if (typeof depois === "function") depois(); })
     .catch(er => avisoAdmin(cx, msgErro(er), "erro"));
   aplicarVisibilidadeMenus();
   renderAbaAdm();
@@ -7271,7 +7317,7 @@ function apagarFichaUsuario(email){
         "). Tente apagar a ficha de novo.", "erro"); renderAdminUsuarios(); });
   }, "msgAdminLista");
 
-  logAtividade({ acao:"apagou", area:"Pessoas", resumo:"Apagou a ficha de " + email });
+  logAtividade({ acao:"apagou", area:"Pessoas", resumo:"Apagou a ficha de " + escAttr(email) });
 }
 
 /* 🔑 A CONFIRMAÇÃO DIZ O QUE SOME **E O QUE FICA**. Confirmação que só pergunta "tem certeza?"
@@ -7649,7 +7695,8 @@ function setMenuPerfilEmp(id, sig, key, on){
   }
   if (!p.menus[sig]) p.menus[sig] = {};
   if (on) p.menus[sig][key] = true; else delete p.menus[sig][key];
-  docPerfisAcesso.set({ perfis: perfisAcesso })
+  const _resumoPerfil = (on ? "Marcou" : "Desmarcou") + " o menu " + key + " (" + sig + ") no perfil " + nomePerfilAdm(id);
+  gravarPerfisAcessoAdm(_resumoPerfil)
     .then(()=>{ aplicarVisibilidadeMenus(); renderEditorPerfil(); })
     .catch(er => avisoAdmin("msgPerfis", msgErro(er), "erro"));
 }
@@ -7967,7 +8014,16 @@ function definirAcessoUsuario(email, val){
     const menus = menusManualDoUsuario(email);      // v216 - ja nasce separado por empresa
     permissoesTodos[email] = aviAtual ? { menus, avisos: aviAtual } : { menus };
   }
-  gravarPermissoesAdm("Acesso de " + email + " atualizado.");
+  /* 🔴 v376b - A MESMA FRASE PARA OS QUATRO DESFECHOS NAO RESPONDE NADA. A v376 nasceu para que
+     a pergunta "a que horas o perfil foi escolhido" tivesse resposta - e mandava
+     "Acesso de X atualizado." tanto para "ganhou o perfil Caixa" quanto para "ficou SEM perfil",
+     que e' justamente o estado que faz a tarefa "esperando perfil de acesso" nascer. Medido por
+     revisor em 19/08, com as quatro acoes na mesma pessoa dando a mesma linha. */
+  const quem = admNomeDe(email);
+  const oQue = (val === "") ? "ficou SEM perfil e volta para a tela de espera"
+             : (val.indexOf("perfil:") === 0) ? 'recebeu o perfil "' + nomePerfilAdm(val.slice(7)) + '"'
+             : "passou a ter os menus escolhidos à mão";
+  gravarPermissoesAdm("Acesso de " + quem + ": " + oQue + ".");
 }
 // Exceção de notificações por usuário (independe do perfil)
 function definirModoAvisosUsuario(email, val){
@@ -8007,7 +8063,8 @@ function criarPerfilAcesso(){
   const id = novoId();
   perfisAcesso[id] = { nome, menus: {} };
   admPerfilSel = id;
-  docPerfisAcesso.set({ perfis: perfisAcesso })
+  const _resumoPerfil = 'Criou o perfil de acesso "' + nome + '"';
+  gravarPerfisAcessoAdm(_resumoPerfil)
     .then(()=>{ if (inp) inp.value = ""; avisoAdmin("msgPerfis", 'Perfil "' + nome + '" criado. Agora marque os menus dele.', "ok"); renderPerfisAcesso(); renderAdminUsuarios(); })
     .catch(e => avisoAdmin("msgPerfis", msgErro(e), "erro"));
 }
@@ -8016,7 +8073,8 @@ function setMenuPerfil(id, key, on){
   if (!perfisAcesso[id]) return;
   if (!perfisAcesso[id].menus) perfisAcesso[id].menus = {};
   if (on) perfisAcesso[id].menus[key] = true; else delete perfisAcesso[id].menus[key];
-  docPerfisAcesso.set({ perfis: perfisAcesso })
+  const _resumoPerfil = (on ? "Marcou" : "Desmarcou") + " o menu " + key + " no perfil " + nomePerfilAdm(id);
+  gravarPerfisAcessoAdm(_resumoPerfil)
     .then(()=> aplicarVisibilidadeMenus())
     .catch(e => avisoAdmin("msgPerfis", msgErro(e), "erro"));
 }
@@ -8025,15 +8083,19 @@ function setAvisoPerfil(id, origem, on){
   if (!perfisAcesso[id]) return;
   if (!perfisAcesso[id].avisos) perfisAcesso[id].avisos = {};
   perfisAcesso[id].avisos[origem] = !!on;
-  docPerfisAcesso.set({ perfis: perfisAcesso })
+  const _resumoPerfil = (on ? "Ligou" : "Desligou") + " o aviso " + origem + " no perfil " + nomePerfilAdm(id);
+  gravarPerfisAcessoAdm(_resumoPerfil)
     .then(()=> refrescarAvisosCalendario())
     .catch(e => avisoAdmin("msgPerfis", msgErro(e), "erro"));
 }
 function renomearPerfilAcesso(id, val){
   if (!perfisAcesso[id]) return;
   if (!ehAdminAtual()) return negarAdm("msgPerfis", "Só administradores mexem em perfis de acesso.");   /* v320 */
+  // 🔴 v376b - o nome VELHO tem de ser lido antes da troca; senao o registro nao diz QUAL perfil
+  //    foi renomeado. Mesma familia do "excluiu", que ja' tinha sido pego.
+  const _resumoPerfil = 'Renomeou o perfil "' + nomePerfilAdm(id) + '" para "' + String(val || "").trim() + '"';
   perfisAcesso[id].nome = String(val || "").trim();
-  docPerfisAcesso.set({ perfis: perfisAcesso })
+  gravarPerfisAcessoAdm(_resumoPerfil)
     .then(()=>{ renderPerfisAcesso(); renderAdminUsuarios(); })
     .catch(e => avisoAdmin("msgPerfis", msgErro(e), "erro"));
 }
@@ -8046,8 +8108,10 @@ function removerPerfilAcesso(id){
   if (!ehAdminAtual()) return negarAdm("msgPerfis", "Só administradores mexem em perfis de acesso.");
   if (DONO_APP && !ehDonoAtual() && perfilDoUsuario(DONO_APP) === id)
     return negarAdm("msgPerfis", "Este é o perfil do dono do app e não pode ser excluído por outra pessoa.");
+  // 🔴 o nome tem de ser lido ANTES do delete - depois dele `nomePerfilAdm(id)` ja' nao acha nada
+  const _resumoPerfil = 'Excluiu o perfil de acesso "' + nomePerfilAdm(id) + '"';
   delete perfisAcesso[id];
-  docPerfisAcesso.set({ perfis: perfisAcesso })
+  gravarPerfisAcessoAdm(_resumoPerfil)
     .then(()=>{ avisoAdmin("msgPerfis", "Perfil excluído. Quem usava esse perfil ficou na tela de espera — escolha outro perfil para essas pessoas.", "ok"); renderPerfisAcesso(); renderAdminUsuarios(); aplicarVisibilidadeMenus(); })
     .catch(e => avisoAdmin("msgPerfis", msgErro(e), "erro"));
 }
@@ -8150,6 +8214,10 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v376", data:"19/08/2026", tit:"🕓 Mudança de <b>perfil de acesso</b> passou a aparecer no <b>Histórico</b>", itens:[
+    {t:"c", h:"Quem mexeu no acesso de alguém não deixava <b>rastro nenhum</b>", d:"Trocar o perfil de uma pessoa, marcar um menu, ligar uma empresa, criar ou excluir um perfil — nada disso entrava no <b>Histórico de modificações</b>. Apareceu de um jeito concreto em <b>19/08</b>: investigando por que a tarefa <i>“1 pessoa está esperando perfil de acesso”</i> voltava sozinha, <b>não deu para saber a que horas o perfil tinha sido escolhido</b> — e era essa hora que separava “defeito no app” de “a tarefa estava certa”. 🔑 <b>O que não se registra não se mede depois.</b> Agora cada uma dessas mudanças escreve no Histórico <b>o que foi feito</b>: qual perfil a pessoa recebeu, ou que ela <b>ficou sem perfil</b> e voltou para a tela de espera; qual menu foi marcado em qual perfil; qual perfil foi criado, renomeado ou excluído."},
+    {t:"m", h:"E os perfis de acesso passaram a ter <b>uma porta só</b> de gravação", d:"Eram <b>oito</b> lugares no código gravando o documento de perfis por conta própria, cada um do seu jeito. Viraram um, no mesmo desenho que as permissões já tinham desde a v320. Para você não muda nada — muda o risco: com uma porta só dá para trancá-la, e é o que a v375 precisava."}
+  ]},
   {v:"v375", data:"19/08/2026", tit:"🔐 Conserto: a tarefa <b>“1 pessoa está esperando perfil de acesso”</b> parou de voltar depois de concluída", itens:[
     {t:"c", h:"Ela reaparecia sozinha <b>minutos depois</b> de ser concluída — com o perfil <b>já escolhido</b>", d:"Medido em <b>19/08</b>: a pessoa já tinha o perfil <b>Supervisor Loja</b> gravado, e mesmo assim a tarefa voltou <b>três vezes na mesma tarde</b> (14:58, 15:22 e 15:53). A causa: o app guarda uma <b>cópia offline</b> dos dados, e quem abre o app recebe <b>primeiro essa cópia</b> e só depois a versão do servidor. No aparelho de quem ainda estava com a cópia antiga a pessoa aparecia <b>sem perfil</b>, e essa sessão <b>regravava a tarefa como pendente</b> — por cima do que você tinha acabado de concluir. Com sinal ruim, a cópia antiga nunca era corrigida e a regravação só chegava <b>horas depois</b>. 🔑 Agora são <b>duas travas</b>. A primeira: antes de acusar alguém de estar sem perfil, o app <b>confere no servidor</b> — sem servidor ele <b>não escreve nada</b>. A segunda: <b>o que você fecha na mão, o app não reabre</b> — enquanto a lista de quem está esperando for a mesma que você concluiu, ela não volta. Ela volta se <b>aparecer gente nova</b> na lista, ou se <b>todo mundo daquela lista ganhar perfil e depois alguém voltar a ficar sem</b> — aí é assunto novo, e não o mesmo que você já tinha fechado."}
   ]},
@@ -10104,6 +10172,7 @@ function iniciarSync(){
   // Perfis de acesso (templates de menus)
   escutaPerfisAcesso = docPerfisAcesso.onSnapshot(snap => {
     perfisAcesso = perfisAcessoDaFoto(snap);   // v375 - UMA implementacao, aqui e na foto do servidor
+    _perfisAcessoBom = JSON.stringify(perfisAcesso);   // v376b - a ultima foto que o SERVIDOR aceitou
     vistoPerfisAcesso = true;                     // v221
     aplicarVisibilidadeMenus();
     garantirPainelPermitido();
@@ -22261,6 +22330,9 @@ function prepararFicha(){
       if (!perfil){
         avisoAdmin("msgAdmin", "Ficha de " + (nome || email) + " criada SEM perfil: quando ela entrar, " +
           "vai cair na tela de espera. Escolha um perfil na lista acima quando quiser liberar.", "ok");
+        /* v376b - este caminho NAO passa por `gravarPermissoesAdm`, entao registra sozinho -
+           senao "criei a ficha e nao dei perfil" seria a unica acao daqui sem rastro. */
+        logAtividade({ acao:"criou", area:"Pessoas", resumo:"Preparou a ficha de " + escAttr(email) + " SEM perfil" });
         renderAdminUsuarios();
         return;
       }
@@ -22270,7 +22342,8 @@ function prepararFicha(){
         "msgAdmin");   /* 🔴 debaixo do botao que foi clicado, nao acima da lista */
       const a = document.getElementById("novaPessoaNome"); if (a) a.value = "";
       const b = document.getElementById("novaPessoaEmail"); if (b) b.value = "";
-      logAtividade({ acao:"criou", area:"Pessoas", resumo:"Preparou a ficha de " + email });
+      /* v376b - o `logAtividade` que ficava aqui saiu: desde a v376 quem registra e'
+         `gravarPermissoesAdm`, logo acima, e um clique gravava DUAS linhas. */
     })
     .catch(e => {
       if (antes) permissoesTodos = antes;
