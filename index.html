@@ -6998,6 +6998,18 @@ function setEmpresaUsuario(email, sig, on){
    ⚠️ Quem chama de OUTRO quadro da tela precisa dizer onde quer a resposta — foi o que a suite
    da v321 flagrou: o "deu certo" da `prepararFicha()` saia' acima da lista, longe do botao. */
 function gravarPermissoesAdm(msgOk, depois, caixa){
+  /* 🔴 v375 - ARAME FARPADO. Esta funcao grava `{porUsuario: permissoesTodos}` INTEIRO, sem
+     merge. Enquanto `comFotoDeAcesso` esta com a caneta, `permissoesTodos` E' a foto do
+     servidor - gravar aqui dentro nao escreveria "uma tarefa errada": escreveria a foto por cima
+     do documento de permissoes do app todo. Hoje nada alcanca esta linha de dentro da janela
+     (o calculo emprestado e' sincrono e puro), e e' exatamente por isso que a trava tem de estar
+     aqui: para continuar verdade quando alguem mudar aquele calculo sem ler o comentario. */
+  if (_emprestandoFotoDeAcesso){
+    /* recusar calado seria trocar "sobrescreveu tudo" por "nao salvou, e ninguem soube" */
+    avisoAdmin(caixa || "msgAdminLista",
+      "Não deu para salvar agora: o app estava conferindo os acessos no servidor. Tente de novo.", "erro");
+    return;
+  }
   protegerDonoAntesDeGravar();
   const cx = caixa || "msgAdminLista";
   docPermissoes.set({ porUsuario: permissoesTodos })
@@ -8138,6 +8150,9 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v375", data:"19/08/2026", tit:"🔐 Conserto: a tarefa <b>“1 pessoa está esperando perfil de acesso”</b> parou de voltar depois de concluída", itens:[
+    {t:"c", h:"Ela reaparecia sozinha <b>minutos depois</b> de ser concluída — com o perfil <b>já escolhido</b>", d:"Medido em <b>19/08</b>: a pessoa já tinha o perfil <b>Supervisor Loja</b> gravado, e mesmo assim a tarefa voltou <b>três vezes na mesma tarde</b> (14:58, 15:22 e 15:53). A causa: o app guarda uma <b>cópia offline</b> dos dados, e quem abre o app recebe <b>primeiro essa cópia</b> e só depois a versão do servidor. No aparelho de quem ainda estava com a cópia antiga a pessoa aparecia <b>sem perfil</b>, e essa sessão <b>regravava a tarefa como pendente</b> — por cima do que você tinha acabado de concluir. Com sinal ruim, a cópia antiga nunca era corrigida e a regravação só chegava <b>horas depois</b>. 🔑 Agora são <b>duas travas</b>. A primeira: antes de acusar alguém de estar sem perfil, o app <b>confere no servidor</b> — sem servidor ele <b>não escreve nada</b>. A segunda: <b>o que você fecha na mão, o app não reabre</b> — enquanto a lista de quem está esperando for a mesma que você concluiu, ela não volta. Ela volta se <b>aparecer gente nova</b> na lista, ou se <b>todo mundo daquela lista ganhar perfil e depois alguém voltar a ficar sem</b> — aí é assunto novo, e não o mesmo que você já tinha fechado."}
+  ]},
   {v:"v374", data:"19/08/2026", tit:"📊 No <b>Resumo do dia</b>, dia sem número parou de virar <b>zero</b> — e a tela passou a dizer <b>a que horas</b> os números chegam", itens:[
     {t:"c", h:"Dia que o servidor não coletou aparecia como <b>0 L</b> e <b>R$ 0,00</b>, <b>sem aviso nenhum</b>", d:"Se o documento do dia existia mas vinha <b>vazio, zerado ou pela metade</b>, a tela não mostrava aviso: mostrava <b>zero</b>, contava o dia no acumulado do mês (<i>“em 1 dia”</i>) e o botão <b>📲 Enviar</b> chegava a montar a mensagem do grupo com <b>Postos: 0 L</b>. 🔑 <b>Existir</b> e <b>ter número dentro</b> viraram duas perguntas — a segunda é a mesma que o vigia da rotina sempre fez: <i>litros maior que zero</i>. Agora dia sem número mostra o aviso, fica fora da soma do mês e <b>não gera mensagem nem imagem</b>. E quando vem só uma das metades, a <b>tela, a mensagem e a imagem</b> mostram a que veio e <b>dizem qual faltou</b> — no lugar do total daquela metade vai <b>travessão</b>, nunca zero."},
     {t:"c", h:"A tela mandava esperar a <b>sincronização da manhã</b> — e não é mais ela quem traz esses números", d:"Desde <b>05/08</b> quem grava as vendas do dia anterior é o <b>servidor</b>, sozinho, <b>por volta das 5h</b> — e ele ainda <b>tenta de novo nos dois dias seguintes</b>, então buraco de um dia se tapa sozinho. A rotina do computador de casa <b>confere</b> e, se o servidor não tiver gravado, <b>ela mesma coleta e avisa</b>. As frases da tela ficaram para trás e mandavam procurar o problema no lugar errado."},
@@ -9745,13 +9760,9 @@ function iniciarSync(){
   assinarHistorico();
   // Perfis (nome amigável de cada usuário)
   escutaPerfis = colPerfis.onSnapshot(snap => {
-    const mapa = {}, docs = {};
-    snap.forEach(doc => {
-      const d = doc.data() || {};
-      docs[doc.id.toLowerCase()] = d.nome || "";
-      if (d.nome) mapa[doc.id.toLowerCase()] = d.nome;
-    });
-    perfis = mapa;
+    const docs = {};
+    snap.forEach(doc => { docs[doc.id.toLowerCase()] = (doc.data() || {}).nome || ""; });
+    perfis = pessoasDaFoto(snap);   // v375 - UMA implementacao, aqui e na foto do servidor
     perfisDocs = docs;
     sincronizarAvisoSemPerfil();   // v221 - a fila so' existe depois que a lista de pessoas chega
     const pAdm = document.getElementById("painelAdmin");
@@ -10076,9 +10087,7 @@ function iniciarSync(){
 
   // Permissões de menus por usuário
   escutaPermissoes = docPermissoes.onSnapshot(snap => {
-    const d = snap.exists ? (snap.data() || {}) : {};
-    const bruto = (d && d.porUsuario) ? d.porUsuario : {};
-    const norm = {}; Object.keys(bruto).forEach(k => { norm[String(k).toLowerCase()] = bruto[k]; });
+    const norm = permissoesDaFoto(snap);   // v375 - UMA implementacao, aqui e na foto do servidor
     permissoesTodos = norm;
     /* v320 - a foto do servidor da ficha do dono, que a rede de seguranca usa para restaurar */
     _permDonoServidor = (DONO_APP && Object.prototype.hasOwnProperty.call(norm, DONO_APP))
@@ -10094,8 +10103,7 @@ function iniciarSync(){
 
   // Perfis de acesso (templates de menus)
   escutaPerfisAcesso = docPerfisAcesso.onSnapshot(snap => {
-    const d = snap.exists ? (snap.data() || {}) : {};
-    perfisAcesso = (d && d.perfis) ? d.perfis : {};
+    perfisAcesso = perfisAcessoDaFoto(snap);   // v375 - UMA implementacao, aqui e na foto do servidor
     vistoPerfisAcesso = true;                     // v221
     aplicarVisibilidadeMenus();
     garantirPainelPermitido();
@@ -11532,48 +11540,252 @@ document.addEventListener("keydown", function(e){
    A `assinatura` evita regravar a cada snapshot; o `.get()` evita regravar o que ja esta la. */
 const REC_SEM_PERFIL = "rec_sem_perfil";
 let filaSemPerfilUltima = null;
+let filaSemPerfilBuscando = false;      // v375 - uma confirmacao no servidor por vez
+let filaSemPerfilVoo = 0;               // v375 - geracao: volta velha nao grava por cima da nova
+let filaSemPerfilRecusaEm = 0;          // v375 - quando a foto do servidor veio vazia demais para decidir
+let _emprestandoFotoDeAcesso = false;   // v375 - ver comFotoDeAcesso e gravarPermissoesAdm
 /* 🔴 As duas bandeiras abaixo existem por causa de uma corrida REAL, pega no teste 7:
    o snapshot da lista de PESSOAS chega antes do de PERMISSOES. Nesse instante `permissoesTodos`
    esta vazio e TODO MUNDO parece estar sem perfil - o app criava uma tarefa dizendo que a equipe
    inteira estava esperando, e a concluia meio segundo depois. Nada e' avaliado antes das duas. */
 let vistoPermissoes = false, vistoPerfisAcesso = false;
 function dadosDeAcessoProntos(){ return vistoPermissoes && vistoPerfisAcesso; }
+/* ===================== 🔴 v375 - 19/08/2026 - A FOTO DO CACHE NAO ACUSA NINGUEM =====================
+   O DEFEITO: o app tem `enablePersistence`, entao o `onSnapshot` entrega PRIMEIRO a foto do
+   CACHE e so' depois a do servidor. Num aparelho cujo cache de `config/permissoes` e' anterior
+   ao dia em que o perfil foi escolhido, a pessoa aparece sem perfil - e a sessao dela GRAVA a
+   tarefa como pendente, POR CIMA do "concluida" que o dono acabou de marcar.
+   👉 Medido em 19/08/2026: o servidor ja' dizia `{perfil:"Supervisor Loja"}` para a Andyara e a
+   tarefa voltou TRES vezes na mesma tarde - 14:58, 15:22 e 15:53. Com sinal ruim a foto velha
+   nunca e' corrigida e a gravacao fica na fila ate' o sinal voltar; por isso ela reaparecia
+   horas depois, sem ninguem ter feito nada.
+   🔑 As bandeiras `vistoPermissoes`/`vistoPerfisAcesso` da v221 sobem com QUALQUER foto, e
+   continuam assim DE PROPOSITO: sao elas que mandam na TELA, e offline a tela tem de funcionar.
+   O que mudou e' que GRAVAR virou outra pergunta - e essa so' se responde com o servidor na mao.
+   🔴 O QUE `get({source:"server"})` FAZ DE VERDADE - e nao e' o que o nome promete. Ele NAO e'
+   um atalho para "ler no servidor": ele abre uma escuta propria e **so' aceita a foto se ela nao
+   vier do cache** (`metadata.fromCache === false`); se vier, REJEITA. 🔑 Ou seja, e' a MESMA
+   bandeira da v336 - so' que levantada pelo SDK.
+   ⚠️ E a diferenca NAO e' "sem segundo evento": a escuta interna do `get` usa
+   `includeMetadataChanges:true`, entao a mudanca so' de metadado nao e' filtrada e o segundo
+   evento CHEGA. E' isso que a bandeira escrita a mao nas escutas do app nao teria - elas nao
+   pedem metadado, o evento seria filtrado, e a bandeira morreria em silencio justamente quando o
+   cache ja' estivesse igual ao servidor.
+   🔴 E A FOTO INCLUI GRAVACAO LOCAL AINDA NAO CONFIRMADA: alvo com `hasPendingWrites` continua
+   `fromCache:false`. Consequencia concreta e NAO coberta: o dono, com sinal ruim, escolhe o
+   perfil; a escrita fica na fila; a "foto do servidor" ja' mostra o perfil e a tarefa se conclui;
+   se aquela escrita falhar depois, fica concluida com a pessoa sem perfil.
+   📏 MEDIDO em 19/08 na pagina no ar: com `disableNetwork()` e o alvo ja' sincronizado NESTA
+   sessao, ele resolve em 3 ms com `fromCache:false` - a foto e' a ultima que o servidor mandou
+   nesta sessao, nao a do IndexedDB de dias atras, que e' o que este conserto existe para recusar.
+   ⚠️ O caso "cliente frio e offline" (alvo nunca sincronizado, foto vindo do IndexedDB) e'
+   DEDUZIDO do contrato do SDK, NAO medido aqui: nao deu para montar cliente frio, autenticado e
+   offline. Se algum dia isso for medido e der diferente, e' esta funcao que cai.
+   🔑 Sem foto do servidor, nao escreve. Isso NAO e' "nunca escreve errado" - ver a ressalva do
+   `hasPendingWrites` logo acima, e a geracao la' embaixo.
+   ⚠️ O `filaSemPerfilUltima` volta a `null` no erro: senao a assinatura ficaria marcada como
+   ja' tratada e a proxima tentativa nunca aconteceria. */
+function permissoesDaFoto(snap){
+  const d = snap.exists ? (snap.data() || {}) : {};
+  const bruto = (d && d.porUsuario) ? d.porUsuario : {};
+  const out = {}; Object.keys(bruto).forEach(k => { out[String(k).toLowerCase()] = bruto[k]; });
+  return out;
+}
+function perfisAcessoDaFoto(snap){
+  const d = snap.exists ? (snap.data() || {}) : {};
+  return (d && d.perfis) ? d.perfis : {};
+}
+function pessoasDaFoto(snap){
+  const m = {};
+  snap.forEach(doc => { const d = doc.data() || {}; if (d.nome) m[doc.id.toLowerCase()] = d.nome; });
+  return m;
+}
+function fotoDeAcessoDoServidor(){
+  const DO_SERVIDOR = { source: "server" };
+  return Promise.all([ docPermissoes.get(DO_SERVIDOR), docPerfisAcesso.get(DO_SERVIDOR),
+                       colPerfis.get(DO_SERVIDOR) ])
+    .then(f => ({ permissoes: permissoesDaFoto(f[0]), perfisAcesso: perfisAcessoDaFoto(f[1]),
+                  pessoas: pessoasDaFoto(f[2]),
+                  /* 🔴 "o documento nao existe" e "o documento existe e esta vazio" sao a MESMA
+                     coisa depois de `permissoesDaFoto`/`perfisAcessoDaFoto` - e nao sao a mesma
+                     coisa. Sem isto, documento sumido faria TODO MUNDO parecer sem perfil e o app
+                     acusaria a equipe inteira, que e' a catastrofe que a v221 documenta.
+                     🔴 SAO AS DUAS FONTES, e a segunda foi medida por revisor em 19/08 no arquivo
+                     ja' consertado: com `config/perfisAcesso` ausente, quem tem `{perfil:X}` cai
+                     em `!p` dentro de `aguardandoPerfil` e vira fila de espera - saiu "3 pessoas
+                     estao esperando" com as tres tendo perfil. Guardar so' uma das portas e'
+                     fechar a porta e deixar a janela. */
+                  temPermissoes: f[0].exists && f[1].exists }));
+}
+/* Empresta as tres globais para o calculo enxergar a foto do SERVIDOR, sem duplicar uma linha
+   de `aguardandoPerfil` / `filaSemPerfil` / `ehAdminEmail` / `mcNomeDe` - todas leem essas
+   globais. 🔴 NAO ponha `await` dentro deste `try`: a troca so' e' segura porque nada mais
+   roda no meio, e o `finally` devolve as tres em qualquer saida. */
+function comFotoDeAcesso(f, fn){
+  const gPerm = permissoesTodos, gAcesso = perfisAcesso, gPessoas = perfis;
+  permissoesTodos = f.permissoes; perfisAcesso = f.perfisAcesso; perfis = f.pessoas;
+  _emprestandoFotoDeAcesso = true;
+  try { return fn(); }
+  finally { permissoesTodos = gPerm; perfisAcesso = gAcesso; perfis = gPessoas;
+            _emprestandoFotoDeAcesso = false; }
+}
+/* 🔴 v375 - O PRAZO EXISTE PORQUE A PROMESSA PODE NAO SE RESOLVER. Num cliente frio e offline,
+   `get({source:"server"})` fica pendurado esperando o alvo sincronizar: nao resolve nem rejeita.
+   Sem prazo, `filaSemPerfilBuscando` nunca desceria e o aviso morreria pelo resto da sessao -
+   e a rede voltar nao consertaria. 🔑 Trocar tempestade por travamento calado nao e' conserto.
+   Medido por revisor em 19/08, com o voo pendurado e vinte chamadas novas sem efeito nenhum. */
+const PRAZO_AVISO_MS = 15000;
+function comPrazo(p, ms){
+  /* o `clearTimeout` nao e' higiene opcional: sem ele cada voo deixa um timer de 15 s vivo ate'
+     disparar num `race` ja' resolvido. Hoje a trava de voo limita o estrago a um; no dia em que
+     alguem tirar a trava, vira vazamento. */
+  let t = null;
+  const prazo = new Promise((_, rej) => { t = setTimeout(() => rej(new Error("prazo")), ms); });
+  return Promise.race([ p, prazo ]).finally(() => clearTimeout(t));
+}
 function sincronizarAvisoSemPerfil(){
   // ⚠ nao exigir `nuvemPronta` aqui: ele so' vira true DEPOIS dos snapshots de permissao e de
   // pessoas, entao a checagem chegaria sempre cedo demais e o aviso nunca nasceria.
   if (!usuarioAtual || !dadosDeAcessoProntos()) return;
   if (!Object.keys(perfis || {}).length) return;          // a lista de pessoas ainda nao chegou
-  const fila = filaSemPerfil();
-  const assinatura = fila.join("|");
-  if (assinatura === filaSemPerfilUltima) return;
+  const assinatura = filaSemPerfil().join("|");
+  /* 🔴 A ASSINATURA SAI DO DADO LOCAL, E A RECUSA VEIO DO SERVIDOR - sao fontes independentes.
+     Quando a foto do servidor volta vazia demais para decidir, marcar a assinatura e parar por
+     ali PRENDE o aviso: o documento nascer no servidor nao muda um caractere da fila local, entao
+     nada reavalia. Medido por revisor em 19/08, com controle. Por isso a recusa tem relogio: a
+     mesma assinatura pode ser tentada de novo, mas no maximo uma vez por PRAZO_AVISO_MS - o que
+     segura a tempestade (eram tres leituras por chamada, e `aplicarVisibilidadeMenus()` tem
+     quinze chamadores) sem trocar a tempestade por um travamento calado. */
+  const podeTentarDeNovo = filaSemPerfilRecusaEm &&
+                           (Date.now() - filaSemPerfilRecusaEm) >= PRAZO_AVISO_MS;
+  if (assinatura === filaSemPerfilUltima && !podeTentarDeNovo) return;
+  /* 🔴 UMA CONFIRMACAO POR VEZ. Sem esta trava, duas respostas do servidor ficam em voo ao mesmo
+     tempo e a ordem em que voltam NAO e' garantida: a velha grava por cima da nova. E offline e'
+     pior - `aplicarVisibilidadeMenus()` tem quinze chamadores, e cada troca de menu abriria tres
+     leituras novas justamente sob "sinal ruim", que e' o cenario desta versao.
+     ⚠️ A assinatura so' e' marcada DEPOIS desta trava: assim a fila que chegou durante um voo nao
+     fica marcada como ja' tratada, e o proximo snapshot a reavalia. */
+  if (filaSemPerfilBuscando) return;
   filaSemPerfilUltima = assinatura;
+  filaSemPerfilBuscando = true;
+  /* 🔴 dali para baixo NADA sai da foto local: fila, nomes e destinatarios saem do servidor.
+     Os tres saem de DENTRO do emprestimo porque o `ref.get()` de baixo e' assincrono - o que
+     rodasse depois dele ja' estaria lendo as globais devolvidas. */
+  /* 🔴 A GERACAO. A trava de voo cobre ate' a FOTO; o `ref.get()` -> decide -> `ref.set()` de
+     baixo e' OUTRO pedaco assincrono, e com prazo uma volta que estourou pode voltar depois que a
+     seguinte ja' gravou. Medido por revisor em 19/08, com latencias diferentes nas duas voltas:
+     saiu tarefa PENDENTE acusando quem JA' TINHA perfil - o defeito de 19/08 de volta, dentro de
+     uma sessao so', depois de todos os outros consertos. Quem chega com geracao velha nao escreve. */
+  const geracao = ++filaSemPerfilVoo;
+  const trabalho = fotoDeAcessoDoServidor().then(f => {
+    /* ⚠️ a conferencia da geracao NAO fica aqui, e sim colada na gravacao, dentro de
+       `gravarAvisoSemPerfil`: la' ela cobre tambem o `ref.get()` do meio, e aqui seria uma
+       SEGUNDA guarda para a mesma coisa. 🔑 Guarda redundante nao e' guarda a mais: e' guarda que
+       nenhum mutante consegue matar sozinha - some uma e nada muda, e as duas viram enfeite.
+       ⚠️ O QUE A DE BAIXO NAO EVITA, e e' aceito: a volta velha ainda roda o emprestimo (sincrono
+       e inofensivo) e ainda gasta UMA leitura em `recados/rec_sem_perfil`; e se essa leitura
+       falhar, o `catch` dela zera a assinatura da volta NOVA, custando um voo a mais. Nenhum dos
+       tres escreve nada errado. */
+    /* 🔴 FONTE VAZIA NAO E' PROBLEMA RESOLVIDO - a regra que a gemea `sincronizarAvisoReceb` ja'
+       carrega ("fechar errado e' INVISIVEL") e que a v374 escreveu como "estado AUSENTE nao e'
+       estado VAZIO". Sem esta linha: lista de pessoas vazia CONCLUIRIA uma tarefa legitima
+       assinando `concluidaPor:"app"`, e documento de permissoes ausente acusaria a equipe toda.
+       ⚠️ A assinatura NAO cai aqui - se caisse, cada uma das quinze portas de
+       `aplicarVisibilidadeMenus()` abriria tres leituras forcadas outra vez, para sempre. Mas ela
+       tambem nao pode ficar presa: quem destrava e' o documento aparecer NO SERVIDOR, e a
+       assinatura e' calculada do dado LOCAL. Por isso a recusa e' CARIMBADA COM A HORA, e la' em
+       cima o `podeTentarDeNovo` deixa a mesma assinatura ser tentada uma vez a cada
+       PRAZO_AVISO_MS. Em instalacao nova, isso e' o que faz o aviso nascer sozinho ~15 s depois
+       de o documento de permissoes existir. */
+    if (!f.temPermissoes || !Object.keys(f.pessoas || {}).length){ filaSemPerfilRecusaEm = Date.now(); return; }
+    filaSemPerfilRecusaEm = 0;
+    return gravarAvisoSemPerfil(comFotoDeAcesso(f, () => {
+      const fila = filaSemPerfil();
+      return { fila: fila, nomes: fila.map(e => mcNomeDe(e) + " (" + e + ")"),
+               admins: administradoresDoApp() };
+    }), geracao);
+  });
+  comPrazo(trabalho, PRAZO_AVISO_MS)
+    .catch(() => { filaSemPerfilUltima = null; })
+    .then(() => { filaSemPerfilBuscando = false; });
+}
+/* 🔴 DEVOLVE PROMESSA: quem chamou so' baixa a trava de voo depois que a GRAVACAO terminou, nao
+   depois que a foto chegou. Sem isso a trava ficava aberta durante o read-modify-write. */
+function gravarAvisoSemPerfil(dados, geracao){
+  const fila = dados.fila;
   const ref = colRecados.doc(REC_SEM_PERFIL);
-  ref.get().then(s => {
+  const naVez = () => geracao === undefined || geracao === filaSemPerfilVoo;
+  return ref.get().then(s => {
     const atual = s.exists ? (s.data() || {}) : null;
+    if (!naVez()) return;                 // v375 - volta velha nao escreve
     if (!fila.length){
       // ninguem mais esperando: a tarefa se conclui sozinha e sai da lista de pendentes
       if (atual && !atual.concluida){
-        ref.set({ concluida:true, concluidaPor:"app", concluidaNome:"Controle de acesso",
-                  concluidaEm: Date.now() }, {merge:true}).catch(()=>{});
+        return ref.set({ concluida:true, concluidaPor:"app", concluidaNome:"Controle de acesso",
+                  concluidaEm: Date.now() }, {merge:true})
+           .catch(() => { filaSemPerfilUltima = null; });   // v375 - erro de rede nao prende a sessao
+      }
+      /* 🔴 A FILA ZEROU: MARCA QUE A CONDICAO SE RESOLVEU - senao a tarefa morre PARA SEMPRE.
+         O caminho, medido por revisor em 19/08: o dono conclui na mao; a pessoa ganha perfil e a
+         fila zera (e NADA e' escrito, porque a tarefa ja' esta concluida, entao o carimbo
+         `concluidaPor:"tiago..."` fica gravado); meses depois o perfil e' excluido - e
+         `removerPerfilAcesso` ate' avisa na tela "quem usava esse perfil ficou na tela de
+         espera" - a pessoa volta sozinha para a fila, o texto sai identico ao de antes, a guarda
+         de baixo casa, e o aviso nunca mais nasce.
+         🔑 A gemea `sincronizarAvisoReceb` pode usar `concluidaPor` como chave unica porque o id
+         DELA expira (`rec_receb_<posto>_<dia>`): "a mesma condicao amanha" e' outro documento.
+         Aqui o id e' FIXO PARA SEMPRE, e a regra copiada so' vale com esta linha junto. */
+      /* 🔴 E MARCA NUM CAMPO NOVO, NAO POR CIMA DA AUTORIA. A primeira versao disto gravava
+         `concluidaPor:"app"` por cima de `"tiago.z5@gmail.com"` e NAO mexia em `concluidaEm`.
+         Medido por revisor em 19/08: a Caixa de entrada passava a dizer "✓ Concluida por Controle
+         de acesso" no horario em que o Tiago clicou, e a aba 🤖 Avisos automaticos - que classifica
+         por "`concluidaPor` sem @" - movia a tarefa de "✋ fechado por Tiago" para "🤖 fechou
+         sozinho", estragando o contador que existe para dar esse diagnostico.
+         🔑 O comentario daquela aba ja' avisava, sobre um defeito anterior no MESMO numero: "o
+         estrago nao era cosmetico". Falsificar autoria para consertar outra coisa e' o pior
+         defeito do projeto com roupa nova - e pendendo para o lado tranquilizador ("fechou
+         sozinho" = esta tudo funcionando).
+         👉 `resolvidoEm` nao e' lido por tela nenhuma: e' recado desta funcao para ela mesma. */
+      if (atual && atual.concluida === true && atual.concluidaPor !== "app" &&
+          !(atual.resolvidoEm > (atual.concluidaEm || 0))){
+        return ref.set({ resolvidoEm: Date.now() }, {merge:true})
+                  .catch(() => { filaSemPerfilUltima = null; });
       }
       return;
     }
-    const nomes = fila.map(e => mcNomeDe(e) + " (" + e + ")");
+    const nomes = dados.nomes;              // v375 - nomes da foto do SERVIDOR, nao do cache
     const titulo = "\ud83d\udd10 " + (fila.length === 1 ? "1 pessoa est\u00e1" : fila.length + " pessoas est\u00e3o") +
                    " esperando perfil de acesso";
     const texto = "Estas pessoas entraram no app e ainda n\u00e3o t\u00eam perfil, ent\u00e3o n\u00e3o veem menu nenhum \u2014 " +
                   "s\u00f3 a tela de espera, a Caixa de entrada e a Minha conta:\n\n\u2022 " + nomes.join("\n\u2022 ") +
                   "\n\nPara liberar: Painel Administrativo \u2192 aba \ud83d\udc65 Pessoas \u2192 toque no nome \u2192 escolha o perfil. " +
                   "Assim que todo mundo tiver perfil, esta tarefa se conclui sozinha.";
+    /* 🔴 v375 - O QUE O DONO FECHOU NA MAO, O APP NAO REABRE. A regra e' da gemea
+       `sincronizarAvisoReceb`: "`concluidaPor:'app'` e' a unica chave". Sem ela, ele marcava
+       concluida sabendo que ia dar o perfil no dia seguinte e a PRIMEIRA rodada de qualquer
+       sessao reabria - `filaSemPerfilUltima` nasce null, entao a primeira sempre passa.
+       ⚠️ A comparacao e' pelo TEXTO: se a lista de quem espera mudar, o texto muda e a tarefa
+       nasce de novo - o que ele fechou foi AQUELA lista, nao o assunto para sempre. */
+    /* ⚠️ e "resolveu depois" desfaz o silencio: se a fila ZEROU depois do fechamento manual,
+       `resolvidoEm` e' mais novo que `concluidaEm` e a tarefa pode nascer de novo com a mesma
+       lista - senao ela morreria para sempre (perfil excluido devolve gente a fila com o texto
+       identico ao de antes).
+       ⚠️ LIMITE CONHECIDO, e ele nao e' pequeno: quem marca `resolvidoEm` e' uma sessao que
+       ESTEJA ABERTA no momento em que a fila esta vazia. Se ela zerar e voltar com o app fechado,
+       o silencio continua valendo. Trocamos "nunca mais avisa" por "pode nao avisar se ninguem
+       abriu o app naquela janela" - melhor, e nao resolvido. */
+    if (atual && atual.concluida === true && atual.concluidaPor !== "app" && atual.texto === texto &&
+        !(atual.resolvidoEm > (atual.concluidaEm || 0))) return;
     if (atual && atual.texto === texto && atual.concluida === false) return;   // ja esta assim
-    ref.set({ tipo:"tarefa", titulo: titulo, texto: texto,
+    return ref.set({ tipo:"tarefa", titulo: titulo, texto: texto,
       de:"app", deNome:"Controle de acesso",
-      paraTodos:false, para: administradoresDoApp(),
+      paraTodos:false, para: dados.admins,   // v375 - admins da foto do SERVIDOR, nao do cache
       criadoEm: (atual && atual.criadoEm) || Date.now(),
       atualizadoEm: Date.now(), pendentes: fila,
       exigeComprovante:false,
-      concluida:false, concluidaPor:"", concluidaNome:"", concluidaEm:0 }, {merge:true}).catch(()=>{});
-  }).catch(()=>{});
+      concluida:false, concluidaPor:"", concluidaNome:"", concluidaEm:0 }, {merge:true})
+      .catch(() => { filaSemPerfilUltima = null; });        // v375 - idem: escrita que falha se repete
+  }).catch(() => { filaSemPerfilUltima = null; });
 }
 function aplicarVisibilidadeMenus(){
   instalarFerramentasPaineis();
