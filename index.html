@@ -4642,7 +4642,7 @@
   <div class="config" id="painelResumoDia">
     <div class="grupo">
       <h2>📊 Resumo do dia</h2>
-      <p class="nota-dash">Vendas do dia anterior: quantos litros cada posto vendeu e quanto cada loja faturou. Os números chegam sozinhos na sincronização da manhã.</p>
+      <p class="nota-dash">Vendas do dia anterior: quantos litros cada posto vendeu e quanto cada loja faturou. Os números chegam sozinhos por volta das 5h da manhã, direto do servidor.</p>
       <label class="cot-data-lbl">Dia: <input type="date" id="resData" onchange="renderResumoDia()"></label>
       <div id="resumoDiaBox"></div>
     </div>
@@ -5388,6 +5388,12 @@ let vendasMensais = {};                // "AAAA-MM" -> {postos:{...}, lojas:{...
 let evolucaoPadrao = { empresa:"posto:teresina", meses:3 };   // o que abre por padrão no card
 let escutaVendasMensais = null;
 let resumosDia = {};                   // "AAAA-MM-DD" -> {postos:[...], lojas:[...], coletadoEm}
+/* v374 - estado AUSENTE nao e' estado VAZIO (a mesma regra do `vistoRotina`, v249). Sem esta
+   bandeira, quem abre o painel ANTES do primeiro snapshot le' "o servidor nao gravou" - a tela
+   acusaria falha que nao houve. So' um snapshot que veio DO SERVIDOR (nao do cache) conta.
+   🔴 E ela precisa de SAIDA nos dois lados, como a `vistoSinc`/`sincFalhou` da v355: se a leitura
+   falhar, "Buscando…" ficaria na tela para sempre - promessa de progresso que nunca se cumpre. */
+let vistoResumos = false, resumosFalhou = false;
 let escutaResumos = null;
 const docInfleetFrota = db.collection("config").doc("infleetFrota"); // foto da frota vinda do APP Infleet (rastreamento)
 const colInfAbast = db.collection("infleetAbastecimentos");         // abastecimentos importados do APP Infleet
@@ -6267,6 +6273,7 @@ function aoMudarLogin(usuario){
     if (escutaRotina){ escutaRotina(); escutaRotina = null; }
     if (frcTimer){ clearInterval(frcTimer); frcTimer = null; }
     rotinaDias = {}; vistoRotina = false;   // v252
+    resumosDia = {}; vistoResumos = false; resumosFalhou = false;   // v374 - mesma razao do bloco do verificador
     sincDoc = null; vistoSinc = false;      // v265
     if (escutaInfFrota){ escutaInfFrota(); escutaInfFrota = null; }
     if (escutaInfAbast){ escutaInfAbast(); escutaInfAbast = null; }
@@ -8131,6 +8138,12 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v374", data:"19/08/2026", tit:"📊 No <b>Resumo do dia</b>, dia sem número parou de virar <b>zero</b> — e a tela passou a dizer <b>a que horas</b> os números chegam", itens:[
+    {t:"c", h:"Dia que o servidor não coletou aparecia como <b>0 L</b> e <b>R$ 0,00</b>, <b>sem aviso nenhum</b>", d:"Se o documento do dia existia mas vinha <b>vazio, zerado ou pela metade</b>, a tela não mostrava aviso: mostrava <b>zero</b>, contava o dia no acumulado do mês (<i>“em 1 dia”</i>) e o botão <b>📲 Enviar</b> chegava a montar a mensagem do grupo com <b>Postos: 0 L</b>. 🔑 <b>Existir</b> e <b>ter número dentro</b> viraram duas perguntas — a segunda é a mesma que o vigia da rotina sempre fez: <i>litros maior que zero</i>. Agora dia sem número mostra o aviso, fica fora da soma do mês e <b>não gera mensagem nem imagem</b>. E quando vem só uma das metades, a <b>tela, a mensagem e a imagem</b> mostram a que veio e <b>dizem qual faltou</b> — no lugar do total daquela metade vai <b>travessão</b>, nunca zero."},
+    {t:"c", h:"A tela mandava esperar a <b>sincronização da manhã</b> — e não é mais ela quem traz esses números", d:"Desde <b>05/08</b> quem grava as vendas do dia anterior é o <b>servidor</b>, sozinho, <b>por volta das 5h</b> — e ele ainda <b>tenta de novo nos dois dias seguintes</b>, então buraco de um dia se tapa sozinho. A rotina do computador de casa <b>confere</b> e, se o servidor não tiver gravado, <b>ela mesma coleta e avisa</b>. As frases da tela ficaram para trás e mandavam procurar o problema no lugar errado."},
+    {t:"m", h:"O aviso de tela vazia parou de ser o mesmo em toda situação", d:"Agora ele <b>separa os casos</b>: enquanto a nuvem <b>ainda não respondeu</b>, a tela diz que está buscando e <b>não acusa ninguém</b>; se a <b>leitura falhar</b>, ela diz isso em vez de ficar buscando para sempre; <b>de madrugada</b>, que o servidor grava às 5h e vale olhar depois das 9h; <b>mais tarde</b>, que os números <b>já deviam estar aqui</b>; no <b>dia de hoje</b>, que ele ainda não fechou; e em <b>dia anterior ao início do resumo</b>, que não há história ali. 🔑 Aviso que tranquiliza na hora errada é pior que aviso nenhum — e acusar falha que não houve é o mesmo defeito virado do avesso."},
+    {t:"m", h:"O calendário parou de oferecer dia que nunca vai ter número", d:"O campo <b>Dia</b> agora vai do <b>primeiro dia que o resumo tem</b> até <b>hoje</b> — a faixa é medida na própria coleção, não escrita no código. Antes dava para escolher <b>março de 2026</b>, ou um ano de cinco dígitos, e a tela cobrava um número que nunca existiu."}
+  ]},
   {v:"v373", data:"18/08/2026", tit:"🛢️ Conserto: o <b>mapa de tanques</b> da Reconciliação (LMC) voltou a aparecer", itens:[
     {t:"c", h:"A tela dizia <b>“sem tanques com medição”</b> num posto com <b>cinco tanques</b>", d:"O <b>Mapa de estoque por tanque</b> e os cartões <b>Tanques</b> e <b>Estoque físico agora</b> nasceram vazios na v372. A causa: o documento que guarda o nível dos tanques usa <b>inicial maiúscula</b> no nome do posto (<code>Teresina</code>), e a tela procurava em minúscula. Não achava, e concluía que não havia tanque nenhum. 🔑 Agora ela <b>procura</b> o nome em vez de supô-lo — que é o que as telas vizinhas sempre fizeram."},
     {t:"m", h:"E o livro dos meses anteriores foi carregado", d:"O coletor do LMC passou a rodar <b>três vezes ao dia</b>, e os meses de <b>abril a agosto</b> já foram para o app — os três postos, com a conta <i>contábil = abertura + recebimento − venda</i> conferida em <b>100%</b> das 2.009 linhas. 🔴 <b>Agosto tem livro só de Caxias</b>: em Teresina o último fechamento é de <b>31/07</b> e em Dutra de <b>29/07</b>, enquanto venda e compra dos dois seguem lançadas até hoje."}
@@ -10345,9 +10358,15 @@ function iniciarSync(){
     const m = {};
     snap.forEach(d => m[d.id] = d.data() || {});
     resumosDia = m;
+    if (!snap.metadata || !snap.metadata.fromCache) { vistoResumos = true; resumosFalhou = false; }   // v374
     const pr = document.getElementById("painelResumoDia");
     if (pr && pr.classList.contains("aberto")) renderResumoDia();
-  }, ()=>{});
+  }, ()=>{
+    /* v374 - erro de leitura NAO pode virar "Buscando…" eterno (v355 fez o mesmo com o sincFalhou) */
+    vistoResumos = true; resumosFalhou = true;
+    const pr = document.getElementById("painelResumoDia");
+    if (pr && pr.classList.contains("aberto")) renderResumoDia();
+  });
 
   // APP Infleet — foto da frota e abastecimentos importados (Full Transportadora)
   escutaInfFrota = docInfleetFrota.onSnapshot(snap => {
@@ -22575,31 +22594,88 @@ function diaResumoSel(){
   const dt = document.getElementById("resData");
   return (dt && dt.value) ? dt.value : ontemISO();
 }
+/* v374 - o dia TEM numero? Documento que existe e veio VAZIO nao e' dia coletado: antes ele
+   entrava como "em 1 dia", somava zero e diluia o mes inteiro - e o botao envia chegava a montar
+   "Postos: 0 L" para mandar no grupo. A regra: existir e ter numero dentro sao duas perguntas. */
+/* 🔴 v374, 2a volta - a PRIMEIRA versao disto contava o comprimento da lista, e por isso um dia
+   gravado com `litros: 0` nos tres postos passava por "tem numero": a tela mostrava 0 L, o mes
+   contava o dia e o botao 📲 montava "Postos: 0 L" para o grupo. O vigia da rotina sempre exigiu
+   `litros > 0` e `faturamento > 0` - a tela agora pergunta a mesma coisa.
+   🔑 "Existe a lista?" e "tem numero dentro?" sao DUAS perguntas, e a segunda e' a que importa. */
+function temNumeroPostos(r){ return ((r && r.postos) || []).some(x => (+x.litros || 0) > 0); }
+function temNumeroLojas(r){  return ((r && r.lojas)  || []).some(x => (+x.faturamento || 0) > 0); }
+function resumoTemNumero(r){ return temNumeroPostos(r) || temNumeroLojas(r); }
+// o primeiro dia que a colecao tem - MEDIDO na propria colecao, nunca decorado no codigo
+function primeiroDiaResumo(){
+  const ds = Object.keys(resumosDia).filter(d => resumoTemNumero(resumosDia[d])).sort();
+  return ds.length ? ds[0] : null;
+}
 // Soma do mês do dia escolhido, até esse dia (inclusive)
 function acumuladoMesResumo(dia){
   const mes = String(dia).slice(0,7);
-  let litros = 0, fat = 0, dias = 0;
+  let litros = 0, fat = 0, dias = 0, diasP = 0, diasL = 0;
   Object.keys(resumosDia).forEach(d => {
     if (d.slice(0,7) !== mes || d > dia) return;
     const r = resumosDia[d] || {};
+    if (!resumoTemNumero(r)) return;            // v374 - dia sem número não é dia
     (r.postos||[]).forEach(x => litros += (+x.litros||0));
     (r.lojas||[]).forEach(x => fat += (+x.faturamento||0));
+    /* v374 - as DUAS METADES contam separado: um mês em que só vieram os postos mostrava
+       "CONVENIÊNCIAS NO MÊS R$ 0,00", e R$ 0,00 ali quer dizer "não sabemos", não "não vendeu". */
+    if (temNumeroPostos(r)) diasP++;
+    if (temNumeroLojas(r))  diasL++;
     dias++;
   });
-  return { litros, fat, dias };
+  return { litros, fat, dias, diasP, diasL };
+}
+/* v374 - o vazio tem de dizer POR QUE esta vazio, e sao CINCO casos, nao um. Quem grava o
+   `resumoDiario` e' o coletor do VPS, todo dia as 5h (cron `0 5 * * *`), sempre os TRES ultimos
+   dias JA' FECHADOS - entao ele tapa buraco sozinho por dois dias - e nunca o dia corrente. Se
+   ele falhar, a rotina da manha coleta pelo Chrome como plano B. O texto antigo dizia "na
+   sincronizacao da manha" e mandava olhar para o lado errado, desde 05/08.
+   A ORDEM DOS RAMOS E' A PROVA: "ainda nao respondeu" vem antes de tudo, senao a tela acusa o
+   servidor de uma falha que nao houve; e "antes do inicio da serie" vem antes de "ja deviam
+   estar aqui", senao ela cobra numero que nunca existiu e nunca vai existir. */
+function textoResumoVazio(dia){
+  if (resumosFalhou)
+    return "Não consegui ler os números agora. Tente de novo daqui a pouco; se continuar assim, peça ao Claude: “confere o resumo do dia”.";
+  if (!vistoResumos)
+    return "Buscando os números no servidor…";
+  if (dia >= hojeISO())
+    return "O dia " + fmtDataCurta(dia) + " ainda não fechou. Os números deste quadro são gravados na manhã seguinte, por volta das 5h.";
+  const pri = primeiroDiaResumo();
+  if (pri && dia < pri)
+    return "Não temos " + fmtDataCurta(dia) + ": o resumo diário deste quadro começa em " + fmtDataCurta(pri) + ".";
+  const agora = new Date();
+  if (dia === ontemISO() && agora.getHours() < 9)
+    return "Ainda não temos os números de " + fmtDataCurta(dia) + ". O servidor grava por volta das 5h da manhã e, se ele falhar, a rotina da manhã cobre — vale olhar de novo depois das 9h.";
+  return "Não temos os números de " + fmtDataCurta(dia) + ", e a esta hora eles já deviam estar aqui: o servidor grava por volta das 5h da manhã e ainda tenta de novo nos dois dias seguintes. Se continuar assim, peça ao Claude: “confere o resumo do dia”.";
+}
+/* v374 - a faixa do calendário é MEDIDA na coleção: o fim é hoje e o começo é o primeiro dia com
+   número. 🔴 Ela mora AQUI, e não no `alternarResumoDia`, porque quem abre o painel antes do
+   primeiro snapshot mediria a coleção vazia e o campo ficaria sem piso para sempre - o render é
+   quem roda de novo quando o dado chega. E `max` refeito atravessa a meia-noite com a página aberta. */
+function ajustarFaixaResumo(){
+  const dt = document.getElementById("resData");
+  if (!dt) return;
+  dt.max = hojeISO();
+  const pri = primeiroDiaResumo();
+  if (pri) dt.min = pri;
 }
 function renderResumoDia(){
+  ajustarFaixaResumo();
   const dia = diaResumoSel();
   const box = document.getElementById("resumoDiaBox");
   const pre = document.getElementById("resumoTexto");
   const r = resumosDia[dia];
   if (!box) return;
-  if (!r){
-    box.innerHTML = '<p class="nota-dash">Ainda não temos os números deste dia. Eles são coletados na sincronização da manhã.</p>';
+  if (!resumoTemNumero(r)){                       // v374 - documento vazio mostrava ZERO, calado
+    box.innerHTML = '<p class="nota-dash">' + textoResumoVazio(dia) + '</p>';
     if (pre) pre.textContent = "";
     return;
   }
-  const postos = r.postos || [], lojas = r.lojas || [];
+  const temP = temNumeroPostos(r), temL = temNumeroLojas(r);   // v374 - a mesma pergunta do portão
+  const postos = temP ? (r.postos || []) : [], lojas = temL ? (r.lojas || []) : [];
   let h = "";
   if (postos.length){
     let tot = 0;
@@ -22617,10 +22693,19 @@ function renderResumoDia(){
     h += '<tr class="pux-total"><td data-lbl="Conveniência">Total</td><td data-lbl="Faturamento">R$ '+fmtBR(tot,2)+'</td></tr>';
     h += '</tbody></table></div>';
   }
+  /* v374 - o servidor grava as duas metades na mesma rodada; uma só quer dizer rodada
+     incompleta. Sem esta linha a tela mostrava a metade que veio e calava sobre a que faltou. */
+  if (!temP || !temL)
+    h += '<p class="nota-dash">' + (temP ? "As conveniências deste dia não vieram" : "Os postos deste dia não vieram") +
+         ' — o servidor grava as duas metades juntas, então esta rodada ficou pela metade. Se continuar assim, peça ao Claude: “confere o resumo do dia”.</p>';
   const ac = acumuladoMesResumo(dia);
   h += '<div class="resumo-dash" style="margin-top:12px">'+
-       '<div class="cartao-kpi"><span>Postos no mês</span><b>'+fmtLitros(ac.litros)+' L <small>em '+ac.dias+' dia'+(ac.dias===1?'':'s')+'</small></b></div>'+
-       '<div class="cartao-kpi"><span>Conveniências no mês</span><b>R$ '+fmtBR(ac.fat,2)+'</b></div>'+
+       '<div class="cartao-kpi"><span>Postos no mês</span><b>'+
+         (ac.diasP ? fmtLitros(ac.litros)+' L <small>em '+ac.diasP+' dia'+(ac.diasP===1?'':'s')+'</small>'
+                   : '— <small>nenhum dia coletado</small>')+'</b></div>'+
+       '<div class="cartao-kpi"><span>Conveniências no mês</span><b>'+
+         (ac.diasL ? 'R$ '+fmtBR(ac.fat,2)+' <small>em '+ac.diasL+' dia'+(ac.diasL===1?'':'s')+'</small>'
+                   : '— <small>nenhum dia coletado</small>')+'</b></div>'+
        '</div>';
   if (r.coletadoEm) h += '<p class="nota-dash">Coletado em '+fmtQuandoLocal(r.coletadoEm)+'.</p>';   // v196 - convertia nada, mostrava a hora UTC
   box.innerHTML = h;
@@ -22644,10 +22729,15 @@ function blocoAlinhadoResumo(itens){
 }
 function montarTextoResumo(dia){
   const r = resumosDia[dia];
-  if (!r) return "";
+  if (!resumoTemNumero(r)) return "";             // v374 - nunca montar mensagem de dia sem número
+  /* v374, 2a volta - a TELA dizia qual metade faltou e a MENSAGEM calava. Quem lê no grupo não
+     distingue "não veio" de "não vendeu" - e é a mensagem que sai de casa, não a tela. */
+  const faltou = !temNumeroPostos(r) ? "⚠️ Os postos não vieram nesta coleta."
+               : !temNumeroLojas(r)  ? "⚠️ As conveniências não vieram nesta coleta." : "";
   const linhas = [];
   linhas.push("📊 Vendas de " + nomeDiaSemana(dia) + ", " + fmtDataCurta(dia));
-  const postos = r.postos || [], lojas = r.lojas || [];
+  const postos = temNumeroPostos(r) ? (r.postos || []) : [];   // v374 - a mesma pergunta do portão
+  const lojas  = temNumeroLojas(r)  ? (r.lojas  || []) : [];
   if (postos.length){
     let tot = 0;
     const itens = postos.map(x => { tot += (+x.litros||0);
@@ -22670,8 +22760,10 @@ function montarTextoResumo(dia){
   linhas.push("");
   linhas.push("📅 No mês até aqui");
   // aqui as unidades são diferentes (litro x real), então alinhar não ajuda: linha simples
-  linhas.push("Postos: " + fmtLitros(ac.litros) + " L");
-  linhas.push("Conveniências: R$ " + fmtBR(ac.fat,2));
+  // v374 - metade que nenhum dia trouxe vira travessão; zero no grupo seria mentira tranquila
+  linhas.push("Postos: " + (ac.diasP ? fmtLitros(ac.litros) + " L" : "—"));
+  linhas.push("Conveniências: " + (ac.diasL ? "R$ " + fmtBR(ac.fat,2) : "—"));
+  if (faltou){ linhas.push(""); linhas.push(faltou); }
   return linhas.join("\n");
 }
 function cardLinhaResumo(nome, valor, tot){
@@ -22681,8 +22773,9 @@ function cardLinhaResumo(nome, valor, tot){
 function montarCartaoResumo(dia){
   const r = resumosDia[dia];
   const el = document.getElementById("cartaoResumo");
-  if (!r || !el) return null;
-  const postos = r.postos || [], lojas = r.lojas || [];
+  if (!resumoTemNumero(r) || !el) return null;    // v374 - nem imagem de dia sem número
+  const postos = temNumeroPostos(r) ? (r.postos || []) : [];   // v374 - a mesma pergunta do portão
+  const lojas  = temNumeroLojas(r)  ? (r.lojas  || []) : [];
   let totP = 0, totC = 0, h = "";
   h += '<div class="cardres-topo"><img src="logo-full.png" alt="Postos Full">' +
        '<div class="cardres-dt">Vendas de<b>' + nomeDiaSemana(dia) + ', ' + fmtDataCurta(dia) + '</b></div></div>';
@@ -22700,8 +22793,18 @@ function montarCartaoResumo(dia){
     h += cardLinhaResumo("Total", fmtBR(totC,2), true);
   }
   const ac = acumuladoMesResumo(dia);
-  h += '<div class="cardres-mes"><div>No mês até aqui (' + ac.dias + ' dia' + (ac.dias===1?'':'s') + ')</div>' +
-       '<div><b>' + fmtLitros(ac.litros) + ' L</b> · <b>R$ ' + fmtBR(ac.fat,2) + '</b></div></div>';
+  /* 🔴 v374, 2a volta - o rótulo estava com `ac.dias` (dias com QUALQUER metade) enquanto os dois
+     números já vinham de `diasP`/`diasL`. Num mês com metades alternadas a TELA dizia "em 2 dias"
+     e esta IMAGEM dizia "(3 dias)" - e a imagem é a que vai para o grupo. Agora cada metade
+     carrega a própria contagem, que é a única que explica o número ao lado. */
+  h += '<div class="cardres-mes"><div>No mês até aqui</div>' +
+       '<div><b>' + (ac.diasP ? fmtLitros(ac.litros) + ' L' : '—') + '</b> <span class="un">' +
+       (ac.diasP ? 'em ' + ac.diasP + ' dia' + (ac.diasP===1?'':'s') : 'sem dia coletado') + '</span> · <b>' +
+       (ac.diasL ? 'R$ ' + fmtBR(ac.fat,2) : '—') + '</b> <span class="un">' +
+       (ac.diasL ? 'em ' + ac.diasL + ' dia' + (ac.diasL===1?'':'s') : 'sem dia coletado') + '</span></div></div>';
+  if (!temNumeroPostos(r) || !temNumeroLojas(r))
+    h += '<div class="cardres-mes"><div>' + (temNumeroPostos(r) ? "As conveniências não vieram nesta coleta"
+                                                                : "Os postos não vieram nesta coleta") + '</div></div>';
   h += '</div>';
   el.innerHTML = h;
   return el;
