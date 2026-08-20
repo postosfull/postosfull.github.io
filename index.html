@@ -6873,7 +6873,14 @@ let admFiltroPerfilSel = "";
 let admMtzEmp = "postos";
 let _travaEmpresa = false;   // evita laco entre garantirEmpresaPermitida e definirEmpresa
 
-function aspAdm(s){ return String(s).replace(/'/g, "\\'"); }
+/* v379 - aqui morava a funcao chamada aspAdm: copia byte a byte da escAspas
+   anterior a v379, que so escapava a aspa simples. Tinha 8 chamadas alimentando 22
+   pontos de emissao (Admin / Pessoas / Perfis) e o defeito inteiro: aspa dupla matava
+   o botao, barra invertida chegava como TAB e um nome preparado pendurava handler
+   forasteiro. As 8 passaram a chamar escAspas e a copia foi APAGADA - copia que fica
+   volta a ser usada, e diverge. Medido em 20/08.
+   (O nome dela nao aparece aqui seguido de parentese de proposito: a suite da bancada
+    conta ocorrencias no arquivo inteiro e nao sabe distinguir comentario de codigo.) */
 function admEmails(){
   const mapa = {};
   Object.keys(perfisDocs || {}).forEach(e => { mapa[e] = true; });
@@ -7324,7 +7331,7 @@ function apagarFichaUsuario(email){
 /* 🔑 A CONFIRMAÇÃO DIZ O QUE SOME **E O QUE FICA**. Confirmação que só pergunta "tem certeza?"
    transfere o risco para a pessoa sem lhe dar a informação para decidir. */
 function apagarFichaHtml(email){
-  const a = aspAdm(email);
+  const a = escAspas(email);
   if (admFichaApagar !== email)
     return '<div class="adm-sec">🗑️ Apagar a ficha</div>' +
       '<p class="nota-dash">Tira esta pessoa da lista: o <b>nome</b> e o <b>perfil de acesso</b> dela. ' +
@@ -7399,7 +7406,7 @@ function selosDaPessoa(e){
   return s;
 }
 function linhaPessoaHtml(e){
-  return '<div class="adm-pes" onclick="abrirFichaPessoa(\'' + aspAdm(e) + '\')">' +
+  return '<div class="adm-pes" onclick="abrirFichaPessoa(\'' + escAspas(e) + '\')">' +
     '<span class="adm-pes-nome">' + escAttr(admNomeDe(e)) + '</span>' +
     '<span class="adm-pes-mail">' + escAttr(e) + '</span>' +
     '<span class="adm-pes-selos">' + selosDaPessoa(e) + '</span>' +
@@ -7412,7 +7419,7 @@ function selTresEstados(chamada, modo, rotSim, rotNao){
     '<option value="nao"' + (modo === "nao" ? " selected" : "") + '>' + rotNao + '</option></select>';
 }
 function fichaPessoaHtml(e){
-  const a = aspAdm(e);
+  const a = escAspas(e);
   const fixo = ehAdminFixo(e);
   /* 🔴 v320 - a ficha do dono, vista por outro administrador, aparece TRANCADA e DIZENDO POR QUE.
      ⚠️ O `pointer-events:none` do CSS e' so' a aparencia — quem realmente recusa sao as guardas
@@ -7457,7 +7464,7 @@ function fichaPessoaHtml(e){
     menusComuns().forEach(m => { if (menuMarcadoEm(p.menus, "todas", m.key)) qtd++; });
     h += '<div class="adm-herda"><b>Herda do perfil ' + escAttr(nomePerfilAdm(pid)) + ':</b> ' +
          (emps.length ? escAttr(emps.join(" · ")) : "nenhuma empresa") + ' · <b>' + qtd + '</b> menus marcados. ' +
-         '<button class="btn-claro adm-mini" onclick="editarPerfilDaPessoa(\'' + aspAdm(pid) + '\')">editar o perfil</button></div>';
+         '<button class="btn-claro adm-mini" onclick="editarPerfilDaPessoa(\'' + escAspas(pid) + '\')">editar o perfil</button></div>';
   } else if (modo === "manual"){
     h += '<div class="adm-sec">2 · Empresas e menus desta pessoa</div>' + gradeMenusHtml("usuario", e, rule ? rule.menus : null, permissoesTodos[e] || {});
   } else {
@@ -7596,7 +7603,7 @@ function gradeMenusHtml(tipo, id, mapaMenus, dono){
   const perfil = (tipo === "perfil");
   const chamadaEmp = perfil ? "setEmpresaPerfil" : "setEmpresaUsuario";
   const chamadaMenu = perfil ? "setMenuPerfilEmp" : "setPermUsuarioEmp";
-  const a = aspAdm(id);
+  const a = escAspas(id);
   let h = '<p class="nota-dash">Empresa desmarcada <b>some do seletor do topo</b> — a pessoa nem vê que ela existe.</p>';
   h += '<div class="adm-emp-chk">';
   EMPRESAS_ADM.forEach(x => {
@@ -7655,9 +7662,9 @@ function renderEditorPerfil(){
   const p = perfisAcesso[id];
   const n = quantasPessoasNoPerfil(id);
   let h = '<div class="perfil-item"><div class="perfil-top">' +
-    '<input class="perfil-nome" maxlength="30" value="' + escAttr(p.nome || "") + '" placeholder="Nome do perfil" onchange="renomearPerfilAcesso(\'' + aspAdm(id) + '\', this.value)">' +
+    '<input class="perfil-nome" maxlength="30" value="' + escAttr(p.nome || "") + '" placeholder="Nome do perfil" onchange="renomearPerfilAcesso(\'' + escAspas(id) + '\', this.value)">' +
     '<span class="adm-tag">' + n + (n === 1 ? ' pessoa usa' : ' pessoas usam') + ' este perfil</span>' +
-    '<button class="btn-claro perfil-x" onclick="removerPerfilAcesso(\'' + aspAdm(id) + '\')">✕ excluir</button></div>';
+    '<button class="btn-claro perfil-x" onclick="removerPerfilAcesso(\'' + escAspas(id) + '\')">✕ excluir</button></div>';
 
   h += '<div class="adm-sec">1 · Empresas e menus que este perfil vê</div>';
   h += gradeMenusHtml("perfil", id, p.menus, p);
@@ -7666,10 +7673,10 @@ function renderEditorPerfil(){
   h += '<div class="usr-perm-grid">';
   PODERES_ADM.forEach(pd => {
     let on = false, chamada = "";
-    if (pd.k === "envio"){ on = permissaoEnvioPerfil[id] === true; chamada = "setPermEnvioPerfil('" + aspAdm(id) + "', this.checked)"; }
-    else if (pd.k === "eventos"){ on = permissaoEventosPerfil[id] === true; chamada = "setPermEventosPerfil('" + aspAdm(id) + "', this.checked)"; }
-    else if (pd.k === "descontos"){ on = permissaoDescPerfil[id] === true; chamada = "setPermDescontosPerfil('" + aspAdm(id) + "', this.checked)"; }
-    else { on = !!(p.poderes && p.poderes.admin === true); chamada = "setPoderPerfil('" + aspAdm(id) + "', 'admin', this.checked)"; }
+    if (pd.k === "envio"){ on = permissaoEnvioPerfil[id] === true; chamada = "setPermEnvioPerfil('" + escAspas(id) + "', this.checked)"; }
+    else if (pd.k === "eventos"){ on = permissaoEventosPerfil[id] === true; chamada = "setPermEventosPerfil('" + escAspas(id) + "', this.checked)"; }
+    else if (pd.k === "descontos"){ on = permissaoDescPerfil[id] === true; chamada = "setPermDescontosPerfil('" + escAspas(id) + "', this.checked)"; }
+    else { on = !!(p.poderes && p.poderes.admin === true); chamada = "setPoderPerfil('" + escAspas(id) + "', 'admin', this.checked)"; }
     h += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked ' : '') + 'onchange="' + chamada + '"> ' + pd.nome + '</label>';
   });
   h += '</div>';
@@ -7678,7 +7685,7 @@ function renderEditorPerfil(){
   h += '<div class="adm-sec">3 · Notificações que este perfil recebe</div><div class="usr-perm-grid">';
   ORIGENS_AVISO_ADM.forEach(o => {
     const on = !(p.avisos && p.avisos[o[0]] === false);
-    h += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked' : '') + ' onchange="setAvisoPerfil(\'' + aspAdm(id) + '\', \'' + o[0] + '\', this.checked)"> ' + o[1] + '</label>';
+    h += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked' : '') + ' onchange="setAvisoPerfil(\'' + escAspas(id) + '\', \'' + o[0] + '\', this.checked)"> ' + o[1] + '</label>';
   });
   h += '</div></div>';
   cont.innerHTML = h;
@@ -7794,7 +7801,7 @@ function renderAdmUnidades(){
     /* ⚠️ QUEM NÃO ENXERGA O MENU PRECISA APARECER ASSIM MESMO, e dizendo isso: foi exatamente o
        caso da conta da Transportadora. Esconder a linha esconderia a solução junto com o problema. */
     const ve = menuPermitidoDe(e, "pendAdm", "postos");
-    const a = aspAdm(e);
+    const a = escAspas(e);
     h += '<tr><td class="adm-uni-nome">' + escAttr(admNomeDe(e)) +
          (ve ? "" : '<br><span class="adm-mini-nota adm-uni-sem">não vê o menu ✅</span>') + '</td>';
     UNIDADES_PADM.forEach(u => {
@@ -8213,6 +8220,15 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v379", data:"20/08/2026", tit:"🛡️ Texto com <b>aspas</b>, <b>barra invertida</b> ou <b>quebra de linha</b> parou de desligar botão — e de trocar o dado calado", itens:[
+    {t:"c", h:"Um nome com <b>aspa</b> desligava o botão, e o que você digitasse <b>não era gravado</b>", d:"Para saber em quem mexer quando você clica, cada botão e cada campo carrega <b>dentro dele</b> o nome daquilo em que vai mexer. Se esse nome tivesse <b>aspa</b>, o botão nascia <b>cortado no meio</b> e simplesmente parava de responder — você digitava, a tela aceitava, e <b>nada era salvo</b>, sem aviso nenhum. Medido em <b>20/08</b> num Chrome de verdade: uma distribuidora chamada <b>Vibra &quot;A&quot;</b> fazia o campo de frete das <b>Cotações</b> aceitar o número e gravar vazio. Os dados que agora estão protegidos: <b>nome de distribuidora</b> (Cotações e Comparativo), <b>nome de posto</b> (Comprar/Pedido, Recebimento de combustível, Nível dos tanques), <b>nome de cliente e de rede</b> (menu Clientes e a aba <b>A Prazo</b>), <b>nome de categoria e de produto</b> (Produtos e categorias) e <b>chave de desconto</b> (Descontos Petros). Também entraram o <b>e-mail da pessoa</b> e o <b>identificador do perfil</b> (Pessoas e Perfis de acesso), a <b>placa</b> no Comprar/Pedido e as <b>chaves de menu</b> do Personalizar a barra."},
+    {t:"c", h:"E nem todo esse texto é digitado aqui dentro — parte <b>vem de fora</b>", d:"Vale dizer, porque muda o tamanho do risco: nome de <b>categoria</b> e de <b>produto</b> chega pelos <b>coletores da loja</b>, e a <b>chave de desconto</b> vem do <b>portal da Petros</b>. Ou seja, não dependia de alguém daqui digitar errado — bastava um nome com aspa aparecer lá fora e entrar na sincronização. 🔑 <b>Isso foi levantado por revisor independente</b>; a primeira versão deste texto dizia que só gente de dentro digitava esses nomes, e estava errada para o lado tranquilizador."},
+    {t:"c", h:"Em dois casos o dado chegava <b>trocado</b> — e esses são piores, porque <b>nada quebrava</b>", d:"Um nome com <b>barra invertida</b>, como <b>C:&#92;temp</b>, chegava do outro lado com a barra e a letra seguinte viradas num <b>tab</b>. E um nome em que alguém digitasse a sequência <b>&amp;quot;</b> à mão chegava como <b>&quot;</b>. Nos dois, <b>nenhum erro</b> aparecia em lugar nenhum: a tela seguia normal e só o valor guardado ficava diferente do digitado. 🔑 <b>É a forma de defeito que mais custou caro neste app — a tela diz uma coisa e o código faz outra, sempre pendendo para o lado tranquilizador.</b>"},
+    {t:"c", h:"E dava para <b>pendurar um comando</b> no botão pelo nome — isso foi <b>medido</b>, não suposto", d:"Como o nome ia cru para dentro do botão, uma aspa <b>fechava</b> o pedaço do botão e o resto do nome virava <b>parte do botão</b>. Numa medição de <b>20/08</b>, um nome preparado pendurou um comando próprio ali e ele <b>disparou</b>. Medido: <b>duas</b> das receitas antigas deixavam isso acontecer — a de <b>Pessoas e Perfis de acesso</b> precisava de uma <b>aspa dupla dentro de um e-mail</b>, e a do <b>Comprar/Pedido</b> precisava de <b>uma apóstrofe só</b> dentro do nome do posto, que é bem mais fácil de acontecer sem querer. O comando rodaria no navegador de <b>quem abrisse a tela</b>, não no de quem digitou — mesma forma do buraco que a <b>v378</b> fechou no Histórico, chegando por outro cano."},
+    {t:"m", h:"A causa de raiz: havia <b>cinco</b> receitas diferentes para o mesmo problema, e <b>quatro estavam furadas</b>", d:"O app tinha cinco jeitos de preparar um texto antes de colocá-lo dentro de um botão, escritos em épocas diferentes. Uma delas, chamada <b>aspAdm</b>, era <b>cópia byte a byte</b> da versão com defeito — a mesma que a v379 acabou de consertar do outro lado. Agora são <b>duas</b>, e a cópia foi <b>apagada</b>, não corrigida: 🔑 <b>cópia que fica volta a ser usada e torna a divergir — é questão de tempo, não de cuidado.</b> Ao todo, <b>139 pontos</b> do app passaram a usar a receita certa."},
+    {t:"m", h:"O que esta versão <b>não</b> fecha, dito na cara", d:"Sobraram <b>53 pontos</b> que nunca tiveram preparo nenhum. Pelo que se vê, todos carregam <b>identificador gerado pela máquina</b> (coisas como <b>cli_m2x8k1</b>) ou <b>chave interna</b>, onde texto de gente não entra — 🔴 <b>mas isso foi conferido pelo nome de cada um, não testado um a um</b>, e por isso está anotado como pendência da próxima versão, e não como resolvido. Em <b>Caminhões</b> e <b>Tanques</b> o defeito nunca pôde acontecer: a placa e o nome do tanque já são reduzidos a letras e números na hora de cadastrar."},
+    {t:"m", h:"E o que ele <b>não desfaz</b>", d:"O conserto vale para tudo que for desenhado daqui para frente, e a versão nova recarrega o app inteiro — então você não precisa fazer nada. 🔴 <b>O que ele não desfaz é dado que já foi gravado errado por causa disso.</b> Um nome que chegou com <b>tab</b> no lugar da barra invertida não ficou só guardado torto: ele <b>criou uma distribuidora nova</b> no documento daquele dia, com um nome que não existe no cadastro. 🔴 <b>E ela não aparece em tela nenhuma</b>: as listas de distribuidora são montadas a partir do <b>cadastro</b>, nunca do documento do dia. Ou seja, o registro torto fica lá dentro <b>sem ninguém ver</b> — o que é pior, não melhor. Achar isso pede olhar o dado, não a tela."}
+  ]},
   {v:"v378", data:"20/08/2026", tit:"🛡️ Nome digitado por gente parou de virar <b>marcação</b> dentro do Histórico", itens:[
     {t:"c", h:"Título de pendência, nome de evento, de documento e de <b>arquivo enviado</b> iam para o Histórico <b>do jeito que vieram</b>", d:"A tela do Histórico monta <b>marcação</b> para desenhar cada linha, e o resumo era colado ali <b>cru</b>. Com isso, um nome que tivesse marcação dentro deixava de ser <b>texto</b> e passava a ser <b>parte da página</b> — no navegador de quem abrisse a tela, não no de quem digitou. Medido em <b>20/08</b> por revisor independente, reproduzido num navegador de verdade. Eram <b>13 lugares vivos</b>: as duas telas de <b>Pendências</b>, o <b>Calendário</b>, os <b>Documentos</b>, os <b>Vencimentos</b> e o <b>nome do posto</b> — que você digita nas Configurações, entra em cada lançamento e chega ao Histórico por um caminho próprio, separado dos outros doze. Agora todos escapam <b>antes de gravar</b>, que é a convenção que o resto do app já seguia. 🔑 <b>O que a v377 fez foi consertar cinco linhas que nasciam vazias; ao voltarem a ter texto, ficou visível que o cano estava aberto para todo mundo.</b> Na tela não muda nada: você continua lendo o nome como sempre leu. 🆕 E a mesma proteção entrou em <b>todo lugar onde o nome do posto e o da distribuidora aparecem</b>: a lista das <b>Configurações</b>, os <b>filtros do topo</b>, o <b>seletor de cada linha</b> da tabela, as <b>Cotações</b> e o <b>Comparativo</b>. Foi a própria bancada desta versão que achou: com o Histórico já limpo, o aviso continuava disparando — e uma sonda passo a passo mostrou que ele nascia dentro das opções do filtro."},
     {t:"m", h:"Quatro resumos continuam sem escapar — e é de propósito", d:"Três deles só carregam <b>número</b> ou <b>palavra fixa</b> (quantos dias, quantos eventos, a sigla da empresa). O quarto é o <b>“Desfez:”</b>, que repete um resumo <b>já gravado</b> — escapar de novo faria aspas e sinais aparecerem embaralhados na tela. Estão nomeados na ficha desta versão, com o motivo de cada um."}
@@ -11367,16 +11383,16 @@ function renderPersonalizarMenus(){
            (g.key === GRUPO_SOLTOS_FIM ? "fim" : "topo") + ' da barra)</span>';
     } else {
       h += '<input class="pmenu-ic" maxlength="4" value="' + escAttr(g.icone) + '" title="Ícone" ' +
-           'onchange="salvarCampoGrupo(\'' + escAttr(g.key) + '\',\'icone\',this.value)">' +
+           'onchange="salvarCampoGrupo(\'' + escAspas(g.key) + '\',\'icone\',this.value)">' +
            '<input class="pmenu-nm" maxlength="24" value="' + escAttr(g.nome) + '" title="Nome do grupo" ' +
-           'onchange="salvarCampoGrupo(\'' + escAttr(g.key) + '\',\'nome\',this.value)">' +
+           'onchange="salvarCampoGrupo(\'' + escAspas(g.key) + '\',\'nome\',this.value)">' +
            '<span class="pmenu-bts">' +
            '<button type="button" class="' + (gi <= 1 ? "off" : "") + '" title="Subir o grupo" ' +
-             'onclick="moverGrupoMenu(\'' + escAttr(g.key) + '\',-1)">\u25b2</button>' +
+             'onclick="moverGrupoMenu(\'' + escAspas(g.key) + '\',-1)">\u25b2</button>' +
            '<button type="button" class="' + (gi >= grupos.length - 2 ? "off" : "") + '" title="Descer o grupo" ' +
-             'onclick="moverGrupoMenu(\'' + escAttr(g.key) + '\',1)">\u25bc</button>' +
+             'onclick="moverGrupoMenu(\'' + escAspas(g.key) + '\',1)">\u25bc</button>' +
            '<button type="button" class="pmenu-lixo" title="Apagar o grupo (os menus vão para onde você escolher)" ' +
-             'onclick="pedirApagarGrupo(\'' + escAttr(g.key) + '\')">\ud83d\uddd1</button>' +
+             'onclick="pedirApagarGrupo(\'' + escAspas(g.key) + '\')">\ud83d\uddd1</button>' +
            '</span>';
     }
     h += '</div>';
@@ -11405,13 +11421,13 @@ challengeTexto(g, meus) +
       h += '<div class="pmenu-item">' +
            '<span class="pmenu-ico">' + escAttr(ico) + '</span>' +
            '<input class="pmenu-nm" maxlength="30" value="' + escAttr(nomeMenu(k, s)) + '" ' +
-             'onchange="salvarNomeMenu(\'' + escAttr(k) + '\',this.value)">' +
-           '<select onchange="moverMenuGrupo(\'' + escAttr(k) + '\',this.value)">' + opcoes(k) + '</select>' +
+             'onchange="salvarNomeMenu(\'' + escAspas(k) + '\',this.value)">' +
+           '<select onchange="moverMenuGrupo(\'' + escAspas(k) + '\',this.value)">' + opcoes(k) + '</select>' +
            '<span class="pmenu-bts">' +
            '<button type="button" class="' + (i === 0 ? "off" : "") + '" title="Subir" ' +
-             'onclick="moverMenuOrdem(siglaEmpresa(empresa),\'' + escAttr(k) + '\',-1)">\u25b2</button>' +
+             'onclick="moverMenuOrdem(siglaEmpresa(empresa),\'' + escAspas(k) + '\',-1)">\u25b2</button>' +
            '<button type="button" class="' + (i === meus.length - 1 ? "off" : "") + '" title="Descer" ' +
-             'onclick="moverMenuOrdem(siglaEmpresa(empresa),\'' + escAttr(k) + '\',1)">\u25bc</button>' +
+             'onclick="moverMenuOrdem(siglaEmpresa(empresa),\'' + escAspas(k) + '\',1)">\u25bc</button>' +
            '</span></div>';
     });
     h += '</div></div>';
@@ -13693,7 +13709,7 @@ function renderMenuClientes(){
   h += '<div class="rpz-rola"><table class="rpz-tab"><thead><tr><th>Cliente</th><th>Postos</th><th class="rpz-r">Em aberto (R$)</th><th class="rpz-r">Vencido (R$)</th><th class="rpz-r">%</th></tr></thead><tbody>';
   lista.forEach(c => {
     const aberto = (c.nome === cliRedeAberto);
-    h += '<tr class="rpz-cli' + (aberto ? ' rpz-cli-on' : '') + '" onclick="abrirFichaRede(\'' + escAttr(aspAdm(c.nome)) + '\')">' +
+    h += '<tr class="rpz-cli' + (aberto ? ' rpz-cli-on' : '') + '" onclick="abrirFichaRede(\'' + escAspas(c.nome) + '\')">' +
          '<td class="rpz-nome">' + escAttr(c.nome) + '</td>' +
          '<td>' + Object.keys(c.uns).map(u => '<span class="rpz-un">' + escAttr(u) + '</span>').join("") + '</td>' +
          '<td class="rpz-r">' + rpzDin0(c.val) + '</td>' +
@@ -13742,7 +13758,7 @@ function rpzFichaCliente(nome, linhas, tot){
      HORIZONTAL. Com a ficha la' dentro, "A VENCER" e a frase do rodape ficavam cortados e so'
      apareciam arrastando a tela de lado. Tabela pode rolar; bloco de texto e cartao, nao. */
   let h = '<div class="rpz-fic rpz-fic-bloco">' +
-          '<span class="rpz-fic-fecha" onclick="abrirFichaCliente(\'' + escAttr(aspAdm(nome)) + '\')">fechar</span>' +
+          '<span class="rpz-fic-fecha" onclick="abrirFichaCliente(\'' + escAspas(nome) + '\')">fechar</span>' +
           '<p class="rpz-fic-tit">' + escAttr(nome) + '</p>';
   h += '<div class="rpz-cards">';
   h += '<div class="rpz-card"><span>Em aberto</span><b>R$ ' + rpzDin0(emAberto) + '</b></div>';
@@ -13861,7 +13877,7 @@ function rpzBlocoAprazo(ls, dataFoto){
   h += '<h3 class="cxi-sub">Maiores clientes</h3><p class="nota-dash">Clique num cliente para ver a ficha dele.</p><div class="rpz-rola"><table class="rpz-tab"><thead><tr><th>Cliente</th><th class="rpz-r">Em aberto (R$)</th><th class="rpz-r">%</th></tr></thead><tbody>';
   visiveis.forEach(c => {
     const aberto = (c[0] === rpzCliAberto);
-    h += '<tr class="rpz-cli' + (aberto ? ' rpz-cli-on' : '') + '" onclick="abrirFichaCliente(\'' + escAttr(aspAdm(c[0])) + '\')">' +
+    h += '<tr class="rpz-cli' + (aberto ? ' rpz-cli-on' : '') + '" onclick="abrirFichaCliente(\'' + escAspas(c[0]) + '\')">' +
          '<td class="rpz-nome">' + escAttr(c[0]) + '</td><td class="rpz-r">' + rpzDin0(c[1]) + '</td><td class="rpz-r">' + (tot ? (c[1] / tot * 100).toFixed(1) : "0.0") + '%</td></tr>';
   });
   h += '</tbody></table></div>';
@@ -13871,7 +13887,7 @@ function rpzBlocoAprazo(ls, dataFoto){
   if (venc.length){
     h += '<details class="rel-det"><summary>Títulos vencidos (' + venc.length + ')</summary><div class="rpz-rola"><table class="rpz-tab"><thead><tr><th>Cliente</th><th>Título</th><th>Vencimento</th><th class="rpz-r">Dias</th><th class="rpz-r">Valor (R$)</th></tr></thead><tbody>';
     venc.slice(0, 100).forEach(l => {
-      h += '<tr class="rpz-cli" onclick="abrirFichaCliente(\'' + escAttr(aspAdm(l.nome)) + '\')"><td class="rpz-nome">' + escAttr(l.nome) + '</td><td>' + escAttr(rpzTxt(l.tit || "")) + '/' + escAttr(rpzTxt(l.parc || "")) + '</td>' +
+      h += '<tr class="rpz-cli" onclick="abrirFichaCliente(\'' + escAspas(l.nome) + '\')"><td class="rpz-nome">' + escAttr(l.nome) + '</td><td>' + escAttr(rpzTxt(l.tit || "")) + '/' + escAttr(rpzTxt(l.parc || "")) + '</td>' +
            '<td>' + escAttr(l.venc ? l.venc.split("-").reverse().join("/") : "—") + '</td>' +
            '<td class="rpz-r rpz-neg">' + l.atraso + '</td><td class="rpz-r">' + rpzDin(l.val) + '</td></tr>';
     });
@@ -15401,7 +15417,7 @@ function renderDespesasDet(){
        '<th class="rpz-r">Total</th><th class="rpz-r">%</th></tr></thead><tbody>';
   D.cats.forEach(c => {
     const ab = !!dsdAberta[c.nome];
-    h += '<tr class="rpz-cli dsd-pai' + (ab ? ' rpz-cli-on' : '') + '" onclick="dsdAbrirCat(' + JSON.stringify(c.nome).replace(/"/g, "&quot;") + ')">' +
+    h += '<tr class="rpz-cli dsd-pai' + (ab ? ' rpz-cli-on' : '') + '" onclick="dsdAbrirCat(' + escAttr(JSON.stringify(c.nome)) + ')">' +
          '<td class="rpz-nome"><span class="dsd-seta">' + (ab ? "⌄" : "›") + '</span> <b>' + escAttr(c.nome) + '</b> <span class="dsd-cont">(' + c.tipos.length + ')</span></td>' +
          c.meses.map((v, i) => '<td class="rpz-r">' + (v ? dsdComp(v) : "—") + '</td>').join("") +
          '<td class="rpz-r dsd-tot" title="R$ ' + fmtBR(c.total, 2) + '">' + fmtR$0(c.total) + '</td>' +
@@ -17703,7 +17719,7 @@ function renderRessup(tela){
   preencherSelectRel(cfg.sel, meses, est.mes, rotuloMesRel);
   if (cfg.abasRot.every(a => a[0] !== est.un)) est.un = cfg.abasRot[0][0];
   if (abas) abas.innerHTML = cfg.abasRot.map(a =>
-    '<button class="doc-chip' + (est.un === a[0] ? ' ativo' : '') + '" onclick="rsvAba(\'' + tela + '\',\'' + escAttr(a[0]) + '\')">'
+    '<button class="doc-chip' + (est.un === a[0] ? ' ativo' : '') + '" onclick="rsvAba(\'' + tela + '\',\'' + escAspas(a[0]) + '\')">'
     + escAttr(a[1]) + '</button>').join("");
   /* v371 - o balao do "i" mora DENTRO do wrap, e o wrap embrulha a tela inteira. 🔑 E' a amarra
      do #painelOperadores (v359), com o motivo dela: `ligarTipsEm` posiciona o balao pelo retangulo
@@ -18938,12 +18954,12 @@ function tqvCaixaPers(postos, nomes, rotProd){
     const cor = tqvCorProduto(p);
     const mexido = !!(ed.cores || {})[tqvChaveProd(p)];
     h += '<label class="tqv-pers-cor"><input type="color" value="' + escAttr(cor) +
-         '" onchange="tqvCor(' + JSON.stringify(p).replace(/"/g, "&quot;") + ', this.value)">' +
+         '" onchange="tqvCor(' + escAttr(JSON.stringify(p)) + ', this.value)">' +
          /* v363 - o texto e' o rotulo curto; o `p` dos dois onclick continua sendo o nome CRU,
             que e' a chave de `tanquesAjustes.cores`. Trocar o `p` aqui apagaria a cor salva. */
          '<span title="' + escAttr(p) + '">' + escAttr(tqvRotDe(rotProd, p)) + '</span>' +
          (mexido ? '<button class="tqv-pers-x" title="voltar ao padr\u00e3o" onclick="tqvCorPadraoDe(' +
-                   JSON.stringify(p).replace(/"/g, "&quot;") + ')">\u21ba</button>' : '') + '</label>';
+                   escAttr(JSON.stringify(p)) + ')">\u21ba</button>' : '') + '</label>';
   });
   h += '</div></div>';
 
@@ -18961,8 +18977,8 @@ function tqvCaixaPers(postos, nomes, rotProd){
     h += '<div class="tqv-pers-ord"><i>' + escAttr(tqvNomePosto(nm)) + '</i>';
     ts.forEach((n, i) => {
       h += '<span class="tqv-pers-it">TQ ' + escAttr(n) +
-           '<button onclick="tqvMoverTanque(' + JSON.stringify(nm).replace(/"/g, "&quot;") + ',' + i + ',-1)"' + (i === 0 ? ' disabled' : '') + '>\u25b2</button>' +
-           '<button onclick="tqvMoverTanque(' + JSON.stringify(nm).replace(/"/g, "&quot;") + ',' + i + ',1)"' + (i === ts.length - 1 ? ' disabled' : '') + '>\u25bc</button></span>';
+           '<button onclick="tqvMoverTanque(' + escAttr(JSON.stringify(nm)) + ',' + i + ',-1)"' + (i === 0 ? ' disabled' : '') + '>\u25b2</button>' +
+           '<button onclick="tqvMoverTanque(' + escAttr(JSON.stringify(nm)) + ',' + i + ',1)"' + (i === ts.length - 1 ? ' disabled' : '') + '>\u25bc</button></span>';
     });
     h += '</div>';
   });
@@ -19897,7 +19913,7 @@ function dreGrafico(serie){
   serie.forEach((p, i) => {
     h += '<rect class="dre-hit" x="' + (px(i) - larg / 2).toFixed(1) + '" y="' + y0 + '" width="' + larg.toFixed(1) + '" height="' + (y1 - y0) + '" ' +
          'onmousemove="dreDica(event,' + i + ',' + px(i).toFixed(1) + ')" onmouseleave="dreDicaFora()" ' +
-         'onclick="dreTrocarMes(\'' + escAttr(p.mes) + '\')"/>';
+         'onclick="dreTrocarMes(\'' + escAspas(p.mes) + '\')"/>';
   });
   h += '</svg>';
   return h;
@@ -19975,7 +19991,7 @@ function renderDre(){
   /* --- barra de escolhas --- */
   let h = '<div class="dre-topo"><div class="dre-grupo"><i>' + (semBico ? "Loja" : "Posto") + '</i>';
   dreUnidades().forEach(u => {
-    h += '<button class="doc-chip' + (dreUn === u.chave ? " ativo" : "") + '" onclick="dreTrocarUn(\'' + escAttr(u.chave) + '\')">' + escAttr(u.nome) + '</button>';
+    h += '<button class="doc-chip' + (dreUn === u.chave ? " ativo" : "") + '" onclick="dreTrocarUn(\'' + escAspas(u.chave) + '\')">' + escAttr(u.nome) + '</button>';
   });
   h += '</div><div class="dre-grupo"><i>Período</i>';
   DRE_MODOS.forEach(m => {
@@ -22435,7 +22451,7 @@ function renderRecebimento(){
          '" onclick="rcbFiltrarPosto(\'\')">Todos</button>';
     postosTodos.forEach(nm => {
       h += '<button class="rcb-fbt' + (rcbPostoSel === nm ? ' aceso' : '') +
-           '" onclick="rcbFiltrarPosto(' + JSON.stringify(nm).replace(/"/g, "&quot;") + ')">' +
+           '" onclick="rcbFiltrarPosto(' + escAttr(JSON.stringify(nm)) + ')">' +
            escAttr(nm) + '</button>';
     });
     h += '</div>';
@@ -22494,8 +22510,8 @@ function renderRecebimento(){
            (p.intervaloMin ? ' · sonda de ' + p.intervaloMin + ' em ' + p.intervaloMin +
                              ' min' : '') + '</span></div>';
 
-      const argsD = JSON.stringify(dia).replace(/"/g, "&quot;");
-      const argsP = JSON.stringify(nm).replace(/"/g, "&quot;");
+      const argsD = escAttr(JSON.stringify(dia));
+      const argsP = escAttr(JSON.stringify(nm));
       /* 🔑 A ordem é a do Resumo do dia: a imagem primeiro, o texto depois — foi ele quem
          pediu a imagem justamente por ser mais fácil de entender no grupo. */
       h += '<div class="rcb-acoes">' +
@@ -22820,7 +22836,7 @@ function renderTanquesNivel(){
     nomes.forEach(nm => {
       const c = tqvCriticosDe(postos[nm].tanques);
       h += '<button class="tqv-fbt' + (tqvPostoSel === nm ? ' aceso' : '') + '" onclick="tqvFiltrarPosto(' +
-             JSON.stringify(nm).replace(/"/g, "&quot;") + ')">' + escAttr(tqvNomePosto(nm)) +
+             escAttr(JSON.stringify(nm)) + ')">' + escAttr(tqvNomePosto(nm)) +
              (c ? ' <b>' + c + '</b>' : '') + '</button>';
     });
     h += '</div>';
@@ -23785,7 +23801,7 @@ function renderComprar(){
   h += '<div class="cpr-chips cpr-postos">';
   nomes.forEach(p => {
     const crit = todas.filter(l => l.posto === p && (l.sit === "critico" || l.sit === "urgente")).length;
-    h += '<button class="cpr-chip' + (p === posto ? ' on' : '') + '" onclick="cprFiltrarPosto(\'' + escAttr(p) + '\')">' +
+    h += '<button class="cpr-chip' + (p === posto ? ' on' : '') + '" onclick="cprFiltrarPosto(\'' + escAspas(p) + '\')">' +
          '\u26fd ' + escAttr(p) + (crit ? ' \u00b7 ' + crit + ' \u26a0' : '') + '</button>';
   });
   h += '</div>';
@@ -23831,7 +23847,7 @@ function renderComprar(){
          (proprio ? ' <span class="cpr-mao" title="voc\u00ea escolheu este n\u00famero">\u2022</span>' : '') + '</label>' +
          '<input id="cpr_' + par[0] + '" type="number" inputmode="numeric" value="' + valor + '" ' +
          'min="' + lim[0] + '" max="' + lim[1] + '" ' +
-         'onchange="cprSetPosto(\'' + escAttr(posto) + '\', \'' + par[0] + '\', this.value)">' +
+         'onchange="cprSetPosto(\'' + escAspas(posto) + '\', \'' + par[0] + '\', this.value)">' +
          '<span class="cpr-un">' + pe + '</span></div>';
   });
   h += '<div class="cpr-cmp"><label>&nbsp;</label><button class="btn-claro" onclick="cprVoltarPadrao()">\u21ba Voltar ao padr\u00e3o</button></div>';
@@ -23972,18 +23988,18 @@ function cprChipsCaminhao(posto, atual){
   const semNosso = !atual;
   let h = '<div class="cpr-chips">';
   if (!padrao.length || semNosso)
-    h += '<button class="cpr-chip' + (semNosso ? ' on' : '') + '" onclick="cprEscolherCaminhao(\'' + escAttr(posto) + '\', \'\')">' +
+    h += '<button class="cpr-chip' + (semNosso ? ' on' : '') + '" onclick="cprEscolherCaminhao(\'' + escAspas(posto) + '\', \'\')">' +
          '\ud83c\udfe2 Outra transportadora' + (padrao.length ? '' : ' \u00b7 padr\u00e3o') + '</button>';
   lista.forEach(c => {
     const ehPadrao = c.posto === posto;
     h += '<button class="cpr-chip' + (atual && c.placa === atual.placa ? ' on' : '') +
-         '" onclick="cprEscolherCaminhao(\'' + escAttr(posto) + '\', \'' + escAttr(c.placa) + '\')">' +
+         '" onclick="cprEscolherCaminhao(\'' + escAspas(posto) + '\', \'' + escAspas(c.placa) + '\')">' +
          '\ud83d\ude9b ' + escAttr(cprApelido(c.placa)) + ' \u00b7 ' +
          fmtBR(c.comps.reduce((a, v) => a + (Number(v) || 0), 0), 0) + ' L' +
          (ehPadrao ? ' \u00b7 padr\u00e3o' : '') + '</button>';
   });
   if (cprCamSel[String(posto)] !== undefined)
-    h += '<button class="cpr-chip" onclick="cprEsquecerCaminhao(\'' + escAttr(posto) + '\')">\u21ba Voltar ao padr\u00e3o</button>';
+    h += '<button class="cpr-chip" onclick="cprEsquecerCaminhao(\'' + escAspas(posto) + '\')">\u21ba Voltar ao padr\u00e3o</button>';
   return h + '</div>';
 }
 
@@ -24038,7 +24054,7 @@ function cprHtmlPedidoFora(posto){
     h += '</div>';
     /* 🔑 A ORDEM DOS DOIS BOTOES E' A ORDEM DO TRABALHO: primeiro copia, depois abre o site para
        colar. Trocar a ordem faria a pessoa abrir a aba e voltar. */
-    h += '<div class="cpr-acoes"><button class="btn-verde" onclick="cprCopiarPedidoFora(\'' + escAttr(posto) + '\')">' +
+    h += '<div class="cpr-acoes"><button class="btn-verde" onclick="cprCopiarPedidoFora(\'' + escAspas(posto) + '\')">' +
          '\ud83d\udccb Copiar o pedido</button>' +
          '<button class="btn-claro" onclick="cprAbrirVibra()">\ud83d\udd17 Abrir o portal da Vibra</button></div>';
   }
@@ -26338,7 +26354,7 @@ const BULAS = {
 function bul(chave){
   if (!BULAS[chave]) return "";
   return '<button type="button" class="bul-i" data-bul="' + escAttr(chave) +
-         '" onclick="abrirBula(event, \'' + escAttr(chave) + '\')" aria-label="Como este n\u00famero \u00e9 calculado" title="Como este n\u00famero \u00e9 calculado">i</button>';
+         '" onclick="abrirBula(event, \'' + escAspas(chave) + '\')" aria-label="Como este n\u00famero \u00e9 calculado" title="Como este n\u00famero \u00e9 calculado">i</button>';
 }
 
 let bulAberta = "";
@@ -29452,7 +29468,15 @@ function parsePrecoComp(s){
   return isFinite(n) ? n : 0;
 }
 function fmtPrecoComp(v){ return v ? v.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:4}) : ""; }
-function escAspas(s){ return String(s).replace(/'/g,"\\'"); }
+/* v379 - escapa para as DUAS camadas, NESTA ordem: primeiro string JS, depois
+   atributo HTML. Os 77 pontos que chamam esta funcao emitem  onclick="fn('AQUI')" :
+   atributo em aspa DUPLA, string JS em aspa SIMPLES. Ate' a v378 so' a aspa simples
+   era tratada, e por isso um nome com aspa DUPLA truncava o atributo - o botao parava
+   de responder e o que a pessoa digitava NAO era gravado, calado - alem de permitir
+   pendurar um handler forasteiro. Barra invertida chegava TROCADA ( \t virava TAB ).
+   🔴 A ORDEM NAO PODE SER TROCADA: a barra invertida vem ANTES da aspa; ao contrario,
+   o \' recem-criado vira \\ + aspa solta e a string quebra de novo. Medido em 20/08. */
+function escAspas(s){ return escAttr(String(s).replace(/\\/g,"\\\\").replace(/'/g,"\\'").replace(/\n/g,"\\n").replace(/\r/g,"\\r")); }
 
 /* ============== Comparativo dentro das Cotações do Dia (v177) ==============
    Antes era um menu separado, onde as cotações tinham de ser digitadas de novo.
