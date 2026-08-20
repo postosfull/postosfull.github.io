@@ -6370,7 +6370,8 @@ function setPermEnvioPerfil(id, on){
 }
 function gravarPermEnvio(){
   docPermEnvio.set({ porUsuario: permissaoEnvio || {}, porPerfil: permissaoEnvioPerfil || {} })
-    .then(()=>{ if (typeof logAtividade === "function") logAtividade("permissao", "Mudou quem pode enviar avisos/tarefas", ""); })
+    .then(()=>{ if (typeof logAtividade === "function") logAtividade({ acao:"alterou", area:"Caixa de entrada",
+                  resumo:"Mudou quem pode enviar avisos e tarefas" }); })
     .catch(()=>{});
 }
 /* ===================== v213 - META DE CONFERENCIA DOS CAIXAS =====================
@@ -7916,6 +7917,9 @@ function logAtividade(o){
   };
   colHistorico.add(item).catch(()=>{});
 }
+/* v377 - " (SIG)" no fim do resumo, e NADA quando nao ha sigla: sem isto o Historico
+   mostraria "Mudou a barra de menus ()" no dia em que `siglaEmpresa` devolver vazio. */
+function sufEmp(s){ s = String(s || "").trim(); return s ? " (" + s + ")" : ""; }
 function podeDesfazer(h){
   if (!h) return false;
   if (h.colecao && h.docId && /^(criar|editar|excluir)$/.test(h.tipoUndo || "")) return true;
@@ -8068,16 +8072,11 @@ function criarPerfilAcesso(){
     .then(()=>{ if (inp) inp.value = ""; avisoAdmin("msgPerfis", 'Perfil "' + nome + '" criado. Agora marque os menus dele.', "ok"); renderPerfisAcesso(); renderAdminUsuarios(); })
     .catch(e => avisoAdmin("msgPerfis", msgErro(e), "erro"));
 }
-function setMenuPerfil(id, key, on){
-  if (!ehAdminAtual()) return negarAdm("msgPerfis", "Só administradores mexem em perfis de acesso.");   /* v320 */
-  if (!perfisAcesso[id]) return;
-  if (!perfisAcesso[id].menus) perfisAcesso[id].menus = {};
-  if (on) perfisAcesso[id].menus[key] = true; else delete perfisAcesso[id].menus[key];
-  const _resumoPerfil = (on ? "Marcou" : "Desmarcou") + " o menu " + key + " no perfil " + nomePerfilAdm(id);
-  gravarPerfisAcessoAdm(_resumoPerfil)
-    .then(()=> aplicarVisibilidadeMenus())
-    .catch(e => avisoAdmin("msgPerfis", msgErro(e), "erro"));
-}
+/* 🔴 v377 - A `setMenuPerfil(id, key, on)` FOI APAGADA: nenhum chamador, medido com grep em
+   20/08/2026. Quem marca menu em perfil e' a `setMenuPerfilEmp`, que e' POR EMPRESA - e o nome
+   dela e' montado de forma dinamica em `chamadaMenu`, entao o grep de "setMenuPerfil(" nao a
+   encontra. 👉 Se alguem precisar de novo de marcar menu SEM empresa, o caminho e' a
+   `gravarPerfisAcessoAdm(resumo)`, nao ressuscitar isto. */
 function setAvisoPerfil(id, origem, on){
   if (!ehAdminAtual()) return negarAdm("msgPerfis", "Só administradores mexem em perfis de acesso.");   /* v320 */
   if (!perfisAcesso[id]) return;
@@ -8214,6 +8213,10 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v377", data:"20/08/2026", tit:"🕓 Conserto: o <b>Histórico</b> voltou a dizer <b>o que</b> foi feito", itens:[
+    {t:"c", h:"Cinco mudanças gravavam uma linha <b>em branco</b> — seu nome, a hora, e nada mais", d:"Mexer na <b>barra de menus</b>, <b>salvar o Dashboard para todo mundo</b>, mover ou renomear <b>abas dos relatórios</b>, marcar um caixa como <b>conferido</b> e trocar <b>quem pode enviar avisos e tarefas</b>: as cinco escreviam no Histórico uma linha <b>vazia</b>. Medido em <b>20/08</b> na própria coleção: <b>231 das 400 últimas linhas</b> estavam assim, a mais antiga de <b>28/07</b>. A causa é de uma letra só — as cinco entregavam os textos <b>soltos</b>, e o registro só lê texto <b>nomeado</b>, então ele gravava vazio <b>sem reclamar de nada</b>. 🔑 <b>Erro que não reclama é o que fica.</b> Agora cada uma diz a <b>área</b> e o <b>que</b> foi feito — e, quando a mudança é de uma empresa só, <b>qual</b>. ⚠️ As linhas antigas continuam em branco: o que não foi escrito não dá para reconstruir depois."},
+    {t:"m", h:"E saíram <b>quatro funções</b> que ninguém alcançava", d:"Três delas tinham <b>xará</b> mais abaixo no mesmo arquivo — e em JavaScript vale a <b>última</b>, então a de cima nunca rodava, nem por engano. Eram restos do Dashboard de antes do <b>Personalizar</b>. 🔑 O detalhe que decidiu esta versão: uma <b>sexta</b> chamada quebrada morava justamente numa dessas. Consertada, ela continuaria sem rodar — e esta tela teria <b>prometido um rastro que nunca apareceria</b>. A quarta função marcava menu em perfil de acesso e também não tinha chamador. Na tela não muda nada; muda o que a próxima pessoa lê quando for mexer ali."}
+  ]},
   {v:"v376", data:"19/08/2026", tit:"🕓 Mudança de <b>perfil de acesso</b> passou a aparecer no <b>Histórico</b>", itens:[
     {t:"c", h:"Quem mexeu no acesso de alguém não deixava <b>rastro nenhum</b>", d:"Trocar o perfil de uma pessoa, marcar um menu, ligar uma empresa, criar ou excluir um perfil — nada disso entrava no <b>Histórico de modificações</b>. Apareceu de um jeito concreto em <b>19/08</b>: investigando por que a tarefa <i>“1 pessoa está esperando perfil de acesso”</i> voltava sozinha, <b>não deu para saber a que horas o perfil tinha sido escolhido</b> — e era essa hora que separava “defeito no app” de “a tarefa estava certa”. 🔑 <b>O que não se registra não se mede depois.</b> Agora cada uma dessas mudanças escreve no Histórico <b>o que foi feito</b>: qual perfil a pessoa recebeu, ou que ela <b>ficou sem perfil</b> e voltou para a tela de espera; qual menu foi marcado em qual perfil; qual perfil foi criado, renomeado ou excluído."},
     {t:"m", h:"E os perfis de acesso passaram a ter <b>uma porta só</b> de gravação", d:"Eram <b>oito</b> lugares no código gravando o documento de perfis por conta própria, cada um do seu jeito. Viraram um, no mesmo desenho que as permissões já tinham desde a v320. Para você não muda nada — muda o risco: com uma porta só dá para trancá-la, e é o que a v375 precisava."}
@@ -11582,7 +11585,10 @@ function resetarOrdemMenus(s){
 function gravarOrdemMenus(msg){
   return docOrdemMenus.set({ porEmpresa: ordemMenus || {}, padrao: ordemPadrao || {},
                              nomes: nomesMenus || {}, grupos: gruposMenus || {}, listaGrupos: listaGrupos || {} })
-    .then(()=>{ if (typeof logAtividade === "function") logAtividade("menus", msg || "Mudou a barra de menus", siglaEmpresa(empresa)); })
+    .then(()=>{ if (typeof logAtividade === "function") logAtividade({ acao:"alterou", area:"Barra de menus",
+                  /* 🔴 escAttr AQUI: o Historico injeta o resumo CRU no innerHTML (v376) e o
+                     `msg` traz NOME DE MENU e NOME DE GRUPO digitados no Painel. */
+                  resumo: escAttr(String(msg || "Mudou a barra de menus")) + sufEmp(siglaEmpresa(empresa)) }); })
     .catch(()=>{});
 }
 /* v244 - o modo de ordenacao DENTRO da barra saiu. Ele fazia metade do trabalho
@@ -13066,7 +13072,9 @@ function resetarMenusAbas(){
 /* Grava ORDEM e NOMES juntos: o documento e' um so e um set() sem os dois apagaria o outro. */
 function gravarAbasRel(msg){
   return docOrdemAbasRel.set({ porEmpresa: ordemAbasRel, nomes: nomesAbasRel, menus: menusAbasRel })
-    .then(() => { if (typeof logAtividade === "function") logAtividade("menus", msg, siglaEmpresa(empresa)); })
+    .then(() => { if (typeof logAtividade === "function") logAtividade({ acao:"alterou", area:"Abas dos relatórios",
+                   /* 🔴 escAttr AQUI: o `msg` traz NOME DE ABA, digitado no Painel. */
+                   resumo: escAttr(String(msg || "Mudou as abas dos relatórios")) + sufEmp(siglaEmpresa(empresa)) }); })
     .catch(()=>{});
 }
 function salvarNomeAba(k, v){
@@ -15633,7 +15641,14 @@ function alternarSemFora(){ relSemFora = !relSemFora; renderRelPosto(); }
 function gravarFdcConferidos(itens, msg){
   fdcConferidos = itens; renderRelPosto();
   return docFdcConferidos.set({ itens: itens })
-    .then(() => { if (typeof logAtividade === "function") logAtividade("relatorios", msg, siglaEmpresa(empresa)); })
+    .then(() => { if (typeof logAtividade === "function") logAtividade({ acao:"alterou", area:"Conferência dos caixas",
+                   /* 🔴 escAttr AQUI: o `msg` traz o NOME que veio do arquivo importado.
+                      🔴 E SEM `sufEmp`, DE PROPOSITO: `config/fdcConferidos` guarda `{itens}` e mais
+                      nada - um mapa chaveado por `posto|mes|nome`, valido para o app inteiro - e o
+                      menu que leva aqui aparece em "postos" E em "conv". A sigla seria o lugar de
+                      onde a pessoa OLHAVA, disfarcado de escopo da mudanca: dois admins marcando a
+                      MESMA chave gerariam duas linhas com siglas diferentes. Achado de revisor. */
+                   resumo: escAttr(String(msg || "Mexeu na conferência")) }); })
     .catch(()=>{});
 }
 function marcarFdcConferido(i){
@@ -30760,27 +30775,16 @@ function aplicarOrdemCardsDash(){
     if (el) pai.appendChild(el);        // a barra de ferramentas e a de ordenar ficam antes e nao se mexem
   });
 }
-function moverCardDash(k, dir){
-  const s = siglaEmpresa(empresa);
-  const lista = cardsDashDaEmpresa(s).map(c => c.k);
-  const i = lista.indexOf(k), j = i + dir;
-  if (i < 0 || j < 0 || j >= lista.length) return;
-  lista.splice(j, 0, lista.splice(i, 1)[0]);
-  if (!ordemCardsDash) ordemCardsDash = {};
-  ordemCardsDash[s] = lista;
-  docOrdemCardsDash.set({ porEmpresa: ordemCardsDash })
-    .then(() => { if (typeof logAtividade === "function") logAtividade("menus", "Mudou a ordem dos cards do Dashboard", s); })
-    .catch(()=>{});
-  aplicarOrdemCardsDash(); renderOrdemCardsDash();
-}
-function resetarOrdemCardsDash(){
-  const s = siglaEmpresa(empresa);
-  if (!ordemCardsDash) ordemCardsDash = {};
-  delete ordemCardsDash[s];
-  docOrdemCardsDash.set({ porEmpresa: ordemCardsDash }).catch(()=>{});
-  aplicarOrdemCardsDash(); renderOrdemCardsDash();
-}
-function alternarOrdemCardsDash(){ ordCardsAberto = !ordCardsAberto; renderBarraOrdenarCards(); renderOrdemCardsDash(); }
+/* 🔴 v377 - SAIRAM DAQUI TRES FUNCOES QUE NUNCA RODAVAM: `moverCardDash`,
+   `resetarOrdemCardsDash` e `alternarOrdemCardsDash`. Cada uma tinha uma XARA mais abaixo neste
+   mesmo arquivo (L~31061, L~31062 e L~30954 antes desta remocao) e, em JavaScript, a ultima
+   declaracao de topo VENCE - entao estas de cima nunca executaram, nem por engano. Eram o
+   Dashboard de antes do editor "Personalizar" (`dsp*`).
+   🔑 Por que isso importou: uma das SEIS chamadas de `logAtividade` que a v377 consertou morava
+   aqui dentro. Consertada, ela continuaria sem rodar - e as Novidades teriam prometido um rastro
+   que nunca apareceria. Quem grava a ordem dos cards hoje e' `dspSalvar`, e e' la' que o rastro
+   e' escrito. 👉 Medido em 20/08/2026: de 1455 funcoes de topo do arquivo, so' estas tres
+   estavam declaradas duas vezes. */
 function renderBarraOrdenarCards(){
   /* 🔴 v302 - O BOTAO DEIXOU DE SER SO' DO ADMIN. Todo mundo pode arrumar o PROPRIO Dashboard;
      o que continua sendo so' do admin e' salvar PARA TODO MUNDO (e mexer nas cores). */
@@ -31044,12 +31048,17 @@ function dspSalvar(onde){
       dashApagarMeu(s);
       ordCardsAberto = false; dashEdit = null; dashCoresEdit = null;
       renderBarraOrdenarCards(); dspRedesenhar();
-      if (typeof logAtividade === "function") logAtividade("menus", "Personalizou o Dashboard", s);
+      if (typeof logAtividade === "function") logAtividade({ acao:"alterou", area:"Dashboard",
+            resumo:"Salvou o Dashboard para todo mundo" + sufEmp(s) });
       avisar("Dashboard salvo para todo mundo.", "ok");
     })
     .catch(e => avisar("N\u00e3o deu para salvar: " + (e && e.message ? e.message : e), "erro"));
 }
-/* mantidos porque outras partes do app chamam pelo nome antigo */
+/* 🔴 v377 - O COMENTARIO ANTIGO AQUI DIZIA "mantidos porque outras partes do app chamam pelo nome
+   antigo". Medido em 20/08/2026: NENHUMA parte chama `moverCardDash` nem `resetarOrdemCardsDash` -
+   duas ocorrencias cada uma no arquivo inteiro, a lapide la' em cima e a propria declaracao aqui.
+   Sao codigo morto tambem; ficaram porque remove-las nao era o assunto da v377, e nao porque
+   alguem as chame. 👉 Quem for limpar: as vivas de verdade sao `dspMover` e `dspPadrao`. */
 function moverCardDash(k, dir){ dspMover(k, dir); }
 function resetarOrdemCardsDash(){ dspPadrao("fabrica"); }
 
