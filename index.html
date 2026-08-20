@@ -6125,7 +6125,7 @@ function pintarEscolhaIcones(){
   ];
   cx.innerHTML = OPS.map(o =>
     '<button type="button" class="ico-op" data-ico="' + o[0] + '" onclick="aplicarTemaIcones(\'' +
-    o[0] + '\', true)"><span class="ico-mostra">' + icoAmostra(o[0]) + '</span><b>' + o[1] +
+    escAspas(o[0]) + '\', true)"><span class="ico-mostra">' + icoAmostra(o[0]) + '</span><b>' + o[1] +
     '</b><i>' + o[2] + '</i></button>').join("");
   const ops = cx.querySelectorAll(".ico-op");
   for (let i = 0; i < ops.length; i++) ops[i].classList.toggle("ativo", ops[i].dataset.ico === temaIcones);
@@ -7098,7 +7098,7 @@ function setPermUsuarioEmp(email, sig, key, on){
 function barraAbasAdm(){
   const box = document.getElementById("admAbas"); if (!box) return;
   box.innerHTML = ABAS_ADM.map(a =>
-    '<button class="doc-chip' + (admAba === a.k ? ' ativo' : '') + '" onclick="irParaAbaAdm(\'' + a.k + '\')">' + a.nome + '</button>').join("");
+    '<button class="doc-chip' + (admAba === a.k ? ' ativo' : '') + '" onclick="irParaAbaAdm(\'' + escAspas(a.k) + '\')">' + a.nome + '</button>').join("");
 }
 function irParaAbaAdm(k){
   if (!ABAS_ADM.some(a => a.k === k)) k = "pend";
@@ -7504,7 +7504,7 @@ function fichaPessoaHtml(e){
   const uniPes = padmUnidadesDe(e);
   UNIDADES_PADM.forEach(u => {
     h += '<label class="usr-perm-item"><input type="checkbox" ' + (uniPes.indexOf(u.k) >= 0 ? 'checked ' : '') +
-         'onchange="setUnidadePessoa(\'' + a + '\', \'' + u.k + '\', this.checked)"> ' + escAttr(u.origem) + '</label>';
+         'onchange="setUnidadePessoa(\'' + a + '\', \'' + escAspas(u.k) + '\', this.checked)"> ' + escAttr(u.origem) + '</label>';
   });
   h += '</div>';
   if (!uniPes.length) h += '<p class="nota-dash">⚠️ Sem unidade marcada, ela só enxerga as pendências abertas <b>no nome dela</b> e as que valem para <b>todas as unidades</b>.</p>';
@@ -7529,7 +7529,7 @@ function fichaPessoaHtml(e){
     h += '<div class="usr-perm-grid">';
     ORIGENS_AVISO_ADM.forEach(o => {
       h += '<label class="usr-perm-item"><input type="checkbox" ' + (rawAvi[o[0]] !== false ? 'checked ' : '') +
-           'onchange="setAvisoUsuario(\'' + a + '\', \'' + o[0] + '\', this.checked)"> ' + o[1] + '</label>';
+           'onchange="setAvisoUsuario(\'' + a + '\', \'' + escAspas(o[0]) + '\', this.checked)"> ' + o[1] + '</label>';
     });
     h += '</div>';
   }
@@ -7609,7 +7609,7 @@ function gradeMenusHtml(tipo, id, mapaMenus, dono){
   EMPRESAS_ADM.forEach(x => {
     const on = perfil ? empresaMarcadaNoPerfil(dono, x.sig) : empresaPermitidaDe(id, x.sig);
     h += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked ' : '') +
-         'onchange="' + chamadaEmp + '(\'' + a + '\', \'' + x.sig + '\', this.checked)"> <b>' + x.nome + '</b></label>';
+         'onchange="' + chamadaEmp + '(\'' + a + '\', \'' + escAspas(x.sig) + '\', this.checked)"> <b>' + x.nome + '</b></label>';
   });
   h += '</div><div class="adm-cols">';
   EMPRESAS_ADM.forEach(x => {
@@ -7618,7 +7618,7 @@ function gradeMenusHtml(tipo, id, mapaMenus, dono){
     menusDaSigla(x.sig).forEach(m => {
       const on = menuMarcadoEm(mapaMenus, x.sig, m.key);
       h += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked ' : '') +
-           'onchange="' + chamadaMenu + '(\'' + a + '\', \'' + x.sig + '\', \'' + m.key + '\', this.checked)"> ' + escAttr(nomeMenu(m.key, x.sig)) + '</label>';
+           'onchange="' + chamadaMenu + '(\'' + a + '\', \'' + escAspas(x.sig) + '\', \'' + escAspas(m.key) + '\', this.checked)"> ' + escAttr(nomeMenu(m.key, x.sig)) + '</label>';
     });
     if (!viva) h += '<div class="adm-col-off">empresa desmarcada acima</div>';
     h += '</div></div>';
@@ -7629,7 +7629,7 @@ function gradeMenusHtml(tipo, id, mapaMenus, dono){
     const trava = (m.key === "caixa");
     const on = trava ? true : menuMarcadoEm(mapaMenus, "todas", m.key);
     h += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked ' : '') + (trava ? 'disabled ' : '') +
-         'onchange="' + chamadaMenu + '(\'' + a + '\', \'todas\', \'' + m.key + '\', this.checked)"> ' + escAttr(nomeMenu(m.key)) +
+         'onchange="' + chamadaMenu + '(\'' + a + '\', \'todas\', \'' + escAspas(m.key) + '\', this.checked)"> ' + escAttr(nomeMenu(m.key)) +
          (trava ? ' <span class="adm-mini-nota">(todos sempre veem)</span>' : '') + '</label>';
   });
   h += '</div></div>';
@@ -7685,7 +7685,7 @@ function renderEditorPerfil(){
   h += '<div class="adm-sec">3 · Notificações que este perfil recebe</div><div class="usr-perm-grid">';
   ORIGENS_AVISO_ADM.forEach(o => {
     const on = !(p.avisos && p.avisos[o[0]] === false);
-    h += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked' : '') + ' onchange="setAvisoPerfil(\'' + escAspas(id) + '\', \'' + o[0] + '\', this.checked)"> ' + o[1] + '</label>';
+    h += '<label class="usr-perm-item"><input type="checkbox" ' + (on ? 'checked' : '') + ' onchange="setAvisoPerfil(\'' + escAspas(id) + '\', \'' + escAspas(o[0]) + '\', this.checked)"> ' + o[1] + '</label>';
   });
   h += '</div></div>';
   cont.innerHTML = h;
@@ -7807,7 +7807,7 @@ function renderAdmUnidades(){
     UNIDADES_PADM.forEach(u => {
       h += '<td class="adm-uni-cx"><input type="checkbox" ' + (uni.indexOf(u.k) >= 0 ? 'checked ' : '') +
            'title="' + escAttr(admNomeDe(e) + " responde por " + u.origem) + '" ' +
-           'onchange="setUnidadePessoa(\'' + a + '\', \'' + u.k + '\', this.checked)"></td>';
+           'onchange="setUnidadePessoa(\'' + a + '\', \'' + escAspas(u.k) + '\', this.checked)"></td>';
     });
     h += '</tr>';
   });
@@ -7982,8 +7982,8 @@ function renderAtividadesFunc(){
     const quem = e ? '' : '<span class="quem">' + escAttr(nomeExibHist(h)) + '</span>';   // so' quando sao varias pessoas
     const conf = confirmarExclAtiv === h.id;
     let botoes = '';
-    if (podeDesfazer(h)) botoes += '<button class="btn-claro" onclick="desfazerHistorico(\'' + h.id + '\')">Desfazer</button>';
-    botoes += '<button class="btn-claro' + (conf ? ' confirmar' : '') + '" onclick="excluirAtividade(\'' + h.id + '\')">' + (conf ? '✓ excluir?' : '🗑 Excluir') + '</button>';
+    if (podeDesfazer(h)) botoes += '<button class="btn-claro" onclick="desfazerHistorico(\'' + escAspas(h.id) + '\')">Desfazer</button>';
+    botoes += '<button class="btn-claro' + (conf ? ' confirmar' : '') + '" onclick="excluirAtividade(\'' + escAspas(h.id) + '\')">' + (conf ? '✓ excluir?' : '🗑 Excluir') + '</button>';
     return '<div class="hist-item"><span class="resumo">' + area + quem + '<span class="acao-' + (h.acao || "") + '"> ' + escAttr(acao) + ' </span>' + (h.resumo || "") + '</span><span class="quando">' + quando + '</span>' + botoes + '</div>';
   }).join("");
 }
@@ -8220,6 +8220,12 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v380", data:"20/08/2026", tit:"🧹 O último pedaço do cano fechado — e uma armadilha que só apareceu ao chegar nela", itens:[
+    {t:"m", h:"Você provavelmente <b>não vai notar diferença nenhuma</b> — e isso é de propósito", d:"A <b>v379</b> fechou 139 lugares onde texto com aspa quebrava botão, e deixou <b>53</b> de fora dizendo que todos carregavam <b>identificador da máquina</b> ou <b>chave interna</b>, onde texto de gente não entra. Aquela conferência foi feita <b>pelo nome</b> de cada um, não testada. Agora foi testada, e estava certa: em nenhum dos 53 entra texto digitado. 🔑 <b>Mesmo assim eles foram fechados</b>, porque a proteção é <b>idêntica</b> quando o valor é uma chave como <b>cli_m5x2k1a_q7bz</b> — não muda nada — e <b>salva</b> se a conferência tivesse errado. Custa zero acertando e evita o pior errando; então não depende mais de ninguém ter olhado direito."},
+    {t:"c", h:"Existia um <b>terceiro jeito</b> de montar botão que nenhuma conferência enxergava", d:"As varreduras procuravam dois formatos, e havia um terceiro — usado nos <b>chips das Configurações</b>. Não havia defeito ali: o que passa por ele hoje é palavra fixa do próprio programa. (Havia um terceiro lugar com esse mesmo formato, o seletor de linha da tabela antiga — 🔑 <b>mas essa tabela saiu da tela na v288 e o código nunca mais roda</b>. Foi fechado junto, e fica dito que é código morto em vez de ser contado como conserto.) 🔴 <b>Mas a conferência daria o mesmo &quot;está tudo certo&quot; se amanhã alguém pusesse um nome de gente nesse caminho</b> — e conferência que não enxerga um caminho inteiro é pior do que não ter conferência, porque dá sossego falso. Fechado."},
+    {t:"c", h:"E um lugar onde <b>proteger do jeito de sempre teria criado</b> o defeito", d:"O título de cada grupo do menu montava seu botão por um caminho que <b>não passa pelo tradutor de símbolos</b> do navegador. Aplicar ali a mesma proteção dos outros 180 faria a pessoa ver <b>&amp;amp;</b> escrito assim mesmo na tela, em vez de simplesmente <b>&amp;</b> — ou seja, a regra da casa aplicada sem pensar <b>estragaria</b> em vez de consertar. 🔑 O conserto certo não foi proteger melhor: foi <b>parar de montar texto</b> ali e ligar o botão direto. Sem texto não há o que proteger, e some a categoria inteira de erro. Descoberto do jeito mais útil: a primeira tentativa <b>fez</b> a besteira e a conferência seguinte a encontrou."},
+    {t:"m", h:"O que continua <b>de fora</b>", d:"A conferência que compara <b>a ordem dos argumentos</b> de cada botão alcança hoje cerca de <b>um quarto</b> dos casos em que uma troca seria possível — nos outros, os dois lados têm nome curto demais para julgar. 🔴 <b>Trocar dois argumentos de lugar é o defeito que faz o botão aceitar o clique e não gravar nada</b>, e é o que menos conferência enxerga. Está anotado como a próxima dívida, com o número medido e não estimado."}
+  ]},
   {v:"v379", data:"20/08/2026", tit:"🛡️ Texto com <b>aspas</b>, <b>barra invertida</b> ou <b>quebra de linha</b> parou de desligar botão — e de trocar o dado calado", itens:[
     {t:"c", h:"Um nome com <b>aspa</b> desligava o botão, e o que você digitasse <b>não era gravado</b>", d:"Para saber em quem mexer quando você clica, cada botão e cada campo carrega <b>dentro dele</b> o nome daquilo em que vai mexer. Se esse nome tivesse <b>aspa</b>, o botão nascia <b>cortado no meio</b> e simplesmente parava de responder — você digitava, a tela aceitava, e <b>nada era salvo</b>, sem aviso nenhum. Medido em <b>20/08</b> num Chrome de verdade: uma distribuidora chamada <b>Vibra &quot;A&quot;</b> fazia o campo de frete das <b>Cotações</b> aceitar o número e gravar vazio. Os dados que agora estão protegidos: <b>nome de distribuidora</b> (Cotações e Comparativo), <b>nome de posto</b> (Comprar/Pedido, Recebimento de combustível, Nível dos tanques), <b>nome de cliente e de rede</b> (menu Clientes e a aba <b>A Prazo</b>), <b>nome de categoria e de produto</b> (Produtos e categorias) e <b>chave de desconto</b> (Descontos Petros). Também entraram o <b>e-mail da pessoa</b> e o <b>identificador do perfil</b> (Pessoas e Perfis de acesso), a <b>placa</b> no Comprar/Pedido e as <b>chaves de menu</b> do Personalizar a barra."},
     {t:"c", h:"E nem todo esse texto é digitado aqui dentro — parte <b>vem de fora</b>", d:"Vale dizer, porque muda o tamanho do risco: nome de <b>categoria</b> e de <b>produto</b> chega pelos <b>coletores da loja</b>, e a <b>chave de desconto</b> vem do <b>portal da Petros</b>. Ou seja, não dependia de alguém daqui digitar errado — bastava um nome com aspa aparecer lá fora e entrar na sincronização. 🔑 <b>Isso foi levantado por revisor independente</b>; a primeira versão deste texto dizia que só gente de dentro digitava esses nomes, e estava errada para o lado tranquilizador."},
@@ -9595,12 +9601,12 @@ function renderConfig(){
     document.getElementById(idChips).innerHTML = listas[chave].map((v,i)=>{
       const pendente = confirmarRemocao && confirmarRemocao.chave===chave && confirmarRemocao.i===i;
       const botao = pendente
-        ? `<button class="confirmar" onclick="removerItem('${chave}',${i})">✓ confirmar?</button>`
+        ? `<button class="confirmar" onclick="removerItem('${escAspas(chave)}',${i})">✓ confirmar?</button>`
         /* 🔴 v378 - escAttr nos DOIS: o nome do posto e da distribuidora e' digitado por gente e
            entra aqui dentro de um ATRIBUTO (title) e como CONTEUDO do chip. Sem escapar, um nome
            com marcacao dentro virava parte da pagina de quem abrisse as Configuracoes - foi a
            bancada da v378 que pegou, medindo `window.__BOOM` com o Historico ja' limpo. */
-        : `<button title="Remover ${escAttr(v)}" onclick="pedirRemocao('${chave}',${i})">✕</button>`;
+        : `<button title="Remover ${escAttr(v)}" onclick="pedirRemocao('${escAspas(chave)}',${i})">✕</button>`;
       return `<span class="chip${pendente?" alerta":""}">${escAttr(v)}${botao}</span>`;
     }).join("") || '<span class="nota" style="font-size:.8rem;color:var(--cinza)">Nenhum item — adicione abaixo.</span>';
   });
@@ -10603,7 +10609,7 @@ function filtrar(r){
 /* ================== Renderização ================== */
 function selectHTML(chave, valorAtual, idx){
   const valores = [...new Set([...opcoesDe(chave), valorAtual])].filter(Boolean);
-  return `<select onchange="atualizar(${idx},'${chave}',this.value)">` +
+  return `<select onchange="atualizar(${idx},'${escAspas(chave)}',this.value)">` +
     /* 🔴 v378 - mesmo motivo do montarFiltros: este e' o select de CADA LINHA da tabela. */
     valores.map(v=>`<option${v===valorAtual?" selected":""}>${escAttr(v)}</option>`).join("") + "</select>";
 }
@@ -11314,7 +11320,12 @@ function montarBarraMenus(){
       const t = document.createElement("button");
       t.type = "button";
       t.className = "menu-grp-tit";
-      t.setAttribute("onclick", "alternarGrupoMenu('" + g.key + "')");
+      /* v380 - aqui o handler era colado como TEXTO num atributo, por atribuicao
+         direta de atributo. Aquele caminho NAO passa pelo parser de HTML: entidade nao
+         e' decodificada, entao escAspas (que embrulha em escAttr) faria &amp; chegar
+         literal — escapar aqui do jeito de sempre CRIA defeito em vez de fechar.
+         Sem string nao ha' escape: a closure ja' tem o g.key certo. */
+      t.onclick = () => alternarGrupoMenu(g.key);
       t.innerHTML = '<span class="mi">' + escAttr(g.icone) + '</span><span class="mt">' +
                     escAttr(g.nome) + '</span><span class="grp-seta">\u25be</span>';
       div.appendChild(t);
@@ -13001,7 +13012,7 @@ function barraAbasRel(){
     if (ant && g !== ant) h += '<span class="aba-sep"></span>';   // v207 - traco entre os grupos
     ant = g;
     h += '<button class="doc-chip' + (abaRelAtual === a.k ? ' ativo' : '') +
-      '" onclick="irParaAbaRel(\'' + a.k + '\')">' + nomeAba(a) + cntEtiqueta(contagemAba(a.k)) + '</button>';
+      '" onclick="irParaAbaRel(\'' + escAspas(a.k) + '\')">' + nomeAba(a) + cntEtiqueta(contagemAba(a.k)) + '</button>';
   });
   return h;
 }
@@ -13174,8 +13185,8 @@ function renderOrdemAbasRel(){
       onde + ' e todo mundo passa a ver assim. O \u21a9 de cada linha devolve o nome original.</p><div class="ord-lista">';
     lista.forEach(a => {
       r += '<div class="ord-item">' +
-           '<input class="ren-inp" type="text" maxlength="40" value="' + escAttr(nomeAba(a, s)) + '" onchange="salvarNomeAba(\'' + a.k + '\', this.value)">' +
-           '<span class="ord-bts"><button class="btn-claro" onclick="salvarNomeAba(\'' + a.k + '\', \'\')" title="Voltar ao nome original">\u21a9</button></span>' +
+           '<input class="ren-inp" type="text" maxlength="40" value="' + escAttr(nomeAba(a, s)) + '" onchange="salvarNomeAba(\'' + escAspas(a.k) + '\', this.value)">' +
+           '<span class="ord-bts"><button class="btn-claro" onclick="salvarNomeAba(\'' + escAspas(a.k) + '\', \'\')" title="Voltar ao nome original">\u21a9</button></span>' +
            '</div>';
     });
     r += '</div><div class="ord-acoes"><button class="btn-claro" onclick="resetarNomesAbasRel()">\u21a9 Voltar todos aos nomes originais</button>' +
@@ -13189,8 +13200,8 @@ function renderOrdemAbasRel(){
     h += '<div class="ord-item"><span class="ord-pos">' + (i+1) + '</span>' +
          '<span class="ord-nome">' + nomeAba(a, s) + '</span>' +
          '<span class="ord-bts">' +
-         '<button class="btn-claro" ' + (i === 0 ? 'disabled ' : '') + 'onclick="moverAbaRel(\'' + a.k + '\',-1)" title="Subir">\u25b2</button>' +
-         '<button class="btn-claro" ' + (i === lista.length-1 ? 'disabled ' : '') + 'onclick="moverAbaRel(\'' + a.k + '\',1)" title="Descer">\u25bc</button>' +
+         '<button class="btn-claro" ' + (i === 0 ? 'disabled ' : '') + 'onclick="moverAbaRel(\'' + escAspas(a.k) + '\',-1)" title="Subir">\u25b2</button>' +
+         '<button class="btn-claro" ' + (i === lista.length-1 ? 'disabled ' : '') + 'onclick="moverAbaRel(\'' + escAspas(a.k) + '\',1)" title="Descer">\u25bc</button>' +
          '</span></div>';
   });
   h += '</div><div class="ord-acoes"><button class="btn-claro" onclick="resetarOrdemAbasRel()">\u21a9 Voltar à ordem original</button>' +
@@ -15198,7 +15209,7 @@ function renderDespesasDet(){
 
   const chips = document.getElementById("dsdRegua");
   if (chips) chips.innerHTML = DSD_REGUAS.map(r =>
-    '<button class="doc-chip' + (dsdRegua === r.k ? ' ativo' : '') + '" onclick="dsdIrRegua(\'' + r.k + '\')" title="' + escAttr(r.sub) + '">' + r.n + '</button>').join("");
+    '<button class="doc-chip' + (dsdRegua === r.k ? ' ativo' : '') + '" onclick="dsdIrRegua(\'' + escAspas(r.k) + '\')" title="' + escAttr(r.sub) + '">' + r.n + '</button>').join("");
 
   const anos = dsdAnosDisponiveis();
   const linha = document.querySelector("#painelDespesasDet .evo-filtros");
@@ -17275,7 +17286,7 @@ function blocoFaltar(tela, d, cfg){
 
   h += '<div class="rcb-filtro"><span class="rcb-filtro-rot">Acaba em menos de:</span>';
   RSV_RUP_CORTES.forEach(c => {
-    h += '<button class="rcb-fbt' + (f.alvo === c ? ' aceso' : '') + '" onclick="rsvRup(\'' + tela + '\',' + c + ')">'
+    h += '<button class="rcb-fbt' + (f.alvo === c ? ' aceso' : '') + '" onclick="rsvRup(\'' + escAspas(tela) + '\',' + c + ')">'
        + fmtBR(c,0) + ' dias</button>';
   });
   h += '</div>';
@@ -17351,7 +17362,7 @@ function blocoFaltar(tela, d, cfg){
   h += '</tbody></table></div>';
 
   if (f.linhas.length > RSV_TOPO){
-    h += '<div class="prc-mais"><button type="button" class="doc-chip prc-btn" onclick="rsvVerTudo(\'' + tela + '\')">'
+    h += '<div class="prc-mais"><button type="button" class="doc-chip prc-btn" onclick="rsvVerTudo(\'' + escAspas(tela) + '\')">'
        + (est.tudo ? '↑ Mostrar só os ' + RSV_TOPO + ' primeiros' : '↓ Ver todos os ' + f.linhas.length + ' itens')
        + '</button><span class="prc-mais-n">'
        + (est.tudo ? 'mostrando os ' + f.linhas.length : 'mostrando ' + RSV_TOPO + ' de ' + f.linhas.length)
@@ -17511,7 +17522,7 @@ function blocoRessup(tela){
      loja com o selo derrubado nao ve' as abas enquanto estiver ali, e o `est.aba` continua em
      "faltar". Nao fica preso — as pastilhas de cidade continuam acima — mas pode estranhar. */
   const abas = '<div class="doc-tools rsv-modo">' + RSV_MODOS.map(m =>
-    '<button class="doc-chip' + (est.aba === m.k ? ' ativo' : '') + '" onclick="rsvModo(\'' + tela + '\',\'' + m.k + '\')">'
+    '<button class="doc-chip' + (est.aba === m.k ? ' ativo' : '') + '" onclick="rsvModo(\'' + escAspas(tela) + '\',\'' + escAspas(m.k) + '\')">'
     + m.n + '</button>').join("") + '</div>';
   if (est.aba === "faltar") return abas + blocoFaltar(tela, d, cfg);
 
@@ -17548,7 +17559,7 @@ function blocoRessup(tela){
   RSV_CORTES.forEach(c => {
     if (c === 0 && !(r.regua > 0)) return;
     if (c > 0 && c === r.regua) return;   /* seria o mesmo botao da regua da loja, com outro nome */
-    h += '<button class="rcb-fbt' + (est.corte === c ? ' aceso' : '') + '" onclick="rsvCorte(\'' + tela + '\',' + c + ')">'
+    h += '<button class="rcb-fbt' + (est.corte === c ? ' aceso' : '') + '" onclick="rsvCorte(\'' + escAspas(tela) + '\',' + c + ')">'
        + (c === 0 ? 'A régua da loja (' + fmtBR(r.regua,0) + ' dias)' : fmtBR(c,0) + ' dias') + '</button>';
   });
   h += '</div>';
@@ -17643,7 +17654,7 @@ function blocoRessup(tela){
   h += '</tbody></table></div>';
 
   if (r.linhas.length > RSV_TOPO){
-    h += '<div class="prc-mais"><button type="button" class="doc-chip prc-btn" onclick="rsvVerTudo(\'' + tela + '\')">'
+    h += '<div class="prc-mais"><button type="button" class="doc-chip prc-btn" onclick="rsvVerTudo(\'' + escAspas(tela) + '\')">'
        + (est.tudo ? '↑ Mostrar só os ' + RSV_TOPO + ' maiores' : '↓ Ver todos os ' + r.linhas.length + ' itens')
        + '</button><span class="prc-mais-n">'
        + (est.tudo ? 'mostrando os ' + r.linhas.length : 'mostrando ' + RSV_TOPO + ' de ' + r.linhas.length)
@@ -17719,7 +17730,7 @@ function renderRessup(tela){
   preencherSelectRel(cfg.sel, meses, est.mes, rotuloMesRel);
   if (cfg.abasRot.every(a => a[0] !== est.un)) est.un = cfg.abasRot[0][0];
   if (abas) abas.innerHTML = cfg.abasRot.map(a =>
-    '<button class="doc-chip' + (est.un === a[0] ? ' ativo' : '') + '" onclick="rsvAba(\'' + tela + '\',\'' + escAspas(a[0]) + '\')">'
+    '<button class="doc-chip' + (est.un === a[0] ? ' ativo' : '') + '" onclick="rsvAba(\'' + escAspas(tela) + '\',\'' + escAspas(a[0]) + '\')">'
     + escAttr(a[1]) + '</button>').join("");
   /* v371 - o balao do "i" mora DENTRO do wrap, e o wrap embrulha a tela inteira. 🔑 E' a amarra
      do #painelOperadores (v359), com o motivo dela: `ligarTipsEm` posiciona o balao pelo retangulo
@@ -18218,7 +18229,7 @@ function blocoLmc(){
 
   const ABAS = [["lmc", "⚖️ Reconciliação (LMC)"], ["compras", "🚛 Compras (combustível)"]];
   h += '<div class="doc-tools">' + ABAS.map(a =>
-        '<button class="doc-chip' + (lmcEst.aba === a[0] ? ' ativo' : '') + '" onclick="lmcAba(\'' + a[0] + '\')">'
+        '<button class="doc-chip' + (lmcEst.aba === a[0] ? ' ativo' : '') + '" onclick="lmcAba(\'' + escAspas(a[0]) + '\')">'
         + a[1] + '<small class="lmc-cnt">' + fmtBR(a[0] === "lmc" ? linhas.length : compras.length, 0) + '</small></button>').join("")
      + '</div>';
 
@@ -18240,7 +18251,7 @@ function renderLmc(){
 
   const abas = document.getElementById("lmcUnAbas");
   if (abas) abas.innerHTML = LMC_UNID.map(u =>
-    '<button class="doc-chip' + (lmcEst.un === u[0] ? ' ativo' : '') + '" onclick="lmcMuda(\'un\',\'' + u[0] + '\')">'
+    '<button class="doc-chip' + (lmcEst.un === u[0] ? ' ativo' : '') + '" onclick="lmcMuda(\'un\',\'' + escAspas(u[0]) + '\')">'
     + u[1] + '</button>').join("");
 
   const meses = lmcMeses();
@@ -18419,7 +18430,7 @@ function renderRelLoja(){
   }
   if (meses.indexOf(relLojaMes) < 0) relLojaMes = meses[0];
   preencherSelectRel("relLojaMesSel", meses, relLojaMes, rotuloMesRel);
-  if (abas) abas.innerHTML = ABAS_REL_LOJA.map(a => '<button class="doc-chip'+(relLojaAba===a[0]?' ativo':'')+'" onclick="mudarAbaRelLoja(\''+a[0]+'\')">'+a[1]+'</button>').join("");
+  if (abas) abas.innerHTML = ABAS_REL_LOJA.map(a => '<button class="doc-chip'+(relLojaAba===a[0]?' ativo':'')+'" onclick="mudarAbaRelLoja(\''+escAspas(a[0])+'\')">'+a[1]+'</button>').join("");
   const cxEmp = document.getElementById("relLojaEmp");
   const cxOrd = document.getElementById("relLojaOrdLinha");
   if (cxEmp && cxEmp.parentElement) cxEmp.parentElement.style.display = (relLojaAba === "comp") ? "none" : "";
@@ -19995,7 +20006,7 @@ function renderDre(){
   });
   h += '</div><div class="dre-grupo"><i>Período</i>';
   DRE_MODOS.forEach(m => {
-    h += '<button class="doc-chip' + (dreModo === m[0] ? " ativo" : "") + '" onclick="dreTrocarModo(\'' + m[0] + '\')">' + escAttr(m[1]) + '</button>';
+    h += '<button class="doc-chip' + (dreModo === m[0] ? " ativo" : "") + '" onclick="dreTrocarModo(\'' + escAspas(m[0]) + '\')">' + escAttr(m[1]) + '</button>';
   });
   /* o seletor que aparece depende do modo: mes (Mes e Ultimos 12) ou ano (Ano) */
   if (dreModo === "ano"){
@@ -20057,7 +20068,7 @@ function renderDre(){
            'A régua <b>não começa no zero</b> — é o recorte que faz a variação do mês aparecer; o tamanho de cada linha está nos quadros acima e na tabela abaixo. ' +
            (dreOcultas.vendas ? '' : 'As <b style="color:#FE7030">vendas</b> têm régua própria, à direita: elas são ~20× maiores que o lucro.') + '</i></div>' +
          '<div class="dre-leg">' +
-         DRE_SERIES.map(s => '<button class="' + (dreOcultas[s.k] ? "off" : "") + '" onclick="dreAlternarSerie(\'' + s.k + '\')">' +
+         DRE_SERIES.map(s => '<button class="' + (dreOcultas[s.k] ? "off" : "") + '" onclick="dreAlternarSerie(\'' + escAspas(s.k) + '\')">' +
             '<span class="dre-pt" style="background:' + s.c + '"></span>' + escAttr(s.n) + '</button>').join("") +
          '</div>' +
          dreGrafico(serie) +
@@ -23819,7 +23830,7 @@ function renderComprar(){
     h += '<div class="cpr-cmp"><label for="cpr_' + c[0] + '">' + c[1] + ' ' + bul("cpr" + c[0]) + '</label>' +
          '<input id="cpr_' + c[0] + '" type="number" inputmode="numeric" value="' + r[c[0]] + '" ' +
          'min="' + CPR_LIMITES[c[0]][0] + '" max="' + CPR_LIMITES[c[0]][1] + '" ' +
-         'onchange="cprSetRegua(\'' + c[0] + '\', this.value)">' +
+         'onchange="cprSetRegua(\'' + escAspas(c[0]) + '\', this.value)">' +
          '<span class="cpr-un">' + c[2] + '</span></div>';
   });
   /* os dois campos DO POSTO, na mesma fileira. O pontinho diz que o numero foi escolhido por
@@ -23847,7 +23858,7 @@ function renderComprar(){
          (proprio ? ' <span class="cpr-mao" title="voc\u00ea escolheu este n\u00famero">\u2022</span>' : '') + '</label>' +
          '<input id="cpr_' + par[0] + '" type="number" inputmode="numeric" value="' + valor + '" ' +
          'min="' + lim[0] + '" max="' + lim[1] + '" ' +
-         'onchange="cprSetPosto(\'' + escAspas(posto) + '\', \'' + par[0] + '\', this.value)">' +
+         'onchange="cprSetPosto(\'' + escAspas(posto) + '\', \'' + escAspas(par[0]) + '\', this.value)">' +
          '<span class="cpr-un">' + pe + '</span></div>';
   });
   h += '<div class="cpr-cmp"><label>&nbsp;</label><button class="btn-claro" onclick="cprVoltarPadrao()">\u21ba Voltar ao padr\u00e3o</button></div>';
@@ -27050,8 +27061,8 @@ function linhaItemDoc(i){
   const conf = (i.fonte === "arq" ? confirmarExclArq : confirmarExclDoc) === i.id;
   let botoes = '';
   if (pode){
-    botoes = '<button class="cal-ev-btn" title="Editar / Renovar" onclick="editarItemDoc(\'' + i.fonte + '\',\'' + escAspas(i.id) + '\')">✏️</button>' +
-      '<button class="cal-ev-btn'+(conf?' confirmar':'')+'" title="Excluir" onclick="excluirItemDoc(\'' + i.fonte + '\',\'' + escAspas(i.id) + '\')">'+(conf?'✓?':'🗑')+'</button>';
+    botoes = '<button class="cal-ev-btn" title="Editar / Renovar" onclick="editarItemDoc(\'' + escAspas(i.fonte) + '\',\'' + escAspas(i.id) + '\')">✏️</button>' +
+      '<button class="cal-ev-btn'+(conf?' confirmar':'')+'" title="Excluir" onclick="excluirItemDoc(\'' + escAspas(i.fonte) + '\',\'' + escAspas(i.id) + '\')">'+(conf?'✓?':'🗑')+'</button>';
   }
   const sub = [];
   if (i.numero) sub.push('nº ' + esc(i.numero));
@@ -27116,7 +27127,7 @@ function renderVencimentos(){
   itens.forEach(i => { gUni[i.origem || "Outros"] = 1; gEmp[i.empresa || "Sem empresa"] = 1; });
   const nDocUni = Object.keys(gUni).length, nDocEmp = Object.keys(gEmp).length;
   // --- busca + visoes ---
-  const chip = (v, rot) => '<button class="doc-chip'+(docVista===v?' ativo':'')+'" onclick="mudarVistaDocs(\''+v+'\')">'+rot+'</button>';
+  const chip = (v, rot) => '<button class="doc-chip'+(docVista===v?' ativo':'')+'" onclick="mudarVistaDocs(\''+escAspas(v)+'\')">'+rot+'</button>';
   html += '<div class="doc-tools">' +
     '<input class="doc-busca" type="search" id="docBuscaInput" placeholder="🔎 Buscar por nome, empresa, CNPJ, tipo ou número..." value="'+escAttr(docBusca)+'" oninput="buscarDocs(this.value)">' +
     chip('tudo', '📄 Tudo' + cntEtiqueta(itens.length)) +
@@ -27220,12 +27231,12 @@ function anexoDocHtml(d){
   const esc = z => String(z||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
   const pode = podeGerenciarEventos();
   if (d.anexoUrl){
-    let h = '<div class="venc-anexo"><span class="venc-anexo-link" onclick="abrirAnexoDoc(\''+d.id+'\')">\ud83d\udcce Ver arquivo</span>';
-    if (pode){ const conf = confirmarRemAnexo === d.id; h += '<button class="venc-anexo-x'+(conf?' confirmar':'')+'" onclick="removerAnexoDoc(\''+d.id+'\')" title="Remover anexo">'+(conf?'\u2713 remover?':'remover')+'</button>'; }
+    let h = '<div class="venc-anexo"><span class="venc-anexo-link" onclick="abrirAnexoDoc(\''+escAspas(d.id)+'\')">\ud83d\udcce Ver arquivo</span>';
+    if (pode){ const conf = confirmarRemAnexo === d.id; h += '<button class="venc-anexo-x'+(conf?' confirmar':'')+'" onclick="removerAnexoDoc(\''+escAspas(d.id)+'\')" title="Remover anexo">'+(conf?'\u2713 remover?':'remover')+'</button>'; }
     return h + '</div>';
   }
   if (pode && storageRef()){
-    return '<div class="venc-anexo"><label class="venc-anexo-add">\ud83d\udcce Anexar arquivo<input type="file" accept="application/pdf,image/*" style="display:none" onchange="anexarDocArquivo(\''+d.id+'\', this)"></label><span class="venc-anexo-prog" id="anexoProg_'+d.id+'"></span></div>';
+    return '<div class="venc-anexo"><label class="venc-anexo-add">\ud83d\udcce Anexar arquivo<input type="file" accept="application/pdf,image/*" style="display:none" onchange="anexarDocArquivo(\''+escAspas(d.id)+'\', this)"></label><span class="venc-anexo-prog" id="anexoProg_'+d.id+'"></span></div>';
   }
   return "";
 }
@@ -27331,7 +27342,7 @@ function renderCalendario(){
   filtrosCal.forEach(f => {
     html += '<button class="cal-filtro' + (calFiltro[f[0]] ? '' : ' off') + '" ' +
       'title="' + (calFiltro[f[0]] ? 'Toque para esconder' : 'Toque para mostrar') + ' os eventos: ' + f[1] + '" ' +
-      'onclick="alternarFiltroCal(\'' + f[0] + '\')"><i class="cal-dot ' + f[0] + '"></i>' + f[1] + '</button>';
+      'onclick="alternarFiltroCal(\'' + escAspas(f[0]) + '\')"><i class="cal-dot ' + f[0] + '"></i>' + f[1] + '</button>';
   });
   html += '</div>';
 
@@ -27358,7 +27369,7 @@ function renderCalendario(){
     const cls = (iso === hoje ? ' hoje' : '') + (iso === calDiaSel ? ' sel' : '');
     let pontos = evs.slice(0,3).map(e => '<i class="cal-dot '+origemClasseCal(e.origem)+'"></i>').join('');
     if (evs.length > 3) pontos += '<b>+'+(evs.length-3)+'</b>';
-    html += '<button class="cal-dia'+cls+'" onclick="selDiaCal(\''+iso+'\')">' +
+    html += '<button class="cal-dia'+cls+'" onclick="selDiaCal(\''+escAspas(iso)+'\')">' +
       '<span class="cal-num">'+dia+'</span><span class="cal-pontos">'+pontos+'</span></button>';
   }
   html += '</div>';
@@ -27382,8 +27393,8 @@ function renderCalendario(){
       const conf = confirmarExclEvento === e._id;
       let botoes = '';
       if (podeEd){
-        botoes = '<button class="cal-ev-btn" title="Editar" onclick="editarEventoCal(\'' + e._id + '\')">✏️</button>' +
-          '<button class="cal-ev-btn' + (conf ? ' confirmar' : '') + '" title="Excluir" onclick="excluirEventoCal(\'' + e._id + '\')">' + (conf ? '✓?' : '🗑') + '</button>';
+        botoes = '<button class="cal-ev-btn" title="Editar" onclick="editarEventoCal(\'' + escAspas(e._id) + '\')">✏️</button>' +
+          '<button class="cal-ev-btn' + (conf ? ' confirmar' : '') + '" title="Excluir" onclick="excluirEventoCal(\'' + escAspas(e._id) + '\')">' + (conf ? '✓?' : '🗑') + '</button>';
       }
       const repIco = (e._rep && e._rep !== "nenhum") ? ' 🔁' : '';
       const avIco = (typeof e.avisarDias === "number" && e.avisarDias !== 7) ? ' <span class="cal-ev-av">🔔 ' + e.avisarDias + 'd</span>' : '';
@@ -27549,9 +27560,9 @@ function renderMotoristas(){
         '<label class="mot-campo curto" data-lbl="Placa Caminh\u00e3o"><input id="motE_placaCaminhao" maxlength="10" value="'+escAttr(m.placaCaminhao||"")+'" placeholder="Placa - Caminh\u00e3o"></label>' +
         '<label class="mot-campo curto" data-lbl="Placa Tanque"><input id="motE_placaTanque" maxlength="10" value="'+escAttr(m.placaTanque||"")+'" placeholder="Placa tanque"></label>' +
         '<label class="mot-campo curto" data-lbl="Capacidade"><input id="motE_capacidade" inputmode="numeric" oninput="mascaraInteiro(this)" value="'+cap+'" placeholder="Litros"></label>' +
-        '<button class="btn-verde" onclick="confirmarEdicaoMotorista(\''+m.id+'\')">\u2713 Confirmar altera\u00e7\u00f5es</button>' +
+        '<button class="btn-verde" onclick="confirmarEdicaoMotorista(\''+escAspas(m.id)+'\')">\u2713 Confirmar altera\u00e7\u00f5es</button>' +
         '<button class="btn-claro" onclick="cancelarEdicaoMotorista()">Cancelar</button>' +
-        '<button class="btn-claro'+(conf?' confirmar':'')+'" onclick="removerMotorista(\''+m.id+'\')">'+(conf?'\u2713 confirmar?':'\ud83d\uddd1 Remover')+'</button>' +
+        '<button class="btn-claro'+(conf?' confirmar':'')+'" onclick="removerMotorista(\''+escAspas(m.id)+'\')">'+(conf?'\u2713 confirmar?':'\ud83d\uddd1 Remover')+'</button>' +
         '</div>';
     }
     return '<div class="usr-item">' +
@@ -27561,7 +27572,7 @@ function renderMotoristas(){
       '<label class="mot-campo curto" data-lbl="Placa Caminh\u00e3o"><input value="'+escAttr(m.placaCaminhao||"")+'" readonly></label>' +
       '<label class="mot-campo curto" data-lbl="Placa Tanque"><input value="'+escAttr(m.placaTanque||"")+'" readonly></label>' +
       '<label class="mot-campo curto" data-lbl="Capacidade"><input value="'+cap+'" readonly></label>' +
-      '<button class="btn-claro" onclick="editarMotorista(\''+m.id+'\')">\u270f\ufe0f Editar</button>' +
+      '<button class="btn-claro" onclick="editarMotorista(\''+escAspas(m.id)+'\')">\u270f\ufe0f Editar</button>' +
       '</div>';
   }).join("");
 }
@@ -28442,15 +28453,15 @@ function renderClientes(){
     if (editandoCliente === c.id){
       return '<div class="usr-item editando">' +
         '<label class="cli-campo" data-lbl="Cliente"><input id="cliE_nome" maxlength="60" value="'+escAttr(c.nome)+'" placeholder="Nome do cliente"></label>' +
-        '<button class="btn-verde" onclick="confirmarEdicaoCliente(\''+escAspas(posto)+'\',\''+c.id+'\')">✓ Salvar</button>' +
+        '<button class="btn-verde" onclick="confirmarEdicaoCliente(\''+escAspas(posto)+'\',\''+escAspas(c.id)+'\')">✓ Salvar</button>' +
         '<button class="btn-claro" onclick="cancelarEdicaoCliente()">Cancelar</button>' +
-        '<button class="btn-claro'+(conf?' confirmar':'')+'" onclick="removerCliente(\''+escAspas(posto)+'\',\''+c.id+'\')">'+(conf?'✓ confirmar?':'🗑 Remover')+'</button>' +
+        '<button class="btn-claro'+(conf?' confirmar':'')+'" onclick="removerCliente(\''+escAspas(posto)+'\',\''+escAspas(c.id)+'\')">'+(conf?'✓ confirmar?':'🗑 Remover')+'</button>' +
         '</div>';
     }
     return '<div class="usr-item">' +
       '<span class="cli-nome">'+escAttr(c.nome)+'</span>' +
-      '<button class="btn-claro" onclick="editarCliente(\''+c.id+'\')">✏️ Editar</button>' +
-      '<button class="btn-claro'+(conf?' confirmar':'')+'" onclick="removerCliente(\''+escAspas(posto)+'\',\''+c.id+'\')">'+(conf?'✓ confirmar?':'🗑 Remover')+'</button>' +
+      '<button class="btn-claro" onclick="editarCliente(\''+escAspas(c.id)+'\')">✏️ Editar</button>' +
+      '<button class="btn-claro'+(conf?' confirmar':'')+'" onclick="removerCliente(\''+escAspas(posto)+'\',\''+escAspas(c.id)+'\')">'+(conf?'✓ confirmar?':'🗑 Remover')+'</button>' +
       '</div>';
   }).join("");
 }
@@ -28822,7 +28833,7 @@ function renderPuxadas(){
       pend.forEach((pp,i) => {
         hb += '<div class="placa-linha"><b>'+escAttr(pp.placa)+'</b> <span class="nota-dash">('+pp.qtd+' puxada'+(pp.qtd>1?'s':'')+')</span>' +
           '<select id="selPlaca'+i+'">'+motoristas.map(m=>'<option value="'+m.id+'">'+escAttr(m.nome)+'</option>').join("")+'</select>' +
-          '<button class="btn-verde" onclick="vincularPlaca(\''+pp.placa+'\', document.getElementById(\'selPlaca'+i+'\').value)">Vincular</button></div>';
+          '<button class="btn-verde" onclick="vincularPlaca(\''+escAspas(pp.placa)+'\', document.getElementById(\'selPlaca'+i+'\').value)">Vincular</button></div>';
       });
       hb += '</div>';
       box.innerHTML = hb;
@@ -28907,7 +28918,7 @@ function renderPuxadas(){
       '<td data-lbl="Destinatário"'+(clienteCanonico(p.destinatario,p.destinatarioCnpj)!==(p.destinatario||"")?' title="No CT-e: '+escAttr(p.destinatario||"")+'"':'')+'>'+escAttr(clienteCanonico(p.destinatario,p.destinatarioCnpj))+'</td>'+
       '<td data-lbl="Frete">R$ '+fmtBR(+p.valorFrete||0,2)+'</td>'+
       '<td data-lbl="Litros">'+fmtLitros(+p.litros||0)+' L</td>'+
-      (admin?('<td class="pux-del"><button class="btn-claro'+(conf?' confirmar':'')+'" onclick="removerPuxada(\''+p.id+'\')">'+(conf?'✓?':'✕')+'</button></td>'):'')+
+      (admin?('<td class="pux-del"><button class="btn-claro'+(conf?' confirmar':'')+'" onclick="removerPuxada(\''+escAspas(p.id)+'\')">'+(conf?'✓?':'✕')+'</button></td>'):'')+
     '</tr>';
   });
   h += '</tbody></table></div>';
@@ -30961,7 +30972,7 @@ function dspPintarBarras(){
         escAspas(c.k) + '\',1)" title="Descer">\u25bc</button>' +
       DASH_TAMS.map(t => '<button class="dsp-bt' + (tam === t[0] ? ' aceso' : '') + '" title="' +
         escAttr(t[2] || "") + '" onclick="dspTam(\'' +
-        escAspas(c.k) + '\',\'' + t[0] + '\')">' + t[1] + '</button>').join("") +
+        escAspas(c.k) + '\',\'' + escAspas(t[0]) + '\')">' + t[1] + '</button>').join("") +
       '<button class="dsp-bt dsp-x" onclick="dspOcultar(\'' + escAspas(c.k) +
         '\')" title="Esconder este card">\u2715 esconder</button>';
     el.insertBefore(bar, el.firstChild);
