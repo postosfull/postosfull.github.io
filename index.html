@@ -8213,6 +8213,10 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v378", data:"20/08/2026", tit:"🛡️ Nome digitado por gente parou de virar <b>marcação</b> dentro do Histórico", itens:[
+    {t:"c", h:"Título de pendência, nome de evento, de documento e de <b>arquivo enviado</b> iam para o Histórico <b>do jeito que vieram</b>", d:"A tela do Histórico monta <b>marcação</b> para desenhar cada linha, e o resumo era colado ali <b>cru</b>. Com isso, um nome que tivesse marcação dentro deixava de ser <b>texto</b> e passava a ser <b>parte da página</b> — no navegador de quem abrisse a tela, não no de quem digitou. Medido em <b>20/08</b> por revisor independente, reproduzido num navegador de verdade. Eram <b>13 lugares vivos</b>: as duas telas de <b>Pendências</b>, o <b>Calendário</b>, os <b>Documentos</b>, os <b>Vencimentos</b> e o <b>nome do posto</b> — que você digita nas Configurações, entra em cada lançamento e chega ao Histórico por um caminho próprio, separado dos outros doze. Agora todos escapam <b>antes de gravar</b>, que é a convenção que o resto do app já seguia. 🔑 <b>O que a v377 fez foi consertar cinco linhas que nasciam vazias; ao voltarem a ter texto, ficou visível que o cano estava aberto para todo mundo.</b> Na tela não muda nada: você continua lendo o nome como sempre leu. 🆕 E a mesma proteção entrou em <b>todo lugar onde o nome do posto e o da distribuidora aparecem</b>: a lista das <b>Configurações</b>, os <b>filtros do topo</b>, o <b>seletor de cada linha</b> da tabela, as <b>Cotações</b> e o <b>Comparativo</b>. Foi a própria bancada desta versão que achou: com o Histórico já limpo, o aviso continuava disparando — e uma sonda passo a passo mostrou que ele nascia dentro das opções do filtro."},
+    {t:"m", h:"Quatro resumos continuam sem escapar — e é de propósito", d:"Três deles só carregam <b>número</b> ou <b>palavra fixa</b> (quantos dias, quantos eventos, a sigla da empresa). O quarto é o <b>“Desfez:”</b>, que repete um resumo <b>já gravado</b> — escapar de novo faria aspas e sinais aparecerem embaralhados na tela. Estão nomeados na ficha desta versão, com o motivo de cada um."}
+  ]},
   {v:"v377", data:"20/08/2026", tit:"🕓 Conserto: o <b>Histórico</b> voltou a dizer <b>o que</b> foi feito", itens:[
     {t:"c", h:"Cinco mudanças gravavam uma linha <b>em branco</b> — seu nome, a hora, e nada mais", d:"Mexer na <b>barra de menus</b>, <b>salvar o Dashboard para todo mundo</b>, mover ou renomear <b>abas dos relatórios</b>, marcar um caixa como <b>conferido</b> e trocar <b>quem pode enviar avisos e tarefas</b>: as cinco escreviam no Histórico uma linha <b>vazia</b>. Medido em <b>20/08</b> na própria coleção: <b>231 das 400 últimas linhas</b> estavam assim, a mais antiga de <b>28/07</b>. A causa é de uma letra só — as cinco entregavam os textos <b>soltos</b>, e o registro só lê texto <b>nomeado</b>, então ele gravava vazio <b>sem reclamar de nada</b>. 🔑 <b>Erro que não reclama é o que fica.</b> Agora cada uma diz a <b>área</b> e o <b>que</b> foi feito — e, quando a mudança é de uma empresa só, <b>qual</b>. ⚠️ As linhas antigas continuam em branco: o que não foi escrito não dá para reconstruir depois."},
     {t:"m", h:"E saíram <b>quatro funções</b> que ninguém alcançava", d:"Três delas tinham <b>xará</b> mais abaixo no mesmo arquivo — e em JavaScript vale a <b>última</b>, então a de cima nunca rodava, nem por engano. Eram restos do Dashboard de antes do <b>Personalizar</b>. 🔑 O detalhe que decidiu esta versão: uma <b>sexta</b> chamada quebrada morava justamente numa dessas. Consertada, ela continuaria sem rodar — e esta tela teria <b>prometido um rastro que nunca apareceria</b>. A quarta função marcava menu em perfil de acesso e também não tinha chamador. Na tela não muda nada; muda o que a próxima pessoa lê quando for mexer ali."}
@@ -9576,8 +9580,12 @@ function renderConfig(){
       const pendente = confirmarRemocao && confirmarRemocao.chave===chave && confirmarRemocao.i===i;
       const botao = pendente
         ? `<button class="confirmar" onclick="removerItem('${chave}',${i})">✓ confirmar?</button>`
-        : `<button title="Remover ${v}" onclick="pedirRemocao('${chave}',${i})">✕</button>`;
-      return `<span class="chip${pendente?" alerta":""}">${v}${botao}</span>`;
+        /* 🔴 v378 - escAttr nos DOIS: o nome do posto e da distribuidora e' digitado por gente e
+           entra aqui dentro de um ATRIBUTO (title) e como CONTEUDO do chip. Sem escapar, um nome
+           com marcacao dentro virava parte da pagina de quem abrisse as Configuracoes - foi a
+           bancada da v378 que pegou, medindo `window.__BOOM` com o Historico ja' limpo. */
+        : `<button title="Remover ${escAttr(v)}" onclick="pedirRemocao('${chave}',${i})">✕</button>`;
+      return `<span class="chip${pendente?" alerta":""}">${escAttr(v)}${botao}</span>`;
     }).join("") || '<span class="nota" style="font-size:.8rem;color:var(--cinza)">Nenhum item — adicione abaixo.</span>';
   });
   const fp = document.getElementById("fretePadrao");
@@ -9791,7 +9799,13 @@ function registrarHistorico(acao, r){
     usuarioNome: nomeUsuario || "",        // nome amigável no momento da ação
     quando: firebase.firestore.FieldValue.serverTimestamp(),
     registroId: r.id || null,
-    resumo: resumoRegistro(r),
+    /* 🔴 v378 - escAttr AQUI TAMBEM. Este e' o SEGUNDO escritor de `historico` (o primeiro e' o
+       `logAtividade`), e o `resumoRegistro` monta o texto com `r.posto` dentro - nome digitado
+       no campo das Configuracoes, que sobe para `config` e desce no aparelho de todo mundo. O
+       Historico desenha o resumo CRU no innerHTML, entao quem nao escapa aqui deixa marcacao
+       virar parte da pagina de quem abrir a tela. 👉 Nao ha escape duplo: `resumoRegistro` le os
+       campos do lancamento, e nenhuma colecao deste app guarda texto ja' escapado. */
+    resumo: escAttr(resumoRegistro(r)),
     dados: (() => { const { ...d } = r; return d; })()   // snapshot para poder restaurar
   };
   colHistorico.add(item).catch(()=>{});
@@ -10553,7 +10567,10 @@ function montarFiltros(){
     const sel = document.getElementById(id);
     const atual = sel.value || "Todos";
     const valores = [...new Set([...opcoesDe(chave), ...registros.map(r=>r[chave])])].filter(Boolean);
-    sel.innerHTML = '<option>Todos</option>' + valores.map(v=>`<option${v===atual?" selected":""}>${v}</option>`).join("");
+    /* 🔴 v378 - escAttr no texto da option: o nome do posto e da distribuidora e' digitado por
+       gente e cai aqui dentro. O navegador decodifica a entidade ao montar o no', entao
+       `sel.value` continua devolvendo o nome original e o filtro nao muda. */
+    sel.innerHTML = '<option>Todos</option>' + valores.map(v=>`<option${v===atual?" selected":""}>${escAttr(v)}</option>`).join("");
   });
 }
 
@@ -10571,7 +10588,8 @@ function filtrar(r){
 function selectHTML(chave, valorAtual, idx){
   const valores = [...new Set([...opcoesDe(chave), valorAtual])].filter(Boolean);
   return `<select onchange="atualizar(${idx},'${chave}',this.value)">` +
-    valores.map(v=>`<option${v===valorAtual?" selected":""}>${v}</option>`).join("") + "</select>";
+    /* 🔴 v378 - mesmo motivo do montarFiltros: este e' o select de CADA LINHA da tabela. */
+    valores.map(v=>`<option${v===valorAtual?" selected":""}>${escAttr(v)}</option>`).join("") + "</select>";
 }
 
 function render(){
@@ -21445,7 +21463,7 @@ function pndConfirmarConcluir(id){
   }, { merge:true })
   .then(() => {
     delete pndTxtTmp[id]; pndConcluindo = ""; pndMsg = "";
-    logAtividade({ acao:"concluiu", area:"Pendências", resumo:"Concluiu a pendência: " + (p.titulo || "") });
+    logAtividade({ acao:"concluiu", area:"Pendências", resumo: escAttr("Concluiu a pendência: " + (p.titulo || ""))});
   })
   .catch(e => { pndMsg = "Não consegui marcar como concluída. " + msgErro(e); renderPendencias(); });
 }
@@ -21940,7 +21958,7 @@ function padmConfirmarResolver(id){
   }, { merge:true })
   .then(() => {
     delete padmTxtTmp[id]; padmResolvendo = ""; padmMsg = "";
-    logAtividade({ acao:"concluiu", area:"Pendências Administrativas", resumo:"Resolveu: " + (p.titulo || "") });
+    logAtividade({ acao:"concluiu", area:"Pendências Administrativas", resumo: escAttr("Resolveu: " + (p.titulo || ""))});
   })
   .catch(e => { padmMsg = "Não consegui marcar como resolvida. " + msgErro(e); padmRender(); });
 }
@@ -22031,7 +22049,7 @@ function padmCriar(){
     if (so){ so.checked = false; padmAlternarPessoas(); }
     avisoAdmin("msgPadmNova", "Pendência aberta para " + padmNomeUnidade(un) + ".", "ok");
     logAtividade({ acao:"enviou", area:"Pendências Administrativas",
-                   resumo:"Abriu: " + t + " (" + padmCurtoUnidade(un) + ")" });
+                   resumo: escAttr("Abriu: " + t + " (" + padmCurtoUnidade(un) + ")")});
   }).catch(e => avisoAdmin("msgPadmNova", msgErro(e), "erro"));
 }
 
@@ -22625,7 +22643,7 @@ function setAvisoRecebPosto(email, unidade, on){
   docAvisoReceb.set({ porPosto: pp, atualizadoEm: new Date().toISOString(),
                       por: usuarioAtual || "" }, {merge:true})
     .then(() => logAtividade({ acao:"editar", area:"Aviso de recebimento",
-      resumo:(on ? "incluiu " : "tirou ") + email + " em " + unidade,
+      resumo: escAttr((on ? "incluiu " : "tirou ") + email + " em " + unidade),
       colecao:"config", docId:"avisoRecebimento" }))
     .catch(() => { arMsg = "Não consegui salvar agora."; renderAvisoReceb(); });
   const cx = document.getElementById("msgAvisoReceb"); if (cx) cx.textContent = arMsg;
@@ -22643,7 +22661,7 @@ function setAvisoRecebTambem(email, on){
   docAvisoReceb.set({ tambem: tb, atualizadoEm: new Date().toISOString(),
                       por: usuarioAtual || "" }, {merge:true})
     .then(() => logAtividade({ acao:"editar", area:"Aviso de recebimento",
-      resumo:(on ? "incluiu " : "tirou ") + email + " no aviso geral",
+      resumo: escAttr((on ? "incluiu " : "tirou ") + email + " no aviso geral"),
       colecao:"config", docId:"avisoRecebimento" }))
     .catch(() => { arMsg = "Não consegui salvar agora."; renderAvisoReceb(); });
   const cx = document.getElementById("msgAvisoReceb"); if (cx) cx.textContent = arMsg;
@@ -25444,7 +25462,10 @@ function renderCotacoes(){
     const precos = d.precos || {};
     const temPreco = Object.keys(precos).length > 0;
     html += '<div class="comp-dist-card"><div class="comp-dist-head">' +
-      '<span class="cot-dist-nome">'+nome+'</span>';
+      /* 🔴 v378 - escAttr: `nome` vem de opcoesDe("distribuidora"), que e' digitado por gente
+         nas Configuracoes. Achado por revisor envenenando as duas listas e chamando 187 funcoes
+         de desenho: o posto deu zero, a distribuidora disparou AQUI. */
+      '<span class="cot-dist-nome">'+escAttr(nome)+'</span>';
     // v323 - dizer O DIA no selo: "sem cotação" sozinho nao distinguia vazio de desatualizado
     html += '<span class="cot-selo '+(temPreco?'hoje':'vazia')+'">'+
       (temPreco?'✓ lançada':(ehHoje?'sem cotação hoje':'sem cotação'))+'</span>';
@@ -26687,12 +26708,12 @@ function salvarEventoCal(){
     const antes = (eventos||[]).find(x => x.id === editandoEvento) || null;
     const alvo = editandoEvento;
     colEventos.doc(alvo).set(dados, { merge:true })
-      .then(()=> logAtividade({acao:"editou", area:"Calendário", resumo: titulo+" ("+fmtDataCurta(data)+")", colecao:"eventos", docId:alvo, tipoUndo:"editar", antes: antes}))
+      .then(()=> logAtividade({acao:"editou", area:"Calendário", resumo: escAttr(titulo+" ("+fmtDataCurta(data)+")"), colecao:"eventos", docId:alvo, tipoUndo:"editar", antes: antes}))
       .catch(er => avisoCal(msgErro(er), "erro"));
   } else {
     dados.criadoEm = Date.now(); dados.criadoPor = usuarioAtual||"";
     colEventos.add(dados)
-      .then(ref => logAtividade({acao:"criou", area:"Calendário", resumo: titulo+" ("+fmtDataCurta(data)+")", colecao:"eventos", docId: ref.id, tipoUndo:"criar"}))
+      .then(ref => logAtividade({acao:"criou", area:"Calendário", resumo: escAttr(titulo+" ("+fmtDataCurta(data)+")"), colecao:"eventos", docId: ref.id, tipoUndo:"criar"}))
       .catch(er => avisoCal(msgErro(er), "erro"));
   }
   calFormAberto = false; editandoEvento = null;
@@ -26704,7 +26725,7 @@ function excluirEventoCal(id){
     clearTimeout(timerExclEvento); confirmarExclEvento = null;
     const antes = (eventos||[]).find(x => x.id === id) || null;
     colEventos.doc(id).delete()
-      .then(()=> logAtividade({acao:"excluiu", area:"Calendário", resumo:(antes&&antes.titulo)||"evento", colecao:"eventos", docId:id, tipoUndo:"excluir", antes: antes}))
+      .then(()=> logAtividade({acao:"excluiu", area:"Calendário", resumo: escAttr((antes&&antes.titulo)||"evento"), colecao:"eventos", docId:id, tipoUndo:"excluir", antes: antes}))
       .catch(()=>{});
     renderCalendario(); return;
   }
@@ -26902,7 +26923,7 @@ function salvarDoc(){
       vencimento: venc, avisarDias: avDias, numero: (docForm.numero||"").trim(), obs: (docForm.obs||"").trim(),
       atualizadoEm: Date.now(), atualizadoPor: usuarioAtual||"" };
     colArquivos.doc(alvoA).set(dadosA, { merge:true })
-      .then(()=> logAtividade({acao:"editou", area:"Documentos", resumo: resumoTxt, colecao:"arquivos", docId:alvoA, tipoUndo:"editar", antes: antesA}))
+      .then(()=> logAtividade({acao:"editou", area:"Documentos", resumo: escAttr(resumoTxt), colecao:"arquivos", docId:alvoA, tipoUndo:"editar", antes: antesA}))
       .catch(er => avisoDoc(msgErro(er), "erro"));
     docFormAberto = false; editandoDoc = null; renderVencimentos(); return;
   }
@@ -26918,12 +26939,12 @@ function salvarDoc(){
     if (editandoDoc){
       const alvo = editandoDoc;
       refDoc.set(dados, { merge:true })
-        .then(()=> logAtividade({acao:"editou", area:"Documentos", resumo: resumoTxt, colecao:"documentos", docId:alvo, tipoUndo:"editar", antes: antesDoc}))
+        .then(()=> logAtividade({acao:"editou", area:"Documentos", resumo: escAttr(resumoTxt), colecao:"documentos", docId:alvo, tipoUndo:"editar", antes: antesDoc}))
         .catch(er => avisoDoc(msgErro(er), "erro"));
     } else {
       dados.criadoEm = Date.now(); dados.criadoPor = usuarioAtual||"";
       refDoc.set(dados)
-        .then(()=> logAtividade({acao:"criou", area:"Documentos", resumo: resumoTxt, colecao:"documentos", docId: refDoc.id, tipoUndo:"criar"}))
+        .then(()=> logAtividade({acao:"criou", area:"Documentos", resumo: escAttr(resumoTxt), colecao:"documentos", docId: refDoc.id, tipoUndo:"criar"}))
         .catch(er => avisoDoc(msgErro(er), "erro"));
     }
     docFormAberto = false; editandoDoc = null; docArqPend = null; renderVencimentos();
@@ -26949,7 +26970,7 @@ function excluirDoc(id){
     const antes = (documentos||[]).find(x => x.id === id) || null;
     if (antes && antes.anexoPath) apagarArquivoStorage(antes.anexoPath);
     colDocumentos.doc(id).delete()
-      .then(()=> logAtividade({acao:"excluiu", area:"Documentos", resumo:(antes&&antes.titulo)||"documento", colecao:"documentos", docId:id, tipoUndo:"excluir", antes: antes}))
+      .then(()=> logAtividade({acao:"excluiu", area:"Documentos", resumo: escAttr((antes&&antes.titulo)||"documento"), colecao:"documentos", docId:id, tipoUndo:"excluir", antes: antes}))
       .catch(()=>{});
     renderVencimentos(); return;
   }
@@ -27198,7 +27219,7 @@ function anexarDocArquivo(id, input){
   if (prog) prog.textContent = " enviando\u2026 0%";
   subirArquivo(file, "documentos/"+id, p => { if (prog) prog.textContent = " enviando\u2026 "+p+"%"; })
     .then(info => colDocumentos.doc(id).set({ anexoUrl: info.url, anexoPath: info.path, anexoNome: info.nome, anexoTamanho: info.tamanho }, { merge:true })
-      .then(()=> logAtividade({acao:"anexou", area:"Vencimentos", resumo: info.nome, colecao:"documentos", docId:id })))
+      .then(()=> logAtividade({acao:"anexou", area:"Vencimentos", resumo: escAttr(info.nome), colecao:"documentos", docId:id })))
     .catch(err => { if (prog){ prog.textContent = " erro: " + (err && err.message ? err.message : "não foi possível enviar"); } });
   try { input.value = ""; } catch(e){}
 }
@@ -27225,7 +27246,7 @@ function excluirArquivo(id){
     clearTimeout(timerExclArq); confirmarExclArq = null;
     const a = (arquivos||[]).find(x => x.id === id) || null;
     Promise.resolve(a && a.path ? apagarArquivoStorage(a.path) : null).then(()=>
-      colArquivos.doc(id).delete().then(()=> logAtividade({acao:"excluiu", area:"Documentos", resumo:(a&&a.nome)||"arquivo", colecao:"arquivos", docId:id })).catch(()=>{})
+      colArquivos.doc(id).delete().then(()=> logAtividade({acao:"excluiu", area:"Documentos", resumo: escAttr((a&&a.nome)||"arquivo"), colecao:"arquivos", docId:id })).catch(()=>{})
     );
     renderVencimentos(); return;
   }
@@ -29518,7 +29539,9 @@ function renderCompCot(){
     '<div class="comp-fretes">';
   dists.forEach(nome => {
     const v = compCot.fretes[nome];
-    html += '<div class="comp-frete-row"><span>'+nome+'</span>' +
+    /* 🔴 v378 - escAttr, mesmo motivo do cot-dist-nome: `nome` sai de distsComp() ->
+       opcoesDe("distribuidora"). */
+    html += '<div class="comp-frete-row"><span>'+escAttr(nome)+'</span>' +
       '<input type="text" inputmode="decimal" value="'+((v!==undefined&&v!==null)?fmtPrecoComp(v):'')+'" ' +
       'placeholder="'+padraoTxt+' (padrão)" oninput="setFreteCompCot(\''+escAspas(nome)+'\', this.value)"></div>';
   });
