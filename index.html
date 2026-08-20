@@ -3,6 +3,64 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- v381 - 20/08/2026 - DEFESA CONTRA ENQUADRAMENTO (clickjacking), feita DENTRO da pagina.
+     O GitHub Pages nao serve cabecalho HTTP personalizado - nao e' limitacao de plano, e' da
+     arquitetura: nao existe _headers nem .htaccess. Entao X-Frame-Options nao tem como existir
+     aqui. Medido em 20/08 no site no ar: nenhum dos cinco cabecalhos de seguranca presente.
+
+     COMO FUNCIONA: a pagina nasce ESCONDIDA por CSS e o script logo abaixo so' apaga o estilo
+     se NAO houver quadro em volta. Enquadrada, ela continua escondida - e o golpe precisa que o
+     conteudo apareca. E' mais forte que o truque antigo `top.location = self.location`, que um
+     quadro com `sandbox` sem `allow-top-navigation` neutraliza.
+
+     🔴 FALHA FECHADA, DE PROPOSITO: qualquer erro aqui deixa a pagina invisivel para TODO MUNDO.
+     Por isso o script nao depende de NADA - sincrono, no head, sem biblioteca, sem esperar DOM.
+     Com JavaScript desligado a pagina nao aparece; o app inteiro e' JavaScript e ja' nao
+     funcionaria assim mesmo. 🔑 Nao ponha um <noscript> revelando a pagina "por seguranca":
+     um iframe sandbox SEM allow-scripts desliga o JavaScript e o <noscript> reabriria o buraco.
+
+     👉 A prova dos DOIS lados esta' em bancada/v381-quadro-tela.mjs. Provar so' um lado nao vale:
+     "esconde dentro do quadro" sem "aparece fora dele" e' uma pagina em branco com boa desculpa. -->
+<style id="guardaQuadro">html{display:none !important}</style>
+<script>
+/* Fora de quadro (self === top): apaga o estilo e a pagina aparece. Dentro: nao mexe.
+   O catch NAO revela - se ate' isto falhou, o lado seguro e' continuar escondido. */
+(function(){ try{ if (window.self === window.top){ var g = document.getElementById("guardaQuadro"); if (g && g.parentNode) g.parentNode.removeChild(g); } }catch(e){} })();
+</script>
+
+<!-- v381 - substituem, dentro da pagina, dois dos cabecalhos que o GitHub Pages nao serve.
+     referrer=strict-origin-when-cross-origin -> faz as vezes de Referrer-Policy. Manda so' a
+       ORIGEM para fora (https://postosfull.github.io/), nunca o caminho.
+       📏 MEDIDO (bancada/v381-referrer-medir.mjs, pagina servida num caminho fundo para o
+       vazamento aparecer): a v381 manda so' a origem — E A v380, SEM ETIQUETA NENHUMA, MANDAVA
+       A MESMA COISA, porque esse ja' e' o padrao dos navegadores modernos. 🔑 Ou seja: a
+       etiqueta NAO muda o comportamento, ela o FIXA, para nao depender do padrao continuar.
+       Escrito assim de proposito: chamar isto de 'protecao nova' seria mentira tranquilizadora.
+       🔴 POR QUE NAO `no-referrer`, que esconde mais: porque ele desligaria o cabecalho
+       `Referer`, e e' esse cabecalho que uma restricao por REFERENCIADOR na chave de API
+       conferiria. Medido em 20/08 por revisor: uma COPIA deste index.html servida em outra
+       origem sobe inteira e fala com o Firebase — e como a regra deixa qualquer logado ler
+       tudo, a copia le o banco inteiro se alguem entrar nela. A restricao por referenciador
+       e' o degrau contra isso, e `no-referrer` a tornaria impossivel.
+       👉 O que se perde escondendo menos: quase nada — o app e' UMA pagina em `/`, e os
+       destinos ja' recebem a origem pelo cabecalho `Origin`.
+       ⚠️ E o degrau nao e' muralha: quem passar as chamadas por servidor proprio escolhe o
+       `Referer` que quiser.
+       📏 MEDIDO em 20/08 com curl: a chave NAO tem restricao por referenciador hoje (sem
+       Referer devolve 200, e com Referer de outro site tambem). Ela so' e' restrita por API.
+       👉 COM ESTA ETIQUETA, LIGAR a restricao por referenciador CONTINUA POSSIVEL — foi por
+       isso que ela nao e' `no-referrer`. Se um dia for ligada, a lista tem de conter o
+       endereco do app (e o dominio proprio, quando existir), e a conferencia e' ENTRAR NO APP
+       depois de ligar: erro de chave nao aparece em teste de texto.
+     robots=noindex,nofollow -> faz as vezes de X-Robots-Tag, para os buscadores que se comportam.
+       ⚠️ NAO MEDIDO: se a previa do link no WhatsApp/Telegram sobrevive ao noindex. As etiquetas
+       og: continuam intactas logo abaixo, e o robo do WhatsApp le og:; mas isso e' o que se
+       espera, nao o que se mediu, e desdobrador de Slack/Discord/LinkedIn nao se comporta
+       igual. 👉 Medida barata: depois de publicar, colar o link uma vez em cada e olhar.
+       Se a previa sumir, quem sai e' o noindex. -->
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="robots" content="noindex, nofollow">
 <title>Postos Full</title>
 <meta name="description" content="App de gestão do grupo Full.">
 <!-- v204 - etiquetas de compartilhamento: sao elas que o WhatsApp, o Telegram, o
@@ -8220,6 +8278,12 @@ function persistirListas(){
    E o selo "Voce esta usando a vNNN" sai do proprio NOVIDADES_APP[0].v.
    Tipos: n = novidade, m = melhoria, c = correcao. */
 const NOVIDADES_APP = [
+  {v:"v381", data:"20/08/2026", tit:"🛡️ O app não se mostra mais <b>dentro de outro site</b>", itens:[
+    {t:"n", h:"O app não se mostra mais <b>dentro de outro site</b>", d:"Existe um golpe conhecido em que alguém monta uma página isca, carrega <b>o app de verdade</b> dentro dela num quadro invisível, e a pessoa clica achando que está clicando em outra coisa — digitando a senha na tela certa, dentro da moldura errada. Até a v380 o app <b>não tinha defesa nenhuma</b>: medido, <b>zero</b> linha de proteção. Agora a página <b>nasce escondida</b> e só se revela depois de conferir que não há quadro em volta. 🔑 É mais forte que o jeito antigo (<b>pular para fora</b> do quadro), porque um quadro em <b>modo restrito</b> neutraliza o pulo — mas não faz aparecer o que nasceu escondido. 📏 <b>Medido em Chromium</b>, e nas duas pontas: na v380, dentro do quadro, o campo de senha aparecia com <b>324 × 41 pixels</b> e <b>aceitava a senha digitada</b>; na v381, no mesmo ponto, ele não recebe nem o clique."},
+    {t:"m", h:"Dito com precisão: ele <b>continua carregando</b> dentro do quadro — só não aparece", d:"Vale a exatidão, porque a frase fácil seria mentira. Medido dentro do quadro: o app <b>carrega inteiro</b> — a conexão com a nuvem sobe, o trabalhador de fundo se registra, há <b>15 pedidos de rede</b>. O que não acontece é ele <b>ser pintado</b>, e o clique não chegar a nada. 🔑 Está escrito assim de propósito: <b>a tela dizer uma coisa e o código fazer outra é o pior defeito deste app</b>, e ele quase sempre pende para o lado que tranquiliza. Este texto passou por <b>dois revisores independentes</b>, e foi um deles que derrubou a frase anterior."},
+    {t:"m", h:"Por que o conserto é <b>dentro da página</b>, e não no servidor", d:"O jeito normal de barrar enquadramento é um <b>cabeçalho</b> que o servidor manda junto com a página. O <b>GitHub Pages</b>, onde o app mora, <b>não serve cabeçalho personalizado</b> — não é questão de plano pago, é da arquitetura dele. (Ele serve os próprios, como o que obriga conexão segura; o que não dá é acrescentar os nossos.) Medido em <b>20/08</b> no endereço no ar: <b>nenhum</b> dos cinco cabeçalhos de segurança aparece. Então o conserto foi feito onde dá: dentro do próprio arquivo. Entrou junto uma etiqueta que <b>fixa</b> o app para <b>contar só o endereço</b> de onde a pessoa veio — 🔑 <b>e aqui cabe a honestidade</b>: medido em <b>20/08</b>, a v380 <b>já se comportava assim</b>, porque é o padrão dos navegadores de hoje; a etiqueta não muda o comportamento, ela <b>deixa de depender</b> de o navegador manter esse padrão. E outra que <b>tira o endereço do app dos buscadores</b> — 🔑 <b>o endereço, não o código</b>: o repositório é público e o código continua legível no GitHub por quem procurar."},
+    {t:"m", h:"O que <b>continua faltando</b> — são <b>três</b>, e a conta está aberta", d:"Dos cinco cabeçalhos, um foi resolvido dentro da página e <b>três continuam sem substituto</b>: o que <b>declara de onde a página pode carregar código</b> (o mais importante dos três, e por isso está sendo nomeado em vez de sumir da conta), o que impede o navegador de <b>adivinhar o tipo</b> de um arquivo, e o que <b>desliga câmera, microfone e localização</b>. 🔑 <b>A versão anterior deste texto dizia &quot;dois&quot;</b>, e o que tinha sumido da conta era justamente o maior — achado de revisor. Nenhum dos três é grave aqui, mas <b>faltar é faltar</b>, e só chegam com endereço próprio e um intermediário na frente (~R$40 por ano). 🔴 <b>E fica dito o preço desta versão:</b> se o script do guarda falhar, a página fica <b>invisível para todo mundo</b> — por isso ele é a coisa mais simples do arquivo, roda antes de tudo e não depende de nada. A conferência teve de provar <b>os dois lados</b>, e provar que enxergaria o apagão."}
+  ]},
   {v:"v380", data:"20/08/2026", tit:"🧹 O último pedaço do cano fechado — e uma armadilha que só apareceu ao chegar nela", itens:[
     {t:"m", h:"Você provavelmente <b>não vai notar diferença nenhuma</b> — e isso é de propósito", d:"A <b>v379</b> fechou 139 lugares onde texto com aspa quebrava botão, e deixou <b>53</b> de fora dizendo que todos carregavam <b>identificador da máquina</b> ou <b>chave interna</b>, onde texto de gente não entra. Aquela conferência foi feita <b>pelo nome</b> de cada um, não testada. Agora foi testada, e estava certa: em nenhum dos 53 entra texto digitado. 🔑 <b>Mesmo assim eles foram fechados</b>, porque a proteção é <b>idêntica</b> quando o valor é uma chave como <b>cli_m5x2k1a_q7bz</b> — não muda nada — e <b>salva</b> se a conferência tivesse errado. Custa zero acertando e evita o pior errando; então não depende mais de ninguém ter olhado direito."},
     {t:"c", h:"Existia um <b>terceiro jeito</b> de montar botão que nenhuma conferência enxergava", d:"As varreduras procuravam dois formatos, e havia um terceiro — usado nos <b>chips das Configurações</b>. Não havia defeito ali: o que passa por ele hoje é palavra fixa do próprio programa. (Havia um terceiro lugar com esse mesmo formato, o seletor de linha da tabela antiga — 🔑 <b>mas essa tabela saiu da tela na v288 e o código nunca mais roda</b>. Foi fechado junto, e fica dito que é código morto em vez de ser contado como conserto.) 🔴 <b>Mas a conferência daria o mesmo &quot;está tudo certo&quot; se amanhã alguém pusesse um nome de gente nesse caminho</b> — e conferência que não enxerga um caminho inteiro é pior do que não ter conferência, porque dá sossego falso. Fechado."},
