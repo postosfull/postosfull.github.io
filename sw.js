@@ -4,8 +4,8 @@
    o `git diff origin/main` esta vazio, e em /actions nao existe run com o sha do commit novo.
    Conserto: um commit qualquer. Ver claude/publicacao-github-e-conflitos.md. */
 // Service worker — cache para funcionamento offline
-const CACHE = "postos-full-v381";
-const ARQUIVOS = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png", "./logo-full.png", "./logo-transportadora.png", "./logo-conveniencia.png", "./mr-full-joinha.png", "./favicon.ico", "./favicon-32.png", "./apple-touch-icon.png", "./svg2pdf.umd.min.js"];
+const CACHE = "postos-full-v382";
+const ARQUIVOS = ["./", "./manifest.json", "./icon-192.png", "./icon-512.png", "./logo-full.png", "./logo-transportadora.png", "./logo-conveniencia.png", "./mr-full-joinha.png", "./favicon.ico", "./favicon-32.png", "./apple-touch-icon.png", "./svg2pdf.umd.min.js"];
 
 self.addEventListener("install", e => {
   // v219 - "reload" obriga a buscar na REDE. Com o addAll de antes, o navegador podia
@@ -47,6 +47,14 @@ self.addEventListener("fetch", e => {
   e.respondWith(
     fetch(pedido)
       .then(resp => {
+        // v382 - o Cloudflare Pages redireciona /index.html para / com 308. O fetch
+        // acima SEGUE o redirecionamento e volta com redirected:true, e devolver isso
+        // num respondWith() de NAVEGACAO e' erro de rede no Chrome (a pessoa ve tela de
+        // erro, nao o app). Reembalar tira a marca mantendo corpo e cabecalhos.
+        // Medido em 21/08/2026: redefull.pages.dev/index.html -> 308; o GitHub nao fazia.
+        if (resp && resp.redirected && e.request.mode === "navigate"){
+          resp = new Response(resp.body, { status: 200, statusText: "OK", headers: resp.headers });
+        }
         // v219 - so guardar resposta BOA. Antes, um 404 ou um erro do servidor entrava
         // no cache e voltava depois como se fosse o app.
         if (resp && resp.ok && resp.type === "basic"){
@@ -55,6 +63,6 @@ self.addEventListener("fetch", e => {
         }
         return resp;
       })
-      .catch(() => caches.match(e.request).then(r => r || caches.match("./index.html")))
+      .catch(() => caches.match(e.request).then(r => r || caches.match("./")))
   );
 });
