@@ -1,0 +1,50 @@
+# =============================================================================
+# _headers - os cabecalhos que o GitHub Pages NAO consegue servir
+# Escrito em 21/08/2026, na migracao para o Cloudflare Pages.
+#
+# O QUE FOI MEDIDO ANTES DE ESCREVER (nada aqui e' suposto):
+#
+#  - Um projeto Pages PELADO (demo.pages.dev) devolve so "Server: cloudflare" e
+#    "Cache-Control". Um revisor afirmou que nosniff e Referrer-Policy ja vinham
+#    de graca e mandou APAGAR as duas linhas; a medicao derrubou isso. Os sites
+#    da propria Cloudflare tem esses cabecalhos porque tem _headers deles.
+#    Por isso as duas linhas ficam. Conferir em site alheio nao vale: o que
+#    responde e' um projeto sem _headers.
+#
+#  - O GitHub Pages serve o app com "Access-Control-Allow-Origin: *" (medido em
+#    postosfull.github.io/index.html). Ou seja: qualquer site do mundo busca o
+#    index.html inteiro por fetch. Fechar o repositorio nao esconde nada disso.
+#    A ultima linha e' o primeiro lugar onde da' para tirar esse "*".
+#
+#  - Referrer-Policy e' "strict-origin-when-cross-origin" e NAO "no-referrer",
+#    porque a v381 escolheu assim de proposito (index.html L62) e no-referrer
+#    fecharia para sempre a porta da restricao por referenciador na chave do
+#    Firebase. Cabecalho e etiqueta dizem a MESMA coisa - se um dia mudar um,
+#    mudar os dois, senao o curl mostra uma coisa e o navegador faz outra.
+#
+#  - frame-ancestors 'none' (e nao 'self'): o UNICO iframe do app (L32633) e'
+#    about:blank escrito por document.write para imprimir painel. Ele nao carrega
+#    nada da rede, entao frame-ancestors nao o alcanca e a impressao nao quebra.
+#
+#  - O guarda anti-enquadramento da v381 FICA no index.html. Ele nao e'
+#    alternativa a estes cabecalhos, e' outra camada: o cabecalho protege a
+#    ORIGEM, o guarda viaja junto com o ARQUIVO - para o servidor local, para o
+#    repositorio-lapide, e para qualquer copia que alguem sirva noutro lugar.
+#
+# ATENCAO - LINHA COM SINTAXE ERRADA E' IGNORADA SEM FALHAR O BUILD. O deploy
+# sai verde e o cabecalho simplesmente nao existe. Depois de mexer aqui, a
+# conferencia nao e' olhar: e' rodar a prova que conta os cabecalhos no ar.
+#
+# Limites (doc oficial, lida em 21/08/2026): 100 regras por arquivo, 2000
+# caracteres por linha. O arquivo mora na raiz da saida da build - aqui, a raiz
+# do repositorio. Ele nao e' servido como arquivo.
+# =============================================================================
+
+/*
+  X-Frame-Options: DENY
+  Content-Security-Policy: frame-ancestors 'none'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  X-Robots-Tag: noindex, nofollow
+  ! Access-Control-Allow-Origin
